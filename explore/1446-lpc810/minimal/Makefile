@@ -11,7 +11,7 @@ LD = $(TRGT)gcc
 CP = $(TRGT)objcopy
 
 # compiler and linker settings
-CFLAGS = -mcpu=cortex-m0plus -mthumb -I. -Os
+CFLAGS = -mcpu=cortex-m0plus -mthumb -I. -Os -ggdb
 CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions
 LDFLAGS = -Wl,--script=LPC810.ld -nostartfiles
 
