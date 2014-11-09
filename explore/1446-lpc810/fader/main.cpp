@@ -1,4 +1,5 @@
-// Blink the LED by modulating total current consumption.
+// Periodically fade the LED by modulating total current consumption.
+// See http://jeelabs.org/2014/11/13/getting-started-episode-2/
 
 #include "LPC8xx.h"
 
