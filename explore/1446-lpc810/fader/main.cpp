@@ -12,7 +12,7 @@ static int loop () {
         n = LPC_PMU->GPREG0 = 1;        // back to 1 when limit is exceeded
 
     // idle loop to keep the LED turned on for approx (LIMIT-n) * 100 us
-    for (int count = 0; count < 240 * (LIMIT - n); ++count)
+    for (int count = 0; count < 180 * (LIMIT - n); ++count)
         __ASM("");                      // waste time while drawing current
 
     return n;   // now go to sleep and keep the LED turned off for n * 100 us
