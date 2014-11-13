@@ -14,7 +14,7 @@ int main () {
     SCB->SCR |= 1<<2;                   // enable SLEEPDEEP mode
     LPC_PMU->PCON = 3;                  // enter deep power-down mode
 
-    for (int count = 0; count < 1200000; ++count)
+    for (int count = 0; count < 900000; ++count)
         __ASM("");                      // waste time while drawing current
 
     LPC_WKT->COUNT = 5000;              // 10 KHz / 5000 -> wakeup in 500 ms
