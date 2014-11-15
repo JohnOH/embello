@@ -37,7 +37,7 @@ int main () {
     uint16_t err = 0;
     while (true) {
         // set pin 3 if dac > err, else clear pin 3
-        LPC_GPIO_PORT->MPIN0 = (int) (err - dac) >> 17;
+        LPC_GPIO_PORT->MPIN0 = (err - dac) >> 16;
         err -= dac;
     }
 }
