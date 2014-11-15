@@ -1,6 +1,7 @@
-// Generate a 50 Hz sine wave on PIO0_3.
+// Generate a 50 Hz sine wave on PIO0_3 / pin 3 of the LPC810.
+// Needs a 1 Kohm + 1 uF RC filter to weed out most of the switching noise.
 //
-// The 1-bit DAC synthesis was adapted from some clever code by Jan Ostman,
+// The 1-bit sigma-delta DAC synthesis was adapted from code by Jan Ostman,
 // see http://www.hackster.io/janost/micro-virtual-analog-synthesizer
 
 #include "LPC8xx.h"
@@ -24,18 +25,18 @@ static void mrtInit (int count) {
 }
 
 int main () {
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1<<6) | (1<<18); // enable GPIO and IOCON
+    LPC_SYSCON->SYSAHBCLKCTRL |= 1<<6;  // enable GPIO and IOCON
     LPC_SYSCON->PRESETCTRL |= 1<<10;
-    LPC_SWM->PINENABLE0 |= (1<<2) | (1<<3); // disable SWCLK and SWDIO
+    LPC_SWM->PINENABLE0 |= 1<<2;        // disable SWCLK
     LPC_GPIO_PORT->DIR0 |= 1<<3;
-    LPC_IOCON->PIO0_3 = 1<<7; // no pull-up
 
-    mrtInit(12000000 / (50 << 10)); // 50 Hz with 1024 samples each
+    mrtInit(12000000 / (50 * 1024));    // output 50 Hz of 1024 samples each
 
-    uint16_t err = 0;
+    // use masked pin access to make the following loop as fast as possible
     LPC_GPIO_PORT->MASK0 = ~(1<<3);
+    uint16_t err = 0;
     while (true) {
-        //LPC_GPIO_PORT->MPIN0 = dac >= err ? ~0 : 0;
+        // set pin 3 if dac > err, else clear pin 3
         LPC_GPIO_PORT->MPIN0 = (int) (err - dac) >> 17;
         err -= dac;
     }
