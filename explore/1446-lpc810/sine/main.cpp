@@ -34,11 +34,11 @@ int main () {
 
     // use masked pin access to make the following loop as fast as possible
     LPC_GPIO_PORT->MASK0 = ~(1<<3);
-    uint16_t err = 0;
+    uint32_t err = 0;
     while (true) {
+        err = (uint16_t) err - dac;
         // set pin 3 if dac > err, else clear pin 3
-        LPC_GPIO_PORT->MPIN0 = (err - dac) >> 16;
-        err -= dac;
+        LPC_GPIO_PORT->MPIN0 = err >> 16;
     }
 }
 
