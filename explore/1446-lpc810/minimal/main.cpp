@@ -21,7 +21,7 @@ int main () {
     __WFI();                            // wait for interrupt, powers down
 
     // waking up from deep power-down leads to a full reset, no need to loop
-    while (true) ;                      // yak shaving: 4 bytes less ;)
+    __builtin_unreachable();            // yak shaving: 4 bytes less ;)
 }
 
 extern "C" void WKT_IRQHandler () {

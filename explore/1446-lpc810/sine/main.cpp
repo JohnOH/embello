@@ -45,6 +45,8 @@ int main () {
 }
 
 extern "C" void NMI_Handler () {
+    //LPC_GPIO_PORT->DIR0 &= ~(1<<3);
+
     LPC_MRT->Channel[0].STAT = 1<<0; // clear interrupt
 
     uint8_t off = ++phase;
@@ -57,4 +59,6 @@ extern "C" void NMI_Handler () {
         dac = (1<<15) - ampl;
     else
         dac = (1<<15) + ampl;
+
+    //LPC_GPIO_PORT->DIR0 |= 1<<3;
 }
