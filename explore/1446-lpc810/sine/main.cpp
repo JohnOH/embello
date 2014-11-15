@@ -1,7 +1,7 @@
 // Generate a 50 Hz sine wave on PIO0_3 / pin 3 of the LPC810.
 // See http://jeelabs.org/2014/11/19/getting-started-episode-3/
 //
-// Needs a 1 KOhm + 1 uF RC filter to weed out most of the switching noise.
+// Needs a 1 KOhm + 1 uF RC filter to weed out a lot of the switching noise.
 //
 // The 1-bit sigma-delta DAC synthesis was adapted from code by Jan Ostman,
 // see http://www.hackster.io/janost/micro-virtual-analog-synthesizer
@@ -31,7 +31,6 @@ static void setMaxSpeed () {
     while (!(LPC_SYSCON->MAINCLKUEN & 0x1)) ;       // wait until updated
 
     LPC_SYSCON->SYSAHBCLKDIV = SYSAHBCLKDIV_Val;
-
 }
 
 static void mrtInit (int count) {
