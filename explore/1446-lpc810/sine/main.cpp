@@ -9,8 +9,8 @@
 #include "LPC8xx.h"
 #include "sine.h"
 
-int32_t phase;
-uint32_t err;
+int phase;  // signal phase: bits 0..7 are step, bits 8..9 are quadrant
+int err;    // accumulator for 1-bit DAC error
 
 int main () {
     LPC_SWM->PINENABLE0 |= 1<<2;        // disable SWCLK
@@ -26,16 +26,18 @@ int main () {
 }
 
 extern "C" void SysTick_Handler () {
-    uint8_t off = ++phase;
+    // about 20 us have passed, time to generate the next step
+    uint8_t step = ++phase;
     // inverted offset in 2nd and 4th quadrant
     if (phase & (1<<8))
-        off = ~off; // 0..255 -> 255..0
+        step = ~step; // 0..255 -> 255..0
     // look up the sine value, table only has data for first quadrant
-    int ampl = sineTable[off];
+    int ampl = sineTable[step];
     // negative amplitude in 3rd and 4th quadrant
-    uint16_t dac = (1<<15) + (phase & (1<<9) ? -ampl : ampl);
+    if (phase & (1<<9))
+        ampl = - ampl;
     // calculate the error, this evens out over time
-    err = (uint16_t) err - dac;
+    err = (uint16_t) err - (1<<15) - ampl;
     // set pin 3 if dac > err, else clear pin 3
     LPC_GPIO_PORT->W0[3] = err >> 16;
 }
