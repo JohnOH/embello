@@ -23,7 +23,7 @@ static void setMaxSpeed () {
     while (!(LPC_SYSCON->SYSPLLCLKUEN & 0x1)) ;     // wait until updated
 
     LPC_SYSCON->SYSPLLCTRL = SYSPLLCTRL_Val;        // main clock is PLL out
-    LPC_SYSCON->PDRUNCFG &= ~(0x1<<7);              // power-up SYSPLL
+    LPC_SYSCON->PDRUNCFG &= ~(1<<7);                // power-up SYSPLL
     while (!(LPC_SYSCON->SYSPLLSTAT & 0x1)) ;       // wait until PLL locked
 
     LPC_SYSCON->MAINCLKSEL = MAINCLKSEL_Val;        // select PLL clock output
@@ -33,29 +33,16 @@ static void setMaxSpeed () {
     LPC_SYSCON->SYSAHBCLKDIV = SYSAHBCLKDIV_Val;
 }
 
-static void mrtInit (int count) {
-    // enable MRT clock and reset it
-    LPC_SYSCON->SYSAHBCLKCTRL |= 1<<10;
-    LPC_SYSCON->PRESETCTRL |= 1<<7;
-
-    // config for repeated countdown interrupts
-    LPC_MRT->Channel[0].INTVAL = (1<<31) | count;
-    LPC_MRT->Channel[0].CTRL = 1<<0;
-
-    // set up the MRT interrupt as NMI
-    NVIC_DisableIRQ(MRT_IRQn);
-    LPC_SYSCON->NMISRC = (1<<31) | MRT_IRQn;                                       
-}
-
 int main () {
-    setMaxSpeed();
+    setMaxSpeed();                      // set maximum clock speed
+    LPC_SYSCON->IRQLATENCY = 0;         // minimal interrupt delay
 
-    LPC_SYSCON->SYSAHBCLKCTRL |= 1<<6;  // enable GPIO and IOCON
-    LPC_SYSCON->PRESETCTRL |= 1<<10;
+    LPC_SYSCON->SYSAHBCLKCTRL |= 1<<6;  // enable GPIO
+    LPC_SYSCON->PRESETCTRL |= 1<<10;    // reset GPIO block
     LPC_SWM->PINENABLE0 |= 1<<2;        // disable SWCLK
-    LPC_GPIO_PORT->DIR0 |= 1<<3;
+    LPC_GPIO_PORT->DIR0 |= 1<<3;        // set pin 3 as output
 
-    mrtInit(30000000 / (50 * 1024));    // output 50 Hz of 1024 samples each
+    SysTick_Config (30000000 / (50 * 1024)); // out 50 Hz of 1024 samples each
 
     // use masked pin access to make the following loop as fast as possible
     LPC_GPIO_PORT->MASK0 = ~(1<<3);
@@ -67,9 +54,7 @@ int main () {
     }
 }
 
-extern "C" void NMI_Handler () {
-    LPC_MRT->Channel[0].STAT = 1<<0; // clear interrupt
-
+extern "C" void SysTick_Handler () {
     uint8_t off = ++phase;
     // inverted offset in 2nd and 4th quadrant
     if (phase & (1<<8))
