@@ -17,41 +17,19 @@ volatile int32_t dac;
 #define MAINCLKSEL_Val      3
 #define SYSAHBCLKDIV_Val    2
 
-static void setMaxSpeed () {
-    LPC_SYSCON->SYSPLLCLKSEL = SYSPLLCLKSEL_Val;    // select PLL input
-    LPC_SYSCON->SYSPLLCLKUEN = 0x01;                // update clock source
-    while (!(LPC_SYSCON->SYSPLLCLKUEN & 0x1)) ;     // wait until updated
-
-    LPC_SYSCON->SYSPLLCTRL = SYSPLLCTRL_Val;        // main clock is PLL out
-    LPC_SYSCON->PDRUNCFG &= ~(1<<7);                // power-up SYSPLL
-    while (!(LPC_SYSCON->SYSPLLSTAT & 0x1)) ;       // wait until PLL locked
-
-    LPC_SYSCON->MAINCLKSEL = MAINCLKSEL_Val;        // select PLL clock output
-    LPC_SYSCON->MAINCLKUEN = 0x01;                  // update MCLK clock source
-    while (!(LPC_SYSCON->MAINCLKUEN & 0x1)) ;       // wait until updated
-
-    LPC_SYSCON->SYSAHBCLKDIV = SYSAHBCLKDIV_Val;
-}
+uint32_t err;
 
 int main () {
-    setMaxSpeed();                      // set maximum clock speed
-    LPC_SYSCON->IRQLATENCY = 0;         // minimal interrupt delay
-
+    LPC_SWM->PINENABLE0 |= 1<<2;        // disable SWCLK
     LPC_SYSCON->SYSAHBCLKCTRL |= 1<<6;  // enable GPIO
     LPC_SYSCON->PRESETCTRL |= 1<<10;    // reset GPIO block
-    LPC_SWM->PINENABLE0 |= 1<<2;        // disable SWCLK
     LPC_GPIO_PORT->DIR0 |= 1<<3;        // set pin 3 as output
 
-    SysTick_Config (30000000 / (50 * 1024)); // out 50 Hz of 1024 samples each
+    SysTick_Config(12000000/(50*1024)); // output 50 Hz of 1024 samples each
 
-    // use masked pin access to make the following loop as fast as possible
-    LPC_GPIO_PORT->MASK0 = ~(1<<3);
-    uint32_t err = 0;
-    while (true) {
-        err = (uint16_t) err - dac;
-        // set pin 3 if dac > err, else clear pin 3
-        LPC_GPIO_PORT->MPIN0 = err >> 16;
-    }
+    // everything happens in the interrupt code
+    while (true)
+        __WFI();
 }
 
 extern "C" void SysTick_Handler () {
@@ -61,8 +39,9 @@ extern "C" void SysTick_Handler () {
         off = ~off; // 0..255 -> 255..0
     int ampl = sineTable[off];
     // negative amplitude in 3rd and 4th quadrant
-    if (phase & (1<<9))
-        dac = (1<<15) - ampl;
-    else
-        dac = (1<<15) + ampl;
+    uint16_t dac = (1<<15) + (phase & (1<<9) ? -ampl : ampl);
+    // calculate the error, this evens out over time
+    err = (uint16_t) err - dac;
+    // set pin 3 if dac > err, else clear pin 3
+    LPC_GPIO_PORT->W0[3] = err >> 16;
 }
