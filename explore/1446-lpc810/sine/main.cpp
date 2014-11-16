@@ -1,7 +1,7 @@
 // Generate a 50 Hz sine wave on PIO0_3 / pin 3 of the LPC810.
 // See http://jeelabs.org/2014/11/19/getting-started-episode-3/
 //
-// Needs a 1 KOhm + 1 uF RC filter to weed out a lot of the switching noise.
+// Needs a 1 KOhm + 10 uF RC filter to convert PWM to an analog value.
 //
 // The 1-bit sigma-delta DAC synthesis was adapted from code by Jan Ostman,
 // see http://www.hackster.io/janost/micro-virtual-analog-synthesizer
@@ -10,13 +10,6 @@
 #include "sine.h"
 
 int32_t phase;
-volatile int32_t dac;
-
-#define SYSPLLCTRL_Val      0x24
-#define SYSPLLCLKSEL_Val    0
-#define MAINCLKSEL_Val      3
-#define SYSAHBCLKDIV_Val    2
-
 uint32_t err;
 
 int main () {
@@ -37,6 +30,7 @@ extern "C" void SysTick_Handler () {
     // inverted offset in 2nd and 4th quadrant
     if (phase & (1<<8))
         off = ~off; // 0..255 -> 255..0
+    // look up the sine value, table only has data for first quadrant
     int ampl = sineTable[off];
     // negative amplitude in 3rd and 4th quadrant
     uint16_t dac = (1<<15) + (phase & (1<<9) ? -ampl : ampl);
