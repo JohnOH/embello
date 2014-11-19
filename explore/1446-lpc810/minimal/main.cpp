@@ -22,6 +22,7 @@ int main () {
 
     // waking up from deep power-down leads to a full reset, no need to loop
     while (true) ;                      // yak shaving: 4 bytes less ;)
+    return 0;                           // never reached
 }
 
 extern "C" void WKT_IRQHandler () {
