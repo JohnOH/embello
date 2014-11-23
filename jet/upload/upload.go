@@ -186,20 +186,12 @@ func (c *connection) Program(startAddress int, data []byte) chan int {
 	return r
 }
 
-func check(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
 // fix the checksum to mark code as valid (see UM10398, p.416)
 func fixChecksum(data []byte) {
 	buf := bytes.NewReader(data)
 	values := [7]uint32{}
 	err := binary.Read(buf, binary.LittleEndian, values[:])
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 	var sum uint32
 	for _, v := range values {
 		sum -= v
@@ -209,4 +201,10 @@ func fixChecksum(data []byte) {
 	data[29] = byte(sum >> 8)
 	data[30] = byte(sum >> 16)
 	data[31] = byte(sum >> 24)
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

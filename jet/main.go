@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/jeelabs/embello/jet/cmd"
 	_ "github.com/jeelabs/embello/jet/upload"
-	_ "github.com/jeelabs/embello/jet/wow2"
 )
 
 func main() {
