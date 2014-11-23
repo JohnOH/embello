@@ -5,13 +5,13 @@
 
 int main () {
     LPC_SYSCON->SYSAHBCLKCTRL |= 1<<9;  // SYSCTL_CLOCK_WKT
-    LPC_PMU->DPDCTRL |= (1<<2)|(1<<3);  // LPOSCEN and LPOSCDPDEN
     LPC_WKT->CTRL = 1<<0;               // WKT_CTRL_CLKSEL
 
     NVIC_EnableIRQ(WKT_IRQn);
 
     LPC_SYSCON->STARTERP1 = 1<<15;      // wake up from alarm/wake timer
     SCB->SCR |= 1<<2;                   // enable SLEEPDEEP mode
+    LPC_PMU->DPDCTRL |= (1<<2)|(1<<3);  // LPOSCEN and LPOSCDPDEN
     LPC_PMU->PCON = 3;                  // enter deep power-down mode
 
     for (int count = 0; count < 900000; ++count)

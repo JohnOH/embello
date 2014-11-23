@@ -1,4 +1,5 @@
 // Toggle I/O pins as fast as possible for doing timing measurements.
+// See http://jeelabs.org/2014/11/26/getting-started-final-episode/
 
 #include "LPC8xx.h"
 
