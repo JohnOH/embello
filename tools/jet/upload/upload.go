@@ -17,13 +17,19 @@ import (
 )
 
 var (
-	serialPort = "/dev/ttyUSB0"
-	target     *connection
-	quitChan   = make(chan bool)
+	target   *connection
+	quitChan = make(chan bool)
 )
 
 func init() {
-	cmd.Define("upload", "upload firmware to target system", upload)
+	c := cmd.Define("upload", "upload firmware to target system", upload)
+	c.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "port, p",
+			Value: "/dev/ttyUSB0",
+			Usage: "usb port to connect to",
+		},
+	}
 }
 
 func upload(c *cli.Context) {
@@ -33,6 +39,7 @@ func upload(c *cli.Context) {
 	fwData, err := ioutil.ReadFile(c.Args()[0])
 	check(err)
 
+	serialPort := c.String("port")
 	fmt.Println("Connecting to", serialPort)
 	target = connect(serialPort)
 

@@ -17,14 +17,15 @@ func (a subCmds) Less(i, j int) bool { return a[i].Name < a[j].Name }
 var commands subCmds
 
 // Define a sub-command, the returned object can be adjusted further if needed.
-func Define(name, usage string, action func(*cli.Context)) cli.Command {
+func Define(name, usage string, action func(*cli.Context)) *cli.Command {
 	cmd := cli.Command{
 		Name:   name,
 		Usage:  usage,
 		Action: action,
 	}
+	i := len(commands)
 	commands = append(commands, cmd)
-	return cmd
+	return &commands[i]
 }
 
 // Create a new application, with all the sub-commands previously defined.
