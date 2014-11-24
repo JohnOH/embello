@@ -33,6 +33,7 @@ func NewApp(name, usage, version string) *cli.App {
 	sort.Sort(commands) // sorted names look better in the help output
 
 	app := cli.NewApp()
+	app.EnableBashCompletion = true
 	app.Name = name
 	app.Usage = usage
 	app.Version = version

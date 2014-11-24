@@ -25,9 +25,10 @@ func init() {
 	c := cmd.Define("upload", "upload firmware to target system", upload)
 	c.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "port, p",
-			Value: "/dev/ttyUSB0",
-			Usage: "usb port to connect to",
+			Name:   "port, p",
+			Value:  "/dev/ttyUSB0",
+			Usage:  "usb port to connect to",
+			EnvVar: "JET_USBPORT",
 		},
 	}
 }
