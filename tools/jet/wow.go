@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
-	"github.com/jeelabs/embello/jet/cmd"
+	"github.com/jeelabs/embello/tools/jet/cmd"
 )
 
 func init() {

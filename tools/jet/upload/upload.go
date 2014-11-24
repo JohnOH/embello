@@ -13,7 +13,7 @@ import (
 
 	"github.com/chimera/rs232"
 	"github.com/codegangsta/cli"
-	"github.com/jeelabs/embello/jet/cmd"
+	"github.com/jeelabs/embello/tools/jet/cmd"
 )
 
 var (
