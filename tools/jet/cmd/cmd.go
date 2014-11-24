@@ -2,7 +2,9 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/codegangsta/cli"
+	"os"
 	"sort"
 )
 
@@ -35,4 +37,10 @@ func NewApp(name, usage, version string) *cli.App {
 	app.Version = version
 	app.Commands = commands
 	return app
+}
+
+func Fatalf(f string, args ...interface{}) {
+	fmt.Printf(f, args...)
+	fmt.Print("\n")
+	os.Exit(1)
 }

@@ -28,7 +28,7 @@ func init() {
 
 func upload(c *cli.Context) {
 	if len(c.Args()) != 1 {
-		log.Panicln("upload: which firmware file?")
+		cmd.Fatalf("upload: which firmware file?")
 	}
 	fwData, err := ioutil.ReadFile(c.Args()[0])
 	check(err)
@@ -205,6 +205,6 @@ func fixChecksum(data []byte) {
 
 func check(err error) {
 	if err != nil {
-		panic(err)
+		cmd.Fatalf(err.Error())
 	}
 }
