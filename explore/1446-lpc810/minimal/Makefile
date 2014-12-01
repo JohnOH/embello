@@ -1,4 +1,4 @@
-# Minimal gcc makefile for LPC810
+# Minimal gcc makefile for LPC810 with serial output and printf
 
 # default Linux USB device name for upload
 TTY = /dev/ttyUSB*
@@ -11,16 +11,21 @@ LD = $(TRGT)gcc
 CP = $(TRGT)objcopy
 
 # compiler and linker settings
-CFLAGS = -mcpu=cortex-m0plus -mthumb -I. -Os -ggdb
+CARCH = -mcpu=cortex-m0plus -mthumb
+CFLAGS = $(CARCH) -I../minimal -Os -ggdb
 CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions
-LDFLAGS = -Wl,--script=LPC810.ld -nostartfiles
+LDFLAGS = -Wl,--script=../minimal/LPC810.ld -nostartfiles
+
+# permit including this makefile from a sibling directory
+vpath %.c ../minimal
+vpath %.cpp ../minimal
 
 # default target
 upload: firmware.bin
 	lpc21isp -control -bin $< $(TTY) 115200 0
 
 firmware.elf: main.o gcc_startup_lpc8xx.o
-	$(LD) -o $@ $(LDFLAGS) $^
+	$(LD) -o $@ $(CARCH) $(LDFLAGS) $^
 
 %.bin: %.elf
 	$(CP) -O binary $< $@
