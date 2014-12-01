@@ -7,28 +7,25 @@
 #if __arm__
 #include "serial.h"
 #endif
-
-#define MAX_PRIMES 400
-
-uint16_t primes [MAX_PRIMES];
+uint16_t factors [400]; // prime factors to check against
 
 int main () {
 #if __arm__
     LPC_SWM->PINASSIGN0 = 0xFFFF0004UL;
     serial.init(LPC_USART0, 115200);
 #endif
-    printf("Prime table:\n");
+    printf("Prime numbers:\n");
 
-    uint32_t limit = 3, fill = 0, width = 0, count = 0;
+    uint32_t limit = 3, numFactors = 0, width = 0, numPrimes = 0;
 
     for (int value = 2; value < limit; ++value) {
         int i;
-        for (i = 0; i < fill; ++i)
-            if (value % primes[i] == 0) // check divisibility
+        for (i = 0; i < numFactors; ++i)
+            if (value % factors[i] == 0) // check divisibility
                 break;
-        if (i < fill)
+        if (i < numFactors)
             continue; // found a factor, so it's not prime
-        ++count;
+        ++numPrimes;
 
         int chars = printf(" %d", value);
 
@@ -38,17 +35,17 @@ int main () {
             printf("\n");
         }
 
-        if (fill >= MAX_PRIMES)
-            continue; // no more room left in the primes table
+        if (numFactors >= sizeof factors / sizeof factors[0])
+            continue; // no more room left in the factors table
 
-        primes[fill] = value;
-        if (primes[fill] != value)
+        factors[numFactors] = value;
+        if (factors[numFactors] != value)
             continue; // whoops, it got truncated
-        ++fill;
+        ++numFactors;
 
         limit = value * value; // largest prime we can check for
     }
 
-    printf("\nFound %d primes.\n", count);
+    printf("\nFound %d primes.\n", numPrimes);
     return 0;
 }
