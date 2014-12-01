@@ -14,8 +14,6 @@ int err;    // accumulator for 1-bit DAC error
 
 int main () {
     LPC_SWM->PINENABLE0 |= 1<<2;        // disable SWCLK
-    LPC_SYSCON->SYSAHBCLKCTRL |= 1<<6;  // enable GPIO
-    LPC_SYSCON->PRESETCTRL |= 1<<10;    // reset GPIO block
     LPC_GPIO_PORT->DIR0 |= 1<<3;        // set pin 3 as output
 
     SysTick_Config(12000000/(50*1024)); // output 50 Hz of 1024 samples each
