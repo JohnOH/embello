@@ -6,7 +6,7 @@
 #include "serial.h"
 
 int main () {
-    LPC_SWM->PINASSIGN0 = 0xFFFF0004UL;
+    LPC_SWM->PINASSIGN0 = 0xFFFFFF04UL; // only connect TXD
     serial.init(LPC_USART0, 115200);
 
     printf("DEV_ID = %08x\n", LPC_SYSCON->DEVICE_ID);

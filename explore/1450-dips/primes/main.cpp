@@ -12,7 +12,7 @@ uint16_t factors [400]; // prime factors to check against
 
 int main () {
 #if __arm__
-    LPC_SWM->PINASSIGN0 = 0xFFFF0004UL;
+    LPC_SWM->PINASSIGN0 = 0xFFFFFF04UL; // only connect TXD
     serial.init(LPC_USART0, 115200);
 #endif
 

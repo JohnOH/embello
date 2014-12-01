@@ -7,11 +7,17 @@
 #define PON     2
 #define DATA    3
 
-extern "C" void SysTick_Handler () {}
+static const char* dayOfWeek [] = {
+    "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
+};
+
+extern "C" void SysTick_Handler () {
+    // the only effect is to generate an interrupt, no work is done here
+}
 
 static void delay (int millis) {
     while (--millis >= 0)
-        __WFI();
+        __WFI(); // wait for the next SysTick interrupt
 }
 
 static bool waitPulse () {
@@ -49,17 +55,17 @@ static int dcfExtractBcd (int* bits, int num) {
     return bcd - 6 * (bcd >> 4);
 }
 
-static int parity (int v) {
+static bool isEvenParity (int v) {
     v ^= v >> 16;
     v ^= v >> 8;
     v ^= v >> 4;
     v ^= v >> 2;
     v ^= v >> 1;
-    return v & 1;
+    return (v & 1) == 0;
 }
 
 int main () {
-    LPC_SWM->PINASSIGN0 = 0xFFFF0004UL;
+    LPC_SWM->PINASSIGN0 = 0xFFFFFF04UL;     // only connect TXD
     serial.init(LPC_USART0, 115200);
     printf("\n[dcf77]\n");
 
@@ -83,17 +89,17 @@ int main () {
                 int day = dcfGetBits(23);
                 if (day >= 0) {
                     printf("D");
-                    if (dcfGetBits(2) < 0 && parity(minute) == 0 &&
-                                    parity(hour) == 0 && parity(day) == 0) {
+                    if (dcfGetBits(2) < 0 && isEvenParity(minute) &&
+                            isEvenParity(hour) && isEvenParity(day)) {
                         uint8_t m = dcfExtractBcd(&minute, 7);
                         uint8_t h = dcfExtractBcd(&hour, 6);
                         uint8_t dd = dcfExtractBcd(&day, 6);
                         uint8_t ww = dcfExtractBcd(&day, 3);
                         uint8_t mm = dcfExtractBcd(&day, 5);
                         uint8_t yy = dcfExtractBcd(&day, 8);
-                        const char* tz = preamble & (1 << 17) ? "CEST" : "CET";
-                        printf(" #%d 20%02d-%02d-%02d %02d:%02d %s\n",
-                                    ww, yy, mm, dd, h, m, tz);
+                        const char* tz = preamble & (1<<17) ? "CEST" : "CET";
+                        printf(" %s 20%02d-%02d-%02d %02d:%02d %s\n",
+                                    dayOfWeek[ww], yy, mm, dd, h, m, tz);
                         continue;
                     }
                 }
