@@ -7,6 +7,7 @@
 #if __arm__
 #include "serial.h"
 #endif
+
 uint16_t factors [400]; // prime factors to check against
 
 int main () {
@@ -14,9 +15,10 @@ int main () {
     LPC_SWM->PINASSIGN0 = 0xFFFF0004UL;
     serial.init(LPC_USART0, 115200);
 #endif
+
     printf("Prime numbers:\n");
 
-    uint32_t limit = 3, numFactors = 0, width = 0, numPrimes = 0;
+    uint32_t limit = 3, numFactors = 0, lineWidth = 0, numPrimes = 0;
 
     for (int value = 2; value < limit; ++value) {
         int i;
@@ -29,9 +31,9 @@ int main () {
 
         int chars = printf(" %d", value);
 
-        width += chars; // wrap lines to under 80 chars
-        if (width + chars >= 80) {
-            width = 0;
+        lineWidth += chars; // wrap lines to under 80 chars
+        if (lineWidth + chars >= 80) {
+            lineWidth = 0;
             printf("\n");
         }
 
