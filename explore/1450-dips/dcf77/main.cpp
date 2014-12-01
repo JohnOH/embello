@@ -66,9 +66,7 @@ int main () {
     SysTick_Config(12000000/1000);          // 1000 Hz
 
     LPC_SWM->PINENABLE0 |= (1<<2) | (1<<3); // disable SWCLK and SWDIO
-    LPC_GPIO_PORT->DIR0 = 1<<PON;          // set PON as output
-    LPC_GPIO_PORT->B0[PON] = 1;             // set PON high
-    delay(1000);                            // wait 1 second
+    LPC_GPIO_PORT->DIR0 |= 1<<PON;          // set PON as output
     LPC_GPIO_PORT->B0[PON] = 0;             // set PON low
 
     while (true) {
