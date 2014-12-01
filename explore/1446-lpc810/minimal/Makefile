@@ -7,12 +7,10 @@ TTY = /dev/ttyUSB*
 TRGT = arm-none-eabi-
 CC = $(TRGT)gcc
 CXX = $(TRGT)g++
-LD = $(TRGT)gcc
 CP = $(TRGT)objcopy
 
 # compiler and linker settings
-CARCH = -mcpu=cortex-m0plus -mthumb
-CFLAGS = $(CARCH) -I../minimal -Os -ggdb
+CFLAGS = -mcpu=cortex-m0plus -mthumb -I../minimal -Os -ggdb
 CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions
 LDFLAGS = -Wl,--script=../minimal/LPC810.ld -nostartfiles
 
@@ -25,7 +23,7 @@ upload: firmware.bin
 	lpc21isp -control -bin $< $(TTY) 115200 0
 
 firmware.elf: main.o gcc_startup_lpc8xx.o
-	$(LD) -o $@ $(CARCH) $(LDFLAGS) $^
+	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^
 
 %.bin: %.elf
 	$(CP) -O binary $< $@
