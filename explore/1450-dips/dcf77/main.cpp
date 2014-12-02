@@ -4,8 +4,11 @@
 #include "stdio.h"
 #include "serial.h"
 
-#define PON     2
-#define DATA    3
+//     DCF77:  GPIO:  8-DIP:
+#define VCC     3   // pin 3
+#define GND     2   // pin 4
+#define DATA    0   // pin 8
+#define PON     1   // pin 5
 
 static const char* dayOfWeek [] = {
     "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
@@ -71,8 +74,10 @@ int main () {
 
     SysTick_Config(12000000/1000);          // 1000 Hz
 
-    LPC_SWM->PINENABLE0 |= (1<<2) | (1<<3); // disable SWCLK and SWDIO
-    LPC_GPIO_PORT->DIR0 |= 1<<PON;          // set PON as output
+    LPC_SWM->PINENABLE0 |= (1<<2)|(1<<3);   // disable SWCLK and SWDIO
+    LPC_GPIO_PORT->DIR0 |= (1<<PON)|(1<<VCC)|(1<<GND); // outputs
+    LPC_GPIO_PORT->B0[GND] = 0;             // set GND low
+    LPC_GPIO_PORT->B0[VCC] = 1;             // set VCC high
     LPC_GPIO_PORT->B0[PON] = 0;             // set PON low
 
     while (true) {
