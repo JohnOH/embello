@@ -3,6 +3,10 @@
 
 #include "serial.h"
 
+extern "C" void SysTick_Handler () {
+    // the only effect is to generate an interrupt, no work is done here
+}
+
 static void delayMillis (uint32_t ms) {
     while (ms-- > 0)
         __WFI();
@@ -105,5 +109,3 @@ int main () {
         delayMillis(3000);
     }
 }
-
-extern "C" void SysTick_Handler () {}
