@@ -1,13 +1,16 @@
-// Report distance over serial, power down IR sensor in between.
+// Report distance on serial and then LED, power down IR sensor in between.
 // See http://jeelabs.org/2014/12/03/garage-parking-aid/
 
 #include "stdio.h"
 #include "serial.h"
 
-// waste some time by doing nothing for a while
-void delay (int count) {
-    while (--count >= 0)
-        __ASM(""); // twiddle thumbs
+extern "C" void SysTick_Handler () {
+    // the only effect is to generate an interrupt, no work is done here
+}
+
+void delay (int millis) {
+    while (--millis >= 0)
+        __WFI(); // wait for the next SysTick interrupt
 }
 
 // setup the analog(ue) comparator, using the ladder on + and pin PIO0_1 on -
@@ -26,7 +29,7 @@ void analogSetup () {
     // disable pull-up, otherwise the results will be skewed
     LPC_IOCON->PIO0_1 &= ~(3<<3);
 
-    LPC_SWM->PINENABLE0 |= (2<<2);      // disable both SWD pins
+    LPC_SWM->PINENABLE0 |= (3<<2);      // disable both SWD pins
     LPC_GPIO_PORT->DIR0 |= (1<<3);      // make PIO0_3 an output
     LPC_GPIO_PORT->SET0 = (1<<3);       // power down the IR sensor
 }
@@ -36,10 +39,10 @@ void analogSetup () {
 int analogMeasure () {
     int i;
     for (i = 0; i < 32; ++i) {
-        LPC_CMP->LAD = (i << 1) | 1;    // use ladder tap i
-        delay(100);                     // approx 50 us settling delay
-        if (LPC_CMP->CTRL & (1<<21))    // if COMPSTAT bit is set
-            break;
+        LPC_CMP->LAD = (i << 1) | 1;                // use ladder tap i
+        for (int i = 0; i < 500; ++i) __ASM("");    // brief settling delay
+        if (LPC_CMP->CTRL & (1<<21))                // if COMPSTAT bit is set
+            break;                                  // ... we're done
     }
     return i;
 }
@@ -47,7 +50,7 @@ int analogMeasure () {
 // power up the sensor, perform one measurement, and power it down again
 int getDistance () {
     LPC_GPIO_PORT->CLR0 = (1<<3);       // power up the IR sensor
-    delay(100000);                      // give it about 50 ms to settle
+    delay(50);                          // give it 50 ms to settle
     int v = analogMeasure();            // measure the voltage
     LPC_GPIO_PORT->SET0 = (1<<3);       // power down the IR sensor
     return v;
@@ -60,11 +63,31 @@ int main () {
 
     printf("\n[gpa/4-power]\n");
 
+    SysTick_Config(12000000/1000);      // 1000 Hz
+
     analogSetup();
 
-    // measure and report the value about twice a second
-    while (true) {
+    // measure and report the value twice a second, but only 10 times
+    for (int i = 0; i < 10; ++i) {
         printf("analog = %d\n", getDistance());
-        delay(1000000);
+        delay(500);
+    }
+
+    serial.deInit();                    // terminate serial port use
+    LPC_SWM->PINASSIGN0 = 0xFFFFFFFFUL;
+    LPC_GPIO_PORT->DIR0 |= 1<<4;        // turn GPIO 4 into an output pin
+
+    // adjust the blink time as a suitable function of the measured value
+    while (true) {
+        int v = getDistance();          // returns 0..32
+
+        // reversed, third power, scaled, and shifted to get reasonable limits
+        v = 32 - v;                     // 0 .. 32
+        v = v * v * v;                  // 0 .. 32,768
+        v /= 16;                        // 0 .. 2,048
+        v += 50;                        // 50 .. 2,098
+
+        delay(v);                       // approx 50 ms .. 2 s range
+        LPC_GPIO_PORT->NOT0 = 1<<4;     // toggle LED
     }
 }

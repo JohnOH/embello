@@ -50,7 +50,7 @@ int main () {
 
     printf("\n[gpa/2-analog]\n");
 
-    SysTick_Config(12000000/1000); // 1000 Hz
+    SysTick_Config(12000000/1000);      // 1000 Hz
 
     analogSetup();
 
