@@ -74,37 +74,22 @@ static void sendRGB (int r, int g, int b) {
     sendByte(b);
 }
 
-static void clear () {
+static void cometTail (int count, int r, int g, int b) {
     spiSend(0);
     spiSend(0);
-    for (int i = 0; i < 60; ++i)
-        sendRGB(0, 0, 0);
-}
-
-static void cometTail (int phase, int r, int g, int b) {
-    spiSend(0);
-    spiSend(0);
-    for (int i = 0; i < 60; ++i) {
-        sendRGB(r * phase, g * phase, b * phase);
-        phase += 4;
-        if (phase > 240)
+    for (int i = 60 - count; i <= 60; ++i) {
+        int phase = 4 * i;
+        if (phase < 0)
             phase = 0;
+        sendRGB(r * phase, g * phase, b * phase);
     }
 }
 
 static void cometRacer(int r, int g, int b) {
-    for (int p = 240; p > 0; p -= 4) {
-        cometTail(p, r, g, b);
-        delay(8);
+    for (int i = 0; i < 180; ++i) {
+        cometTail(i, r, g, b);
+        delay(5);
     }
-}
-
-static void triplePlay(int r, int g, int b) {
-    cometRacer(r, g, b);
-    cometRacer(r, g, b);
-    cometRacer(r, g, b);
-    clear();
-    delay(500);
 }
 
 int main () {
@@ -118,8 +103,14 @@ int main () {
     spiInit();
 
     while (true) {
-        triplePlay(1, 0, 0);
-        triplePlay(0, 1, 0);
-        triplePlay(0, 0, 1);
+        // these should draw no more than 600 mA max
+        cometRacer(1, 0, 0);    // red
+        cometRacer(0, 1, 0);    // green
+        cometRacer(0, 0, 1);    // blue
+        // these draw lots of current: up to 1.5 A peak for 60x white
+        //cometRacer(1, 1, 0);  // yellow
+        //cometRacer(1, 0, 1);  // magenta
+        //cometRacer(0, 1, 1);  // teal
+        //cometRacer(1, 1, 1);  // white
     }
 }
