@@ -79,7 +79,6 @@ static void clear () {
     spiSend(0);
     for (int i = 0; i < 60; ++i)
         sendRGB(0, 0, 0);
-    delay(2);
 }
 
 static void cometTail (int phase, int r, int g, int b) {
@@ -91,12 +90,13 @@ static void cometTail (int phase, int r, int g, int b) {
         if (phase > 240)
             phase = 0;
     }
-    delay(8);
 }
 
 static void cometRacer(int r, int g, int b) {
-    for (int p = 240; p > 0; p -= 4)
+    for (int p = 240; p > 0; p -= 4) {
         cometTail(p, r, g, b);
+        delay(8);
+    }
 }
 
 static void triplePlay(int r, int g, int b) {
