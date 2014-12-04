@@ -85,7 +85,7 @@ static void clear () {
 static void cometTail (int phase, int r, int g, int b) {
     spiSend(0);
     spiSend(0);
-    for (int i = 0; i < 120; ++i) {
+    for (int i = 0; i < 60; ++i) {
         sendRGB(r * phase, g * phase, b * phase);
         phase += 4;
         if (phase > 240)
