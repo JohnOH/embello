@@ -4,10 +4,13 @@
 #include "stdio.h"
 #include "serial.h"
 
-// waste some time by doing nothing for a while
-void delay (int count) {
-    while (--count >= 0)
-        __ASM(""); // twiddle thumbs
+extern "C" void SysTick_Handler () {                                             
+    // the only effect is to generate an interrupt, no work is done here         
+}
+
+void delay (int millis) {
+    while (--millis >= 0)
+        __WFI(); // wait for the next SysTick interrupt
 }
 
 // setup the analog(ue) comparator, using the ladder on + and pin PIO0_1 on -
@@ -32,10 +35,10 @@ void analogSetup () {
 int analogMeasure () {
     int i;
     for (i = 0; i < 32; ++i) {
-        LPC_CMP->LAD = (i << 1) | 1;    // use ladder tap i
-        delay(100);                     // approx 50 us settling delay
-        if (LPC_CMP->CTRL & (1<<21))    // if COMPSTAT bit is set
-            break;
+        LPC_CMP->LAD = (i << 1) | 1;                // use ladder tap i
+        for (int i = 0; i < 100; ++i) __ASM("");    // brief settling delay
+        if (LPC_CMP->CTRL & (1<<21))                // if COMPSTAT bit is set
+            break;                                  // ... we're done
     }
     return i;
 }
@@ -47,11 +50,13 @@ int main () {
 
     printf("\n[gpa/2-analog]\n");
 
+    SysTick_Config(12000000/1000); // 1000 Hz
+
     analogSetup();
 
-    // measure and report the value about twice a second
+    // measure and report the value twice a second
     while (true) {
         printf("analog = %d\n", analogMeasure());
-        delay(1000000);
+        delay(500);
     }
 }

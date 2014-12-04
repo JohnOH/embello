@@ -1,12 +1,16 @@
 // Use comparator as 5-bit ADC, and adjust the LED blink rate accordingly.
 // See http://jeelabs.org/2014/12/03/garage-parking-aid/
 
-#include "LPC8xx.h"
+#include "stdio.h"
+#include "serial.h"
 
-// waste some time by doing nothing for a while
-void delay (int count) {
-    while (--count >= 0)
-        __ASM(""); // twiddle thumbs
+extern "C" void SysTick_Handler () {                                             
+    // the only effect is to generate an interrupt, no work is done here         
+}
+
+void delay (int millis) {
+    while (--millis >= 0)
+        __WFI(); // wait for the next SysTick interrupt
 }
 
 // setup the analog(ue) comparator, using the ladder on + and pin PIO0_1 on -
@@ -31,10 +35,10 @@ void analogSetup () {
 int analogMeasure () {
     int i;
     for (i = 0; i < 32; ++i) {
-        LPC_CMP->LAD = (i << 1) | 1;    // use ladder tap i
-        delay(100);                     // approx 50 us settling delay
-        if (LPC_CMP->CTRL & (1<<21))    // if COMPSTAT bit is set
-            break;
+        LPC_CMP->LAD = (i << 1) | 1;                // use ladder tap i
+        for (int i = 0; i < 500; ++i) __ASM("");    // brief settling delay
+        if (LPC_CMP->CTRL & (1<<21))                // if COMPSTAT bit is set
+            break;                                  // ... we're done
     }
     return i;
 }
@@ -42,17 +46,18 @@ int analogMeasure () {
 int main () {
     LPC_GPIO_PORT->DIR0 |= 1<<4;        // make GPIO 4 an output pin
 
+    SysTick_Config(12000000/1000);      // 1000 Hz
+
     analogSetup();
 
     // adjust the blink time as a suitable function of the measured value
     while (true) {
         int v = analogMeasure();        // returns 0..32
 
-        // reversed, third order, and scaled so both limits are reasonable
+        // reversed, squared, and shifted so both limits are reasonable
         v = 32 - v;                     // 0 .. 32
-        v = v * v * v;                  // 0 .. 32,768
-        v *= 64;                        // 0 .. 2,097,152
-        v += 100000;                    // 100,000 .. 2,197,152
+        v = v * v;                      // 0 .. 1,024
+        v += 50;                        // 50 .. 1,076
 
         delay(v);                       // approx 50 ms .. 1 s
         LPC_GPIO_PORT->NOT0 = 1<<4;     // toggle LED

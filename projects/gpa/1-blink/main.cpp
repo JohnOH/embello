@@ -4,10 +4,13 @@
 #include "stdio.h"
 #include "serial.h"
 
-// waste some time by doing nothing for a while
-void delay (int count) {
-    while (--count >= 0)
-        __ASM(""); // twiddle thumbs
+extern "C" void SysTick_Handler () {                                             
+    // the only effect is to generate an interrupt, no work is done here         
+}
+
+void delay (int millis) {
+    while (--millis >= 0)
+        __WFI(); // wait for the next SysTick interrupt
 }
 
 int main () {
@@ -17,9 +20,11 @@ int main () {
 
     printf("\n[gpa/1-blink]\n");
 
-    // send out a greeting about twice a second
+    SysTick_Config(12000000/1000); // 1000 Hz
+
+    // send out a greeting twice a second
     while (true) {
         printf("Hello world!\n");
-        delay(1000000);
+        delay(500);
     }
 }
