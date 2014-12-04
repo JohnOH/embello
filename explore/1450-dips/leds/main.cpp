@@ -7,7 +7,7 @@ extern "C" void SysTick_Handler () {
     // the only effect is to generate an interrupt, no work is done here
 }
 
-static void delayMillis (uint32_t ms) {
+static void delay (uint32_t ms) {
     while (ms-- > 0)
         __WFI();
 }
@@ -22,7 +22,7 @@ static void delayMillis (uint32_t ms) {
 #define STAT_RXRDY          (1<<0)
 #define STAT_TXRDY          (1<<1)
 
-void spiInit () {
+static void spiInit () {
     /* Enable SPI0 clock */
     LPC_SYSCON->SYSAHBCLKCTRL |= (1<<11);
     LPC_SYSCON->PRESETCTRL &= ~(1<<0);
@@ -38,7 +38,7 @@ void spiInit () {
     LPC_SPI0->CFG |= CFG_ENABLE;
 }
 
-void spiSend (uint16_t cmd) {
+static void spiSend (uint16_t cmd) {
     while ((LPC_SPI0->STAT & STAT_TXRDY) == 0)
         ;
     LPC_SPI0->TXDAT = cmd;
@@ -68,21 +68,43 @@ static void sendByte (int value) {
     spiSend(bits[value & 0xF]);
 }
 
-static void showRGB (int r, int g, int b) {
+static void sendRGB (int r, int g, int b) {
+    sendByte(g);
+    sendByte(r);
+    sendByte(b);
+}
+
+static void clear () {
     spiSend(0);
     spiSend(0);
-    for (int i = 0; i < 19; ++i) {
-        sendByte(g>>4);
-        sendByte(r>>4);
-        sendByte(b>>4);
-        sendByte(g>>2);
-        sendByte(r>>2);
-        sendByte(b>>2);
-        sendByte(g);
-        sendByte(r);
-        sendByte(b);
+    for (int i = 0; i < 60; ++i)
+        sendRGB(0, 0, 0);
+    delay(2);
+}
+
+static void cometTail (int phase, int r, int g, int b) {
+    spiSend(0);
+    spiSend(0);
+    for (int i = 0; i < 120; ++i) {
+        sendRGB(r * phase, g * phase, b * phase);
+        phase += 4;
+        if (phase > 240)
+            phase = 0;
     }
-    delayMillis(10);
+    delay(8);
+}
+
+static void cometRacer(int r, int g, int b) {
+    for (int p = 240; p > 0; p -= 4)
+        cometTail(p, r, g, b);
+}
+
+static void triplePlay(int r, int g, int b) {
+    cometRacer(r, g, b);
+    cometRacer(r, g, b);
+    cometRacer(r, g, b);
+    clear();
+    delay(500);
 }
 
 int main () {
@@ -96,18 +118,8 @@ int main () {
     spiInit();
 
     while (true) {
-        int x = 0;
-
-        // red fade up and down
-        while (x < 256) showRGB(x++, 0, 0);
-        while (x > 0)   showRGB(--x, 0, 0);
-        // green fade up and down
-        while (x < 256) showRGB(0, x++, 0);
-        while (x > 0)   showRGB(0, --x, 0);
-        // blue fade up and down
-        while (x < 256) showRGB(0, 0, x++);
-        while (x > 0)   showRGB(0, 0, --x);
-
-        delayMillis(3000);
+        triplePlay(1, 0, 0);
+        triplePlay(0, 1, 0);
+        triplePlay(0, 0, 1);
     }
 }
