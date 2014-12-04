@@ -71,7 +71,7 @@ static void sendByte (int value) {
 static void showRGB (int r, int g, int b) {
     spiSend(0);
     spiSend(0);
-    for (int i = 0; i < 24; ++i) {
+    for (int i = 0; i < 19; ++i) {
         sendByte(g>>4);
         sendByte(r>>4);
         sendByte(b>>4);
@@ -86,10 +86,12 @@ static void showRGB (int r, int g, int b) {
 }
 
 int main () {
-    SysTick_Config(12000000/1000-1);          // 1000 Hz
+    LPC_FLASHCTRL->FLASHCFG = 0;            // 1 wait state instead of 1
 
-    LPC_SWM->PINENABLE0 |= 1<<2;              // disable SWCLK
-    LPC_SWM->PINASSIGN4 = 0xFFFFFF03UL;       // SPI0_MOSI 3
+    SysTick_Config(12000000/1000);          // 1000 Hz
+
+    LPC_SWM->PINENABLE0 |= 1<<2;            // disable SWCLK
+    LPC_SWM->PINASSIGN4 = 0xFFFFFF03UL;     // SPI0_MOSI 3
 
     spiInit();
 

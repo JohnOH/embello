@@ -47,8 +47,8 @@ int analogMeasure () {
 // power up the sensor, perform one measurement, and power it down again
 int getDistance () {
     LPC_GPIO_PORT->CLR0 = (1<<3);       // power up the IR sensor
-    delay(100000);                      // give it about 50 ms to settle
-    int v = analogMeasure();
+    delay(50);                          // give it time to settle
+    int v = analogMeasure();            // measure the voltage
     LPC_GPIO_PORT->SET0 = (1<<3);       // power down the IR sensor
     return v;
 }
