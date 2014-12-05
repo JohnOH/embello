@@ -81,11 +81,37 @@ int main () {
     while (true) {
         int v = getDistance();          // returns 0..32
 
-        // turn LED off and sleep for one second if there is no object
-        if (v <= 6) {
+        if (v <= 6) {                   // if too far away: don't blink
             LPC_GPIO_PORT->SET0 = 1<<4; // turn LED off
             delay(1000);                // do nothing for one second
-            continue;
+            continue;                   // loop to get next readout
+        }
+
+        // the following logic implements an auto power-down mode when the
+        // measured distance does not change much for 32 times in succession
+        static int avgTimes16, changed = ~0;
+
+        // calculate a moving average to slowly track measurement changes
+        // each loop adds 1/16th of v to 15/16th of the average so far
+        avgTimes16 = v + (15 * avgTimes16) / 16;
+
+        // use the 32 bits in an int as history to remember major changes
+        // each loop shifts out one bit and brings in a new one
+        changed <<= 1;
+
+        // a "major change" is defined as being more than one off the average
+        if (v < avgTimes16/16 - 1 || v > avgTimes16/16 + 1)
+            changed |= 1;
+
+        // once idling, we can wait until the car is completely out of range,
+        // since we don't need the parking aid to help us *leave* the garage!
+        if (changed == 0) { // if we saw no major change 32 times in a row
+            LPC_GPIO_PORT->SET0 = 1<<4; // turn LED off
+            do {
+                delay(1000);            // do nothing for one second
+                v = getDistance();
+            } while (v > 6);            // loop until object is too far
+            changed = ~0;               // mark 32 changes into the history
         }
 
         // reversed, third power, scaled, and shifted to get reasonable limits
@@ -94,7 +120,7 @@ int main () {
         v /= 16;                        // 0 .. 2,048
         v += 50;                        // 50 .. 2,098
 
-        delay(v);                       // approx 50 ms .. 2 s range
+        delay(v);                       // approx 50 ms .. 2 s toggle rate
         LPC_GPIO_PORT->NOT0 = 1<<4;     // toggle LED
     }
 }
