@@ -1,7 +1,6 @@
 // Demonstrate printf over the serial port.
 // See http://jeelabs.org/2014/12/10/dips-into-the-lpc810/
 
-#include <stdint.h>
 #include <stdio.h>
 #include "serial.h"
 
