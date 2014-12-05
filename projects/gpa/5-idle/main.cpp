@@ -61,7 +61,7 @@ int main () {
     LPC_SWM->PINASSIGN0 = 0xFFFFFF04UL;
     serial.init(LPC_USART0, 115200);
 
-    printf("\n[gpa/4-power]\n");
+    printf("\n[gpa/5-idle]\n");
 
     SysTick_Config(12000000/1000);      // 1000 Hz
 
@@ -77,6 +77,9 @@ int main () {
     LPC_SWM->PINASSIGN0 = 0xFFFFFFFFUL;
     LPC_GPIO_PORT->DIR0 |= 1<<4;        // turn GPIO 4 into an output pin
 
+    // these variables must retain their value across the loop
+    int avgTimes16, changed;
+
     // adjust the blink time as a suitable function of the measured value
     while (true) {
         int v = getDistance();          // returns 0..32
@@ -87,9 +90,9 @@ int main () {
             continue;                   // loop to get next readout
         }
 
-        // the following logic implements an auto power-down mode when the
-        // measured distance does not change much for 32 times in succession
-        static int avgTimes16, changed = ~0;
+        // The following logic implements an auto power-down mode when the
+        // measured distance does not change much for 32 times in succession.
+        // Uses a moving average and knows about the last 32 distance changes.
 
         // calculate a moving average to slowly track measurement changes
         // each loop adds 1/16th of v to 15/16th of the average so far
@@ -111,7 +114,7 @@ int main () {
                 delay(1000);            // do nothing for one second
                 v = getDistance();
             } while (v > 6);            // loop until object is too far
-            changed = ~0;               // mark 32 changes into the history
+            changed = 1;                // mark history as changed again
         }
 
         // reversed, third power, scaled, and shifted to get reasonable limits
