@@ -1,6 +1,10 @@
 // Test RGB led dimming using hardware SPI, for the WS2812B chip.
 // See http://jeelabs.org/2014/12/10/dips-into-the-lpc810/
 
+#include "LPC8xx.h"
+
+// The serial code is not used here, but linker issues prevent leaving it out,
+// because the Makefile we're using here is always including the printf code.
 #include "serial.h"
 
 extern "C" void SysTick_Handler () {

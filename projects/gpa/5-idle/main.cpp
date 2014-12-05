@@ -81,6 +81,13 @@ int main () {
     while (true) {
         int v = getDistance();          // returns 0..32
 
+        // turn LED off and sleep for one second if there is no object
+        if (v <= 6) {
+            LPC_GPIO_PORT->SET0 = 1<<4; // turn LED off
+            delay(1000);                // do nothing for one second
+            continue;
+        }
+
         // reversed, third power, scaled, and shifted to get reasonable limits
         v = 32 - v;                     // 0 .. 32
         v = v * v * v;                  // 0 .. 32,768
