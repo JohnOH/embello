@@ -54,12 +54,13 @@ int main () {
     while (true) {
         int v = analogMeasure();        // returns 0..32
 
-        // reversed, squared, and shifted so both limits are reasonable
+        // reversed, third power, scaled, and shifted to get reasonable limits
         v = 32 - v;                     // 0 .. 32
-        v = v * v;                      // 0 .. 1,024
-        v += 50;                        // 50 .. 1,076
+        v = v * v * v;                  // 0 .. 32,768
+        v /= 16;                        // 0 .. 2,048
+        v += 50;                        // 50 .. 2,098
 
-        delay(v);                       // approx 50 ms .. 1 s
+        delay(v);                       // approx 50 ms .. 2 s toggle rate
         LPC_GPIO_PORT->NOT0 = 1<<4;     // toggle LED
     }
 }

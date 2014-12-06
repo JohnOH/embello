@@ -1,8 +1,10 @@
-// Distance reporting for the GPA with power down and LED-off idling.
+// Distance reporting for the GPA with power down and ultra low-power idling.
 // See http://jeelabs.org/2014/12/03/garage-parking-aid/
 
 #include "stdio.h"
 #include "serial.h"
+
+#define TOO_FAR     6   // only blink on readings above this value
 
 extern "C" void SysTick_Handler () {
     // the only effect is to generate an interrupt, no work is done here
@@ -57,28 +59,28 @@ int getDistance () {
 }
 
 void sleepSetup () {
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1<<9);    // SYSCTL_CLOCK_WKT
-    LPC_WKT->CTRL = (1<<0);                 // WKT_CTRL_CLKSEL
+    LPC_SYSCON->SYSAHBCLKCTRL |= 1<<9;  // SYSCTL_CLOCK_WKT
+    LPC_WKT->CTRL = (1<<0);             // WKT_CTRL_CLKSEL
 
     NVIC_EnableIRQ(WKT_IRQn);
 
-    LPC_SYSCON->STARTERP1 = (1<<15);        // wake up from alarm/wake timer
-    LPC_PMU->DPDCTRL = (1<<2);              // LPOSCEN
-    LPC_PMU->PCON = (2<<0);                 // power down, but not deep
+    LPC_SYSCON->STARTERP1 = (1<<15);    // wake up from alarm/wake timer
+    LPC_PMU->DPDCTRL = (1<<2);          // LPOSCEN
+    LPC_PMU->PCON = (2<<0);             // power down, but not deep
 }
 
 extern "C" void WKT_IRQHandler () {
-    LPC_WKT->CTRL |= (1<<1) | (1<<2);       // clear alarm
+    LPC_WKT->CTRL |= (1<<1) | (1<<2);   // clear alarm
 }
 
 void sleep (int millis) {
-    LPC_WKT->COUNT = 10 * millis;           // start counting at 10 KHz
-    SCB->SCR |= 1<<2;                       // enable SLEEPDEEP mode
+    LPC_WKT->COUNT = 10 * millis;       // start counting at 10 KHz
+    SCB->SCR |= 1<<2;                   // enable SLEEPDEEP mode
 
     __WFI(); // wait for interrupt, powers down until the timer fires
 
-    SCB->SCR &= ~(1<<2);                    // disable SLEEPDEEP mode
-    analogSetup();                          // lost during power down
+    SCB->SCR &= ~(1<<2);                // disable SLEEPDEEP mode
+    analogSetup();                      // lost during power down
 }
 
 int main () {
@@ -86,7 +88,7 @@ int main () {
     LPC_SWM->PINASSIGN0 = 0xFFFFFF04UL;
     serial.init(LPC_USART0, 115200);
 
-    printf("\n[gpa/6-sleep]\n");
+    printf("\n[gpa/6-sleep.v2]\n");     // report version
 
     SysTick_Config(12000000/1000);      // 1000 Hz
 
@@ -110,7 +112,7 @@ int main () {
     while (true) {
         int v = getDistance();          // returns 0..32
 
-        if (v <= 6) {                   // if too far away: don't blink
+        if (v <= TOO_FAR) {             // if too far away: don't blink
             LPC_GPIO_PORT->SET0 = 1<<4; // turn LED off
             sleep(1000);                // sleep for about one second
             continue;                   // loop to get next readout
@@ -139,7 +141,7 @@ int main () {
             do {
                 sleep(1000);            // sleep for about one second
                 v = getDistance();
-            } while (v > 6);            // loop until object is too far
+            } while (v > TOO_FAR);      // loop until object is too far
             changed = 1;                // mark history as changed again
         }
 
