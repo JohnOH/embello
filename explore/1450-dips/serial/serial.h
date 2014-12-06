@@ -9,7 +9,7 @@ public:
         const uint32_t uartclkdiv = 1;
         const uint32_t SystemCoreClock = 12000000;
 
-        // TODO add support for ourts other tna uart0
+        // TODO add support for uarts other than uart0
         LPC_SYSCON->UARTCLKDIV = uartclkdiv;
         LPC_SYSCON->SYSAHBCLKCTRL |= (1<<14);   // enable uart0 clock
         LPC_SYSCON->PRESETCTRL &= ~(1<<3);      // reset uart0
@@ -28,7 +28,7 @@ public:
     }
 
     void deInit () {
-        // TODO add support for uarts other tna uart0
+        // TODO add support for uarts other than uart0
         LPC_SYSCON->SYSAHBCLKCTRL &= ~(1<<14);  // disable uart0 clock
         LPC_SYSCON->PRESETCTRL &= ~(1<<3);      // reset uart0
     }

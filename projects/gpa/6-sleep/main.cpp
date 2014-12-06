@@ -13,32 +13,6 @@ void delay (int millis) {
         __WFI(); // wait for the next SysTick interrupt
 }
 
-void sleepSetup () {
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1<<9);    // SYSCTL_CLOCK_WKT
-    LPC_SYSCON->PRESETCTRL &= ~(1<<9);      // reset WKT
-    LPC_SYSCON->PRESETCTRL |= (1<<9);       // release WKT
-    LPC_PMU->DPDCTRL |= (1<<2);             // LPOSCEN
-    LPC_WKT->CTRL = (1<<0);                 // WKT_CTRL_CLKSEL
-
-    NVIC_EnableIRQ(WKT_IRQn);
-
-    LPC_SYSCON->STARTERP1 = (1<<15);        // wake up from alarm/wake timer
-    SCB->SCR |= (1<<2);                     // SLEEPDEEP, but not SLEEPONEXIT!
-}
-
-extern "C" void WKT_IRQHandler () {
-    LPC_WKT->CTRL = LPC_WKT->CTRL;          // clear the alarm interrupt
-}
-
-void sleep (int millis) {
-    LPC_PMU->PCON = 0x2;                    // enter power-down (flash off)
-    LPC_WKT->COUNT = 10 * millis;           // start counting at 10 KHz
-
-    __WFI(); // wait for interrupt, powers down until the timer fires
-
-    LPC_PMU->PCON = 0;                      // restore normal mode
-}
-
 // setup the analog(ue) comparator, using the ladder on + and pin PIO0_1 on -
 void analogSetup () {
     LPC_SYSCON->PDRUNCFG &= ~(1<<15);               // power up comparator
@@ -80,6 +54,31 @@ int getDistance () {
     int v = analogMeasure();            // measure the voltage
     LPC_GPIO_PORT->SET0 = (1<<3);       // power down the IR sensor
     return v;
+}
+
+void sleepSetup () {
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1<<9);    // SYSCTL_CLOCK_WKT
+    LPC_WKT->CTRL = (1<<0);                 // WKT_CTRL_CLKSEL
+
+    NVIC_EnableIRQ(WKT_IRQn);
+
+    LPC_SYSCON->STARTERP1 = (1<<15);        // wake up from alarm/wake timer
+    LPC_PMU->DPDCTRL = (1<<2);              // LPOSCEN
+    LPC_PMU->PCON = (2<<0);                 // power down, but not deep
+}
+
+extern "C" void WKT_IRQHandler () {
+    LPC_WKT->CTRL |= (1<<1) | (1<<2);       // clear alarm
+}
+
+void sleep (int millis) {
+    LPC_WKT->COUNT = 10 * millis;           // start counting at 10 KHz
+    SCB->SCR |= 1<<2;                       // enable SLEEPDEEP mode
+
+    __WFI(); // wait for interrupt, powers down until the timer fires
+
+    SCB->SCR &= ~(1<<2);                    // disable SLEEPDEEP mode
+    analogSetup();                          // lost during power down
 }
 
 int main () {
