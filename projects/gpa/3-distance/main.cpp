@@ -1,8 +1,7 @@
 // Use comparator as 5-bit ADC, and adjust the LED blink rate accordingly.
 // See http://jeelabs.org/2014/12/03/garage-parking-aid/
 
-#include "stdio.h"
-#include "serial.h"
+#include "LPC8xx.h"
 
 extern "C" void SysTick_Handler () {                                             
     // the only effect is to generate an interrupt, no work is done here         
