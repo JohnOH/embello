@@ -1,4 +1,4 @@
-// Motion experiment.
+// Generate up to 4 independent servo motion control pulses in hardware.
 // See http://jeelabs.org/2014/12/10/dips-into-the-lpc810/
 
 #include "LPC8xx.h"
@@ -19,7 +19,7 @@ int main () {
 
     //LPC_SWM->PINASSIGN6 = 0x02FFFFFF;       // connect CTOUT_0 to PIO0_2
     //LPC_SWM->PINASSIGN7 = 0xFF050403;       // cto1 -> 3, cto2 -> 4, cto3 -> 5
-    LPC_SWM->PINASSIGN7 = 0xFFFF04FF;       // connect CTOUT_2 to PIO0_4
+    LPC_SWM->PINASSIGN7 = 0xFFFF01FF;       // connect CTOUT_2 to PIO0_1, pin 5
 
     SysTick_Config(12000000/1);
 
