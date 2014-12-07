@@ -3,10 +3,6 @@
 
 #include "LPC8xx.h"
 
-// The serial code is not used here, but linker issues prevent leaving it out,
-// because the Makefile we're using here is always including the printf code.
-#include "serial.h"
-
 extern "C" void SysTick_Handler () {
     // the only effect is to generate an interrupt, no work is done here
 }
