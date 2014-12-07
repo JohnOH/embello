@@ -9,11 +9,6 @@ extern "C" void SysTick_Handler () {
     // the only effect is to generate an interrupt, no work is done here
 }
 
-static void delay (uint32_t ms) {
-    while (ms-- > 0)
-        __WFI();
-}
-
 int main () {
     LPC_SWM->PINENABLE0 |= 3<<2;            // disable SWCLK and SWDIO
 
