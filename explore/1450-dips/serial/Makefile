@@ -1,7 +1,7 @@
 # Minimal gcc makefile for LPC810 with serial output and printf
 
 # default Linux USB device name for upload
-TTY = /dev/ttyUSB*
+TTY ?= /dev/ttyUSB*
 
 # default is to include the serial output code and connect after upload
 SERIAL ?= -term
