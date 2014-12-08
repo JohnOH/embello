@@ -4,7 +4,8 @@
 #include "stdio.h"
 #include "serial.h"
 
-#define TOO_FAR     6   // only blink on readings above this value
+#define USE_LDR     1   // set to 1 to enable ultra low-power light sensing
+#define TOO_FAR     6   // only blink on distance readings above this value
 
 extern "C" void SysTick_Handler () {
     // the only effect is to generate an interrupt, no work is done here
@@ -23,10 +24,7 @@ void analogSetup () {
     LPC_SYSCON->PRESETCTRL |= (1<<12);              // release comparator
 
     // CLKIN has to be disabled, this is the default on power up
-    LPC_SWM->PINENABLE0 &= ~(1<<1); // enable ACMP_I2 on PIO0_1
-
-    // connect ACMP_I2 to CMP-, 20 mV hysteresis
-    LPC_CMP->CTRL = (2<<11) | (3<<25);
+    LPC_SWM->PINENABLE0 &= ~(3<<0);     // enable ACMP_I1 and ACMP_I2
 
     // disable pull-up, otherwise the results will be skewed
     LPC_IOCON->PIO0_1 &= ~(3<<3);
@@ -38,11 +36,15 @@ void analogSetup () {
 
 // measure the voltage on PIO0_1, returns a value from 0 to 32
 // the steps will be roughly 0.1V apart, from 0 to 3.3V
-int analogMeasure () {
+int analogMeasure (bool ldr) {
+    // connect ACMP_I2 or ACMP_I1 to CMP-, 20 mV hysteresis
+    LPC_CMP->CTRL = ((ldr ? 1 : 2) << 11) | (3<<25);
+    for (int i = 0; i < 500; ++i) __ASM("");        // brief settling delay
+
     int i;
     for (i = 0; i < 32; ++i) {
         LPC_CMP->LAD = (i << 1) | 1;                // use ladder tap i
-        for (int i = 0; i < 500; ++i) __ASM("");    // brief settling delay
+        for (int i = 0; i < 100; ++i) __ASM("");    // brief settling delay
         if (LPC_CMP->CTRL & (1<<21))                // if COMPSTAT bit is set
             break;                                  // ... we're done
     }
@@ -53,7 +55,7 @@ int analogMeasure () {
 int getDistance () {
     LPC_GPIO_PORT->CLR0 = (1<<3);       // power up the IR sensor
     delay(50);                          // give it 50 ms to settle
-    int v = analogMeasure();            // measure the voltage
+    int v = analogMeasure(false);       // measure the IR sensor's voltage
     LPC_GPIO_PORT->SET0 = (1<<3);       // power down the IR sensor
     return v;
 }
@@ -95,9 +97,9 @@ int main () {
     analogSetup();
     sleepSetup();
 
-    // measure and report the value twice a second, but only 10 times
+    // measure and report readings twice a second, but only 10 times
     for (int i = 0; i < 10; ++i) {
-        printf("analog = %d\n", getDistance());
+        printf("dist = %d, light = %d\n", getDistance(), analogMeasure(true));
         delay(500);
     }
 
@@ -106,43 +108,67 @@ int main () {
     LPC_GPIO_PORT->DIR0 |= 1<<4;        // turn GPIO 4 into an output pin
 
     // these variables must retain their value across the loop
-    int avgTimes16, changed;
+    int irAvgTimes16, irSame;
+#if USE_LDR
+    int ldrAvgTimes16, ldrSame;
+#endif
 
     // adjust the blink time as a suitable function of the measured value
     while (true) {
+#if USE_LDR
+        // The first thing to do in the loop for ultra low-power sensing, is
+        // to look for light-level changes. We measure the LDR's voltage each
+        // time and if it differs from its moving average, we reset a counter
+        // to force normal measurements for at least 100 cycles. If there is
+        // no change for 100 times in a row, we sleep and loop without even
+        // powering up the IR sensor. This greatly reduces power consumption.
+        int l = analogMeasure(true);
+
+        // calculate a moving average to slowly track measurement changes
+        // each loop adds 1/16th of v to 15/16th of the average so far
+        ldrAvgTimes16 = l + (15 * ldrAvgTimes16) / 16;
+
+        // a "major change" is defined as being more than one off the average
+        if (l < ldrAvgTimes16/16 - 1 || l > ldrAvgTimes16/16 + 1) {
+            ldrSame = 0;                // mark light level as changed
+            irSame = 0;                 // mark distance as changed
+        }
+
+        // no light change seen means we can power down, no need to sense IR
+        if (++ldrSame >= 100) {         // no LDR change 100 times in a row
+            sleep(1000);                // sleep for about one second
+            continue;                   // loop to get next LDR readout
+        }
+#endif
+
         int v = getDistance();          // returns 0..32
 
         if (v <= TOO_FAR) {             // if too far away: don't blink
             LPC_GPIO_PORT->SET0 = 1<<4; // turn LED off
             sleep(1000);                // sleep for about one second
-            continue;                   // loop to get next readout
+            continue;                   // loop to get next IR readout
         }
 
         // The following logic implements an auto power-down mode when the
-        // measured distance does not change much for 32 times in succession.
-        // Uses a moving average and knows about the last 32 distance changes.
+        // measured distance does not change much for 30 times in succession.
 
         // calculate a moving average to slowly track measurement changes
         // each loop adds 1/16th of v to 15/16th of the average so far
-        avgTimes16 = v + (15 * avgTimes16) / 16;
-
-        // use the 32 bits in an int as history to remember major changes
-        // each loop shifts out one bit and brings in a new one
-        changed <<= 1;
+        irAvgTimes16 = v + (15 * irAvgTimes16) / 16;
 
         // a "major change" is defined as being more than one off the average
-        if (v < avgTimes16/16 - 1 || v > avgTimes16/16 + 1)
-            changed |= 1;
+        if (v < irAvgTimes16/16 - 1 || v > irAvgTimes16/16 + 1)
+            irSame = 0;                 // don't sleep for a while
 
         // once idling, we can wait until the car is completely out of range,
         // since we don't need the parking aid to help us *leave* the garage!
-        if (changed == 0) { // if we saw no major change 32 times in a row
+        if (++irSame >= 30) {           // no IR change 30 times in a row
             LPC_GPIO_PORT->SET0 = 1<<4; // turn LED off
             do {
                 sleep(1000);            // sleep for about one second
                 v = getDistance();
             } while (v > TOO_FAR);      // loop until object is too far
-            changed = 1;                // mark history as changed again
+            irSame = 0;                 // mark distance as changed again
         }
 
         // reversed, third power, scaled, and shifted to get reasonable limits

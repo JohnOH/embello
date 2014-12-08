@@ -23,7 +23,7 @@ void analogSetup () {
     LPC_SYSCON->PRESETCTRL |= (1<<12);              // release comparator
 
     // CLKIN has to be disabled, this is the default on power up
-    LPC_SWM->PINENABLE0 &= ~(1<<1); // enable ACMP_I2 on PIO0_1
+    LPC_SWM->PINENABLE0 &= ~(1<<1);     // enable ACMP_I2 on PIO0_1
 
     // connect ACMP_I2 to CMP-, 20 mV hysteresis
     LPC_CMP->CTRL = (2<<11) | (3<<25);
@@ -42,7 +42,7 @@ int analogMeasure () {
     int i;
     for (i = 0; i < 32; ++i) {
         LPC_CMP->LAD = (i << 1) | 1;                // use ladder tap i
-        for (int i = 0; i < 500; ++i) __ASM("");    // brief settling delay
+        for (int i = 0; i < 100; ++i) __ASM("");    // brief settling delay
         if (LPC_CMP->CTRL & (1<<21))                // if COMPSTAT bit is set
             break;                                  // ... we're done
     }
@@ -88,7 +88,7 @@ int main () {
     LPC_SWM->PINASSIGN0 = 0xFFFFFF04UL;
     serial.init(LPC_USART0, 115200);
 
-    printf("\n[gpa/6-sleep.v2]\n");     // report version
+    printf("\n[gpa/6-sleep.v3]\n");     // report version
 
     SysTick_Config(12000000/1000);      // 1000 Hz
 
@@ -106,7 +106,7 @@ int main () {
     LPC_GPIO_PORT->DIR0 |= 1<<4;        // turn GPIO 4 into an output pin
 
     // these variables must retain their value across the loop
-    int avgTimes16, changed;
+    int irAvgTimes16, irSame;
 
     // adjust the blink time as a suitable function of the measured value
     while (true) {
@@ -115,34 +115,29 @@ int main () {
         if (v <= TOO_FAR) {             // if too far away: don't blink
             LPC_GPIO_PORT->SET0 = 1<<4; // turn LED off
             sleep(1000);                // sleep for about one second
-            continue;                   // loop to get next readout
+            continue;                   // loop to get next IR readout
         }
 
         // The following logic implements an auto power-down mode when the
-        // measured distance does not change much for 32 times in succession.
-        // Uses a moving average and knows about the last 32 distance changes.
+        // measured distance does not change much for 30 times in succession.
 
         // calculate a moving average to slowly track measurement changes
         // each loop adds 1/16th of v to 15/16th of the average so far
-        avgTimes16 = v + (15 * avgTimes16) / 16;
-
-        // use the 32 bits in an int as history to remember major changes
-        // each loop shifts out one bit and brings in a new one
-        changed <<= 1;
+        irAvgTimes16 = v + (15 * irAvgTimes16) / 16;
 
         // a "major change" is defined as being more than one off the average
-        if (v < avgTimes16/16 - 1 || v > avgTimes16/16 + 1)
-            changed |= 1;
+        if (v < irAvgTimes16/16 - 1 || v > irAvgTimes16/16 + 1)
+            irSame = 0;                 // don't sleep for a while
 
         // once idling, we can wait until the car is completely out of range,
         // since we don't need the parking aid to help us *leave* the garage!
-        if (changed == 0) { // if we saw no major change 32 times in a row
+        if (++irSame >= 30) {           // no IR change 30 times in a row
             LPC_GPIO_PORT->SET0 = 1<<4; // turn LED off
             do {
                 sleep(1000);            // sleep for about one second
                 v = getDistance();
             } while (v > TOO_FAR);      // loop until object is too far
-            changed = 1;                // mark history as changed again
+            irSame = 0;                 // mark distance as changed again
         }
 
         // reversed, third power, scaled, and shifted to get reasonable limits
