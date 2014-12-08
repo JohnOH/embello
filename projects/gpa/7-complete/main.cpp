@@ -39,7 +39,7 @@ void analogSetup () {
 int analogMeasure (bool ldr) {
     // connect ACMP_I2 or ACMP_I1 to CMP-, 20 mV hysteresis
     LPC_CMP->CTRL = ((ldr ? 1 : 2) << 11) | (3<<25);
-    for (int i = 0; i < 500; ++i) __ASM("");        // brief settling delay
+    for (int i = 0; i < 1000; ++i) __ASM("");       // brief settling delay
 
     int i;
     for (i = 0; i < 32; ++i) {
@@ -108,9 +108,9 @@ int main () {
     LPC_GPIO_PORT->DIR0 |= 1<<4;        // turn GPIO 4 into an output pin
 
     // these variables must retain their value across the loop
-    int irAvgTimes16, irSame;
+    int irAvgTimes16 = 0, irSame = 0;
 #if USE_LDR
-    int ldrAvgTimes16, ldrSame;
+    int ldrAvgTimes16 = 0, ldrSame = 0;
 #endif
 
     // adjust the blink time as a suitable function of the measured value

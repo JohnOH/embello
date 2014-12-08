@@ -106,7 +106,7 @@ int main () {
     LPC_GPIO_PORT->DIR0 |= 1<<4;        // turn GPIO 4 into an output pin
 
     // these variables must retain their value across the loop
-    int irAvgTimes16, irSame;
+    int irAvgTimes16 = 0, irSame = 0;
 
     // adjust the blink time as a suitable function of the measured value
     while (true) {
