@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/jeelabs/embello/tools/jet/cmd"
-	_ "github.com/jeelabs/embello/tools/jet/upload"
+	"github.com/jeelabs/embello/tools/jetx/cmd"
+	_ "github.com/jeelabs/embello/tools/jetx/upload"
 )
 
 func main() {
