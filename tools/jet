@@ -200,8 +200,14 @@ do_config () {
 
 install_arm () {
     case `uname -s` in
-        Linux)  sudo apt-get install gcc-arm-none-eabi gdb-arm-none-eabi ;;
-        Darwin) brew install lpc21isp ;;
+        Linux)
+            sudo apt-get install gcc-arm-none-eabi gdb-arm-none-eabi
+            ;;
+        Darwin)
+            brew tap PX4/homebrew-px4
+            brew update
+            brew install gcc-arm-none-eabi-49
+            ;;
     esac
 }
 
