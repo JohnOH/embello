@@ -1,9 +1,14 @@
-// I2C slave, responds as fake RTC device at 0x68 with some dummy data.
-// See http://jeelabs.org/2014/12/24/eye-squared-see/
+// RF69 to I2C bridge, to buffer and report all incoming radio packets.
+// See http://jeelabs.org/2014/12/31/lpc810-meets-rfm69/
 
-#include "LPC8xx.h"
+#define chThdYield() // FIXME still used in radio.h
+
+#include "spi.h"
+#include "radio.h"
 #include "lpc_types.h"
 #include "romapi_8xx.h"
+
+RF69<SpiDevice> rf;
 
 uint32_t i2cBuffer [24];
 I2C_HANDLE_T* ih;
@@ -50,9 +55,23 @@ void i2cSetupXfer() {
 }
 
 int main () {
+    LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6); // disable SWCLK/SWDIO and RESET
+
+    // NSS=13, SCK=17, MISO=14, MOSI=23
+    LPC_SWM->PINASSIGN3 = 0x11FFFFFF;   // sck  -    -    -
+    LPC_SWM->PINASSIGN4 = 0xFF0D0E17;   // -    nss  miso mosi
+
+    rf.init(1, 42, 8683);
+    rf.encrypt("mysecret");
+
     i2cSetup();
     i2cSetupXfer();
 
-    while (true)
-        __WFI();
+    while (true) {
+        uint8_t buf [66];
+        int n = rf.receive(buf, sizeof buf);
+        if (n > 0) {
+            ; // ...
+        }
+    }
 }
