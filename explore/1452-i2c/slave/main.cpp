@@ -1,4 +1,5 @@
 // I2C slave, responds as fake RTC device at 0x68 with some dummy data.
+// See http://jeelabs.org/2014/12/24/eye-squared-see/
 
 #include "LPC8xx.h"
 #include "lpc_types.h"

@@ -1,4 +1,5 @@
 // I2C master, reads out an attached RTC chip on I2C address 0x68.
+// See http://jeelabs.org/2014/12/24/eye-squared-see/
 
 #include "stdio.h"
 #include "serial.h"
