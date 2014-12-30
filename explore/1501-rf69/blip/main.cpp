@@ -35,9 +35,9 @@ void sleep (int millis) {
 int main () {
     LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6); // disable SWCLK/SWDIO and RESET
 
-    // NSS=13, SCK=17, MISO=14, MOSI=23
-    LPC_SWM->PINASSIGN3 = 0x11FFFFFF;   // sck  -    -    -
-    LPC_SWM->PINASSIGN4 = 0xFF0D0E17;   // -    nss  miso mosi
+    // NSS=2, SCK=3, MISO=5, MOSI=1
+    LPC_SWM->PINASSIGN3 = 0x03FFFFFF;   // sck  -    -    -
+    LPC_SWM->PINASSIGN4 = 0xFF020501;   // -    nss  miso mosi
 
     sleepSetup();
 
