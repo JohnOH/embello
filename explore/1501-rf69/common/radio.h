@@ -21,7 +21,7 @@ protected:
         REG_FIFO          = 0x00,
         REG_OPMODE        = 0x01,
         REG_FRFMSB        = 0x07,
-		REG_PALEVEL       = 0x11,
+        REG_PALEVEL       = 0x11,
         REG_FEIMSB        = 0x21,
         REG_FEILSB        = 0x22,
         REG_RSSIVALUE     = 0x24,
@@ -29,10 +29,10 @@ protected:
         REG_IRQFLAGS2     = 0x28,
         REG_SYNCVALUE1    = 0x2F,
         REG_SYNCVALUE2    = 0x30,
-		REG_NODEADDR      = 0x39,
-		REG_BCASTADDR     = 0x3A,
-		REG_PKTCONFIG2    = 0x3D,
-		REG_AESKEYMSB     = 0x3E,
+        REG_NODEADDR      = 0x39,
+        REG_BCASTADDR     = 0x3A,
+        REG_PKTCONFIG2    = 0x3D,
+        REG_AESKEYMSB     = 0x3E,
 
         MODE_SLEEP        = 0<<2,
         MODE_TRANSMIT     = 3<<2,
@@ -94,7 +94,7 @@ void RF69<SPI>::configure (const uint8_t* p) {
         if (cmd == 0)
             break;
         writeReg(cmd, p[1]);
-		p += 2;
+        p += 2;
     }
 }
 
