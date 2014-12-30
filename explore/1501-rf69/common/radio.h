@@ -6,10 +6,10 @@ public:
     void init (uint8_t id, uint8_t group, int freq);
     void encrypt (const char* key);
     void txPower (uint8_t level);
-    void sleep ();
     
     int receive (void* ptr, int len);
     void send (uint8_t header, const void* ptr, int len);
+    void sleep ();
     
     int16_t afc;
     uint8_t rssi;
