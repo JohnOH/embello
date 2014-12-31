@@ -10,6 +10,17 @@
 
 RF69<SpiDevice> rf;
 
+class RequestHandler {
+    uint32_t i2cBuf [24];
+    I2C_HANDLE_T* ih;
+public:
+    RequestHandler (uint8_t address) {}
+    bool wantsData () const { return false; }
+    void replyWith (const void* ptr, int len) {}
+};
+
+RequestHandler rh (0x70);
+
 uint32_t i2cBuffer [24];
 I2C_HANDLE_T* ih;
 
@@ -54,6 +65,22 @@ void i2cSetupXfer() {
     LPC_I2CD_API->i2c_slave_transmit_intr(ih, &param, &result);
 }
 
+class PacketBuffer {
+    uint8_t buf [500];
+    uint16_t rpos, wpos;
+public:
+    PacketBuffer () : rpos (0), wpos (0) {}
+    void add (const void* ptr, int len);
+    uint8_t peek () const { return rpos != wpos ? buf[rpos] : 0; }
+    const void* next () const { return buf + rpos + 1; }
+    void shift () { rpos += peek() + 1; }
+};
+
+void PacketBuffer::add (const void* ptr, int len) {
+}
+
+PacketBuffer pb;
+
 int main () {
     LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6); // disable SWCLK/SWDIO and RESET
 
@@ -67,11 +94,28 @@ int main () {
     i2cSetup();
     i2cSetupXfer();
 
-    while (true) {
+    static struct {
+        uint8_t when, rssi;
+        uint16_t afc;
         uint8_t buf [66];
-        int n = rf.receive(buf, sizeof buf);
+    } entry;
+
+    while (true) {
+        int n = rf.receive(entry.buf, sizeof entry.buf);
         if (n > 0) {
-            ; // ...
+            entry.when = 0; // not used yet
+            entry.rssi = rf.rssi;
+            entry.afc = rf.afc;
+            pb.add(&entry, 4 + n);
+        }
+        if (rh.wantsData()) {
+            int avail = pb.peek();
+            if (avail == 0)
+                rh.replyWith(0, 0);
+            else {
+                rh.replyWith(pb.next(), avail);
+                pb.shift();
+            }
         }
     }
 }
