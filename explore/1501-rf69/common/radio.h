@@ -190,7 +190,6 @@ int RF69<SPI>::receive (void* ptr, int len) {
                     ((uint8_t*) ptr)[i] = v;
             }
             spi.disable();
-
 #else
             int count = readReg(REG_FIFO);
             for (int i = 0; i < count; ++i) {
