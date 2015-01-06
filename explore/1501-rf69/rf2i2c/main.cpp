@@ -106,6 +106,11 @@ int main () {
     } entry;
 
     while (true) {
+        if (rh.wantsData())
+            rh.replyWith("abc", 3);
+    }
+
+    while (true) {
         int n = rf.receive(entry.buf, sizeof entry.buf);
         if (n > 0) {
             entry.when = 0; // not used yet
