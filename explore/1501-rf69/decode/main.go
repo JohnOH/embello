@@ -9,7 +9,7 @@ import (
 
 const (
 	dev      = "/dev/i2c-1"
-	addr     = 0x68
+	addr     = 0x70
 	I2CSLAVE = 0x0703
 )
 
@@ -26,17 +26,16 @@ func main() {
 	}
 	syscall.Syscall(syscall.SYS_IOCTL, file.Fd(), I2CSLAVE, addr)
 
-	file.Write([]byte{RF_CONFIG, 8, 42, 1})
-	file.Write([]byte{RF_STATUS})
+	file.Write([]byte{RF_CONFIG, 1, 42, 8})
 
-	nbuf := make([]byte, 1)
 	for {
+		file.Write([]byte{RF_STATUS})
+		nbuf := make([]byte, 1)
 		n, _ := file.Read(nbuf)
 		if n > 0 && nbuf[0] > 0 {
 			file.Write([]byte{RF_PACKET})
 			buf := make([]byte, n)
 			m, _ := file.Read(buf)
-			file.Write([]byte{RF_STATUS})
 
 			if m == n {
 				fmt.Printf("%02X\n", buf)
