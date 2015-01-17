@@ -1,7 +1,7 @@
 # Minimal gcc makefile for LPC810 with serial output and printf
 
 # default Linux USB device name for upload
-TTY = /dev/ttyUSB*
+TTY ?= /dev/ttyUSB*
 
 # use the arm cross compiler, not std gcc
 TRGT = arm-none-eabi-
