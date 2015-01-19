@@ -78,6 +78,7 @@ int main () {
                 printf("%02x", rxBuf[i]);
             printf(" (%d%s%d)\n", rf.rssi, rf.afc < 0 ? "" : "+", rf.afc);
         }
+
         chThdYield() 
     }
 }
