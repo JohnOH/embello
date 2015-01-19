@@ -73,6 +73,7 @@ void RF69<SPI>::setMode (uint8_t newMode) {
 template< typename SPI >
 void RF69<SPI>::setFrequency (uint32_t hz) {
     // accept any frequency scale as input, including KHz and MHz
+    // multiply by 10 until freq >= 100 MHz (don't specify 0 as input!)
     while (hz < 100000000)
         hz *= 10;
 
@@ -105,13 +106,12 @@ static const uint8_t configRegs [] = {
     0x04, 0x8A, // BitRateLsb, divider = 32 MHz / 650
     0x05, 0x05, // FdevMsb = 90 KHz
     0x06, 0xC3, // FdevLsb = 90 KHz
-    //0x07, 0xD3, 0x08, 0x13, 0x09, 0x00, // 868.3 Mhz
     //0x0B, 0x40, //0x20, // AfcCtrl, afclowbetaon
-    0x19, 0x42, // RxBw ...
+    0x19, 0x4A, // RxBw 100 KHz
     0x1A, 0x91, //...
     0x1E, 0x0C, // AfcAutoclearOn, AfcAutoOn
     //0x25, 0x40, //0x80, // DioMapping1 = SyncAddress (Rx)
-    0x29, 0xC4, // // RssiThresh ...
+    0x29, 0x80, // RssiThresh -64 dB
     0x2E, 0x88, // SyncConfig = sync on, sync size = 2
     0x2F, 0x2D, // SyncValue1 = 0x2D
     0x37, 0xD4, // PacketConfig1 = fixed, white, filt node + bcast

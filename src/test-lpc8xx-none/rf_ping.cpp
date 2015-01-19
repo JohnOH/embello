@@ -24,7 +24,7 @@ int main () {
     switch (devId) {
         case 0x8120:
             LPC_SWM->PINASSIGN0 = 0xFFFF0004;
-            // jn2v2: sck 6, ssel 8, miso 11, mosi 9, irq 10
+            // jnp v2: sck 6, ssel 8, miso 11, mosi 9, irq 10
             LPC_SWM->PINASSIGN3 = 0x06FFFFFF; 
             LPC_SWM->PINASSIGN4 = 0xFF080B09;
             break;
@@ -47,27 +47,28 @@ int main () {
         case 0x8241:
             LPC_SWM->PINASSIGN0 = 0xFFFF1207;
             // ea824: sck 24, ssel 15, miso 25, mosi 26
-            LPC_SWM->PINASSIGN3 = 0x18FFFFFF; 
-            LPC_SWM->PINASSIGN4 = 0xFF0F191A;
+            //LPC_SWM->PINASSIGN3 = 0x18FFFFFF; 
+            //LPC_SWM->PINASSIGN4 = 0xFF0F191A;
+            // jnp v3: sck 17, ssel 23, miso 9, mosi 8, irq 1
+            LPC_SWM->PINASSIGN3 = 0x11FFFFFF; 
+            LPC_SWM->PINASSIGN4 = 0xFF170908;
             break;
     }
 
     uart0Init(115200);
-    for (int i = 0; i < 100000; ++i) __ASM("");
+    for (int i = 0; i < 10000; ++i) __ASM("");
     printf("\n[e3-radio] dev %x\n", devId);
 
     rf.init(1, 42, 8683);
-    rf.encrypt("mysecret");
+    //rf.encrypt("mysecret");
     rf.txPower(0); // minimal
 
+    uint16_t seq = 0, cnt = 0;
+
     while (true) {
-        if (devId == 0x8121) {
-            static uint8_t out [60];
-            printf("send %d\n", ++out[0]);
-            rf.send(0, out, sizeof out);
-            for (int i = 0; i < 1000000; ++i)
-                __asm("");
-            continue;
+        if (++cnt == 0) {
+            printf(" > %d\n", ++seq);
+            rf.send(0, &seq, sizeof seq);
         }
 
         int len = rf.receive(rxBuf, sizeof rxBuf);
