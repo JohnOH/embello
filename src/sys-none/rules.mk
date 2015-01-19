@@ -1,7 +1,10 @@
 # gcc Makefile for LPC810
 # based on original file by Kamal Mostafa <kamal@whence.com>
 
-VPATH = $(SHARED)
+ARCHDIR = ../arch-$(ARCH)
+INCLUDES = -I$(ARCHDIR) -I$(SHARED) -I../driver -I../util -I../vendor
+
+VPATH = $(ARCHDIR):$(SHARED):../util:../vendor
 
 CROSS = arm-none-eabi-
 CPU = -mthumb -mcpu=cortex-m0plus
@@ -14,13 +17,13 @@ LD = $(CROSS)ld
 OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
 
-CFLAGS += $(CPU) $(WARN) $(STD) -MMD -I$(SHARED) -DIRQ_DISABLE \
+CFLAGS += $(CPU) $(WARN) $(STD) -MMD $(INCLUDES) -DIRQ_DISABLE \
           -Os -ffunction-sections -fno-builtin -ggdb
-CXXFLAGS += $(CPU) $(WARN) -MMD -I$(SHARED) -DIRQ_DISABLE \
+CXXFLAGS += $(CPU) $(WARN) -MMD $(INCLUDES) -DIRQ_DISABLE \
           -Os -ffunction-sections -fno-builtin -ggdb
 CXXFLAGS += -fno-rtti -fno-exceptions
 
-LDFLAGS += --gc-sections -Map=firmware.map --cref --library-path=$(SHARED)
+LDFLAGS += --gc-sections --cref --library-path=$(SHARED)
 LIBGCC = $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
 
 OS := $(shell uname)
@@ -37,8 +40,8 @@ endif
   
 all: firmware.bin
 
-firmware.elf: $(SHARED)/$(LINK) $(OBJS)
-	@$(LD) -o $@ $(LDFLAGS) -T $(SHARED)/$(LINK) $(OBJS) $(LIBGCC)
+firmware.elf: $(ARCHDIR)/$(LINK) $(OBJS)
+	@$(LD) -o $@ $(LDFLAGS) -T $(ARCHDIR)/$(LINK) $(OBJS) $(LIBGCC)
 	$(SIZE) $@
 
 clean:
@@ -49,7 +52,6 @@ isp: firmware.bin
 	lpc21isp $(ISPOPTS) -control -bin firmware.bin $(TTY) 115200 0
 
 %.bin:%.elf
-#	@$(OBJCOPY) --strip-unneeded -O ihex firmware.elf firmware.hex
 	@$(OBJCOPY) --strip-unneeded -O binary firmware.elf firmware.bin
 
 -include $(OBJS:.o=.d)
