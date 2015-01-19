@@ -23,7 +23,7 @@ CXXFLAGS += $(CPU) $(WARN) -MMD $(INCLUDES) -DIRQ_DISABLE \
           -Os -ffunction-sections -fno-builtin -ggdb
 CXXFLAGS += -fno-rtti -fno-exceptions
 
-LDFLAGS += --gc-sections --cref --library-path=$(SHARED)
+LDFLAGS += --gc-sections --library-path=$(SHARED)
 LIBGCC = $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
 
 OS := $(shell uname)
