@@ -24,6 +24,8 @@ protected:
         REG_FRFMSB        = 0x07,
         REG_PALEVEL       = 0x11,
         REG_LNAVALUE      = 0x18,
+        REG_AFCMSB        = 0x1F,
+        REG_AFCLSB        = 0x20,
         REG_FEIMSB        = 0x21,
         REG_FEILSB        = 0x22,
         REG_RSSIVALUE     = 0x24,
@@ -42,6 +44,7 @@ protected:
 
         IRQ1_MODEREADY    = 1<<7,
         IRQ1_RXREADY      = 1<<6,
+        IRQ1_SYNADDRMATCH = 1<<0,
 
         IRQ2_FIFONOTEMPTY = 1<<6,
         IRQ2_PACKETSENT   = 1<<3,
@@ -176,12 +179,19 @@ void RF69<SPI>::sleep () {
 template< typename SPI >
 int RF69<SPI>::receive (void* ptr, int len) {
     switch (mode) {
-    case MODE_RECEIVE:
+    case MODE_RECEIVE: {
+        static uint8_t lastSam;
+        if ((readReg(REG_IRQFLAGS1) & IRQ1_SYNADDRMATCH) != lastSam) {
+            lastSam ^= IRQ1_SYNADDRMATCH;
+            if (lastSam) { // SyncAddressMatch just went from 0 to 1
+                rssi = readReg(REG_RSSIVALUE);
+                lna = (readReg(REG_LNAVALUE) >> 3) & 0x7;
+                // use FEI value, since the AFC reg has already been cleared
+                afc = (readReg(REG_AFCMSB) << 8) + readReg(REG_AFCLSB);
+            }
+        }
+
         if (readReg(REG_IRQFLAGS2) & IRQ2_PAYLOADREADY) {
-            rssi = readReg(REG_RSSIVALUE);
-            lna = (readReg(REG_LNAVALUE) >> 3) & 0x7;
-            // use the FEI value, since the AFC reg has already been cleared
-            afc = (readReg(REG_FEIMSB) << 8) + readReg(REG_FEILSB);
             
 #if RF69_SPI_BULK
             spi.enable();
@@ -205,6 +215,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
             return count;
         }
         break;
+    }
     case MODE_TRANSMIT:
         break;
     default:
