@@ -1,7 +1,7 @@
 CFLAGS += -DSTARTUP_NO_IRQS
 CXXFLAGS += -I.
 ISPOPTS += -term
-LINK = LPC812.ld
+LINK = LPC810.ld
 ARCH = lpc8xx
 
 OBJS = rf_ping.o system_LPC8xx.o gcc_startup_lpc8xx.o \

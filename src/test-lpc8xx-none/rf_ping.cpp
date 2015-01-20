@@ -22,6 +22,13 @@ int main () {
     //  4: x        SPI0_SSEL SPI0_MISO SPI0_MOSI
 
     switch (devId) {
+        case 0x8100:
+            // disable SWCLK/SWDIO and RESET
+            LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6);
+            // lpc810 coin: sck=0, ssel=1, miso=2, mosi=5
+            LPC_SWM->PINASSIGN3 = 0x00FFFFFF;   // sck  -    -    -
+            LPC_SWM->PINASSIGN4 = 0xFF010205;   // -    nss  miso mosi
+            break;
         case 0x8120:
             LPC_SWM->PINASSIGN0 = 0xFFFF0004;
             // jnp v2: sck 6, ssel 8, miso 11, mosi 9, irq 10
@@ -76,7 +83,8 @@ int main () {
             printf("OK ");
             for (int i = 0; i < len; ++i)
                 printf("%02x", rxBuf[i]);
-            printf(" (%d%s%d)\n", rf.rssi, rf.afc < 0 ? "" : "+", rf.afc);
+            printf(" (%d%s%d:%d)\n",
+                    rf.rssi, rf.afc < 0 ? "" : "+", rf.afc, rf.lna);
         }
 
         chThdYield() 

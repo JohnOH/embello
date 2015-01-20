@@ -13,6 +13,7 @@ public:
     
     int16_t afc;
     uint8_t rssi;
+    uint8_t lna;
     uint8_t myId;
     uint8_t parity;
 
@@ -22,6 +23,7 @@ protected:
         REG_OPMODE        = 0x01,
         REG_FRFMSB        = 0x07,
         REG_PALEVEL       = 0x11,
+        REG_LNAVALUE      = 0x18,
         REG_FEIMSB        = 0x21,
         REG_FEILSB        = 0x22,
         REG_RSSIVALUE     = 0x24,
@@ -107,11 +109,11 @@ static const uint8_t configRegs [] = {
     0x05, 0x05, // FdevMsb = 90 KHz
     0x06, 0xC3, // FdevLsb = 90 KHz
     //0x0B, 0x40, //0x20, // AfcCtrl, afclowbetaon
-    0x19, 0x4A, // RxBw 100 KHz
+    0x19, 0x42, // RxBw 125 KHz
     0x1A, 0x91, //...
     0x1E, 0x0C, // AfcAutoclearOn, AfcAutoOn
     //0x25, 0x40, //0x80, // DioMapping1 = SyncAddress (Rx)
-    0x29, 0x80, // RssiThresh -64 dB
+    0x29, 0xE4, // RssiThresh -64 dB
     0x2E, 0x88, // SyncConfig = sync on, sync size = 2
     0x2F, 0x2D, // SyncValue1 = 0x2D
     0x37, 0xD4, // PacketConfig1 = fixed, white, filt node + bcast
@@ -177,6 +179,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
     case MODE_RECEIVE:
         if (readReg(REG_IRQFLAGS2) & IRQ2_PAYLOADREADY) {
             rssi = readReg(REG_RSSIVALUE);
+            lna = (readReg(REG_LNAVALUE) >> 3) & 0x7;
             // use the FEI value, since the AFC reg has already been cleared
             afc = (readReg(REG_FEIMSB) << 8) + readReg(REG_FEILSB);
             
