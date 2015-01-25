@@ -66,7 +66,7 @@ int main () {
 
     uart0Init(115200);
     for (int i = 0; i < 10000; ++i) __ASM("");
-    printf("\n[e3-radio] dev %x\n", devId);
+    printf("\n[rf_ping] dev %x\n", devId);
 
     rf.init(1, 42, 8683);
     //rf.encrypt("mysecret");
