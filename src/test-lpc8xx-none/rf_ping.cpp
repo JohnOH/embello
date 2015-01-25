@@ -53,9 +53,10 @@ int main () {
             break;
         case 0x8241:
             // ea824: sck 24, ssel 15, miso 25, mosi 26
-            //LPC_SWM->PINASSIGN0 = 0xFFFF1207;
-            //LPC_SWM->PINASSIGN3 = 0x18FFFFFF; 
-            //LPC_SWM->PINASSIGN4 = 0xFF0F191A;
+            LPC_SWM->PINASSIGN0 = 0xFFFF1207;
+            LPC_SWM->PINASSIGN3 = 0x18FFFFFF; 
+            LPC_SWM->PINASSIGN4 = 0xFF0F191A;
+        case 0x8242:
             // jnp v3: sck 17, ssel 23, miso 9, mosi 8, irq 1
             LPC_SWM->PINASSIGN0 = 0xFFFF0004;
             LPC_SWM->PINASSIGN3 = 0x11FFFFFF; 
