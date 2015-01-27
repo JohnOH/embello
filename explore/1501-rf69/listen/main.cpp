@@ -17,9 +17,9 @@ int main () {
 
     // disable SWCLK/SWDIO and RESET
     LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6);
-    // lpc810 coin: sck=0, ssel=1, miso=2, mosi=5
+    // lpc810 coin: sck=0, ssel=5, miso=2, mosi=1
     LPC_SWM->PINASSIGN3 = 0x00FFFFFF;   // sck  -    -    -
-    LPC_SWM->PINASSIGN4 = 0xFF010205;   // -    nss  miso mosi
+    LPC_SWM->PINASSIGN4 = 0xFF050201;   // -    nss  miso mosi
 
     rf.init(1, 42, 8683);
     while (true) {
