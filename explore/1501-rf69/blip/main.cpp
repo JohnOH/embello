@@ -33,19 +33,20 @@ void sleep (int millis) {
 }
 
 int main () {
-    LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6); // disable SWCLK/SWDIO and RESET
-
-    // NSS=1, SCK=0, MISO=2, MOSI=5
+    // disable SWCLK/SWDIO and RESET
+    LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6);
+    // lpc810 coin: sck=0, ssel=1, miso=2, mosi=5
     LPC_SWM->PINASSIGN3 = 0x00FFFFFF;   // sck  -    -    -
     LPC_SWM->PINASSIGN4 = 0xFF010205;   // -    nss  miso mosi
 
     sleepSetup();
 
     rf.init(1, 42, 8683);
-    rf.encrypt("mysecret");
+    //rf.encrypt("mysecret");
     rf.txPower(0); // minimal
 
-    int cnt = 0;
+    uint16_t cnt = 0;
+
     while (true) {
         rf.send(0, &++cnt, sizeof cnt); // send out one packet
         rf.sleep();
