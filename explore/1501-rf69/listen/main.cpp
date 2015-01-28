@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include "serial.h"
 
-#define chThdYield() // FIXME still used in radio.h
+#define chThdYield() // FIXME still used in rf69.h
 #include "spi.h"
-#include "radio.h"
+#include "rf69.h"
 
 RF69<SpiDevice> rf;
 uint8_t rxBuf[66];
