@@ -1,4 +1,5 @@
 // Report received data on the serial port of the LPC810.
+// See http://jeelabs.org/2015/01/28/lpc810-meets-rfm69-part-3/
 
 #include <stdio.h>
 #include "serial.h"

@@ -1,10 +1,9 @@
 // Periodically send out a test packet with an incrementing counter.
-// See http://jeelabs.org/2014/12/31/lpc810-meets-rfm69/
+// See http://jeelabs.org/2015/01/28/lpc810-meets-rfm69-part-3/
 
-#define chThdYield() // FIXME still used in radio.h
-
+#define chThdYield() // FIXME still used in rf69.h
 #include "spi.h"
-#include "radio.h"
+#include "rf69.h"
 
 RF69<SpiDevice> rf;
 
@@ -33,8 +32,7 @@ void sleep (int millis) {
 }
 
 int main () {
-    // disable SWCLK/SWDIO and RESET
-    LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6);
+    LPC_SWM->PINENABLE0 |= 3<<2;        // disable SWCLK/SWDIO
     // lpc810 coin: sck=0, ssel=1, miso=2, mosi=5
     LPC_SWM->PINASSIGN3 = 0x00FFFFFF;   // sck  -    -    -
     LPC_SWM->PINASSIGN4 = 0xFF010205;   // -    nss  miso mosi
@@ -42,7 +40,6 @@ int main () {
     sleepSetup();
 
     rf.init(1, 42, 8683);
-    //rf.encrypt("mysecret");
     rf.txPower(0); // minimal
 
     uint16_t cnt = 0;
