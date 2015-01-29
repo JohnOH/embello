@@ -17,7 +17,7 @@ int main () {
     printf("\n[listen]\n");
 
     LPC_SWM->PINENABLE0 |= 3<<2;        // disable SWCLK/SWDIO
-    // lpc810 coin: sck=0, ssel=3, miso=2, mosi=1
+    // lpc810 coin: sck=0p8, ssel=3p3, miso=2p4, mosi=1p5
     LPC_SWM->PINASSIGN3 = 0x00FFFFFF;   // sck  -    -    -
     LPC_SWM->PINASSIGN4 = 0xFF030201;   // -    nss  miso mosi
 
