@@ -1,4 +1,4 @@
-// Report received data as I2C slave.
+// Report received data as I2C slave on address 0x70.
 // See http://jeelabs.org/2015/01/28/lpc810-meets-rfm69-part-3/
 
 #include "LPC8xx.h"
@@ -33,8 +33,8 @@ void i2cSetup () {
     for (int i = 0; i < 3000000; ++i) __ASM("");
 
     LPC_SWM->PINENABLE0 |= 1<<6;        // disable RESET, pin 1
-    LPC_SWM->PINASSIGN7 = 0x05FFFFFF;   // SDA on P5
-    LPC_SWM->PINASSIGN8 = 0xFFFFFF04;   // SCL on P4
+    LPC_SWM->PINASSIGN7 = 0x05FFFFFF;   // SDA on 5p1
+    LPC_SWM->PINASSIGN8 = 0xFFFFFF04;   // SCL on 4p2
     LPC_SYSCON->SYSAHBCLKCTRL |= 1<<5;  // enable I2C clock
 
     ih = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, i2cBuffer);
@@ -89,7 +89,7 @@ int main () {
     i2cSetupRecv();
 
     LPC_SWM->PINENABLE0 |= 3<<2;        // disable SWCLK/SWDIO
-    // lpc810 coin: sck=0, ssel=3, miso=2, mosi=1
+    // lpc810 coin: sck=0p8, ssel=3p3, miso=2p4, mosi=1p5
     LPC_SWM->PINASSIGN3 = 0x00FFFFFF;   // sck  -    -    -
     LPC_SWM->PINASSIGN4 = 0xFF030201;   // -    nss  miso mosi
 
