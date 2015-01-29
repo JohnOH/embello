@@ -12,7 +12,7 @@ RF69<SpiDevice> rf;
 uint8_t rxBuf[66];
 
 int main () {
-    LPC_SWM->PINASSIGN0 = 0xFFFFFF04; // only connect TXD
+    LPC_SWM->PINASSIGN0 = 0xFFFFFF04;   // only connect 4p2 (TXD)
     serial.init(LPC_USART0, 115200);
     printf("\n[listen]\n");
 
