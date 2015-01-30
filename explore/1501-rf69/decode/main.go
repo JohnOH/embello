@@ -14,9 +14,9 @@ const (
 )
 
 const (
-	RF_CONFIG = iota
-	RF_STATUS
+	RF_STATUS = iota
 	RF_PACKET
+	RF_CONFIG
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	}
 	syscall.Syscall(syscall.SYS_IOCTL, file.Fd(), I2CSLAVE, addr)
 
-	file.Write([]byte{RF_CONFIG, 1, 42, 8})
+	//file.Write([]byte{RF_CONFIG, 1, 42, 8})
 
 	for {
 		file.Write([]byte{RF_STATUS})
