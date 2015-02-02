@@ -1,6 +1,6 @@
 # lpc8xx
 
-The **lpc8xx** utility is a simple uploader and terminal app for LPC8xx chips.
+The **lpc8xx** utility is a simple uploader and terminal app for LPC8xx chips.  
 The LPC8xx is assumed to be connected via a [modified FTDI interface][BUB].
 
 ## Installation
