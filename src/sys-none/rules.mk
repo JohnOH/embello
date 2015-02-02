@@ -29,7 +29,7 @@ LIBGCC = $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
 OS := $(shell uname)
 
 ifeq ($(OS), Linux)
-TTY ?= /dev/ttyUSB*
+TTY ?= /dev/ttyUSB0
 endif
 
 ifeq ($(OS), Darwin)
@@ -49,7 +49,7 @@ clean:
 
 # this works with NXP LPC's, using serial ISP
 isp: firmware.bin
-	lpc21isp $(ISPOPTS) -control -bin firmware.bin $(TTY) 115200 0
+	lpc8xx $(ISPOPTS) $(TTY) firmware.bin
 
 %.bin:%.elf
 	@$(OBJCOPY) --strip-unneeded -O binary firmware.elf firmware.bin
