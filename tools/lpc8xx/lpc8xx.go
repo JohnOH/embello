@@ -133,8 +133,7 @@ func (c *connection) SendAndWait(cmd string, expect string) {
 func (c *connection) Identify() int {
 	c.SetRTS(true) // keep RTS on for ISP mode
 
-	notDone := true
-	for notDone {
+	for {
 		c.SetDTR(true) // pulse DTR to reset
 		for c.ReadReply() != "" {
 			// flush
@@ -142,7 +141,9 @@ func (c *connection) Identify() int {
 		c.SetDTR(false)
 
 		c.Write([]byte("?\r\n"))
-		notDone = c.ReadReply() != "Synchronized" && *waitFlag
+		if c.ReadReply() == "Synchronized" || !*waitFlag {
+			break
+		}
 	}
 
 	c.SetRTS(false)
@@ -152,7 +153,7 @@ func (c *connection) Identify() int {
 	c.SendAndWait("A 0", "0")
 
 	c.SendAndWait("J", "0")
-	id, err := strconv.Atoi(<-c.lines)
+	id, err := strconv.Atoi(c.ReadReply())
 	Check(err)
 
 	return id
