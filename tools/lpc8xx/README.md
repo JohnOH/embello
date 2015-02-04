@@ -8,7 +8,7 @@ The LPC8xx is assumed to be connected via a [modified FTDI interface][BUB].
 The following applies to Mac OSX and Linux:
 
 * make sure Go has been [installed][GO] and GOPATH has been set up
-* enter this command: `go get github.com/jeelabs/embello/tools/lpc8xx`
+* enter this command: `go get -u github.com/jeelabs/embello/tools/lpc8xx`
 * the resulting binary will be available as `$GOPATH/bin/lpc8xx`
 
 ## Usage
