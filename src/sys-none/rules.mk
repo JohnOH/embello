@@ -41,7 +41,7 @@ endif
 all: firmware.bin
 
 firmware.elf: $(ARCHDIR)/$(LINK) $(OBJS)
-	@$(LD) -o $@ $(LDFLAGS) -T $(ARCHDIR)/$(LINK) $(OBJS) $(LIBGCC)
+	@$(LD) -o $@ $(LDFLAGS) -T $(ARCHDIR)/$(LINK) $(OBJS) "$(LIBGCC)"
 	$(SIZE) $@
 
 clean:

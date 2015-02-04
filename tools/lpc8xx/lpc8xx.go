@@ -68,11 +68,11 @@ func main() {
 		data, err := ioutil.ReadFile(binFile)
 		Check(err)
 
-		fmt.Print("flash: ")
-		for _ = range conn.Program(*offsetFlag, data) {
-			fmt.Print(".")
+		fmt.Print("flash: 00000 ")
+		for n := range conn.Program(*offsetFlag, data) {
+			fmt.Printf("\b\b\b\b\b\b%05d ", n*64)
 		}
-		fmt.Println(" done")
+		fmt.Println("done")
 	}
 
 	conn.SetDTR(true) // pulse DTR to reset
