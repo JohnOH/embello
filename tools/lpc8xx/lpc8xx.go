@@ -110,7 +110,7 @@ func (c *connection) ReadReply() string {
 	select {
 	case reply := <-c.lines:
 		return reply
-	case <-time.After(500 * time.Millisecond):
+	case <-time.After(1500 * time.Millisecond):
 		return ""
 	}
 }
