@@ -14,7 +14,8 @@ cd /usr/local
 curl http://dave.cheney.net/paste/go1.4.linux-arm~multiarch-armv7-1.tar.gz | tar zxf -
 echo "export PATH=$PATH:/usr/local/go/bin" >>/etc/profile.d/go.sh
 exit
-echo "export GOPATH=$HOME/go" >>~/.profile
+echo 'export GOPATH=$HOME/go' >>~/.profile
+echo 'export PATH=$PATH:$GOPATH/bin' >>~/.profile
 mkdir $HOME/go
 ```
 Now make sure Go functions:
