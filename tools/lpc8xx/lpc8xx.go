@@ -9,8 +9,10 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"strconv"
@@ -26,6 +28,7 @@ var (
 	waitFlag   = flag.Bool("w", false, "wait for connection to the boot loader")
 	offsetFlag = flag.Int("o", 0, "upload offset (must be a multiple of 1024)")
 	idleFlag   = flag.Int("i", 0, "exit terminal after N idle seconds (0: off)")
+	netFlag    = flag.Bool("n", false, "use telnet protocol for RTS & DTR")
 )
 
 func main() {
@@ -75,8 +78,8 @@ func main() {
 		fmt.Println("done")
 	}
 
-	conn.SetDTR(true) // pulse DTR to reset
-	conn.SetDTR(false)
+	conn.serial.SetDTR(true) // pulse DTR to reset
+	conn.serial.SetDTR(false)
 
 	if *termFlag {
 		fmt.Println("entering terminal mode, press <ESC> to quit:\n")
@@ -86,9 +89,17 @@ func main() {
 }
 
 func connect(port string) *connection {
-	opt := rs232.Options{BitRate: 115200, DataBits: 8, StopBits: 1}
-	dev, err := rs232.Open(port, opt)
-	Check(err)
+	var dev serialLink
+
+	if _, err := os.Stat(port); os.IsNotExist(err) {
+		sock, err := net.Dial("tcp", port)
+		Check(err)
+		dev = &telnet{sock}
+	} else {
+		opt := rs232.Options{BitRate: 115200, DataBits: 8, StopBits: 1}
+		dev, err = rs232.Open(port, opt)
+		Check(err)
+	}
 
 	conn := &connection{dev, make(chan string)}
 	go func() {
@@ -101,9 +112,48 @@ func connect(port string) *connection {
 	return conn
 }
 
+type serialLink interface {
+	io.ReadWriter
+	SetDTR(level bool) error
+	SetRTS(level bool) error
+}
+
+type telnet struct {
+	net.Conn
+}
+
+func (c *telnet) SetDTR(level bool) error {
+	if *netFlag {
+		// TODO proper byte sequence
+		_, err := net.Conn(c).Write([]byte("<DTR>"))
+		return err
+	}
+	return nil
+}
+
+func (c *telnet) SetRTS(level bool) error {
+	if *netFlag {
+		// TODO proper byte sequence
+		_, err := net.Conn(c).Write([]byte("<RTS>"))
+		return err
+	}
+	return nil
+}
+
+func (c *telnet) Read(p []byte) (n int, err error) {
+	// TODO read, unescape, and ignore in-band data
+	return 0, io.EOF
+}
+
+func (c *telnet) Write(b []byte) (int, error) {
+	escaped := bytes.Replace(b, []byte{0xFF}, []byte{0xFF, 0xFF}, -1)
+	_, err := net.Conn(c).Write(escaped)
+	return len(b), err
+}
+
 type connection struct {
-	*rs232.Port
-	lines chan string
+	serial serialLink
+	lines  chan string
 }
 
 func (c *connection) ReadReply() string {
@@ -116,7 +166,7 @@ func (c *connection) ReadReply() string {
 }
 
 func (c *connection) SendAndWait(cmd string, expect string) {
-	c.Write([]byte(cmd + "\r\n"))
+	c.serial.Write([]byte(cmd + "\r\n"))
 	var reply string
 	for i := 0; i < 4; i++ {
 		reply = c.ReadReply()
@@ -131,22 +181,22 @@ func (c *connection) SendAndWait(cmd string, expect string) {
 }
 
 func (c *connection) Identify() int {
-	c.SetRTS(true) // keep RTS on for ISP mode
+	c.serial.SetRTS(true) // keep RTS on for ISP mode
 
 	for {
-		c.SetDTR(true) // pulse DTR to reset
+		c.serial.SetDTR(true) // pulse DTR to reset
 		for c.ReadReply() != "" {
 			// flush
 		}
-		c.SetDTR(false)
+		c.serial.SetDTR(false)
 
-		c.Write([]byte("?\r\n"))
+		c.serial.Write([]byte("?\r\n"))
 		if c.ReadReply() == "Synchronized" || !*waitFlag {
 			break
 		}
 	}
 
-	c.SetRTS(false)
+	c.serial.SetRTS(false)
 
 	c.SendAndWait("Synchronized", "OK")
 	c.SendAndWait("12000", "OK")
@@ -194,7 +244,7 @@ func (c *connection) Program(startAddress int, data []byte) chan int {
 			// write one page of data to RAM
 			offset := (page - firstPage) * pageSize
 			c.SendAndWait(fmt.Sprint("W ", RAM_ADDR, pageSize), "0")
-			c.Write(data[offset : offset+pageSize])
+			c.serial.Write(data[offset : offset+pageSize])
 			// prepare and copy the data to flash memory
 			sector := (page * pageSize) / sectorSize
 			c.SendAndWait(fmt.Sprint("P ", sector, sector), "0")
@@ -267,7 +317,7 @@ func (c *connection) Terminal() {
 		if n < 1 || b[0] == 0x1B { // ESC
 			break
 		}
-		c.Write(b[:n])
+		c.serial.Write(b[:n])
 	}
 
 }
