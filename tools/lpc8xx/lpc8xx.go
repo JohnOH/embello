@@ -146,8 +146,10 @@ func (c *telnet) Read(p []byte) (n int, err error) {
 }
 
 func (c *telnet) Write(b []byte) (int, error) {
-	escaped := bytes.Replace(b, []byte{0xFF}, []byte{0xFF, 0xFF}, -1)
-	_, err := net.Conn(c).Write(escaped)
+	if *netFlag {
+		b = bytes.Replace(b, []byte{0xFF}, []byte{0xFF, 0xFF}, -1)
+	}
+	_, err := net.Conn(c).Write(b)
 	return len(b), err
 }
 
