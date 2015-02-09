@@ -34,3 +34,5 @@ mv go `cat go/VERSION`
 curl http://dave.cheney.net/paste/go1.X.linux-arm~multiarch-armv7-1.tar.gz | tar zxf -
 exit
 ```
+
+Above "arm7-1" confirmed to also work on Odroid-C1, 2015-02-09.
