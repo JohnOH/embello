@@ -95,7 +95,11 @@ func connect(port string) *connection {
 		// if the tty is an existing device, open at as rs232 port
 		sock, err := net.Dial("tcp", port)
 		Check(err)
-		dev = &telnet{sock}
+		if *netFlag {
+			dev = &telnet{sock, 0} // insert telnet escape sequences
+		} else {
+			dev = &rawnet{sock} // no escape sequences
+		}
 	} else {
 		// else assume it's a n ip address + port and open as a network port
 		opt := rs232.Options{BitRate: 115200, DataBits: 8, StopBits: 1}
@@ -123,40 +127,109 @@ type serialLink interface {
 	SetRTS(level bool) error
 }
 
-// telnet objects use a network connection instead of a sirial rs232 port
-type telnet struct {
+// telnet objects use a network connection as is, no signalling
+type rawnet struct {
 	sock net.Conn
 }
 
-func (c *telnet) SetDTR(level bool) error {
-	if *netFlag {
-		// TODO proper byte sequence
-		_, err := c.sock.Write([]byte("<DTR>"))
-		return err
-	}
+func (c *rawnet) SetDTR(level bool) error {
 	return nil
+}
+
+func (c *rawnet) SetRTS(level bool) error {
+	return nil
+}
+
+func (c *rawnet) Read(buf []byte) (n int, err error) {
+	return c.sock.Read(buf)
+}
+
+func (c *rawnet) Write(buf []byte) (int, error) {
+	return c.sock.Write(buf)
+}
+
+// telnet objects use a network connection with telnet in-band signalling
+type telnet struct {
+	sock    net.Conn
+	inState int
+}
+
+const (
+	Iac = 255
+	Sb  = 250
+	Se  = 240
+
+	ComPortOpt = 44
+	SetControl = 5
+)
+
+func (c *telnet) SetDTR(level bool) error {
+	return c.sendEscape(level, 8, 9)
 }
 
 func (c *telnet) SetRTS(level bool) error {
-	if *netFlag {
-		// TODO proper byte sequence
-		_, err := c.sock.Write([]byte("<RTS>"))
-		return err
+	return c.sendEscape(level, 11, 12)
+}
+
+func (c *telnet) sendEscape(flag bool, yes, no uint8) error {
+	b := no
+	if flag {
+		b = yes
 	}
-	return nil
+
+	_, err := c.sock.Write([]byte{Iac, Sb, ComPortOpt, SetControl, b, Iac, Se})
+	return err
 }
 
-func (c *telnet) Read(p []byte) (n int, err error) {
-	// TODO read, unescape, and ignore in-band data
-	return c.sock.Read(p)
+func (c *telnet) Read(buf []byte) (n int, err error) {
+	j := 0
+	for {
+		n, err := c.sock.Read(buf)
+		if err != nil {
+			return n, err
+		}
+		for i := 0; i < n; i++ {
+			b := buf[i]
+			buf[j] = b
+			switch c.inState {
+			case 0: // normal, copying
+				if b == Iac {
+					c.inState = 1
+				} else {
+					j++
+				}
+			case 1: // seen Iac
+				if b == Sb {
+					c.inState = 2
+				} else {
+					j++
+					c.inState = 0
+				}
+			case 2: // inside command
+				if b == Iac {
+					c.inState = 3
+				}
+			case 3: // inside command, see Iac
+				if b == Se {
+					c.inState = 0
+				} else {
+					c.inState = 2
+				}
+			}
+		}
+		if j > 0 {
+			break
+		}
+	}
+	return j, nil
 }
 
-func (c *telnet) Write(b []byte) (int, error) {
+func (c *telnet) Write(buf []byte) (int, error) {
 	if *netFlag {
-		b = bytes.Replace(b, []byte{0xFF}, []byte{0xFF, 0xFF}, -1)
+		buf = bytes.Replace(buf, []byte{0xFF}, []byte{0xFF, 0xFF}, -1)
 	}
 	// FIXME returned count is wrong when escaped
-	return c.sock.Write(b)
+	return c.sock.Write(buf)
 }
 
 type connection struct {
