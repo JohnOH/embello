@@ -3,6 +3,10 @@
 
 package main
 
+// TODO refactor telnet and hardware handling of RTS and DTR
+//  current code is messy, some of the logic can be combined
+//  this will also allow re-using the telnet in-band logic for rs232
+
 import (
 	"bufio"
 	"bytes"
@@ -24,11 +28,11 @@ import (
 )
 
 var (
-	termFlag   = flag.Bool("t", false, "launch as serial terminal after upload")
+	termFlag   = flag.Bool("s", false, "launch as serial terminal after upload")
 	waitFlag   = flag.Bool("w", false, "wait for connection to the boot loader")
 	offsetFlag = flag.Int("o", 0, "upload offset (must be a multiple of 1024)")
 	idleFlag   = flag.Int("i", 0, "exit terminal after N idle seconds (0: off)")
-	netFlag    = flag.Bool("n", false, "use telnet protocol for RTS & DTR")
+	netFlag    = flag.Bool("t", false, "use telnet protocol for RTS & DTR")
 )
 
 func main() {
