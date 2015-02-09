@@ -116,7 +116,7 @@ static const uint8_t configRegs [] = {
     0x1A, 0x42, // AfcBw 125 KHz
     0x1E, 0x0C, // AfcAutoclearOn, AfcAutoOn
     //0x25, 0x40, //0x80, // DioMapping1 = SyncAddress (Rx)
-    0x29, 0xC4, // RssiThresh -98 dB
+    0x29, 0xA0, // RssiThresh -80 dB
     0x2D, 0x05, // PreambleSize = 5
     0x2E, 0x88, // SyncConfig = sync on, sync size = 2
     0x2F, 0x2D, // SyncValue1 = 0x2D

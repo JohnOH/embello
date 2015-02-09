@@ -78,7 +78,7 @@ int main () {
 
     rf.init(nodeId, 42, 8683);
     //rf.encrypt("mysecret");
-    rf.txPower(0); // minimal
+    rf.txPower(0); // 0 = min .. 31 = max
 
     uint16_t seq = 0, cnt = 0;
 
