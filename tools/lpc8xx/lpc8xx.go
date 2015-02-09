@@ -142,7 +142,7 @@ func (c *telnet) SetRTS(level bool) error {
 
 func (c *telnet) Read(p []byte) (n int, err error) {
 	// TODO read, unescape, and ignore in-band data
-	return 0, io.EOF
+	return net.Conn(c).Read(p)
 }
 
 func (c *telnet) Write(b []byte) (int, error) {
