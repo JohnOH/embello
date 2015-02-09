@@ -125,13 +125,13 @@ type serialLink interface {
 
 // telnet objects use a network connection instead of a sirial rs232 port
 type telnet struct {
-	net.Conn
+	sock net.Conn
 }
 
 func (c *telnet) SetDTR(level bool) error {
 	if *netFlag {
 		// TODO proper byte sequence
-		_, err := net.Conn(c).Write([]byte("<DTR>"))
+		_, err := c.sock.Write([]byte("<DTR>"))
 		return err
 	}
 	return nil
@@ -140,7 +140,7 @@ func (c *telnet) SetDTR(level bool) error {
 func (c *telnet) SetRTS(level bool) error {
 	if *netFlag {
 		// TODO proper byte sequence
-		_, err := net.Conn(c).Write([]byte("<RTS>"))
+		_, err := c.sock.Write([]byte("<RTS>"))
 		return err
 	}
 	return nil
@@ -148,15 +148,15 @@ func (c *telnet) SetRTS(level bool) error {
 
 func (c *telnet) Read(p []byte) (n int, err error) {
 	// TODO read, unescape, and ignore in-band data
-	return net.Conn(c).Read(p)
+	return c.sock.Read(p)
 }
 
 func (c *telnet) Write(b []byte) (int, error) {
 	if *netFlag {
 		b = bytes.Replace(b, []byte{0xFF}, []byte{0xFF, 0xFF}, -1)
 	}
-	_, err := net.Conn(c).Write(b)
-	return len(b), err
+	// FIXME returned count is wrong when escaped
+	return c.sock.Write(b)
 }
 
 type connection struct {
