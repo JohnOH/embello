@@ -92,15 +92,19 @@ func connect(port string) *connection {
 	var dev serialLink
 
 	if _, err := os.Stat(port); os.IsNotExist(err) {
+		// if the tty is an existing device, open at as rs232 port
 		sock, err := net.Dial("tcp", port)
 		Check(err)
 		dev = &telnet{sock}
 	} else {
+		// else assume it's a n ip address + port and open as a network port
 		opt := rs232.Options{BitRate: 115200, DataBits: 8, StopBits: 1}
 		dev, err = rs232.Open(port, opt)
 		Check(err)
 	}
 
+	// the rest of the code is identical for either case
+	// everything is abstracted away behind the "serialLink" interface
 	conn := &connection{dev, make(chan string)}
 	go func() {
 		scanner := bufio.NewScanner(dev)
@@ -112,12 +116,14 @@ func connect(port string) *connection {
 	return conn
 }
 
+// a serialLink can read and write bytes, and set the DTR and RTS levels
 type serialLink interface {
 	io.ReadWriter
 	SetDTR(level bool) error
 	SetRTS(level bool) error
 }
 
+// telnet objects use a network connection instead of a sirial rs232 port
 type telnet struct {
 	net.Conn
 }
