@@ -4,7 +4,7 @@
 #define chThdYield() // FIXME still used in radio.h
 
 #include "spi.h"
-#include "radio.h"
+#include "rf69.h"
 #include "lpc_types.h"
 #include "romapi_8xx.h"
 #include "string.h"

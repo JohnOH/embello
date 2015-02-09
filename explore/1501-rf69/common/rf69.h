@@ -109,21 +109,23 @@ static const uint8_t configRegs [] = {
     0x02, 0x00, // DataModul = packet mode, fsk
     0x03, 0x02, // BitRateMsb, data rate = 49,261 khz
     0x04, 0x8A, // BitRateLsb, divider = 32 MHz / 650
-    0x05, 0x05, // FdevMsb = 90 KHz
-    0x06, 0xC3, // FdevLsb = 90 KHz
-    //0x0B, 0x40, //0x20, // AfcCtrl, afclowbetaon
-    0x19, 0x42, // RxBw 125 KHz
-    0x1A, 0x91, //...
+    0x05, 0x02, // FdevMsb = 45 KHz
+    0x06, 0xE1, // FdevLsb = 45 KHz
+    0x0B, 0x20, // Low M
+    0x19, 0x4A, // RxBw 100 KHz
+    0x1A, 0x42, // AfcBw 125 KHz
     0x1E, 0x0C, // AfcAutoclearOn, AfcAutoOn
     //0x25, 0x40, //0x80, // DioMapping1 = SyncAddress (Rx)
-    0x29, 0xE4, // RssiThresh -64 dB
+    0x29, 0xA0, // RssiThresh -80 dB
+    0x2D, 0x05, // PreambleSize = 5
     0x2E, 0x88, // SyncConfig = sync on, sync size = 2
     0x2F, 0x2D, // SyncValue1 = 0x2D
     0x37, 0xD4, // PacketConfig1 = fixed, white, filt node + bcast
     0x38, 0x42, // PayloadLength = 0, unlimited
     0x3C, 0x8F, // FifoTresh, not empty, level 15
-    0x3D, 0x12, //0x10, // PacketConfig2, interpkt = 1, autorxrestart off
-    0x6F, 0x30, // TestDagc ...
+    0x3D, 0x12, // 0x10, // PacketConfig2, interpkt = 1, autorxrestart off
+    0x6F, 0x20, // TestDagc ...
+    0x71, 0x02, // RegTestAfc
     0
 };
 
@@ -180,14 +182,22 @@ template< typename SPI >
 int RF69<SPI>::receive (void* ptr, int len) {
     switch (mode) {
     case MODE_RECEIVE: {
-        static uint8_t lastSam;
-        if ((readReg(REG_IRQFLAGS1) & IRQ1_SYNADDRMATCH) != lastSam) {
-            lastSam ^= IRQ1_SYNADDRMATCH;
-            if (lastSam) { // SyncAddressMatch just went from 0 to 1
+        static uint8_t lastFlag;
+        if ((readReg(REG_IRQFLAGS1) & IRQ1_RXREADY) != lastFlag) {
+            lastFlag ^= IRQ1_RXREADY;
+            if (lastFlag) { // flag just went from 0 to 1
                 rssi = readReg(REG_RSSIVALUE);
                 lna = (readReg(REG_LNAVALUE) >> 3) & 0x7;
-                // use FEI value, since the AFC reg has already been cleared
-                afc = (readReg(REG_AFCMSB) << 8) + readReg(REG_AFCLSB);
+#if RF69_SPI_BULK
+                spi.enable();
+                spi.transfer(REG_AFCMSB);
+                afc = spi.transfer(0) << 8;
+                afc |= spi.transfer(0) << 8;
+                spi.disable();
+#else
+                afc = readReg(REG_AFCMSB) << 8;
+                afc |= readReg(REG_AFCLSB);
+#endif
             }
         }
 
