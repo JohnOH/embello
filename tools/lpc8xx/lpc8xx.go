@@ -3,10 +3,6 @@
 
 package main
 
-// TODO refactor telnet and hardware handling of RTS and DTR
-//  current code is messy, some of the logic can be combined
-//  this will also allow re-using the telnet in-band logic for rs232
-
 import (
 	"bufio"
 	"bytes"
@@ -28,12 +24,24 @@ import (
 )
 
 var (
-	termFlag   = flag.Bool("s", false, "launch as serial terminal after upload")
+	offsetFlag = flag.Int("o", 0, "upload offset (must be multiple of 1024)")
+	serialFlag = flag.Bool("s", false, "launch as serial terminal after upload")
 	waitFlag   = flag.Bool("w", false, "wait for connection to the boot loader")
-	offsetFlag = flag.Int("o", 0, "upload offset (must be a multiple of 1024)")
 	idleFlag   = flag.Int("i", 0, "exit terminal after N idle seconds (0: off)")
-	netFlag    = flag.Bool("t", false, "use telnet protocol for RTS & DTR")
+	telnetFlag = flag.Bool("t", false, "use telnet protocol for RTS & DTR")
 )
+
+var chipInfo = map[int]string{
+	0x8100: "- LPC810: 4 KB flash, 1 KB RAM, DIP8",
+	0x8110: "- LPC811: 8 KB flash, 2 KB RAM, TSSOP16",
+	0x8120: "- LPC812: 16 KB flash, 4 KB RAM, TSSOP16",
+	0x8121: "- LPC812: 16 KB flash, 4 KB RAM, SO20",
+	0x8122: "- LPC812: 16 KB flash, 4 KB RAM, TSSOP20",
+	0x8221: "- LPC822: 16 KB flash, 4 KB RAM, HVQFN33",
+	0x8222: "- LPC822: 16 KB flash, 4 KB RAM, TSSOP20",
+	0x8241: "- LPC824: 32 KB flash, 8 KB RAM, HVQFN33",
+	0x8242: "- LPC824: 32 KB flash, 8 KB RAM, TSSOP20",
+}
 
 func main() {
 	log.SetFlags(0) // no timestamps
@@ -59,7 +67,8 @@ func main() {
 	conn := connect(ttyName)
 
 	id := conn.Identify()
-	fmt.Printf("found: %X\n", id)
+	info, _ := chipInfo[id]
+	fmt.Printf("found: %X %s\n", id, info)
 
 	conn.SendAndWait("N", "0")
 	buf := bytes.NewBuffer([]byte{})
@@ -75,17 +84,17 @@ func main() {
 		data, err := ioutil.ReadFile(binFile)
 		Check(err)
 
-		fmt.Print("flash: 00000 ")
+		fmt.Print("flash: 0000 ")
 		for n := range conn.Program(*offsetFlag, data) {
-			fmt.Printf("\b\b\b\b\b\b%05d ", n*64)
+			fmt.Printf("\b\b\b\b\b%04X ", n)
 		}
-		fmt.Println("done")
+		fmt.Println("done,", len(data), "bytes")
 	}
 
 	conn.serial.SetDTR(true) // pulse DTR to reset
 	conn.serial.SetDTR(false)
 
-	if *termFlag {
+	if *serialFlag {
 		fmt.Println("entering terminal mode, press <ESC> to quit:\n")
 		conn.Terminal()
 		fmt.Println()
@@ -96,19 +105,19 @@ func connect(port string) *connection {
 	var dev serialLink
 
 	if _, err := os.Stat(port); os.IsNotExist(err) {
-		// if the tty is an existing device, open at as rs232 port
+		// if the tty is an existing device, open as rs232 port
 		sock, err := net.Dial("tcp", port)
 		Check(err)
-		if *netFlag {
-			dev = &telnet{sock, 0} // insert telnet escape sequences
-		} else {
-			dev = &rawnet{sock} // no escape sequences
-		}
+		dev = &rawnet{sock} // RTS and DTR are ignored unless telnet is used
 	} else {
-		// else assume it's a n ip address + port and open as a network port
+		// else assume it's an ip address + port and open as network port
 		opt := rs232.Options{BitRate: 115200, DataBits: 8, StopBits: 1}
 		dev, err = rs232.Open(port, opt)
 		Check(err)
+	}
+
+	if *telnetFlag {
+		dev = wrapAsTelnet(dev)
 	}
 
 	// the rest of the code is identical for either case
@@ -131,7 +140,7 @@ type serialLink interface {
 	SetRTS(level bool) error
 }
 
-// telnet objects use a network connection as is, no signalling
+// rawnet objects use a network connection as is, no signalling
 type rawnet struct {
 	sock net.Conn
 }
@@ -152,9 +161,13 @@ func (c *rawnet) Write(buf []byte) (int, error) {
 	return c.sock.Write(buf)
 }
 
-// telnet objects use a network connection with telnet in-band signalling
-type telnet struct {
-	sock    net.Conn
+func wrapAsTelnet(s serialLink) serialLink {
+	return &telnetWrapper{upLink: s, inState: 0}
+}
+
+// telnetWrapper turns RTS/DTR signals into in-band telnet requests
+type telnetWrapper struct {
+	upLink  serialLink
 	inState int
 }
 
@@ -167,28 +180,28 @@ const (
 	SetControl = 5
 )
 
-func (c *telnet) SetDTR(level bool) error {
+func (c *telnetWrapper) SetDTR(level bool) error {
 	return c.sendEscape(level, 8, 9)
 }
 
-func (c *telnet) SetRTS(level bool) error {
+func (c *telnetWrapper) SetRTS(level bool) error {
 	return c.sendEscape(level, 11, 12)
 }
 
-func (c *telnet) sendEscape(flag bool, yes, no uint8) error {
+func (c *telnetWrapper) sendEscape(flag bool, yes, no uint8) error {
 	b := no
 	if flag {
 		b = yes
 	}
 
-	_, err := c.sock.Write([]byte{Iac, Sb, ComPortOpt, SetControl, b, Iac, Se})
+	_, err := c.upLink.Write([]byte{Iac, Sb, ComPortOpt, SetControl, b, Iac, Se})
 	return err
 }
 
-func (c *telnet) Read(buf []byte) (n int, err error) {
+func (c *telnetWrapper) Read(buf []byte) (n int, err error) {
 	j := 0
 	for {
-		n, err := c.sock.Read(buf)
+		n, err := c.upLink.Read(buf)
 		if err != nil {
 			return n, err
 		}
@@ -228,12 +241,10 @@ func (c *telnet) Read(buf []byte) (n int, err error) {
 	return j, nil
 }
 
-func (c *telnet) Write(buf []byte) (int, error) {
-	if *netFlag {
-		buf = bytes.Replace(buf, []byte{0xFF}, []byte{0xFF, 0xFF}, -1)
-	}
-	// FIXME returned count is wrong when escaped
-	return c.sock.Write(buf)
+func (c *telnetWrapper) Write(buf []byte) (int, error) {
+	wrapped := bytes.Replace(buf, []byte{0xFF}, []byte{0xFF, 0xFF}, -1)
+	// FIXME returned count is wrong
+	return c.upLink.Write(wrapped)
 }
 
 type connection struct {
@@ -335,7 +346,7 @@ func (c *connection) Program(startAddress int, data []byte) chan int {
 			c.SendAndWait(fmt.Sprint("P ", sector, sector), "0")
 			destAddr := page * pageSize
 			c.SendAndWait(fmt.Sprint("C ", destAddr, RAM_ADDR, pageSize), "0")
-			r <- (page - firstPage) + 1
+			r <- pageSize * (page - firstPage + 1)
 		}
 	}()
 	return r
