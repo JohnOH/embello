@@ -162,6 +162,7 @@ func (c *rawnet) Write(buf []byte) (int, error) {
 }
 
 func wrapAsTelnet(s serialLink) serialLink {
+	s.Write([]byte{Iac, Will, ComPortOpt})
 	return &telnetWrapper{upLink: s, inState: 0}
 }
 
@@ -172,9 +173,10 @@ type telnetWrapper struct {
 }
 
 const (
-	Iac = 255
-	Sb  = 250
-	Se  = 240
+	Iac  = 255
+	Will = 251
+	Sb   = 250
+	Se   = 240
 
 	ComPortOpt = 44
 	SetControl = 5
