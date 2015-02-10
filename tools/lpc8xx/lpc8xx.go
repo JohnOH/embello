@@ -104,16 +104,16 @@ func main() {
 func connect(port string) *connection {
 	var dev serialLink
 
-	if _, err := os.Stat(port); os.IsNotExist(err) {
+	if _, err := os.Stat(port); os.IsExist(err) {
 		// if the tty is an existing device, open as rs232 port
-		sock, err := net.Dial("tcp", port)
-		Check(err)
-		dev = &rawnet{sock} // RTS and DTR are ignored unless telnet is used
-	} else {
-		// else assume it's an ip address + port and open as network port
 		opt := rs232.Options{BitRate: 115200, DataBits: 8, StopBits: 1}
 		dev, err = rs232.Open(port, opt)
 		Check(err)
+	} else {
+		// else assume it's an ip address + port and open as network port
+		sock, err := net.Dial("tcp", port)
+		Check(err)
+		dev = &rawnet{sock} // RTS and DTR are ignored unless telnet is used
 	}
 
 	if *telnetFlag {
