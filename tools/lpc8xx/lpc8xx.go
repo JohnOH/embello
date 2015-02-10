@@ -162,7 +162,8 @@ func (c *rawnet) Write(buf []byte) (int, error) {
 }
 
 func wrapAsTelnet(s serialLink) serialLink {
-	s.Write([]byte{Iac, Will, ComPortOpt})
+	// doesn't seem to be needed:
+	//s.Write([]byte{Iac, Will, ComPortOpt})
 	return &telnetWrapper{upLink: s, inState: 0}
 }
 
@@ -258,7 +259,7 @@ func (c *connection) ReadReply() string {
 	select {
 	case reply := <-c.lines:
 		return reply
-	case <-time.After(250 * time.Millisecond):
+	case <-time.After(1000 * time.Millisecond):
 		return ""
 	}
 }
