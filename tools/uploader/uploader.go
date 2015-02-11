@@ -29,6 +29,7 @@ var (
 	waitFlag   = flag.Bool("w", false, "wait for connection to the boot loader")
 	idleFlag   = flag.Int("i", 0, "exit terminal after N idle seconds (0: off)")
 	telnetFlag = flag.Bool("t", false, "use telnet protocol for RTS & DTR")
+	debugFlag  = flag.Bool("d", false, "verbose debugging output")
 )
 
 var chipInfo = map[int]string{
@@ -71,10 +72,10 @@ func main() {
 	fmt.Printf("found: %X %s\n", id, info)
 
 	conn.SendAndWait("N", "0")
-	buf := bytes.NewBuffer([]byte{})
 
+	buf := bytes.NewBuffer([]byte{})
 	for i := 0; i < 4; i++ {
-		b, err := strconv.ParseUint(<-conn.lines, 10, 32)
+		b, err := strconv.ParseUint(conn.ReadReply(), 10, 32)
 		Check(err)
 		binary.Write(buf, binary.LittleEndian, uint32(b))
 	}
@@ -87,28 +88,38 @@ func main() {
 		fmt.Print("flash: 0000 ")
 		for n := range conn.Program(*offsetFlag, data) {
 			fmt.Printf("\b\b\b\b\b%04X ", n)
+			if *debugFlag {
+				fmt.Println()
+			}
 		}
 		fmt.Println("done,", len(data), "bytes")
 	}
 
-	conn.serial.SetDTR(true) // pulse DTR to reset
-	conn.serial.SetDTR(false)
+	conn.SetDTR(true) // pulse DTR to reset
+	conn.SetDTR(false)
 
 	if *serialFlag {
+		*debugFlag = false
 		fmt.Println("entering terminal mode, press <ESC> to quit:\n")
-		conn.Terminal()
+		terminalMode(conn)
 		fmt.Println()
 	}
 }
 
-func connect(port string) *connection {
-	var dev serialLink
+// controllable can set the DTR and RTS levels
+type controllable interface {
+	SetDTR(level bool) error
+	SetRTS(level bool) error
+}
+
+func connect(port string) *SerConn {
+	var dev io.ReadWriter
 
 	if _, err := os.Stat(port); os.IsNotExist(err) {
 		// if nonexistent, it's an ip address + port and open as network port
-		sock, err := net.Dial("tcp", port)
+		dev, err = net.Dial("tcp", port)
 		Check(err)
-		dev = &rawnet{sock} // RTS and DTR are ignored unless telnet is used
+		// RTS and DTR will be ignored unless telnet is specified
 	} else {
 		// else assume the tty is an existing device, open as rs232 port
 		opt := rs232.Options{BitRate: 115200, DataBits: 8, StopBits: 1}
@@ -120,48 +131,10 @@ func connect(port string) *connection {
 		dev = wrapAsTelnet(dev)
 	}
 
-	// the rest of the code is identical for either case
-	// everything is abstracted away behind the "serialLink" interface
-	conn := &connection{dev, make(chan string)}
-	go func() {
-		scanner := bufio.NewScanner(dev)
-		for scanner.Scan() {
-			conn.lines <- scanner.Text()
-		}
-		close(conn.lines)
-	}()
-	return conn
+	return NewSerConn(dev)
 }
 
-// a serialLink can read and write bytes, and set the DTR and RTS levels
-type serialLink interface {
-	io.ReadWriter
-	SetDTR(level bool) error
-	SetRTS(level bool) error
-}
-
-// rawnet objects use a network connection as is, no signalling
-type rawnet struct {
-	sock net.Conn
-}
-
-func (c *rawnet) SetDTR(level bool) error {
-	return nil
-}
-
-func (c *rawnet) SetRTS(level bool) error {
-	return nil
-}
-
-func (c *rawnet) Read(buf []byte) (n int, err error) {
-	return c.sock.Read(buf)
-}
-
-func (c *rawnet) Write(buf []byte) (int, error) {
-	return c.sock.Write(buf)
-}
-
-func wrapAsTelnet(s serialLink) serialLink {
+func wrapAsTelnet(s io.ReadWriter) io.ReadWriter {
 	// doesn't seem to be needed:
 	//s.Write([]byte{Iac, Will, ComPortOpt})
 	return &telnetWrapper{upLink: s, inState: 0}
@@ -169,7 +142,7 @@ func wrapAsTelnet(s serialLink) serialLink {
 
 // telnetWrapper turns RTS/DTR signals into in-band telnet requests
 type telnetWrapper struct {
-	upLink  serialLink
+	upLink  io.ReadWriter
 	inState int
 }
 
@@ -247,25 +220,74 @@ func (c *telnetWrapper) Read(buf []byte) (n int, err error) {
 func (c *telnetWrapper) Write(buf []byte) (int, error) {
 	wrapped := bytes.Replace(buf, []byte{0xFF}, []byte{0xFF, 0xFF}, -1)
 	// FIXME returned count is wrong
-	return c.upLink.Write(wrapped)
+	n, err := c.upLink.Write(wrapped)
+	if n > len(buf) {
+		n = len(buf)
+	}
+	return n, err
 }
 
-type connection struct {
-	serial serialLink
-	lines  chan string
+// NewConnection creates a connection for uploading and terminal session use.
+func NewSerConn(rw io.ReadWriter) *SerConn {
+	brd := bufio.NewReader(rw)
+	ctl, ok := rw.(controllable)
+	if !ok {
+		// if the reader does not support DTR/RTS, use a dummy one
+		ctl = new(dummyControllable)
+	}
+	conn := &SerConn{brd, rw, ctl, make(chan string)}
+
+	go func() {
+		for {
+			line, err := brd.ReadString('\n')
+			Check(err)
+			if *debugFlag {
+				fmt.Printf("R: %q\n", line)
+			}
+			n := len(line)
+			if n >= 2 && line[n-2] == '\r' {
+				line = line[:n-2]
+			}
+			conn.lines <- line
+		}
+	}()
+
+	return conn
 }
 
-func (c *connection) ReadReply() string {
+// dummyControllable silently ignores all DTR/RTS request
+type dummyControllable struct{}
+
+func (c *dummyControllable) SetDTR(level bool) error {
+	return nil
+}
+
+func (c *dummyControllable) SetRTS(level bool) error {
+	return nil
+}
+
+// SerConn is a buffered reader, unbuffered writer, and DTR/RTS controllable.
+type SerConn struct {
+	*bufio.Reader
+	io.Writer
+	controllable
+	lines chan string
+}
+
+func (c *SerConn) ReadReply() string {
 	select {
-	case reply := <-c.lines:
-		return reply
-	case <-time.After(1000 * time.Millisecond):
+	case line := <-c.lines:
+		return line
+	case <-time.After(2000 * time.Millisecond):
 		return ""
 	}
 }
 
-func (c *connection) SendAndWait(cmd string, expect string) {
-	c.serial.Write([]byte(cmd + "\r\n"))
+func (c *SerConn) SendAndWait(cmd string, expect string) {
+	if *debugFlag {
+		fmt.Printf("W: %q\n", cmd+"\r\n")
+	}
+	c.Write([]byte(cmd + "\r\n"))
 	var reply string
 	for i := 0; i < 4; i++ {
 		reply = c.ReadReply()
@@ -279,23 +301,21 @@ func (c *connection) SendAndWait(cmd string, expect string) {
 	log.Fatal(reply)
 }
 
-func (c *connection) Identify() int {
-	c.serial.SetRTS(true) // keep RTS on for ISP mode
+func (c *SerConn) Identify() int {
+	c.SetRTS(true) // keep RTS on for ISP mode
 
 	for {
-		c.serial.SetDTR(true) // pulse DTR to reset
-		for c.ReadReply() != "" {
-			// flush
-		}
-		c.serial.SetDTR(false)
+		c.SetDTR(true)                     // pulse DTR to reset
+		c.Read(make([]byte, c.Buffered())) // flush
+		c.SetDTR(false)
 
-		c.serial.Write([]byte("?\r\n"))
+		c.Write([]byte("?\r\n"))
 		if c.ReadReply() == "Synchronized" || !*waitFlag {
 			break
 		}
 	}
 
-	c.serial.SetRTS(false)
+	c.SetRTS(false)
 
 	c.SendAndWait("Synchronized", "OK")
 	c.SendAndWait("12000", "OK")
@@ -308,7 +328,7 @@ func (c *connection) Identify() int {
 	return id
 }
 
-func (c *connection) Program(startAddress int, data []byte) chan int {
+func (c *SerConn) Program(startAddress int, data []byte) chan int {
 	const sectorSize = 1024
 	const pageSize = 64
 
@@ -343,7 +363,7 @@ func (c *connection) Program(startAddress int, data []byte) chan int {
 			// write one page of data to RAM
 			offset := (page - firstPage) * pageSize
 			c.SendAndWait(fmt.Sprint("W ", RAM_ADDR, pageSize), "0")
-			c.serial.Write(data[offset : offset+pageSize])
+			c.Write(data[offset : offset+pageSize])
 			// prepare and copy the data to flash memory
 			sector := (page * pageSize) / sectorSize
 			c.SendAndWait(fmt.Sprint("P ", sector, sector), "0")
@@ -371,16 +391,15 @@ func fixChecksum(data []byte) {
 	data[31] = byte(sum >> 24)
 }
 
-func (c *connection) Terminal() {
+func terminalMode(c *SerConn) {
 	timeout := time.Duration(*idleFlag) * time.Second
 	idleTimer := time.NewTimer(timeout)
 
 	// FIXME still in line mode, so only complete lines will be shown
-	//  look into bufio.Reader for a possible solution
 	go func() {
-		for s := range c.lines {
+		for line := range c.lines {
 			idleTimer.Reset(timeout)
-			fmt.Println(s)
+			fmt.Println(line)
 		}
 	}()
 
@@ -416,7 +435,7 @@ func (c *connection) Terminal() {
 		if n < 1 || b[0] == 0x1B { // ESC
 			break
 		}
-		c.serial.Write(b[:n])
+		c.Write(b[:n])
 	}
 
 }
