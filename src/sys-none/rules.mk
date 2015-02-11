@@ -49,7 +49,7 @@ clean:
 
 # this works with NXP LPC's, using serial ISP
 isp: firmware.bin
-	lpc8xx $(ISPOPTS) $(TTY) firmware.bin
+	uploader $(ISPOPTS) $(TTY) firmware.bin
 
 %.bin:%.elf
 	@$(OBJCOPY) --strip-unneeded -O binary firmware.elf firmware.bin
