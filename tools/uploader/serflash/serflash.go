@@ -21,7 +21,7 @@ func New(rw io.ReadWriter, debug, wait bool) *Conn {
 		// if the reader does not support DTR/RTS, use a dummy one
 		ctl = new(dummyControllable)
 	}
-	conn := &Conn{brd, rw, ctl, make(chan string), debug, wait}
+	conn := &Conn{make(chan string), brd, rw, ctl, debug, wait}
 
 	go func() {
 		for {
@@ -60,10 +60,12 @@ func (c *dummyControllable) SetRTS(level bool) error {
 
 // Conn is a buffered reader, unbuffered writer, and DTR/RTS controllable.
 type Conn struct {
+	Lines chan string
+
 	*bufio.Reader
 	io.Writer
 	controllable
-	Lines       chan string
+
 	debug, wait bool
 }
 
