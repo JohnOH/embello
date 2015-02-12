@@ -63,6 +63,7 @@ int main () {
             LPC_SWM->PINASSIGN0 = 0xFFFF1207;
             LPC_SWM->PINASSIGN3 = 0x18FFFFFF; 
             LPC_SWM->PINASSIGN4 = 0xFF0F191A;
+            break;
         case 0x8242:
             nodeId = 24;
             // jnp v3: sck 17, ssel 23, miso 9, mosi 8, irq 1
