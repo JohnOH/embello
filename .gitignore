@@ -1,10 +1,10 @@
 *.d
 *.o
 *.elf
+*.hex
 
 .project
 .cproject
-.hex
 .metadata
 
 /tags
