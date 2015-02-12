@@ -24,7 +24,7 @@ CXXFLAGS += $(CPU) $(WARN) -MMD $(INCLUDES) -DIRQ_DISABLE \
 CXXFLAGS += -fno-rtti -fno-exceptions
 
 LDFLAGS += --gc-sections --library-path=$(SHARED)
-LIBGCC = $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
+LIBGCC = "$(shell $(CC) $(CFLAGS) --print-libgcc-file-name)"
 
 OS := $(shell uname)
 
@@ -38,10 +38,10 @@ endif
 
 .PHONY: all clean isp
   
-all: firmware.bin
+all: firmware.bin firmware.hex
 
 firmware.elf: $(ARCHDIR)/$(LINK) $(OBJS)
-	@$(LD) -o $@ $(LDFLAGS) -T $(ARCHDIR)/$(LINK) $(OBJS) "$(LIBGCC)"
+	@$(LD) -o $@ $(LDFLAGS) -T $(ARCHDIR)/$(LINK) $(OBJS) $(LIBGCC)
 	$(SIZE) $@
 
 clean:
@@ -53,5 +53,8 @@ isp: firmware.bin
 
 %.bin:%.elf
 	@$(OBJCOPY) --strip-unneeded -O binary firmware.elf firmware.bin
+
+%.hex:%.elf
+	@$(OBJCOPY) --strip-unneeded -O ihex firmware.elf firmware.hex
 
 -include $(OBJS:.o=.d)
