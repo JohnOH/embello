@@ -2,5 +2,10 @@
 *.o
 *.elf
 
+.project
+.cproject
+.hex
+.metadata
+
 /tags
 /jet/jet
