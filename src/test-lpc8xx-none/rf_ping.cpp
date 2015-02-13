@@ -9,7 +9,7 @@
 #include "spi.h"
 #include "rf69.h"
 
-RF69<SpiDevice> rf;
+RF69<SpiDev0> rf;
 
 uint8_t rxBuf[66];
 
