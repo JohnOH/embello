@@ -11,7 +11,7 @@
 template< int N >
 class SpiDev {
 public:
-    void master (int div) {
+    static void master (int div) {
         LPC_SYSCON->SYSAHBCLKCTRL |= (1<<11);   // enable SPI clock
         LPC_SYSCON->PRESETCTRL &= ~(1<<0);      // reset
         LPC_SYSCON->PRESETCTRL |= (1<<0);       // release
@@ -23,7 +23,7 @@ public:
         addr()->CFG |= SPI_CFG_ENABLE;
     }
 
-    uint8_t rwReg (uint8_t cmd, uint8_t val) {
+    static uint8_t rwReg (uint8_t cmd, uint8_t val) {
         addr()->TXDATCTL =
 			SPI_TXDATCTL_FSIZE(16-1) | SPI_TXDATCTL_EOT | (cmd << 8) | val;
         while ((addr()->STAT & SPI_STAT_RXRDY) == 0)
@@ -32,7 +32,7 @@ public:
     }
 
 protected:
-    LPC_SPI_TypeDef* addr () { return N == 0 ? LPC_SPI0 : LPC_SPI1; }
+    static LPC_SPI_TypeDef* addr () { return N == 0 ? LPC_SPI0 : LPC_SPI1; }
 };
 
 typedef SpiDev<0> SpiDev0;
