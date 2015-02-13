@@ -70,12 +70,12 @@ type Conn struct {
 	debug, wait bool
 }
 
-func (c *Conn) readReply() string {
+func (c *Conn) readReply() (string, bool) {
 	select {
 	case line := <-c.Lines:
-		return line
+		return line, true
 	case <-time.After(2 * time.Second):
-		return ""
+		return "", false
 	}
 }
 
@@ -86,8 +86,8 @@ func (c *Conn) sendAndWait(cmd string, expect string) {
 	c.Write([]byte(cmd + "\r\n"))
 	var reply string
 	for i := 0; i < 4; i++ {
-		reply = c.readReply()
-		if reply == "" {
+		reply, ok := c.readReply()
+		if !ok {
 			log.Fatal("no response, timeout")
 		}
 		if reply == expect {
@@ -100,21 +100,19 @@ func (c *Conn) sendAndWait(cmd string, expect string) {
 func (c *Conn) Identify() (int, string, []byte) {
 	c.SetRTS(true) // keep RTS on for ISP mode
 
-	start := time.Now()
 	for {
 		c.SetDTR(true)                     // pulse DTR to reset
 		c.Read(make([]byte, c.Buffered())) // flush
 		c.SetDTR(false)
 
 		c.Write([]byte("?\r\n"))
-		if strings.HasSuffix(c.readReply(), "Synchronized") {
+		reply, ok := c.readReply()
+		if strings.HasSuffix(reply, "Synchronized") {
 			break
 		}
-		// readReply will wait a little before it times out, but if it didn't
-		// then maybe there is more pending, so keep reading even if c.wait
-		// is not set - this will be void once readReply has timed out
-		if !c.wait && time.Now().Sub(start) > time.Second {
-			break
+
+		if !ok && !c.wait {
+			break // no sync, will fail later - after RTS has been restored
 		}
 	}
 
@@ -125,14 +123,16 @@ func (c *Conn) Identify() (int, string, []byte) {
 	c.sendAndWait("A 0", "0")
 
 	c.sendAndWait("J", "0")
-	id, err := strconv.Atoi(c.readReply())
+	reply, _ := c.readReply()
+	id, err := strconv.Atoi(reply)
 	Check(err)
 
 	c.sendAndWait("N", "0")
 
 	buf := bytes.NewBuffer([]byte{})
 	for i := 0; i < 4; i++ {
-		b, err := strconv.ParseUint(c.readReply(), 10, 32)
+		reply, _ = c.readReply()
+		b, err := strconv.ParseUint(reply, 10, 32)
 		Check(err)
 		binary.Write(buf, binary.LittleEndian, uint32(b))
 	}
