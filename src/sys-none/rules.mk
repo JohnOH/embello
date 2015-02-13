@@ -17,9 +17,9 @@ LD = $(CROSS)ld
 OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
 
-CFLAGS += $(CPU) $(WARN) $(STD) -MMD $(INCLUDES) -DIRQ_DISABLE \
+CFLAGS += $(CPU) $(WARN) $(STD) -MMD $(INCLUDES) \
           -Os -ffunction-sections -fno-builtin -ggdb
-CXXFLAGS += $(CPU) $(WARN) -MMD $(INCLUDES) -DIRQ_DISABLE \
+CXXFLAGS += $(CPU) $(WARN) -MMD $(INCLUDES) \
           -Os -ffunction-sections -fno-builtin -ggdb
 CXXFLAGS += -fno-rtti -fno-exceptions
 

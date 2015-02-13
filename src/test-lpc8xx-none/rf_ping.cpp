@@ -6,10 +6,11 @@
 
 #define chThdYield() // FIXME still used in rf69.h
 
+// TODO #define RF69_SPI_BULK 1
 #include "spi.h"
 #include "rf69.h"
 
-RF69<SpiDevice> rf;
+RF69<SpiDev0> rf;
 
 uint8_t rxBuf[66];
 

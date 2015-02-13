@@ -137,7 +137,8 @@ void RF69<SPI>::init (uint8_t id, uint8_t group, int freq) {
     parity = group ^ (group << 4);
     parity = (parity ^ (parity << 2)) & 0xC0;
 
-    spi.init();
+    // 10 MHz, i.e. 30 MHz / 3 (or 4 MHz if clock is still at 12 MHz)
+    spi.master(3);
     do
         writeReg(REG_SYNCVALUE1, 0xAA);
     while (readReg(REG_SYNCVALUE1) != 0xAA);

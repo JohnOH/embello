@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jeelabs/embello/tools/uploader/lpc8xx"
@@ -21,7 +22,7 @@ func New(rw io.ReadWriter, debug, wait bool) *Conn {
 		// if the reader does not support DTR/RTS, use a dummy one
 		ctl = new(dummyControllable)
 	}
-	conn := &Conn{brd, rw, ctl, make(chan string), debug, wait}
+	conn := &Conn{make(chan string), brd, rw, ctl, debug, wait}
 
 	go func() {
 		for {
@@ -60,19 +61,21 @@ func (c *dummyControllable) SetRTS(level bool) error {
 
 // Conn is a buffered reader, unbuffered writer, and DTR/RTS controllable.
 type Conn struct {
+	Lines chan string
+
 	*bufio.Reader
 	io.Writer
 	controllable
-	Lines       chan string
+
 	debug, wait bool
 }
 
-func (c *Conn) readReply() string {
+func (c *Conn) readReply() (string, bool) {
 	select {
 	case line := <-c.Lines:
-		return line
-	case <-time.After(2000 * time.Millisecond):
-		return ""
+		return line, true
+	case <-time.After(2 * time.Second):
+		return "", false
 	}
 }
 
@@ -83,8 +86,8 @@ func (c *Conn) sendAndWait(cmd string, expect string) {
 	c.Write([]byte(cmd + "\r\n"))
 	var reply string
 	for i := 0; i < 4; i++ {
-		reply = c.readReply()
-		if reply == "" {
+		reply, ok := c.readReply()
+		if !ok {
 			log.Fatal("no response, timeout")
 		}
 		if reply == expect {
@@ -103,8 +106,13 @@ func (c *Conn) Identify() (int, string, []byte) {
 		c.SetDTR(false)
 
 		c.Write([]byte("?\r\n"))
-		if c.readReply() == "Synchronized" || !c.wait {
+		reply, ok := c.readReply()
+		if strings.HasSuffix(reply, "Synchronized") {
 			break
+		}
+
+		if !ok && !c.wait {
+			break // no sync, will fail later - after RTS has been restored
 		}
 	}
 
@@ -115,14 +123,16 @@ func (c *Conn) Identify() (int, string, []byte) {
 	c.sendAndWait("A 0", "0")
 
 	c.sendAndWait("J", "0")
-	id, err := strconv.Atoi(c.readReply())
+	reply, _ := c.readReply()
+	id, err := strconv.Atoi(reply)
 	Check(err)
 
 	c.sendAndWait("N", "0")
 
 	buf := bytes.NewBuffer([]byte{})
 	for i := 0; i < 4; i++ {
-		b, err := strconv.ParseUint(c.readReply(), 10, 32)
+		reply, _ = c.readReply()
+		b, err := strconv.ParseUint(reply, 10, 32)
 		Check(err)
 		binary.Write(buf, binary.LittleEndian, uint32(b))
 	}
