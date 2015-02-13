@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jeelabs/embello/tools/uploader/lpc8xx"
@@ -99,13 +100,20 @@ func (c *Conn) sendAndWait(cmd string, expect string) {
 func (c *Conn) Identify() (int, string, []byte) {
 	c.SetRTS(true) // keep RTS on for ISP mode
 
+	start := time.Now()
 	for {
 		c.SetDTR(true)                     // pulse DTR to reset
 		c.Read(make([]byte, c.Buffered())) // flush
 		c.SetDTR(false)
 
 		c.Write([]byte("?\r\n"))
-		if c.readReply() == "Synchronized" || !c.wait {
+		if strings.HasSuffix(c.readReply(), "Synchronized") {
+			break
+		}
+		// readReply will wait a little before it times out, but if it didn't
+		// then maybe there is more pending, so keep reading even if c.wait
+		// is not set - this will be void once readReply has timed out
+		if !c.wait && time.Now().Sub(start) > time.Second {
 			break
 		}
 	}
