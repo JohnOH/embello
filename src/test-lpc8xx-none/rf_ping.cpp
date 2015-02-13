@@ -6,6 +6,7 @@
 
 #define chThdYield() // FIXME still used in rf69.h
 
+// TODO #define RF69_SPI_BULK 1
 #include "spi.h"
 #include "rf69.h"
 
