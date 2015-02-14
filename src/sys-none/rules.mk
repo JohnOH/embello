@@ -45,7 +45,7 @@ firmware.elf: $(ARCHDIR)/$(LINK) $(OBJS)
 	$(SIZE) $@
 
 clean:
-	rm -f *.o *.d firmware.elf firmware.bin firmware.map
+	rm -f *.o *.d firmware.elf firmware.bin firmware.map firmware.hex
 
 # this works with NXP LPC's, using serial ISP
 isp: firmware.bin
