@@ -33,7 +33,7 @@ func main() {
 	log.SetFlags(0) // no timestamps
 
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: lpc8xx ?options? tty ?binfile?")
+		fmt.Fprintln(os.Stderr, "Usage: uploader ?options? tty ?binfile?")
 		flag.PrintDefaults()
 	}
 
