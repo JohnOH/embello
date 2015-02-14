@@ -86,8 +86,10 @@ int main () {
 
     while (true) {
         if (++cnt == 0) {
-            printf(" > %d\n", ++seq);
-            rf.send(0, &seq, sizeof seq);
+            const int TXLEN = 1; // can be set to anything from 1 to 65
+            static uint8_t txBuf[TXLEN];
+            printf(" > %d\n", ++txBuf[0]);
+            rf.send(0, txBuf, sizeof txBuf);
         }
 
         int len = rf.receive(rxBuf, sizeof rxBuf);
