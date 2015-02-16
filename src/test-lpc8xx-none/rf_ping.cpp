@@ -29,9 +29,12 @@ int main () {
             nodeId = 10;
             // disable SWCLK/SWDIO and RESET
             LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6);
-            // lpc810 coin: sck=0, ssel=1, miso=2, mosi=5
+            // lpc810 coin: sck=0p8, ssel=1p5, miso=2p4, mosi=5p1, tx=4p2
+            // SPI0
             LPC_SWM->PINASSIGN3 = 0x00FFFFFF;   // sck  -    -    -
             LPC_SWM->PINASSIGN4 = 0xFF010205;   // -    nss  miso mosi
+            // USART0
+            LPC_SWM->PINASSIGN0 = 0xFFFFFF04;
             break;
         case 0x8120:
             nodeId = 12;
