@@ -1,8 +1,18 @@
 # gcc Makefile for LPC810
 # based on original file by Kamal Mostafa <kamal@whence.com>
 
+LINKWITH = GCC
+#LINKWITH = LD
+
 ARCHDIR = $(LIBDIR)/arch-$(ARCH)
 INCLUDES = -I$(ARCHDIR) -I$(SHARED) -I$(LIBDIR)/driver -I$(LIBDIR)/util -I$(LIBDIR)/vendor
+
+# Output directory and files
+BUILDDIR = build
+OUTFILES = $(BUILDDIR)/firmware.elf \
+           $(BUILDDIR)/firmware.hex \
+           $(BUILDDIR)/firmware.bin
+OBJDIR    = $(BUILDDIR)/obj
 
 VPATH = $(ARCHDIR):$(SHARED):$(LIBDIR)/util:$(LIBDIR)/vendor
 
@@ -17,13 +27,22 @@ LD = $(CROSS)ld
 OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
 
+OBJS= $(APPOBJS:%.o=$(OBJDIR)/%.o)
+
 CFLAGS += $(CPU) $(WARN) $(STD) -MMD $(INCLUDES) \
           -Os -ffunction-sections -fno-builtin -ggdb
 CXXFLAGS += $(CPU) $(WARN) -MMD $(INCLUDES) \
           -Os -ffunction-sections -fno-builtin -ggdb
+
+#needed to shrink size compared to previous
 CXXFLAGS += -fno-rtti -fno-exceptions
 
+ifeq ($(LINKWITH), GCC)
+LDFLAGS += -Wl,--script=$(ARCHDIR)/$(LINK) -Wl,--gc-sections -nostartfiles -L$(SHARED)
+else
 LDFLAGS += --gc-sections --library-path=$(SHARED)
+endif
+
 LIBGCC = "$(shell $(CC) $(CFLAGS) --print-libgcc-file-name)"
 
 OS := $(shell uname)
@@ -38,23 +57,42 @@ endif
 
 .PHONY: all clean isp
   
-all: firmware.bin firmware.hex
+all: $(OUTFILES)
 
-firmware.elf: $(ARCHDIR)/$(LINK) $(OBJS)
-	@$(LD) -o $@ $(LDFLAGS) -T $(ARCHDIR)/$(LINK) $(OBJS) $(LIBGCC)
+$(BUILDDIR) $(OBJDIR):
+	mkdir -p $(OBJDIR)
+	echo $(LINKWITH)
+
+$(OBJDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $< 
+	
+$(OBJDIR)/%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $< 
+	
+$(OBJS): | $(BUILDDIR)
+
+ifeq ($(LINKWITH), GCC)
+%.elf: $(OBJS)
+	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^
 	$(SIZE) $@
+else
+%.elf: $(OBJS)
+	$(LD) -o $@ $(LDFLAGS) -T $(ARCHDIR)/$(LINK) $(OBJS) $(LIBGCC)
+	$(SIZE) $@
+endif
 
 clean:
-	rm -f *.o *.d firmware.elf firmware.bin firmware.map firmware.hex
+	rm -fR $(BUILDDIR)
 
 # this works with NXP LPC's, using serial ISP
-isp: firmware.bin
-	uploader $(ISPOPTS) $(TTY) firmware.bin
+isp: $(BUILDDIR)/firmware.bin
+	uploader $(ISPOPTS) $(TTY) $^ #$(BUILDDIR)/firmware.bin
 
-%.bin:%.elf
-	@$(OBJCOPY) --strip-unneeded -O binary firmware.elf firmware.bin
+%.bin: %.elf
+	@$(OBJCOPY) --strip-unneeded -O binary $^ $@
 
-%.hex:%.elf
-	@$(OBJCOPY) --strip-unneeded -O ihex firmware.elf firmware.hex
+%.hex: %.elf
+	@$(OBJCOPY) --strip-unneeded -O ihex $^ $@
 
 -include $(OBJS:.o=.d)
+
