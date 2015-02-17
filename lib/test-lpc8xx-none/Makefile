@@ -4,7 +4,7 @@ ISPOPTS += -s
 LINK = LPC810.ld
 ARCH = lpc8xx
 
-APPOBJS = rf_ping.o system_LPC8xx.o gcc_startup_lpc8xx.o \
+OBJS = rf_ping.o system_LPC8xx.o gcc_startup_lpc8xx.o \
 		uart.o printf.o printf-retarget.o
 
 default: isp

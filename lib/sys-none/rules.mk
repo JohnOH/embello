@@ -27,7 +27,7 @@ LD = $(CROSS)ld
 OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
 
-OBJS= $(APPOBJS:%.o=$(OBJDIR)/%.o)
+OBJCTS= $(OBJS:%.o=$(OBJDIR)/%.o)
 
 CFLAGS += $(CPU) $(WARN) $(STD) -MMD $(INCLUDES) \
           -Os -ffunction-sections -fno-builtin -ggdb
@@ -69,15 +69,15 @@ $(OBJDIR)/%.o: %.c
 $(OBJDIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $< 
 	
-$(OBJS): | $(BUILDDIR)
+$(OBJCTS): | $(BUILDDIR)
 
 ifeq ($(LINKWITH), GCC)
-%.elf: $(OBJS)
+%.elf: $(OBJCTS)
 	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^
 	$(SIZE) $@
 else
-%.elf: $(OBJS)
-	$(LD) -o $@ $(LDFLAGS) -T $(ARCHDIR)/$(LINK) $(OBJS) $(LIBGCC)
+%.elf: $(OBJCTS)
+	$(LD) -o $@ $(LDFLAGS) -T $(ARCHDIR)/$(LINK) $(OBJCTS) $(LIBGCC)
 	$(SIZE) $@
 endif
 
@@ -94,5 +94,5 @@ isp: $(BUILDDIR)/firmware.bin
 %.hex: %.elf
 	@$(OBJCOPY) --strip-unneeded -O ihex $^ $@
 
--include $(OBJS:.o=.d)
+-include $(OBJCTS:.o=.d)
 
