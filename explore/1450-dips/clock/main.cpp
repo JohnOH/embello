@@ -1,5 +1,5 @@
 // DCF77 decoder, sends received time codes to the serial port.
-// See http://jeelabs.org/2014/12/10/dips-into-the-lpc810/
+// See http://jeelabs.org/2014/12/10/dip-into-the-lpc810/
 
 #include "stdio.h"
 #include "serial.h"

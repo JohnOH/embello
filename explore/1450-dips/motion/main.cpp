@@ -1,5 +1,5 @@
 // Generate up to 4 independent servo motion control pulses in hardware.
-// See http://jeelabs.org/2014/12/10/dips-into-the-lpc810/
+// See http://jeelabs.org/2014/12/10/dip-into-the-lpc810/
 
 #include "LPC8xx.h"
 

@@ -1,5 +1,5 @@
 // Demo for printf over the serial port, generating half a million primes.
-// See http://jeelabs.org/2014/12/10/dips-into-the-lpc810/
+// See http://jeelabs.org/2014/12/10/dip-into-the-lpc810/
 
 #include <stdint.h>
 #include <stdio.h>
