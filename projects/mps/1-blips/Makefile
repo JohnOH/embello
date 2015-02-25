@@ -1,6 +1,3 @@
-CFLAGS += -DSTARTUP_NO_IRQS
-CXXFLAGS += -I.
-ISPOPTS += -s
 LINK = LPC810.ld
 ARCH = lpc8xx
 
