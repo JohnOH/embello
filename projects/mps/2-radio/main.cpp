@@ -1,4 +1,4 @@
-// Blink briefly, then go into deep power down for a while, rinse and repeat.
+// Micro Power Snitch code, including periodic radio packet transmissions.
 // See http://jeelabs.org/2015/03/11/micro-power-snitch-part-4/
 
 #include "LPC8xx.h"
@@ -8,18 +8,6 @@
 #include "rf69.h"
 
 RF69<SpiDev0> rf;
-
-// do something deemed useful, then return the number of 100 us cycles to sleep
-// after that, main will be restarted and call this again, hence the name "loop"
-static void loop () {
-    if (LPC_PMU->GPREG0) {
-        // idle loop to keep the LED turned on
-        for (int count = 0; count < 1000; ++count)
-            __ASM(""); // waste time while drawing current
-    }
-
-    LPC_PMU->GPREG0 ^= 1; // toggle a bit which will be saved across resets
-}
 
 int main () {
     LPC_SYSCON->SYSAHBCLKCTRL |= 1<<9;  // SYSCTL_CLOCK_WKT
@@ -31,9 +19,32 @@ int main () {
     SCB->SCR |= 1<<2;                   // enable SLEEPDEEP mode
     LPC_PMU->DPDCTRL = 0xE;             // no wakeup, LPOSCEN and LPOSCDPDEN
     LPC_PMU->PCON = 3;                  // enter deep power-down mode
-    LPC_WKT->COUNT = 30000;             // set sleep counter
 
-    loop();                             // do some work
+    // GPREG0 is saved across deep power-downs, starts as 0 on power-up reset
+    switch (LPC_PMU->GPREG0++) {
+
+        case 0: // do nothing, just let the energy levels build up
+            LPC_WKT->COUNT = 30000;         // sleep 3 sec
+            break;
+
+        case 1: // turn on power to the radio
+            LPC_GPIO_PORT->DIR0 |= 1<<1;    // PIO0_1 is an output
+            LPC_GPIO_PORT->B0[1] = 0;       // low turns on radio power
+            LPC_WKT->COUNT = 100;           // sleep 10 ms
+            break;
+
+        case 2: // initialise the radio and put it to sleep
+            rf.init(61, 42, 8683);
+            rf.sleep();
+            LPC_WKT->COUNT = 10000;         // sleep 1 sec
+            break;
+
+        default: // send out one packet and go back to sleep
+            rf.send(0, "xyz", 3);
+            rf.sleep();
+            LPC_WKT->COUNT = 100000;        // sleep 10 sec
+            break;
+    }
 
     __WFI();                            // wait for interrupt, powers down
     // waking up from deep power-down leads to a full reset, no need to loop
