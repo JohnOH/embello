@@ -193,7 +193,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
                 spi.enable();
                 spi.transfer(REG_AFCMSB);
                 afc = spi.transfer(0) << 8;
-                afc |= spi.transfer(0) << 8;
+                afc |= spi.transfer(0);
                 spi.disable();
 #else
                 afc = readReg(REG_AFCMSB) << 8;
