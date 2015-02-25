@@ -30,18 +30,27 @@ int main () {
         case 1: // turn on power to the radio
             LPC_GPIO_PORT->DIR0 |= 1<<1;    // PIO0_1 is an output
             LPC_GPIO_PORT->B0[1] = 0;       // low turns on radio power
+
             LPC_WKT->COUNT = 100;           // sleep 10 ms
             break;
 
         case 2: // initialise the radio and put it to sleep
-            rf.init(61, 42, 8683);
+            // disable SWCLK/SWDIO and RESET                                     
+            LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6);                              
+            // lpc810: sck=3p3, ssel=4p2, miso=2p4, mosi=5p1
+            LPC_SWM->PINASSIGN3 = 0x03FFFFFF;   // sck  -    -    -              
+            LPC_SWM->PINASSIGN4 = 0xFF040205;   // -    nss  miso mosi           
+
+            rf.init(61, 42, 8683);          // node 61, group 42, 868.3 MHz
             rf.sleep();
+
             LPC_WKT->COUNT = 10000;         // sleep 1 sec
             break;
 
         default: // send out one packet and go back to sleep
             rf.send(0, "xyz", 3);
             rf.sleep();
+
             LPC_WKT->COUNT = 100000;        // sleep 10 sec
             break;
     }
