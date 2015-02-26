@@ -11,8 +11,8 @@ I2C_HANDLE_T* ih;
 void i2cSetupXfer(); // forward
 
 void i2cSetup () {
-    LPC_SWM->PINASSIGN7 = 0x02FFFFFF;       // SDA on P2
-    LPC_SWM->PINASSIGN8 = 0xFFFFFF03;       // SCL on P3
+    LPC_SWM->PINASSIGN7 = 0x02FFFFFF;       // SDA on P2, pin 4
+    LPC_SWM->PINASSIGN8 = 0xFFFFFF03;       // SCL on P3, pin 3
     LPC_SYSCON->SYSAHBCLKCTRL |= (1<<5);    // enable I2C clock
 
     ih = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, i2cBuffer);

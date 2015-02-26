@@ -1,5 +1,5 @@
 // Test RGB led dimming using hardware SPI, for the WS2812B chip.
-// See http://jeelabs.org/2014/12/10/dips-into-the-lpc810/
+// See http://jeelabs.org/2014/12/10/dip-into-the-lpc810/
 
 #include "LPC8xx.h"
 

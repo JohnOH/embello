@@ -1,9 +1,9 @@
 // Blink briefly, then go into deep power down for a while, rinse and repeat.
-// See http://jeelabs.org/2015/02/18/mains-power-snitch/
+// See http://jeelabs.org/2015/02/18/micro-power-snitch/
 
 #include "LPC8xx.h"
 
-// do something deemed useful, then return the number of 100 us cycles to sleep
+// do something deemed useful, this is the actual "payload" of this application
 // after that, main will be restarted and call this again, hence the name "loop"
 static void loop () {
     if (LPC_PMU->GPREG0) {
@@ -25,7 +25,7 @@ int main () {
     SCB->SCR |= 1<<2;                   // enable SLEEPDEEP mode
     LPC_PMU->DPDCTRL = 0xE;             // no wakeup, LPOSCEN and LPOSCDPDEN
     LPC_PMU->PCON = 3;                  // enter deep power-down mode
-    LPC_WKT->COUNT = 30000;             // set sleep counter
+    LPC_WKT->COUNT = 30000;             // set sleep counter to 3 seconds
 
     loop();                             // do some work
 
