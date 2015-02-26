@@ -10,5 +10,5 @@ OBJS = rf_ping.o system_LPC8xx.o gcc_startup_lpc8xx.o \
 default: isp
 
 LIBDIR = ..
-SHARED = ../sys-none
+SHARED = $(LIBDIR)/sys-none
 include $(SHARED)/rules.mk
