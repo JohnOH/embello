@@ -82,14 +82,14 @@ int main () {
     printf("\n[rf_ping] dev %x node %d\n", devId, nodeId);
 
     rf.init(nodeId, 42, 8683);
-    //rf.encrypt("mysecret");
+    rf.encrypt("mysecret");
     rf.txPower(0); // 0 = min .. 31 = max
 
     uint16_t seq = 0, cnt = 0;
 
     while (true) {
         if (++cnt == 0) {
-            const int TXLEN = 1; // can be set to anything from 1 to 65
+            const int TXLEN = 46; // can be set to anything from 1 to 65
             static uint8_t txBuf[TXLEN];
             printf(" > %d\n", ++txBuf[0]);
             rf.send(0, txBuf, sizeof txBuf);

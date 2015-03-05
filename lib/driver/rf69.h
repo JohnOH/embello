@@ -35,6 +35,7 @@ protected:
         REG_SYNCVALUE2    = 0x30,
         REG_NODEADDR      = 0x39,
         REG_BCASTADDR     = 0x3A,
+        REG_FIFOTHRESH    = 0x3C,
         REG_PKTCONFIG2    = 0x3D,
         REG_AESKEYMSB     = 0x3E,
 
@@ -42,6 +43,10 @@ protected:
         MODE_TRANSMIT     = 3<<2,
         MODE_RECEIVE      = 4<<2,
 
+        START_TX          = 0xC2,
+        STOP_TX           = 0x42,
+
+        RCCALSTART        = 0x80,
         IRQ1_MODEREADY    = 1<<7,
         IRQ1_RXREADY      = 1<<6,
         IRQ1_SYNADDRMATCH = 1<<0,
@@ -250,12 +255,14 @@ void RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
         spi.transfer(((const uint8_t*) ptr)[i]);
     spi.disable();
 #else
+    writeReg(REG_FIFOTHRESH, STOP_TX);    // Wait for FIFO to be filled
     writeReg(REG_FIFO, len + 2);
     writeReg(REG_FIFO, (header & 0x3F) | parity);
     writeReg(REG_FIFO, (header & 0xC0) | myId);
     for (int i = 0; i < len; ++i)
         writeReg(REG_FIFO, ((const uint8_t*) ptr)[i]);
 #endif
+    writeReg(REG_FIFOTHRESH, START_TX);   // Release FIFO for transmission
 
     while ((readReg(REG_IRQFLAGS2) & IRQ2_PACKETSENT) == 0)
         chThdYield();
