@@ -17,22 +17,24 @@ public:
     SysTick_Config(12000000/hz);
   }
 
-  static void delay (int ms) {
+  static void delay (unsigned ms) {
     uint32_t start = millis;
     while (millis - start < ms)
       __WFI();
   }
 };
 
-volatile uint32_t LPC8::millis = 0;
+volatile uint32_t LPC8::millis;
+
+LPC8 me;
 
 extern "C" void SysTick_Handler () {
-  ++LPC8::millis;
+  ++me.millis;
 }
 
 static void setup () {
-  LPC8::initSerial(115200);
-  LPC8::initSysTick(1000);
+  me.initSerial(115200);
+  me.initSysTick(1000);
 }
 
 int main () {
@@ -40,7 +42,7 @@ int main () {
   printf("\n[hello]\n");
 
   while (true) {
-    LPC8::delay(1000);
-    printf("%u\n", LPC8::millis);
+    me.delay(1000);
+    printf("%u\n", me.millis);
   }
 }
