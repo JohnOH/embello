@@ -21,7 +21,7 @@ int main () {
     uint8_t nodeId = 60;
 
     // SPI pin assignment:
-    //  3: SPI0_SCK x         x         x        
+    //  3: SPI0_SCK x         x         x
     //  4: x        SPI0_SSEL SPI0_MISO SPI0_MOSI
 
     switch (devId) {
@@ -40,7 +40,7 @@ int main () {
             nodeId = 12;
             LPC_SWM->PINASSIGN0 = 0xFFFF0004;
             // jnp v2: sck 6, ssel 8, miso 11, mosi 9, irq 10
-            LPC_SWM->PINASSIGN3 = 0x06FFFFFF; 
+            LPC_SWM->PINASSIGN3 = 0x06FFFFFF;
             LPC_SWM->PINASSIGN4 = 0xFF080B09;
             break;
         case 0x8121:
@@ -48,31 +48,31 @@ int main () {
             LPC_SWM->PINASSIGN0 = 0xFFFF0004;
             // A not working, but B is fine
             // eb20soic A: sck 14, ssel 15, miso 12, mosi 13, irq 8
-            //LPC_SWM->PINASSIGN3 = 0x0EFFFFFF; 
+            //LPC_SWM->PINASSIGN3 = 0x0EFFFFFF;
             //LPC_SWM->PINASSIGN4 = 0xFF0F0C0D;
             // eb20soic B: sck 12, ssel 13, miso 15, mosi 14, irq 8
-            LPC_SWM->PINASSIGN3 = 0x0CFFFFFF; 
+            LPC_SWM->PINASSIGN3 = 0x0CFFFFFF;
             LPC_SWM->PINASSIGN4 = 0xFF0D0F0E;
             break;
         case 0x8122:
             nodeId = 14;
             LPC_SWM->PINASSIGN0 = 0xFFFF0106;
             // ea812: sck 12, ssel 13, miso 15, mosi 14
-            LPC_SWM->PINASSIGN3 = 0x0CFFFFFF; 
+            LPC_SWM->PINASSIGN3 = 0x0CFFFFFF;
             LPC_SWM->PINASSIGN4 = 0xFF0D0F0E;
             break;
         case 0x8241:
             nodeId = 23;
             // ea824: sck 24, ssel 15, miso 25, mosi 26
             LPC_SWM->PINASSIGN0 = 0xFFFF1207;
-            LPC_SWM->PINASSIGN3 = 0x18FFFFFF; 
+            LPC_SWM->PINASSIGN3 = 0x18FFFFFF;
             LPC_SWM->PINASSIGN4 = 0xFF0F191A;
             break;
         case 0x8242:
             nodeId = 24;
             // jnp v3: sck 17, ssel 23, miso 9, mosi 8, irq 1
             LPC_SWM->PINASSIGN0 = 0xFFFF0004;
-            LPC_SWM->PINASSIGN3 = 0x11FFFFFF; 
+            LPC_SWM->PINASSIGN3 = 0x11FFFFFF;
             LPC_SWM->PINASSIGN4 = 0xFF170908;
             break;
     }
@@ -85,7 +85,7 @@ int main () {
     rf.encrypt("mysecret");
     rf.txPower(0); // 0 = min .. 31 = max
 
-    uint16_t seq = 0, cnt = 0;
+    uint16_t cnt = 0;
 
     while (true) {
         if (++cnt == 0) {
@@ -104,6 +104,6 @@ int main () {
                     rf.rssi, rf.afc < 0 ? "" : "+", rf.afc, rf.lna);
         }
 
-        chThdYield() 
+        chThdYield()
     }
 }
