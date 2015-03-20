@@ -14,6 +14,7 @@ int main () {
   while (true) {
     tick.delay(100);
     int adc = analog.measure(10); // adc10 is 13p3 on LPC824
+    // int adc = analog.measure(2); // adc2 is 14p20 on LPC824
     printf("%u\n", adc);
   }
 }
