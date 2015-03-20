@@ -1,4 +1,4 @@
-#include "LPC8xx.h"
+#include "chip.h"
 #include "uart.h"
 #include <stdio.h>
 
@@ -20,7 +20,7 @@ public:
 class Serial {
 public:
   static void init (int baud) {
-    LPC_SWM->PINASSIGN0 = 0xFFFFFF04;
+    LPC_SWM->PINASSIGN[0] = 0xFFFFFF04;
     uart0Init(baud);
   }
 };

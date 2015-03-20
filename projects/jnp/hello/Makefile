@@ -1,4 +1,5 @@
-CXXFLAGS += -I.
+CFLAGS += -DCORE_M0PLUS
+CXXFLAGS += -DCORE_M0PLUS -I. -I../../../lib/vendor/lpcopen/inc
 ISPOPTS += -s
 LINK = LPC824.ld
 ARCH = lpc8xx
