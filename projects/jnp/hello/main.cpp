@@ -4,17 +4,10 @@
 #include "uart.h"
 #include <stdio.h>
 
-class LPC8 {
+class Tick {
 public:
-  static volatile uint32_t millis;
-
-  static void initSerial (int baud) {
-    LPC_SWM->PINASSIGN0 = 0xFFFFFF04;
-    uart0Init(baud);
-  }
-
-  static void initSysTick (int hz) {
-    SysTick_Config(12000000/hz);
+  static void init (int hz, bool fast =false) {
+    SysTick_Config((fast ? 30000000 : 12000000) / hz);
   }
 
   static void delay (unsigned ms) {
@@ -22,27 +15,35 @@ public:
     while (millis - start < ms)
       __WFI();
   }
+
+  static volatile uint32_t millis;
 };
 
-volatile uint32_t LPC8::millis;
-
-LPC8 me;
+volatile uint32_t Tick::millis;
 
 extern "C" void SysTick_Handler () {
-  ++me.millis;
+  ++Tick::millis;
 }
 
-static void setup () {
-  me.initSerial(115200);
-  me.initSysTick(1000);
-}
+class Serial {
+public:
+  static void init (int baud) {
+    LPC_SWM->PINASSIGN0 = 0xFFFFFF04;
+    uart0Init(baud);
+  }
+};
+
+Tick tick;
+Serial serial;
 
 int main () {
-  setup();
+  serial.init(115200);
+  tick.init(1000);
+
   printf("\n[hello]\n");
 
   while (true) {
-    me.delay(1000);
-    printf("%u\n", me.millis);
+    tick.delay(1000);
+    printf("%u\n", tick.millis);
   }
 }
