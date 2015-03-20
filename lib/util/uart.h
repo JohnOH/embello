@@ -40,7 +40,7 @@
 extern "C" {
 #endif
 
-#include "LPC8xx.h"
+#include "../../lib/vendor/lpcopen/inc/chip.h" // FIXME get rid of path
 
 #define UART_ENABLE          (1 << 0)
 #define UART_DATA_LENGTH_8   (1 << 2)
@@ -65,4 +65,3 @@ int  uart0RecvChar (void);
 #endif
 
 #endif
-
