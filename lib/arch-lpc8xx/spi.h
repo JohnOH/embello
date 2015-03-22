@@ -1,12 +1,10 @@
-#include "LPC8xx.h"
+#include "chip.h"
 
 #define SPI_CFG_ENABLE          (1<<0)
 #define SPI_CFG_MASTER          (1<<2)
 
-#define SPI_TXDATCTL_EOT        (1<<20)
 #define SPI_TXDATCTL_FSIZE(s)   ((s)<<24)
 
-#define SPI_STAT_RXRDY          (1<<0)
 #define SPI_STAT_ENDTRANSFER    (1<<7)
 
 template< int N >
@@ -49,7 +47,7 @@ public:
         return addr()->RXDAT;
     }
 
-    static LPC_SPI_TypeDef* addr () { return N == 0 ? LPC_SPI0 : LPC_SPI1; }
+    static LPC_SPI_T* addr () { return N == 0 ? LPC_SPI0 : LPC_SPI1; }
 };
 
 typedef SpiDev<0> SpiDev0;

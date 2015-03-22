@@ -1,6 +1,6 @@
 // Report received data on the serial port.
 
-#include "LPC8xx.h"
+#include "chip.h"
 #include "uart.h"
 #include <stdio.h>
 
@@ -16,7 +16,7 @@ uint8_t rxBuf[66];
 
 int main () {
     // the device pin mapping is configured at run time based on its id
-    uint16_t devId = LPC_SYSCON->DEVICE_ID;
+    uint16_t devId = LPC_SYSCON->DEVICEID;
     // choose different node id's, depending on the chip type
     uint8_t nodeId = 60;
 
@@ -31,49 +31,49 @@ int main () {
             LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6);
             // lpc810 coin: sck=0p8, ssel=1p5, miso=2p4, mosi=5p1, tx=4p2
             // SPI0
-            LPC_SWM->PINASSIGN3 = 0x00FFFFFF;   // sck  -    -    -
-            LPC_SWM->PINASSIGN4 = 0xFF010205;   // -    nss  miso mosi
+            LPC_SWM->PINASSIGN[3] = 0x00FFFFFF;   // sck  -    -    -
+            LPC_SWM->PINASSIGN[4] = 0xFF010205;   // -    nss  miso mosi
             // USART0
-            LPC_SWM->PINASSIGN0 = 0xFFFFFF04;
+            LPC_SWM->PINASSIGN[0] = 0xFFFFFF04;
             break;
         case 0x8120:
             nodeId = 12;
-            LPC_SWM->PINASSIGN0 = 0xFFFF0004;
+            LPC_SWM->PINASSIGN[0] = 0xFFFF0004;
             // jnp v2: sck 6, ssel 8, miso 11, mosi 9, irq 10
-            LPC_SWM->PINASSIGN3 = 0x06FFFFFF;
-            LPC_SWM->PINASSIGN4 = 0xFF080B09;
+            LPC_SWM->PINASSIGN[3] = 0x06FFFFFF;
+            LPC_SWM->PINASSIGN[4] = 0xFF080B09;
             break;
         case 0x8121:
             nodeId = 13;
-            LPC_SWM->PINASSIGN0 = 0xFFFF0004;
+            LPC_SWM->PINASSIGN[0] = 0xFFFF0004;
             // A not working, but B is fine
             // eb20soic A: sck 14, ssel 15, miso 12, mosi 13, irq 8
-            //LPC_SWM->PINASSIGN3 = 0x0EFFFFFF;
-            //LPC_SWM->PINASSIGN4 = 0xFF0F0C0D;
+            //LPC_SWM->PINASSIGN[3] = 0x0EFFFFFF;
+            //LPC_SWM->PINASSIGN[4] = 0xFF0F0C0D;
             // eb20soic B: sck 12, ssel 13, miso 15, mosi 14, irq 8
-            LPC_SWM->PINASSIGN3 = 0x0CFFFFFF;
-            LPC_SWM->PINASSIGN4 = 0xFF0D0F0E;
+            LPC_SWM->PINASSIGN[3] = 0x0CFFFFFF;
+            LPC_SWM->PINASSIGN[4] = 0xFF0D0F0E;
             break;
         case 0x8122:
             nodeId = 14;
-            LPC_SWM->PINASSIGN0 = 0xFFFF0106;
+            LPC_SWM->PINASSIGN[0] = 0xFFFF0106;
             // ea812: sck 12, ssel 13, miso 15, mosi 14
-            LPC_SWM->PINASSIGN3 = 0x0CFFFFFF;
-            LPC_SWM->PINASSIGN4 = 0xFF0D0F0E;
+            LPC_SWM->PINASSIGN[3] = 0x0CFFFFFF;
+            LPC_SWM->PINASSIGN[4] = 0xFF0D0F0E;
             break;
         case 0x8241:
             nodeId = 23;
             // ea824: sck 24, ssel 15, miso 25, mosi 26
-            LPC_SWM->PINASSIGN0 = 0xFFFF1207;
-            LPC_SWM->PINASSIGN3 = 0x18FFFFFF;
-            LPC_SWM->PINASSIGN4 = 0xFF0F191A;
+            LPC_SWM->PINASSIGN[0] = 0xFFFF1207;
+            LPC_SWM->PINASSIGN[3] = 0x18FFFFFF;
+            LPC_SWM->PINASSIGN[4] = 0xFF0F191A;
             break;
         case 0x8242:
             nodeId = 24;
             // jnp v3: sck 17, ssel 23, miso 9, mosi 8, irq 1
-            LPC_SWM->PINASSIGN0 = 0xFFFF0004;
-            LPC_SWM->PINASSIGN3 = 0x11FFFFFF;
-            LPC_SWM->PINASSIGN4 = 0xFF170908;
+            LPC_SWM->PINASSIGN[0] = 0xFFFF0004;
+            LPC_SWM->PINASSIGN[3] = 0x11FFFFFF;
+            LPC_SWM->PINASSIGN[4] = 0xFF170908;
             break;
     }
 
