@@ -2,6 +2,7 @@
 
 Tick tick;
 Serial serial;
+Analog analog;
 
 volatile unsigned Tick::millis;
 
