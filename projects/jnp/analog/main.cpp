@@ -11,7 +11,7 @@ int main () {
 
   LPC_GPIO_PORT->DIR[0] |= (1<<14); // set 14p20 as output
 
-  printf("\n[hello]\n");
+  printf("\n[analog]\n");
 
   while (true) {
     int adc = analog.measure(10); // adc10 is 13p3 on LPC824
