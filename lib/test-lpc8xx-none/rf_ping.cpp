@@ -42,6 +42,8 @@ int main () {
             // jnp v2: sck 6, ssel 8, miso 11, mosi 9, irq 10
             LPC_SWM->PINASSIGN[3] = 0x06FFFFFF;
             LPC_SWM->PINASSIGN[4] = 0xFF080B09;
+            LPC_IOCON->PIO0[IOCON_PIO11] |= (1<<8); // std GPIO, not I2C pin
+            // LPC_IOCON->PIO0[IOCON_PIO10] |= (1<<8); // std GPIO, not I2C pin
             break;
         case 0x8121:
             nodeId = 13;
