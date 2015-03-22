@@ -88,13 +88,16 @@ int main () {
     rf.txPower(0); // 0 = min .. 31 = max
 
     uint16_t cnt = 0;
+    uint8_t txBuf[66];
+    for (int i = 0; i < sizeof txBuf; ++i)
+      txBuf[i] = i;
+    txBuf[0] = 45; // FIXME start slightly before the problem with > 48 bytes
 
     while (true) {
         if (++cnt == 0) {
-            const int TXLEN = 46; // can be set to anything from 1 to 65
-            static uint8_t txBuf[TXLEN];
-            printf(" > %d\n", ++txBuf[0]);
-            rf.send(0, txBuf, sizeof txBuf);
+            int txLen = ++txBuf[0] % 64;
+            printf(" > #%d, %db\n", txBuf[0], txLen);
+            rf.send(0, txBuf, txLen);
         }
 
         int len = rf.receive(rxBuf, sizeof rxBuf);
