@@ -1,6 +1,6 @@
 In this folder:
 
-### GPS: Garage Parking Aid
+### GPA: Garage Parking Aid
 
 * <http://jeelabs.org/2014/12/03/garage-parking-aid/>
 
