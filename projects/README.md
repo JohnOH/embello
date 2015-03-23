@@ -1,10 +1,10 @@
 In this folder:
 
-### Garage Parking Aid
+### GPS: Garage Parking Aid
 
 * <http://jeelabs.org/2014/12/03/garage-parking-aid/>
 
-### Micro Power Snitch
+### MPS: Micro Power Snitch
 
 * <http://jeelabs.org/2015/02/18/micro-power-snitch/>
 * <http://jeelabs.org/2015/02/25/micro-power-snitch-part-2/>
