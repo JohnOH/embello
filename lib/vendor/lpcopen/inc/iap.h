@@ -78,7 +78,7 @@ extern "C" {
 #define IAP_CRP_ENABLED             19	/*!< Code read protection enabled */
 
 /* IAP_ENTRY API function type */
-typedef void (*IAP_ENTRY_T)(unsigned int[], unsigned int[]);
+typedef void (*IAP_ENTRY_T)(uint32_t[], uint32_t[]);
 
 /**
  * @brief	Prepare sector for write operation
