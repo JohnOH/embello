@@ -9,13 +9,12 @@ class RomVars {
 
 public:
   void init () {
-    const Tuple* orig = (const Tuple*) base(0);
-    if (orig[0].value == S_STABLE) {
-      memcpy(data, orig, sizeof data);
+    flash.load(48, 1, data);
+    if (data[0].key == S_STABLE)
       for (fill = 1; fill < NUM; ++fill)
         if (data[fill].key > NUM)
           break;
-    } else
+    else
       pruneAndSave();
   }
 

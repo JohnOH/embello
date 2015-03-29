@@ -3,11 +3,15 @@
 
 class Flash {
 public:
-  enum { pageSize = 64, pagesPerSector = 16};
+  enum { pageSize = 64 };
+
+  static void load (int pos, int num, void* ptr) {
+    memcpy(ptr, (void*) (pos * pageSize), num * pageSize);
+  }
 
   static void erase (int pos, int num) {
     // printf("erase(%d,%d) ", pos, num);
-    const int pps = pagesPerSector;
+    const int pps = 16; // pages per sector
     __disable_irq();
     Chip_IAP_PreSectorForReadWrite(pos / pps, (pos + num - 1) / pps);
     Chip_IAP_ErasePage(pos, pos + num - 1);
@@ -16,7 +20,7 @@ public:
 
   static void save (int pos, int num, const void* ptr) {
     // printf("save(%d,%d) ", pos, num);
-    const int pps = pagesPerSector;
+    const int pps = 16; // pages per sector
     while (--num >= 0) {
       __disable_irq();
       Chip_IAP_PreSectorForReadWrite(pos / pps, pos / pps);
