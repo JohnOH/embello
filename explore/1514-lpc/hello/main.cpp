@@ -1,4 +1,4 @@
-// Try out eeprom emulation using upper flash memory.
+// Simple hello world baseline code, for smoke testing and size reference.
 
 #include "sys.h"
 
@@ -13,5 +13,3 @@ int main () {
     printf("%u\n", (unsigned) tick.millis);
   }
 }
-
-// vim: ts=2 sts=2 sw=2
