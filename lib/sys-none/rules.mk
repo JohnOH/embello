@@ -56,7 +56,7 @@ TTY ?= /dev/tty.usbserial-*
 endif
 
 .PHONY: all clean isp
-  
+
 all: $(OUTFILES)
 
 $(BUILDDIR) $(OBJDIR):
@@ -64,11 +64,11 @@ $(BUILDDIR) $(OBJDIR):
 	echo $(LINKWITH)
 
 $(OBJDIR)/%.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ $< 
-	
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 $(OBJDIR)/%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $< 
-	
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
 $(OBJCTS): | $(BUILDDIR)
 
 ifeq ($(LINKWITH), GCC)
@@ -95,4 +95,3 @@ isp: $(BUILDDIR)/firmware.bin
 	@$(OBJCOPY) --strip-unneeded -O ihex $^ $@
 
 -include $(OBJCTS:.o=.d)
-
