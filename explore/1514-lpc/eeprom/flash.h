@@ -26,3 +26,5 @@ public:
     }
   }
 };
+
+#include "../../../lib/vendor/lpcopen/src/iap.c"

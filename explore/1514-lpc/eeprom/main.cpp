@@ -17,7 +17,7 @@ int main () {
 
   unsigned i = 0;
   while (true) {
-    int varNum = i++ % 7;
+    int varNum = i++ % 5;
     uint16_t newVal = tick.millis;
 
     uint16_t oldVal = rom[varNum];
@@ -27,8 +27,13 @@ int main () {
     int elapsed = tick.millis - start;
 
     printf("#%d: old %-6u new %-6u %d ms\n", varNum, oldVal, newVal, elapsed);
+
+    if (varNum == 0) {
+      uint16_t v10 = rom[10];
+      printf("bump #10 to %u\n", ++v10);
+      rom.set(10, v10);
+    }
+
     tick.delay(500);
   }
 }
-
-#include "../../../lib/vendor/lpcopen/src/iap.c"
