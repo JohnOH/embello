@@ -6,7 +6,7 @@
 #include "flash.h"
 #include "romvars.h"
 
-RomVars<Flash,16> rom;
+RomVars<Flash64,0x0F80> rom;
 
 int main () {
   serial.init(115200);
@@ -22,14 +22,14 @@ int main () {
     if (varNum == 0) {
       uint16_t v10 = rom[10];
       printf("bump #10 to %u\n", ++v10);
-      rom.set(10, v10);
+      rom[10] = v10;
     }
 
     uint16_t oldVal = rom[varNum];
     uint16_t newVal = tick.millis;
 
     int start = tick.millis;
-    rom.set(varNum, newVal);
+    rom[varNum] = newVal;
     int elapsed = tick.millis - start;
 
     printf("#%d: old %-6u new %-6u %d ms\n", varNum, oldVal, newVal, elapsed);
