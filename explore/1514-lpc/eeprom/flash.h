@@ -5,8 +5,8 @@ class Flash64 {
 public:
   enum { PageSize = 64 };
 
-  static void load (int pos, int num, void* ptr) {
-    memcpy(ptr, (void*) (pos * PageSize), num * PageSize);
+  static void load (int pos, void* ptr) {
+    memcpy(ptr, (void*) (pos * PageSize), PageSize);
   }
 
   static void erase (int pos, int num) {
@@ -18,16 +18,13 @@ public:
     __enable_irq();
   }
 
-  static void save (int pos, int num, const void* ptr) {
-    // printf("save(%d,%d) ", pos, num);
+  static void save (int pos, const void* ptr) {
+    // printf("save(%d,...) ", pos);
     const int pps = 16; // pages per sector
-    while (--num >= 0) {
-      __disable_irq();
-      Chip_IAP_PreSectorForReadWrite(pos / pps, pos / pps);
-      Chip_IAP_CopyRamToFlash(pos * PageSize, (uint32_t*) ptr, PageSize);
-      __enable_irq();
-      ++pos;
-    }
+    __disable_irq();
+    Chip_IAP_PreSectorForReadWrite(pos / pps, pos / pps);
+    Chip_IAP_CopyRamToFlash(pos * PageSize, (uint32_t*) ptr, PageSize);
+    __enable_irq();
   }
 };
 
