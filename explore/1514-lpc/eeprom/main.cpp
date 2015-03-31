@@ -17,9 +17,9 @@ int main () {
 
   unsigned i = 0;
   while (true) {
-    int varNum = i++ % 5;
+    int varNum = i++ % 5 + 1;
 
-    if (varNum == 0) {
+    if (varNum == 1) {
       uint16_t v10 = rom[10];
       printf("bump #10 to %u\n", ++v10);
       rom[10] = v10;

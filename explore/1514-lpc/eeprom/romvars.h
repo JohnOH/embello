@@ -31,31 +31,33 @@ public:
   }
 
 private:
-  const void* base (int offset) const {
-    return (const void*) ((BasePage + offset) * flash.PageSize);
-  }
-
   uint16_t& at (int index) {
     int m = map[index];
     return m == 0 ? values[index] : tuples[m].val;
   }
 
-  uint16_t set (int index, uint16_t value) {
-    uint16_t oldVal = at(index);
-    if (value != oldVal) {
-      if (fill >= NumVars) {
-        eraseAndSave(values[0]);
-        compact();
+  uint16_t set (int index, uint16_t newVal) {
+    uint16_t& oldVal = at(index);
+    if (newVal != oldVal) {
+      if (values[0] == Empty) {
+        values[0] = BasePage;
+        flash.erase(BasePage, 2);
       }
-      int m = map[index] = ++fill;
-      // printf("set(%d,%u) -> slot %d\n", index, value, m);
-      if (m < NumVars) {
-        tuples[m].key = index;
-        tuples[m].val = value;
+      if (oldVal == Empty) {
+        oldVal = newVal;
         flash.save(values[0], tuples);
+      } else if (fill < NumVars) {
+        tuples[fill].key = index;
+        tuples[fill].val = newVal;
+        map[index] = fill++;
+        flash.save(values[0], tuples);
+      } else {
+        combineChanges();
+        values[index] = newVal;
+        flipAndSave();
       }
     }
-    return value;
+    return newVal;
   }
 
   bool reusePage (int page) {
@@ -73,19 +75,18 @@ private:
     return true;
   }
 
-  void compact () {
+  void combineChanges () {
     for (int i = 0; i < NumVars; ++i)
       if (map[i] != 0)
         values[i] = tuples[map[i]].val;
 
     fill = NumVars / 2;
     memset(map, 0, sizeof map);
-    memset(tuples, 0xFF, sizeof tuples);
+    memset(tuples + fill, 0xFF, sizeof tuples / 2);
   }
 
-  void eraseAndSave (int page) {
-    if (values[0] != page)
-      flash.erase(page, 1);
+  void flipAndSave () {
+    uint16_t page = values[0] ^ 1;
     values[0] = Empty;
     flash.save(page, tuples);
     values[0] = page;

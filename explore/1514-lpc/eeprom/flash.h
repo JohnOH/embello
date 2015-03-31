@@ -10,7 +10,6 @@ public:
   }
 
   static void erase (int pos, int num) {
-    // printf("erase(%d,%d) ", pos, num);
     const int pps = 16; // pages per sector
     __disable_irq();
     Chip_IAP_PreSectorForReadWrite(pos / pps, (pos + num - 1) / pps);
@@ -19,7 +18,6 @@ public:
   }
 
   static void save (int pos, const void* ptr) {
-    // printf("save(%d,...) ", pos);
     const int pps = 16; // pages per sector
     __disable_irq();
     Chip_IAP_PreSectorForReadWrite(pos / pps, pos / pps);
