@@ -1,5 +1,6 @@
 // Interface to the LPC8xx flash programming routines in ROM.
 // This will disable interrupts for a millisecond or so while running.
+// see http://jeelabs.org/2015/04/01/emulating-eeprom/
 
 class Flash64 {
 public:

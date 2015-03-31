@@ -1,4 +1,5 @@
 // Generic implementation of rom-based variables, saved across power cycles.
+// see http://jeelabs.org/2015/04/01/emulating-eeprom/
 
 template < typename FLASH, int BASE >
 class RomVars {
