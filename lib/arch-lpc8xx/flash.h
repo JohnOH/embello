@@ -27,4 +27,27 @@ public:
   }
 };
 
+class Flash1k {
+public:
+  enum { PageSize = 1024 };
+
+  static void load (int pos, void* ptr) {
+    memcpy(ptr, (void*) (pos * PageSize), PageSize);
+  }
+
+  static void erase (int pos, int num) {
+    __disable_irq();
+    Chip_IAP_PreSectorForReadWrite(pos, pos + num - 1);
+    Chip_IAP_EraseSector(pos, pos + num - 1);
+    __enable_irq();
+  }
+
+  static void save (int pos, const void* ptr) {
+    __disable_irq();
+    Chip_IAP_PreSectorForReadWrite(pos, pos);
+    Chip_IAP_CopyRamToFlash(pos * PageSize, (uint32_t*) ptr, PageSize);
+    __enable_irq();
+  }
+};
+
 #include "../../../lib/vendor/lpcopen/src/iap.c"
