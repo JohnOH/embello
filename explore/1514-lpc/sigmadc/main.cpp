@@ -4,7 +4,7 @@
 
 #define SD_ADC_PRESCALER   120   // 100 Khz => max rate is 2 MHz
 #define WINDOW_SIZE        1024
-#define VLADDER_PRESCALER  15
+#define VLADDER_PRESCALER  16
 
 #define FEEDBACK_PIN 	7
 #define ADC_CMP_PIN 	1  // ACMP_I2
