@@ -91,6 +91,9 @@ int main () {
 
   printf("\n[sigmadc]\n");
 
+	LPC_GPIO_PORT->DIR[0] &= ~(1<<ADC_CMP_PIN);
+	LPC_GPIO_PORT->DIR[0] |= (1<<FEEDBACK_PIN);
+
   LPC_IOCON->PIO0[FEEDBACK_PIN] = 0x80; // disable pull-up
 	LPC_IOCON->PIO0[ADC_CMP_PIN] = 0x80; // disable pull-up
   LPC_SWM->PINENABLE0 &= ~(1<<1); // enable ACMP_I2
