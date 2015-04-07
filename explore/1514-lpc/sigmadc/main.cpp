@@ -1,10 +1,11 @@
 // ADC implementation using analog comparator with State Configurable timer.
 
 #include "sys.h"
-
 #include "adc_sct.h"
 
 AdcSct<1> adc;  // use ACMP_I1
+
+extern "C" void SCT_IRQHandler () { adc.sctIrqHandler(); }
 
 int main () {
   tick.init(1000);
@@ -23,8 +24,4 @@ int main () {
     tick.delay(500);
     printf("%d\n", adc.result());
   }
-}
-
-extern "C" void SCT_IRQHandler () {
-  adc.sctIrqHandler();
 }
