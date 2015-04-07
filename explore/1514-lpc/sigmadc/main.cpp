@@ -4,7 +4,7 @@
 
 #include "adc_sct.h"
 
-AdcSct<2> adc;
+AdcSct<1> adc;  // use ACMP_I1
 
 int main () {
   tick.init(1000);
@@ -12,9 +12,10 @@ int main () {
 
   printf("\n[sigmadc]\n");
 
-  // LPC_IOCON->PIO0[1] = 0x80; // disable pull-up on ACMP input pin
-  LPC_SWM->PINASSIGN[8] = 0xFFFF07FF; // enable ACMP_O on PIO_7
-  LPC_SWM->PINASSIGN[5] = 0x07FFFFFF; // enable CTIN_0 on PIO_7
+  // LPC_IOCON->PIO0[0] = 0x80; // disable pull-up on ACMP input pin
+  LPC_SWM->PINENABLE0 |= (3<<2);      // disable SWDIO and SWCLK
+  LPC_SWM->PINASSIGN[8] = 0xFFFF02FF; // enable ACMP_O on PIO_2
+  LPC_SWM->PINASSIGN[5] = 0x02FFFFFF; // enable CTIN_0 on PIO_2
 
   adc.init();
 
