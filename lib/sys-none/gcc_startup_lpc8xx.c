@@ -131,7 +131,7 @@ extern unsigned int _etext, _data, _edata, _bss, _ebss;
 extern unsigned int __init_array_start;
 extern unsigned int __init_array_end;
 
-static inline preinit (void) {
+static inline void preinit (void) {
   unsigned int psp, reg;
 
   /* Process Stack initialization, it is allocated starting from the
