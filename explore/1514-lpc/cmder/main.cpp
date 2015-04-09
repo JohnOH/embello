@@ -82,6 +82,40 @@ namespace Cmder {
 
   void cmd_nl () { printf("\n"); }
 
+  void cmd_byte_at () {
+    top = *(const uint8_t*) top;
+  }
+  void cmd_byte_bang () {
+    int addr = pop();
+    *(uint8_t*) addr = pop();
+  }
+  void cmd_word_at () {
+    top = *(const uint16_t*) top;
+  }
+  void cmd_word_bang () {
+    int addr = pop();
+    *(uint16_t*) addr = pop();
+  }
+  void cmd_at () {
+    top = *(const int*) top;
+  }
+  void cmd_bang () {
+    int addr = pop();
+    *(int*) addr = pop();
+  }
+  void cmd_set_bang () {
+    int addr = pop();
+    *(int*) addr |= pop();
+  }
+  void cmd_clr_bang () {
+    int addr = pop();
+    *(int*) addr &= ~ pop();
+  }
+  void cmd_not_bang () {
+    int addr = pop();
+    *(int*) addr ^= pop();
+  }
+
   void cmd_add () { top += pop(); }
   void cmd_sub () { top = pop() - top; }
   void cmd_mul () { top *= pop(); }
@@ -89,13 +123,20 @@ namespace Cmder {
   void cmd_mod () { top = pop() % top; }
   void cmd_negate () { top = -top; }
 
+  void cmd_dup () { push(top); }
+  void cmd_drop () { pop(); }
+  void cmd_swap () { int v = top; top = *sp; *sp = v; }
+  void cmd_over () { push(*sp); }
+
   void cmd_invert () { top = ~top; }
   void cmd_and () { top &= pop(); }
   void cmd_or () { top |= pop(); }
   void cmd_xor () { top ^= pop(); }
   void cmd_lshift () { top = pop() << top; }
   void cmd_rshift () { top = (unsigned) pop() >> top; }
+  void cmd_ashift () { top = pop() >> top; }
 
+  void cmd_dot () { printf("%d ", pop()); }
   void cmd_ram_plus () { top += 0x10000000; }
 
   void cmd_dump () {
@@ -133,8 +174,6 @@ namespace Cmder {
     printf("\n");
   }
 
-  void cmd_dot () { printf("%d ", pop()); }
-
 #if WITH_RF69
   void cmd_rf_init () {
     int freq = pop();
@@ -162,6 +201,16 @@ namespace Cmder {
   const Def commands [] = {
     { "nl", cmd_nl },
 
+    { "b@", cmd_byte_at },
+    { "b@", cmd_byte_bang },
+    { "w@", cmd_word_at },
+    { "w!", cmd_word_bang },
+    { "@", cmd_at },
+    { "!", cmd_bang },
+    { "set!", cmd_set_bang },
+    { "clr!", cmd_clr_bang },
+    { "not!", cmd_not_bang },
+
     { "+", cmd_add },
     { "-", cmd_sub },
     { "*", cmd_mul },
@@ -169,17 +218,23 @@ namespace Cmder {
     { "mod", cmd_mod },
     { "negate", cmd_negate },
 
+    { "dup", cmd_dup },
+    { "drop", cmd_drop },
+    { "swap", cmd_swap },
+    { "over", cmd_over },
+
     { "invert", cmd_invert },
     { "and", cmd_and },
     { "or", cmd_or },
     { "xor", cmd_xor },
     { "<<", cmd_lshift },
     { ">>", cmd_rshift },
+    { "a>>", cmd_ashift },
 
+    { ".", cmd_dot },
     { "ram+", cmd_ram_plus },
     { "dump", cmd_dump },
     { "words", cmd_words },
-    { ".", cmd_dot },
 
 #if WITH_RF69
     { "rf-init", cmd_rf_init },
@@ -208,7 +263,7 @@ int main () {
   LPC_IOCON->PIO0[IOCON_PIO11] |= (1<<8); // std GPIO, not I2C pin
   // LPC_IOCON->PIO0[IOCON_PIO10] |= (1<<8); // std GPIO, not I2C pin
 #endif
-  
+
 #if 0
   Cmder::push(0x0000);
   Cmder::push(2);
