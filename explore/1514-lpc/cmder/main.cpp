@@ -1,7 +1,8 @@
 // Command line interface using the serial port.
 
-#define WITH_TEST 1
-#define WITH_RF69 1
+#define WITH_TEST     1   // include some test code
+#define WITH_RF69     1   // include the RF69 driver
+#define WITH_ROMVARS  1   // include the RomVars eeprom code
 
 #include "sys.h"
 #include <string.h>
@@ -15,6 +16,13 @@
 
 RF69<SpiDev0> rf;
 uint8_t rfBuf[66], myNodeId;
+#endif
+
+#if WITH_ROMVARS
+#include "flash.h"
+#include "romvars.h"
+
+RomVars<Flash64,0x3F80> rom;
 #endif
 
 namespace Cmder {
@@ -88,6 +96,12 @@ namespace Cmder {
     }
   }
 
+  void cmd_words () {
+    for (const Def* p = commands; p->name != 0; ++p)
+      printf(" %s", p->name);
+    printf("\n");
+  }
+
 #if WITH_RF69
   void cmd_rf_init () {
     int freq = pop();
@@ -101,13 +115,25 @@ namespace Cmder {
   }
 #endif
 
+#if WITH_ROMVARS
+  void cmd_rom_at () {
+    top = rom[top];
+  }
+
+  void cmd_rom_bang () {
+    int idx = pop();
+    int val = pop();
+    rom[idx] = val;
+  }
+#endif
+
   const Def commands [] = {
     { "nl", cmd_nl },
 
-    { "add", cmd_add },
-    { "sub", cmd_sub },
-    { "mul", cmd_mul },
-    { "div", cmd_div },
+    { "+", cmd_add },
+    { "-", cmd_sub },
+    { "*", cmd_mul },
+    { "/", cmd_div },
     { "mod", cmd_mod },
     { "negate", cmd_negate },
 
@@ -115,15 +141,21 @@ namespace Cmder {
     { "and", cmd_and },
     { "or", cmd_or },
     { "xor", cmd_xor },
-    { "lshift", cmd_lshift },
-    { "rshift", cmd_rshift },
+    { "<<", cmd_lshift },
+    { ">>", cmd_rshift },
 
     { "ram+", cmd_ram_plus },
     { "dump", cmd_dump },
+    { "words", cmd_words },
 
 #if WITH_RF69
     { "rf-init", cmd_rf_init },
     { "rf-txpower", cmd_rf_txpower },
+#endif
+
+#if WITH_ROMVARS
+    { "rom@", cmd_rom_at },
+    { "rom!", cmd_rom_bang },
 #endif
 
     { 0, 0 }
@@ -158,7 +190,9 @@ int main () {
   Cmder::lookup("ram+")();
   Cmder::push(8);
   Cmder::lookup("dump")();
-  // 0 2 dump nl  3 2 dump nl  0 ram+ 8 dump
+  Cmder::lookup("nl")();
+  Cmder::lookup("words")();
+  // 0 2 dump nl  3 2 dump nl  0 ram+ 8 dump nl  words
 #endif
 
   while (true) {
