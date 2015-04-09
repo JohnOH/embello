@@ -20,7 +20,7 @@ public:
 class Serial {
 public:
   static void init (int baud) {
-    LPC_SWM->PINASSIGN[0] = 0xFFFFFF04;
+    LPC_SWM->PINASSIGN[0] = 0xFFFF0004;
     uart0Init(baud);
   }
 };
