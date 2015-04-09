@@ -227,7 +227,7 @@ int main () {
 #endif
 #if WITH_TEST
   Cmder::inPtr =
-    "0x0000 2 dump nl  0x0003 2 dump nl  0x0000 ram+ 8 dump\rwords blah";
+    "0 2 dump nl  3 2 dump nl  0 ram+ 8 dump\rwords blah 12345 -12345 * . nl";
 #endif
 
   while (true) {
@@ -236,12 +236,21 @@ int main () {
       Cmder::Cmd f = Cmder::lookup(Cmder::pad);
       //printf("d%d '%s' %08x\n", Cmder::padDelim, Cmder::pad, (unsigned) f);
       if (f == 0) {
-        char* end;
-        int v = strtol(Cmder::pad, &end, 0);
+        // avoid strtol(), it pulls in way too much data (ctype.h, no doubt)
+        int v = 0, sign = 1;
+        const char* end = Cmder::pad;
+        if (*end == '-') {
+          ++end;
+          sign = -1;
+        }
+        while ('0' <= *end && *end <= '9')
+          v = 10 * v + (*end++ - '0');
+        v *= sign;
+        // end of strtol re-implementation
         if (end > Cmder::pad && *end == 0)
           Cmder::push(v);
         else
-          printf("%s ?\n", Cmder::pad);
+          printf("%s?\n", Cmder::pad);
       } else
         f();
       if (Cmder::padDelim == '\r')
