@@ -1,10 +1,11 @@
 // Command line interface using the serial port.
 
 #define WITH_TEST     1   // include some test code
-#define WITH_RF69     1   // include the RF69 driver
-#define WITH_ROMVARS  1   // include the RomVars eeprom code
+#define WITH_RF69     0   // include the RF69 driver
+#define WITH_ROMVARS  0   // include the RomVars eeprom code
 
 #include "sys.h"
+#include <stdlib.h>
 #include <string.h>
 
 #include "uart_irq.h"
@@ -32,7 +33,12 @@ namespace Cmder {
   extern const Def commands [];
 
   enum { DATA_STACK = 32 };
-  int stack [DATA_STACK], top, *sp = stack;
+  int stack [DATA_STACK], top = 0, *sp = stack;
+
+  enum { PAD_SIZE = 84 };
+  char pad [PAD_SIZE+1], padDelim;
+  uint8_t padFill = 0;
+  const char* inPtr = 0;
 
   static Cmd lookup (const char* s) {
     for (const Def* p = commands; p->name != 0; ++p)
@@ -41,15 +47,40 @@ namespace Cmder {
     return 0;
   }
 
+  static int nextCh () {
+    if (inPtr == 0)
+      return uart0RecvChar();
+    int ch = *inPtr++;
+    if (ch == 0)
+      inPtr = 0;
+    return ch;
+  }
+
+  static int parse (char delim, bool skipPrefix =false) {
+    int ch = nextCh();
+    if (ch >= 0) {
+      bool stop = ch == 0 || padFill >= PAD_SIZE;
+      if (stop || ch == delim || (delim == ' ' && ch <= delim)) {
+        if (skipPrefix && padFill == 0 && !stop)
+          return -1;
+        padDelim = ch;
+        pad[padFill] = 0;
+        int len = padFill;
+        padFill = 0;
+        return len;
+      }
+      pad[padFill++] = ch;
+    }
+    return -1;
+  }
+
   static void push (int v) { *++sp = top; top = v; }
   static int pop () { int v = top; top = *sp--; return v; }
 };
 
 namespace Cmder {
 
-  void cmd_nl () {
-    printf("\n");
-  }
+  void cmd_nl () { printf("\n"); }
 
   void cmd_add () { top += pop(); }
   void cmd_sub () { top = pop() - top; }
@@ -102,6 +133,8 @@ namespace Cmder {
     printf("\n");
   }
 
+  void cmd_dot () { printf("%d ", pop()); }
+
 #if WITH_RF69
   void cmd_rf_init () {
     int freq = pop();
@@ -122,8 +155,7 @@ namespace Cmder {
 
   void cmd_rom_bang () {
     int idx = pop();
-    int val = pop();
-    rom[idx] = val;
+    rom[idx] = pop();
   }
 #endif
 
@@ -147,6 +179,7 @@ namespace Cmder {
     { "ram+", cmd_ram_plus },
     { "dump", cmd_dump },
     { "words", cmd_words },
+    { ".", cmd_dot },
 
 #if WITH_RF69
     { "rf-init", cmd_rf_init },
@@ -174,10 +207,9 @@ int main () {
   LPC_SWM->PINASSIGN[4] = 0xFF080B09;
   LPC_IOCON->PIO0[IOCON_PIO11] |= (1<<8); // std GPIO, not I2C pin
   // LPC_IOCON->PIO0[IOCON_PIO10] |= (1<<8); // std GPIO, not I2C pin
-  //rf.init(63, 255, 999); // nonsense values, won't receive anything
 #endif
   
-#if WITH_TEST
+#if 0
   Cmder::push(0x0000);
   Cmder::push(2);
   Cmder::lookup("dump")();
@@ -192,13 +224,29 @@ int main () {
   Cmder::lookup("dump")();
   Cmder::lookup("nl")();
   Cmder::lookup("words")();
-  // 0 2 dump nl  3 2 dump nl  0 ram+ 8 dump nl  words
+#endif
+#if WITH_TEST
+  Cmder::inPtr =
+    "0x0000 2 dump nl  0x0003 2 dump nl  0x0000 ram+ 8 dump\rwords blah";
 #endif
 
   while (true) {
-    int ch = uart0RecvChar();
-    if (ch >= 0)
-      printf("%d\n", ch);
+    int len = Cmder::parse(' ', true);
+    if (len >= 0) {
+      Cmder::Cmd f = Cmder::lookup(Cmder::pad);
+      //printf("d%d '%s' %08x\n", Cmder::padDelim, Cmder::pad, (unsigned) f);
+      if (f == 0) {
+        char* end;
+        int v = strtol(Cmder::pad, &end, 0);
+        if (end > Cmder::pad && *end == 0)
+          Cmder::push(v);
+        else
+          printf("%s ?\n", Cmder::pad);
+      } else
+        f();
+      if (Cmder::padDelim == '\r')
+        printf(" ok\n");
+    }
 #if WITH_RF69
     if (myNodeId != 0) {
       int len = rf.receive(rfBuf, sizeof rfBuf);
