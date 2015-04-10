@@ -11,9 +11,9 @@ template< int N >
 class SpiDev {
   public:
     static void master (int div) {
-      LPC_SYSCON->SYSAHBCLKCTRL |= (1<<11);   // enable SPI clock
-      LPC_SYSCON->PRESETCTRL &= ~(1<<0);      // reset
-      LPC_SYSCON->PRESETCTRL |= (1<<0);       // release
+      LPC_SYSCON->SYSAHBCLKCTRL |= (1<<(11+N)); // enable SPI clock
+      LPC_SYSCON->PRESETCTRL &= ~(1<<N);        // reset
+      LPC_SYSCON->PRESETCTRL |= (1<<N);         // release
 
       addr()->DIV = div-1;
       addr()->DLY = 0;
