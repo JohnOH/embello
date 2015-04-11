@@ -8,9 +8,10 @@ class SpiFlash {
 public:
   void init () {
     spi.master(1);
-    printf("%02x\n", spi.rwReg(0x05, 0));
-    printf("%02x\n", spi.rwReg(0x35, 0));
-    printf("%02x\n", spi.rwReg(0x9F, 0));
+    int a = spi.rwReg(0x05, 0);
+    int b = spi.rwReg(0x35, 0);
+    int c = spi.rwReg(0x9F, 0);
+    printf("%02x %02x %02x\n", a, b, c);
   }
 
 private:
