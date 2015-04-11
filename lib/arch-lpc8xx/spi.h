@@ -1,12 +1,5 @@
 #include "chip.h"
 
-#define SPI_CFG_ENABLE          (1<<0)
-#define SPI_CFG_MASTER          (1<<2)
-
-#define SPI_TXDATCTL_FSIZE(s)   ((s)<<24)
-
-#define SPI_STAT_ENDTRANSFER    (1<<7)
-
 template< int N >
 class SpiDev {
   public:
@@ -18,18 +11,16 @@ class SpiDev {
       addr()->DIV = div-1;
       addr()->DLY = 0;
 
-      addr()->CFG = SPI_CFG_MASTER;
-      addr()->CFG |= SPI_CFG_ENABLE;
+      addr()->CFG = SPI_CFG_MASTER_EN;
+      addr()->CFG |= SPI_CFG_SPI_EN;
     }
 
-    // TODO enable/disable/transfer not working yet (i.e. bulk mode)
-
     static void enable () {
-      addr()->TXCTRL = SPI_TXDATCTL_FSIZE(8-1);
+      addr()->TXCTRL = SPI_TXDATCTL_FLEN(8-1);
     }
 
     static void disable () {
-      addr()->STAT |= 1<<SPI_STAT_ENDTRANSFER;
+      addr()->STAT |= SPI_STAT_EOT;
     }
 
     static uint8_t transfer (uint8_t val) {
@@ -41,7 +32,7 @@ class SpiDev {
 
     static uint8_t rwReg (uint8_t cmd, uint8_t val) {
       addr()->TXDATCTL =
-        SPI_TXDATCTL_FSIZE(16-1) | SPI_TXDATCTL_EOT | (cmd << 8) | val;
+        SPI_TXDATCTL_FLEN(16-1) | SPI_TXDATCTL_EOT | (cmd << 8) | val;
       while ((addr()->STAT & SPI_STAT_RXRDY) == 0)
         ;
       return addr()->RXDAT;

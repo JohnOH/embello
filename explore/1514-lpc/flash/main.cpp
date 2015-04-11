@@ -12,6 +12,19 @@ public:
     int b = spi.rwReg(0x35, 0);
     int c = spi.rwReg(0x9F, 0);
     printf("%02x %02x %02x\n", a, b, c);
+
+    spi.enable();
+    spi.transfer(0x9F);
+    int d = spi.transfer(0);
+    spi.disable();
+
+    spi.enable();
+    spi.transfer(0x9F);
+    int e = spi.transfer(0);
+    spi.disable();
+
+    int f = spi.rwReg(0x9F, 0);
+    printf("%02x %02x %02x\n", d, e, f);
   }
 
 private:
