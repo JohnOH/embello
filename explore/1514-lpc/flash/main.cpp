@@ -3,7 +3,7 @@
 #include "sys.h"
 #include "spi_flash.h"
 
-SpiFlash<SpiDev1> spif;
+SpiFlash<SpiDev0> spif;
 
 int main () {
   tick.init(1000);
@@ -12,10 +12,12 @@ int main () {
   printf("\n[flash]\n");
 
   LPC_SWM->PINENABLE0 |= 3<<2;          // disable SWCLK/SWDIO
-  LPC_SWM->PINASSIGN[4] = 0x02FFFFFF;   // sck  -    -    -
-  LPC_SWM->PINASSIGN[5] = 0xFF0D0703;   // -    nss  miso mosi
-  // LPC_IOCON->PIO0[IOCON_PIO7] = 0x80;   // disable pull-up
-  // LPC_IOCON->PIO0[IOCON_PIO7] = 0x98;   // repeater mode
+  // jnp v0.2: sck 2, ssel 13, miso 7, mosi 3
+  LPC_SWM->PINASSIGN[3] = 0x02FFFFFF;   // sck  -    -    -
+  LPC_SWM->PINASSIGN[4] = 0xFF0D0703;   // -    nss  miso mosi
+  // eb20soic A: sck 7, ssel 2, miso 3, mosi 6
+  // LPC_SWM->PINASSIGN[3] = 0x07FFFFFF;   // sck  -    -    -
+  // LPC_SWM->PINASSIGN[4] = 0xFF020306;   // -    nss  miso mosi
   spif.init();
 
   printf("0x%x\n", spif.identify());
@@ -34,7 +36,7 @@ int main () {
     buf[0] = 11 * n;
     buf[1] = 22 * n;
     buf[2] = 33 * n;
-    spif.program(n << 8, buf, 3);
+    spif.program(n << 8, buf, sizeof buf);
     printf(" %u", (unsigned) tick.millis);
   }
   printf("\n");
@@ -42,9 +44,13 @@ int main () {
   for (int i = 0; i < 3; ++i) {
     printf("\n");
     for (int n = 0; n < 11; ++n) {
-      spif.read(n << 8, buf, 3);
+      spif.read(n << 8, buf, sizeof buf);
       printf("#%d: %d,%d,%d @ %u ms\n", n, buf[0], buf[1], buf[2],
                                     (unsigned) tick.millis);
     }
   }
+
+  // generate constant readout signals for scope / logic analyser use
+  while (true)
+    spif.read(0x1000, buf, sizeof buf);
 }

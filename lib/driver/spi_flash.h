@@ -4,8 +4,7 @@ template< typename SPI >
 class SpiFlash {
 public:
   void init () {
-    spi.master(3);
-    // spi.addr()->DLY = 0x1111;
+    spi.master(1);
   }
 
   int identify () {
