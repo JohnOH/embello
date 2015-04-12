@@ -8,7 +8,7 @@ class SpiFlash {
 public:
   void init () {
     spi.master(3);
-    spi.addr()->DLY = 0x1111;
+    // spi.addr()->DLY = 0x1111;
   }
 
   int identify () {
@@ -103,9 +103,12 @@ int main () {
   }
   printf("\n");
 
-  for (int n = 0; n < 11; ++n) {
-    spif.read(n << 8, buf, 3);
-    printf("r %d %d,%d,%d %u\n", n, buf[0], buf[1], buf[2],
-                                  (unsigned) tick.millis);
+  for (int i = 0; i < 3; ++i) {
+    printf("\n");
+    for (int n = 0; n < 11; ++n) {
+      spif.read(n << 8, buf, 3);
+      printf("#%d: %d,%d,%d @ %u ms\n", n, buf[0], buf[1], buf[2],
+                                    (unsigned) tick.millis);
+    }
   }
 }
