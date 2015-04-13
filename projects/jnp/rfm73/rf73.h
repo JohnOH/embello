@@ -1,8 +1,6 @@
-#include "spi.h"
-
 #define RF73_MAXLEN  32
 
-#define RF_SELECT(n)
+// #define RF_SELECT(n)
 
 // RF73 commands
 #define RF_READ_REG        	0x00  // Define read command to register
@@ -145,7 +143,7 @@ private:
 
 template< typename SPI >
 void RF73<SPI>::init (uint8_t chan) {
-  spi.init();
+  spi.master(2);
 
 	setBank(0);
 	if (readReg(29) == 0)
