@@ -3,9 +3,7 @@
 #include "sys.h"
 #include "spi.h"
 
-#define RF_SELECT(n)
-#define RFM73         0   // 0 = RFM70, 1 = RFM73
-
+#define RFM73 0 // 0 = RFM70, 1 = RFM73
 #include "rf73.h"
 
 RF73<SpiDev0,7> rf;
