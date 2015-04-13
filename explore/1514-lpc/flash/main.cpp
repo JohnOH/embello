@@ -11,10 +11,14 @@ int main () {
 
   printf("\n[flash]\n");
 
-  LPC_SWM->PINENABLE0 |= 3<<2;          // disable SWCLK/SWDIO
+  LPC_SWM->PINENABLE0 |= (3<<2);        // disable SWCLK/SWDIO
+  // lpc810: sck 1, ssel 5, miso 7, mosi 3
+  LPC_SWM->PINENABLE0 |= (1<<6);        // also needs RESET pin (p5)
+  LPC_SWM->PINASSIGN[3] = 0x01FFFFFF;   // sck  -    -    -
+  LPC_SWM->PINASSIGN[4] = 0xFF050302;   // -    nss  miso mosi
   // jnp v0.2: sck 2, ssel 13, miso 7, mosi 3
-  LPC_SWM->PINASSIGN[3] = 0x02FFFFFF;   // sck  -    -    -
-  LPC_SWM->PINASSIGN[4] = 0xFF0D0703;   // -    nss  miso mosi
+  // LPC_SWM->PINASSIGN[3] = 0x02FFFFFF;   // sck  -    -    -
+  // LPC_SWM->PINASSIGN[4] = 0xFF0D0703;   // -    nss  miso mosi
   // eb20soic A: sck 7, ssel 2, miso 3, mosi 6
   // LPC_SWM->PINASSIGN[3] = 0x07FFFFFF;   // sck  -    -    -
   // LPC_SWM->PINASSIGN[4] = 0xFF020306;   // -    nss  miso mosi
