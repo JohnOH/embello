@@ -98,7 +98,7 @@ const uint8_t bank1_init [] = {
   0
 };
 
-template< typename SPI >
+template< typename SPI, int SELPIN >
 class RF73 {
 public:
   void init (uint8_t chan);
@@ -108,6 +108,14 @@ public:
 
 private:
   void configure (const uint8_t* p);
+
+  void select () {
+    LPC_GPIO_PORT->CLR[0] = 1<<SELPIN; // TODO this is architecture-specific
+  }
+
+  void deselect () {
+    LPC_GPIO_PORT->SET[0] = 1<<SELPIN; // TODO this is architecture-specific
+  }
 
   uint8_t readReg (uint8_t addr) {
     return spi.rwReg(addr, 0);
@@ -138,15 +146,15 @@ private:
   }
 
   void rxMode () {
-    RF_SELECT(0);
+    select();
   	writeReg(CONFIG, readReg(CONFIG) | 1);
-    RF_SELECT(1);
+    deselect();
   }
 
   void txMode () {
-    RF_SELECT(0);
+    select();
   	writeReg(CONFIG, readReg(CONFIG) & ~1);
-    RF_SELECT(1);
+    deselect();
   }
 
   void setBank (char bank) {
@@ -157,8 +165,9 @@ private:
   SPI spi;
 };
 
-template< typename SPI >
-void RF73<SPI>::init (uint8_t chan) {
+template< typename SPI, int SELPIN >
+void RF73<SPI,SELPIN>::init (uint8_t chan) {
+  deselect();
   spi.master(2);
 
 	setBank(0);
@@ -175,8 +184,8 @@ void RF73<SPI>::init (uint8_t chan) {
 	rxMode();
 }
 
-template< typename SPI >
-void RF73<SPI>::configure (const uint8_t* data) {
+template< typename SPI, int SELPIN >
+void RF73<SPI,SELPIN>::configure (const uint8_t* data) {
   while (*data) {
     uint8_t len = *data++;
     uint8_t reg = *data++;
@@ -185,8 +194,8 @@ void RF73<SPI>::configure (const uint8_t* data) {
   }
 }
 
-template< typename SPI >
-int RF73<SPI>::receive (void* ptr, int len) {
+template< typename SPI, int SELPIN >
+int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
 	if ((readReg(FIFO_STATUS) & FIFO_STATUS_RX_EMPTY) == 0) {
 		uint8_t bytes = readReg(R_RX_PL_WID_CMD);
 		if (bytes <= RF73_MAXLEN) {
@@ -197,8 +206,8 @@ int RF73<SPI>::receive (void* ptr, int len) {
   return -1;
 }
 
-template< typename SPI >
-void RF73<SPI>::send (uint8_t ack, const void* ptr, int len) {
+template< typename SPI, int SELPIN >
+void RF73<SPI,SELPIN>::send (uint8_t ack, const void* ptr, int len) {
   const uint8_t* pbuf = (const uint8_t*) ptr;
 	txMode();
 	writeBuf(ack ? WR_TX_PLOAD : W_TX_PAYLOAD_NOACK_CMD, pbuf, len);

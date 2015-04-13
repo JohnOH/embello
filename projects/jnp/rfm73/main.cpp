@@ -8,7 +8,7 @@
 
 #include "rf73.h"
 
-RF73<SpiDev0> rf;
+RF73<SpiDev0,7> rf;
 
 int main () {
   serial.init(115200);
