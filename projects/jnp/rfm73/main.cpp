@@ -1,9 +1,10 @@
-// Send some messages over the serial port.
+// Test code for the RF73 driver, with continuous reads and periodic sends.
 
 #include "sys.h"
 #include "spi.h"
 
 #define RF_SELECT(n)
+#define RFM73         0   // 0 = RFM70, 1 = RFM73
 
 #include "rf73.h"
 
