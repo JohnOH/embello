@@ -1,6 +1,6 @@
 #include "chip.h"
 
-template< int N >
+template< int N, int S =0 >
 class SpiDev {
   public:
     static void master (int div) {
@@ -16,7 +16,8 @@ class SpiDev {
     }
 
     static void enable () {
-      addr()->TXCTRL = SPI_TXDATCTL_FLEN(8-1);
+      // careful: TXCTL needs to be set as 8, TXDATCTL would be 8-1 (crazy!)
+      addr()->TXCTRL = SPI_TXCTL_FLEN(8) | SPI_TXCTL_DEASSERTNUM_SSEL(S);
     }
 
     static void disable () {
@@ -31,8 +32,8 @@ class SpiDev {
     }
 
     static uint8_t rwReg (uint8_t cmd, uint8_t val) {
-      addr()->TXDATCTL =
-        SPI_TXDATCTL_FLEN(16-1) | SPI_TXDATCTL_EOT | (cmd << 8) | val;
+      addr()->TXDATCTL = SPI_TXDATCTL_FLEN(16-1) | SPI_TXDATCTL_EOT |
+                          SPI_TXDATCTL_DEASSERTNUM_SSEL(S) | (cmd << 8) | val;
       while ((addr()->STAT & SPI_STAT_RXRDY) == 0)
         ;
       return addr()->RXDAT;
@@ -41,5 +42,5 @@ class SpiDev {
     static LPC_SPI_T* addr () { return N == 0 ? LPC_SPI0 : LPC_SPI1; }
 };
 
-typedef SpiDev<0> SpiDev0;
-typedef SpiDev<1> SpiDev1;
+typedef SpiDev<0,0> SpiDev0;
+typedef SpiDev<1,0> SpiDev1;

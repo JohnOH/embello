@@ -167,6 +167,7 @@ private:
 
 template< typename SPI, int SELPIN >
 void RF73<SPI,SELPIN>::init (uint8_t chan) {
+  LPC_GPIO_PORT->DIR[0] |= 1<<SELPIN; // define select pin as output
   deselect();
   spi.master(2);
 
