@@ -42,5 +42,5 @@ class SpiDev {
     static LPC_SPI_T* addr () { return N == 0 ? LPC_SPI0 : LPC_SPI1; }
 };
 
-typedef SpiDev<0,0> SpiDev0;
-typedef SpiDev<1,0> SpiDev1;
+typedef SpiDev<0> SpiDev0;
+typedef SpiDev<1> SpiDev1;
