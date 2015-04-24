@@ -55,14 +55,14 @@ void ADC_SEQB_IRQHandler(void) ALIAS(IntDefaultHandler);
 void ADC_THCMP_IRQHandler(void) ALIAS(IntDefaultHandler);
 void ADC_OVR_IRQHandler(void) ALIAS(IntDefaultHandler);
 void DMA_IRQHandler(void) ALIAS(IntDefaultHandler);
-void PININT0_IRQHandler(void) ALIAS(IntDefaultHandler);
-void PININT1_IRQHandler(void) ALIAS(IntDefaultHandler);
-void PININT2_IRQHandler(void) ALIAS(IntDefaultHandler);
-void PININT3_IRQHandler(void) ALIAS(IntDefaultHandler);
-void PININT4_IRQHandler(void) ALIAS(IntDefaultHandler);
-void PININT5_IRQHandler(void) ALIAS(IntDefaultHandler);
-void PININT6_IRQHandler(void) ALIAS(IntDefaultHandler);
-void PININT7_IRQHandler(void) ALIAS(IntDefaultHandler);
+void PIN_INT0_IRQHandler(void) ALIAS(IntDefaultHandler);
+void PIN_INT1_IRQHandler(void) ALIAS(IntDefaultHandler);
+void PIN_INT2_IRQHandler(void) ALIAS(IntDefaultHandler);
+void PIN_INT3_IRQHandler(void) ALIAS(IntDefaultHandler);
+void PIN_INT4_IRQHandler(void) ALIAS(IntDefaultHandler);
+void PIN_INT5_IRQHandler(void) ALIAS(IntDefaultHandler);
+void PIN_INT6_IRQHandler(void) ALIAS(IntDefaultHandler);
+void PIN_INT7_IRQHandler(void) ALIAS(IntDefaultHandler);
 
 // The vector table.
 // This relies on the linker script to place at correct location in memory.
@@ -114,14 +114,14 @@ void (* const g_pfnVectors[])(void) = {
     I2C2_IRQHandler,                    // I2C2 controller
     I2C3_IRQHandler,                    // I2C3 controller
     0,                                  // Reserved
-    PININT0_IRQHandler,                 // PIO INT0
-    PININT1_IRQHandler,                 // PIO INT1
-    PININT2_IRQHandler,                 // PIO INT2
-    PININT3_IRQHandler,                 // PIO INT3
-    PININT4_IRQHandler,                 // PIO INT4
-    PININT5_IRQHandler,                 // PIO INT5
-    PININT6_IRQHandler,                 // PIO INT6
-    PININT7_IRQHandler,                 // PIO INT7
+    PIN_INT0_IRQHandler,                 // PIO INT0
+    PIN_INT1_IRQHandler,                 // PIO INT1
+    PIN_INT2_IRQHandler,                 // PIO INT2
+    PIN_INT3_IRQHandler,                 // PIO INT3
+    PIN_INT4_IRQHandler,                 // PIO INT4
+    PIN_INT5_IRQHandler,                 // PIO INT5
+    PIN_INT6_IRQHandler,                 // PIO INT6
+    PIN_INT7_IRQHandler,                 // PIO INT7
 #endif
 }; /* End of g_pfnVectors */
 
