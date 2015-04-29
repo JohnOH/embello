@@ -9,61 +9,61 @@
 
 RF69<SpiDev0> rf;
 
+static void sleep (int ticks) {
+  LPC_WKT->COUNT = ticks;             // sleep time in 0.1 ms steps
+  SCB->SCR |= 1<<2;                   // enable SLEEPDEEP mode
+  __WFI();
+  SCB->SCR &= ~(1<<2);                // disable SLEEPDEEP mode
+}
+
 int main () {
-    LPC_SYSCON->SYSAHBCLKCTRL |= 1<<9;  // SYSCTL_CLOCK_WKT
-    LPC_WKT->CTRL = 1<<0;               // WKT_CTRL_CLKSEL
+  LPC_SYSCON->SYSAHBCLKCTRL |= 1<<9;  // SYSCTL_CLOCK_WKT
+  LPC_WKT->CTRL = 1<<0;               // WKT_CTRL_CLKSEL
 
-    NVIC_EnableIRQ(WKT_IRQn);
+  NVIC_EnableIRQ(WKT_IRQn);
 
-    LPC_SYSCON->STARTERP1 = 1<<15;      // wake up from alarm/wake timer
-    SCB->SCR |= 1<<2;                   // enable SLEEPDEEP mode
-    LPC_PMU->DPDCTRL = 0xE;             // no wakeup, LPOSCEN and LPOSCDPDEN
-    LPC_PMU->PCON = 3;                  // enter deep power-down mode
+  LPC_SYSCON->STARTERP1 = 1<<15;      // wake up from alarm/wake timer
+  LPC_PMU->DPDCTRL = (1<<2) | (1<<1); // LPOSCEN, no wakepad
+  LPC_PMU->PCON = 2;                  // use normal power-down mode
 
-    // configure all I/O pins needed to use the radio, i.e. power & SPI
-    if (LPC_PMU->GPREG[0] != 0) {
-        // disable SWCLK/SWDIO and RESET
-        LPC_SWM->PINENABLE0 |= (3<<2) | (1<<6);
-        // lpc810: sck=3p3, ssel=4p2, miso=2p4, mosi=5p1
-        LPC_SWM->PINASSIGN[3] = 0x03FFFFFF;   // sck  -    -    -
-        LPC_SWM->PINASSIGN[4] = 0xFF040205;   // -    nss  miso mosi
+  sleep(5000); // sleep 500 ms to let power supply rise further
 
-        LPC_GPIO_PORT->DIR[0] |= 1<<1;  // PIO0_1 is an output
-        LPC_GPIO_PORT->B[0][1] = 0;     // low turns on radio power
-    }
+  // disable all special pin functions
+  LPC_SWM->PINENABLE0 = ~0;
 
-    // GPREG0 is saved across deep power-downs, starts as 0 on power-up reset
-    switch (LPC_PMU->GPREG[0]++) {
+  // turn power to the radio on
+  LPC_GPIO_PORT->B[0][1] = 0;         // low turns on radio power
+  LPC_GPIO_PORT->DIR[0] |= 1<<1;      // PIO0_1 is an output
 
-        case 0: // do nothing, just let the energy levels build up
-            LPC_WKT->COUNT = 50000;         // sleep 5 sec
-            break;
+  sleep(100); // sleep 10 ms to let the radio start up
 
-        case 1: // turn on power to the radio
-            LPC_WKT->COUNT = 200;           // sleep 20 ms
-            break;
+  // SPI0 pin configuration
+  // lpc810: sck=3p3, ssel=4p2, miso=2p4, mosi=5p1
+  LPC_SWM->PINASSIGN[3] = 0x03FFFFFF;   // sck  -    -    -
+  LPC_SWM->PINASSIGN[4] = 0xFF040205;   // -    nss  miso mosi
 
-        case 2: // initialise the radio and put it to sleep
-            rf.init(61, 42, 8683);          // node 61, group 42, 868.3 MHz
-            rf.encrypt("mysecret");
-            rf.txPower(15); // 0 = min .. 31 = max
-            rf.sleep();
+  // initialise the radio and put it to sleep
+  rf.init(61, 42, 8683);              // node 61, group 42, 868.3 MHz
+  rf.sleep();
 
-            LPC_WKT->COUNT = 10000;         // sleep 1 sec
-            break;
+  sleep(1000); // sleep 100 ms
 
-        default: // send out one packet and go back to sleep
-            rf.send(0, "xyz", 3);
-            rf.sleep();
+  // configure radio a bit more
+  rf.encrypt("mysecret");
+  rf.txPower(0); // 0 = min .. 31 = max
 
-            LPC_WKT->COUNT = 100000;        // sleep 10 sec
-            break;
-    }
+  sleep(1000); // sleep 100 ms
 
-    __WFI();                            // wait for interrupt, powers down
-    // waking up from deep power-down leads to a full reset, no need to loop
+  while (true) {
+    // send out one packet and go back to sleep
+    // rf.send(0, "xyz", 3);
+    // rf.sleep();
+
+    sleep(100000); // sleep 10 sec
+  }
 }
 
 extern "C" void WKT_IRQHandler () {
-    LPC_WKT->CTRL = LPC_WKT->CTRL;      // clear the alarm interrupt
+  LPC_WKT->CTRL = LPC_WKT->CTRL;      // clear the alarm interrupt
+  // LPC_WKT->CTRL |= (1<<1) | (1<<2);   // clear alarm
 }
