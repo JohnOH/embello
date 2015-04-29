@@ -22,15 +22,27 @@ int main () {
   LPC_WKT->CTRL = 1<<0;               // WKT_CTRL_CLKSEL
   NVIC_EnableIRQ(WKT_IRQn);
 
-  // power-down setup (can't use deep power down, loses I/O pin state)
+  // power-down setup (can't use deep power down, loses I/O pin statet)
   LPC_SYSCON->STARTERP1 = 1<<15;      // wake up from alarm/wake timer
   LPC_PMU->DPDCTRL = (1<<2) | (1<<1); // LPOSCEN, no wakepad
   LPC_PMU->PCON = 2;                  // use normal power-down mode
 
-  sleep(5000); // sleep 500 ms to let power supply rise further
+  sleep(1000); // sleep 100 ms to let power supply rise further
 
   // disable all special pin functions
   LPC_SWM->PINENABLE0 = ~0;
+
+#if 0
+  LPC_IOCON->PIO0[IOCON_PIO2] = 0x88; // enable pull-down
+  LPC_IOCON->PIO0[IOCON_PIO3] = 0x88; // enable pull-down
+  LPC_IOCON->PIO0[IOCON_PIO4] = 0x80; // disable pull-up (nss)
+  LPC_IOCON->PIO0[IOCON_PIO5] = 0x88; // enable pull-down
+
+  LPC_GPIO_PORT->B[0][1] = 1;         // low turns on radio power
+  LPC_GPIO_PORT->DIR[0] |= 1<<1;      // PIO0_1 is an output
+
+  sleep(2500); // sleep 250 ms to let power supply rise further
+#endif
 
   // turn power to the radio on
   LPC_GPIO_PORT->B[0][1] = 0;         // low turns on radio power
@@ -51,7 +63,7 @@ int main () {
   rf.encrypt("mysecret");
   rf.txPower(0); // 0 = min .. 31 = max
 
-  sleep(2500); // sleep 250 ms
+  sleep(10000); // sleep 1000 ms
 
   while (true) {
     // send out one packet and go back to sleep
