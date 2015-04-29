@@ -17,11 +17,12 @@ static void sleep (int ticks) {
 }
 
 int main () {
+  // enable wake-ups via low-power watchdog interrupts
   LPC_SYSCON->SYSAHBCLKCTRL |= 1<<9;  // SYSCTL_CLOCK_WKT
   LPC_WKT->CTRL = 1<<0;               // WKT_CTRL_CLKSEL
-
   NVIC_EnableIRQ(WKT_IRQn);
 
+  // power-down setup (can't use deep power down, loses I/O pin state)
   LPC_SYSCON->STARTERP1 = 1<<15;      // wake up from alarm/wake timer
   LPC_PMU->DPDCTRL = (1<<2) | (1<<1); // LPOSCEN, no wakepad
   LPC_PMU->PCON = 2;                  // use normal power-down mode
