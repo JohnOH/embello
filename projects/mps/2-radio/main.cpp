@@ -27,7 +27,7 @@ int main () {
   LPC_PMU->DPDCTRL = (1<<2) | (1<<1); // LPOSCEN, no wakepad
   LPC_PMU->PCON = 2;                  // use normal power-down mode
 
-  sleep(10000); // sleep 1 s to let power supply rise further
+  sleep(5000); // sleep 500 ms to let power supply rise further
 
   // disable all special pin functions
   LPC_SWM->PINENABLE0 = ~0;
@@ -51,14 +51,14 @@ int main () {
   rf.encrypt("mysecret");
   rf.txPower(0); // 0 = min .. 31 = max
 
-  sleep(5000); // sleep 500 ms
+  sleep(2500); // sleep 250 ms
 
   while (true) {
     // send out one packet and go back to sleep
     rf.send(0, "xyz", 3);
     rf.sleep();
 
-    sleep(30000); // sleep 3 sec
+    sleep(10000); // sleep 1 sec
   }
 }
 
