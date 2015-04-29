@@ -33,7 +33,7 @@ class SpiDev {
 
     static uint8_t rwReg (uint8_t cmd, uint8_t val) {
       addr()->TXDATCTL = SPI_TXDATCTL_FLEN(16-1) | SPI_TXDATCTL_EOT |
-                          SPI_TXDATCTL_DEASSERTNUM_SSEL(S) | (cmd << 8) | val;
+                          (cmd << 8) | val;
       while ((addr()->STAT & SPI_STAT_RXRDY) == 0)
         ;
       return addr()->RXDAT;
