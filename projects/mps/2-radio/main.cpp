@@ -42,13 +42,11 @@ int main () {
   LPC_SWM->PINASSIGN[3] = 0x03FFFFFF;   // sck  -    -    -
   LPC_SWM->PINASSIGN[4] = 0xFF040205;   // -    nss  miso mosi
 
-  // initialise the radio and put it to sleep
+  // initialise the radio and put it into idle mode asap
   rf.init(61, 42, 8683);              // node 61, group 42, 868.3 MHz
   rf.sleep();
 
-  sleep(1000); // sleep 100 ms
-
-  // configure radio a bit more
+  // configure the radio a bit more
   rf.encrypt("mysecret");
   rf.txPower(0); // 0 = min .. 31 = max
 
@@ -56,10 +54,10 @@ int main () {
 
   while (true) {
     // send out one packet and go back to sleep
-    // rf.send(0, "xyz", 3);
-    // rf.sleep();
+    rf.send(0, "xyz", 3);
+    rf.sleep();
 
-    sleep(100000); // sleep 10 sec
+    sleep(30000); // sleep 3 sec
   }
 }
 
