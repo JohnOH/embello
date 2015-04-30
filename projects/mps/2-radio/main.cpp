@@ -27,7 +27,7 @@ int main () {
   LPC_PMU->DPDCTRL = (1<<2) | (1<<1); // LPOSCEN, no wakepad
   LPC_PMU->PCON = 2;                  // use normal power-down mode
 
-  sleep(1000); // sleep 100 ms to let power supply rise further
+  // sleep(3000); // sleep 300 ms to let power supply rise further
 
   // disable all special pin functions
   LPC_SWM->PINENABLE0 = ~0;
@@ -35,18 +35,26 @@ int main () {
 #if 0
   LPC_IOCON->PIO0[IOCON_PIO2] = 0x88; // enable pull-down
   LPC_IOCON->PIO0[IOCON_PIO3] = 0x88; // enable pull-down
-  LPC_IOCON->PIO0[IOCON_PIO4] = 0x80; // disable pull-up (nss)
+  LPC_IOCON->PIO0[IOCON_PIO4] = 0x88; // enable pull-down
+  // LPC_IOCON->PIO0[IOCON_PIO4] = 0x80; // disable pull-up (nss)
   LPC_IOCON->PIO0[IOCON_PIO5] = 0x88; // enable pull-down
 
   LPC_GPIO_PORT->B[0][1] = 1;         // low turns on radio power
   LPC_GPIO_PORT->DIR[0] |= 1<<1;      // PIO0_1 is an output
-
-  sleep(2500); // sleep 250 ms to let power supply rise further
 #endif
 
+  LPC_GPIO_PORT->DIR[0] |= 0b111110;  // pio1..5 all outputs
+  LPC_GPIO_PORT->CLR[0] = 0b111100;   // pio2..5 set to 0
+  LPC_GPIO_PORT->SET[0] = 0b000010;   // pio1 set to 1
+
+  sleep(3000); // sleep 300 ms to let power supply rise further
+
+  LPC_GPIO_PORT->DIR[0] &= ~0b111100; // pio2..5 all inputs again
   // turn power to the radio on
   LPC_GPIO_PORT->B[0][1] = 0;         // low turns on radio power
-  LPC_GPIO_PORT->DIR[0] |= 1<<1;      // PIO0_1 is an output
+  // LPC_GPIO_PORT->DIR[0] |= 1<<1;      // PIO0_1 is an output
+
+  // LPC_IOCON->PIO0[IOCON_PIO4] = 0x90; // re-enable pull-up on NSS
 
   sleep(100); // sleep 10 ms to let the radio start up
 
