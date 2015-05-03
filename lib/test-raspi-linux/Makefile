@@ -1,3 +1,4 @@
+CXXFLAGS += -I../arch-raspi -I../driver
 LDLIBS = -lwiringPi -lwiringPiDev -lpthread
 
 APPS = rf69spi
