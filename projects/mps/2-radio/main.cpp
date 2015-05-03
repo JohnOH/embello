@@ -22,7 +22,7 @@ int main () {
   LPC_WKT->CTRL = 1<<0;               // WKT_CTRL_CLKSEL
   NVIC_EnableIRQ(WKT_IRQn);
 
-  // power-down setup (can't use deep power down, loses I/O pin statet)
+  // power-down setup (can't use deep power down, loses I/O pin state)
   LPC_SYSCON->STARTERP1 = 1<<15;      // wake up from alarm/wake timer
   LPC_PMU->DPDCTRL = (1<<2) | (1<<1); // LPOSCEN, no wakepad
   LPC_PMU->PCON = 2;                  // use normal power-down mode
@@ -44,8 +44,8 @@ int main () {
 
   // SPI0 pin configuration
   // lpc810: sck=3p3, ssel=4p2, miso=2p4, mosi=5p1
-  LPC_SWM->PINASSIGN[3] = 0x03FFFFFF;   // sck  -    -    -
-  LPC_SWM->PINASSIGN[4] = 0xFF040205;   // -    nss  miso mosi
+  LPC_SWM->PINASSIGN[3] = 0x03FFFFFF; // sck  -    -    -
+  LPC_SWM->PINASSIGN[4] = 0xFF040205; // -    nss  miso mosi
 
   // initialise the radio and put it into idle mode asap
   rf.init(61, 42, 8683);              // node 61, group 42, 868.3 MHz
