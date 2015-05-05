@@ -3,6 +3,7 @@
 #include "chip.h"
 #include "uart.h"
 #include <stdio.h>
+#include <stdint.h>
 
 #define chThdYield() // FIXME still used in rf69.h
 
