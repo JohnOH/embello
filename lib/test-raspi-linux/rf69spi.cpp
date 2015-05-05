@@ -30,7 +30,7 @@ int main () {
     rf.txPower(0); // 0 = min .. 31 = max
 
     uint16_t cnt = 0;
-    uint8_t txBuf[66];
+    uint8_t txBuf[62];
     for (int i = 0; i < sizeof txBuf; ++i)
       txBuf[i] = i;
     txBuf[0] = 45; // FIXME start slightly before the problem with > 48 bytes
