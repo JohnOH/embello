@@ -35,7 +35,7 @@ int main () {
     txBuf[i] = i;
 
   while (true) {
-    if (++cnt == 0) {
+    if (++cnt % 1024 == 0) {
       int txLen = ++txBuf[0] % (sizeof txBuf + 1);
       printf(" > #%d, %db\n", txBuf[0], txLen);
       rf.send(0, txBuf, txLen);
