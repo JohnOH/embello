@@ -249,7 +249,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
 template< typename SPI >
 void RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
   // while the mode is MODE_TRANSMIT, receive polling will not interfere
-  setMode(MODE_TRANSMIT);
+  setMode(MODE_SLEEP);
 
 #if RF69_SPI_BULK
   spi.enable();
@@ -270,6 +270,7 @@ void RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
 #endif
   writeReg(REG_FIFOTHRESH, START_TX);   // Release FIFO for transmission
 
+  setMode(MODE_TRANSMIT);
   while ((readReg(REG_IRQFLAGS2) & IRQ2_PACKETSENT) == 0)
     chThdYield();
 
