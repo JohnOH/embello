@@ -84,7 +84,7 @@ int main () {
     for (int i = 0; i < 10000; ++i) __ASM("");
     printf("\n[rf_ping] dev %x node %d\n", devId, nodeId);
 
-    rf.init(nodeId, 42, 8683);
+    rf.init(nodeId, 42, 8686);
     rf.encrypt("mysecret");
     rf.txPower(0); // 0 = min .. 31 = max
 

@@ -25,7 +25,7 @@ int main () {
 
     printf("\n[rf69try]\n");
 
-    rf.init(1, 42, 8683);
+    rf.init(1, 42, 8686);
     rf.encrypt("mysecret");
     rf.txPower(0); // 0 = min .. 31 = max
 
