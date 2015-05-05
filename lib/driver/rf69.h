@@ -91,7 +91,7 @@ void RF69<SPI>::setFrequency (uint32_t hz) {
   // use multiples of 64 to avoid multi-precision arithmetic, i.e. 3906.25 Hz
   // due to this, the lower 6 bits of the calculated factor will always be 0
   // this is still 4 ppm, i.e. well below the radio's 32 MHz crystal accuracy
-  // 868.0 MHz = 0xD90000, 868.3 MHz = 0xD91300, 915.0 MHz = 0xE4C000  
+  // 868.0 MHz = 0xD90000, 868.3 MHz = 0xD91300, 915.0 MHz = 0xE4C000
   uint32_t frf = (hz << 2) / (32000000L >> 11);
   writeReg(REG_FRFMSB, frf >> 10);
   writeReg(REG_FRFMSB+1, frf >> 2);
@@ -126,7 +126,7 @@ static const uint8_t configRegs [] = {
   0x2D, 0x05, // PreambleSize = 5
   0x2E, 0x88, // SyncConfig = sync on, sync size = 2
   0x2F, 0x2D, // SyncValue1 = 0x2D
-  0x37, 0xD4, // PacketConfig1 = fixed, white, filt node + bcast
+  0x37, 0xD0, // PacketConfig1 = fixed, white, no filtering
   0x38, 0x42, // PayloadLength = 0, unlimited
   0x3C, 0x8F, // FifoTresh, not empty, level 15
   0x3D, 0x12, // 0x10, // PacketConfig2, interpkt = 1, autorxrestart off
