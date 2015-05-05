@@ -27,7 +27,7 @@ int main () {
 
   rf.init(1, 42, 8686);
   rf.encrypt("mysecret");
-  rf.txPower(0); // 0 = min .. 31 = max
+  rf.txPower(15); // 0 = min .. 31 = max
 
   uint16_t cnt = 0;
   uint8_t txBuf[62];
