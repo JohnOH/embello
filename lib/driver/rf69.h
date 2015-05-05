@@ -157,8 +157,6 @@ void RF69<SPI>::init (uint8_t id, uint8_t group, int freq) {
   setFrequency(freq);
 
   writeReg(REG_SYNCVALUE2, group);
-  writeReg(REG_NODEADDR, myId | parity);
-  writeReg(REG_BCASTADDR, parity);
 }
 
 template< typename SPI >
@@ -229,7 +227,14 @@ int RF69<SPI>::receive (void* ptr, int len) {
         }
 #endif
 
-        return count;
+        // only accept packets intended for me, or broadcasts
+        // ... or any packet if we're the special catch-all node
+        uint8_t dest = *(uint8_t*) ptr;
+        if ((dest & 0xC0) == parity) {
+          uint8_t destId = dest & 0x3F;
+          if (destId == myId || destId == 0 || myId == 63)
+            return count;
+        }
       }
       break;
     }
