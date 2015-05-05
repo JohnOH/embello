@@ -186,70 +186,65 @@ void RF69<SPI>::sleep () {
 
 template< typename SPI >
 int RF69<SPI>::receive (void* ptr, int len) {
-  switch (mode) {
-    case MODE_RECEIVE: {
-      static uint8_t lastFlag;
-      if ((readReg(REG_IRQFLAGS1) & IRQ1_RXREADY) != lastFlag) {
-        lastFlag ^= IRQ1_RXREADY;
-        if (lastFlag) { // flag just went from 0 to 1
-          rssi = readReg(REG_RSSIVALUE);
-          lna = (readReg(REG_LNAVALUE) >> 3) & 0x7;
-#if RF69_SPI_BULK
-          spi.enable();
-          spi.transfer(REG_AFCMSB);
-          afc = spi.transfer(0) << 8;
-          afc |= spi.transfer(0);
-          spi.disable();
-#else
-          afc = readReg(REG_AFCMSB) << 8;
-          afc |= readReg(REG_AFCLSB);
-#endif
-        }
-      }
-
-      if (readReg(REG_IRQFLAGS2) & IRQ2_PAYLOADREADY) {
-
+  if (mode != MODE_RECEIVE)
+    setMode(MODE_RECEIVE);
+  else {
+    static uint8_t lastFlag;
+    if ((readReg(REG_IRQFLAGS1) & IRQ1_RXREADY) != lastFlag) {
+      lastFlag ^= IRQ1_RXREADY;
+      if (lastFlag) { // flag just went from 0 to 1
+        rssi = readReg(REG_RSSIVALUE);
+        lna = (readReg(REG_LNAVALUE) >> 3) & 0x7;
 #if RF69_SPI_BULK
         spi.enable();
-        spi.transfer(REG_FIFO);
-        int count = spi.transfer(0);
-        for (int i = 0; i < count; ++i) {
-          uint8_t v = spi.transfer(0);
-          if (i < len)
-            ((uint8_t*) ptr)[i] = v;
-        }
+        spi.transfer(REG_AFCMSB);
+        afc = spi.transfer(0) << 8;
+        afc |= spi.transfer(0);
         spi.disable();
 #else
-        int count = readReg(REG_FIFO);
-        for (int i = 0; i < count; ++i) {
-          uint8_t v = readReg(REG_FIFO);
-          if (i < len)
-            ((uint8_t*) ptr)[i] = v;
-        }
+        afc = readReg(REG_AFCMSB) << 8;
+        afc |= readReg(REG_AFCLSB);
+#endif
+      }
+    }
+
+    if (readReg(REG_IRQFLAGS2) & IRQ2_PAYLOADREADY) {
+
+#if RF69_SPI_BULK
+      spi.enable();
+      spi.transfer(REG_FIFO);
+      int count = spi.transfer(0);
+      for (int i = 0; i < count; ++i) {
+        uint8_t v = spi.transfer(0);
+        if (i < len)
+          ((uint8_t*) ptr)[i] = v;
+      }
+      spi.disable();
+#else
+      int count = readReg(REG_FIFO);
+      for (int i = 0; i < count; ++i) {
+        uint8_t v = readReg(REG_FIFO);
+        if (i < len)
+          ((uint8_t*) ptr)[i] = v;
+      }
 #endif
 
-        // only accept packets intended for me, or broadcasts
-        // ... or any packet if we're the special catch-all node
-        uint8_t dest = *(uint8_t*) ptr;
-        if ((dest & 0xC0) == parity) {
-          uint8_t destId = dest & 0x3F;
-          if (destId == myId || destId == 0 || myId == 63)
-            return count;
-        }
+      // only accept packets intended for us, or broadcasts
+      // ... or any packet if we're the special catch-all node
+      uint8_t dest = *(uint8_t*) ptr;
+      if ((dest & 0xC0) == parity) {
+        uint8_t destId = dest & 0x3F;
+        if (destId == myId || destId == 0 || myId == 63)
+          return count;
       }
-      break;
     }
-    case MODE_TRANSMIT:
-      break;
-    default:
-      setMode(MODE_RECEIVE);
   }
   return -1;
 }
 
 template< typename SPI >
 void RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
-  setMode(MODE_STANDBY);
+  setMode(MODE_SLEEP);
 
 #if RF69_SPI_BULK
   spi.enable();
@@ -261,14 +256,12 @@ void RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
     spi.transfer(((const uint8_t*) ptr)[i]);
   spi.disable();
 #else
-  //writeReg(REG_FIFOTHRESH, STOP_TX);    // Wait for FIFO to be filled
   writeReg(REG_FIFO, len + 2);
   writeReg(REG_FIFO, (header & 0x3F) | parity);
   writeReg(REG_FIFO, (header & 0xC0) | myId);
   for (int i = 0; i < len; ++i)
     writeReg(REG_FIFO, ((const uint8_t*) ptr)[i]);
 #endif
-  //writeReg(REG_FIFOTHRESH, START_TX);   // Release FIFO for transmission
 
   setMode(MODE_TRANSMIT);
   while ((readReg(REG_IRQFLAGS2) & IRQ2_PACKETSENT) == 0)
