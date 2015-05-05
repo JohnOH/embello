@@ -95,9 +95,7 @@ int main () {
 
   while (true) {
     if (++cnt == 0) {
-      int txLen = ++txBuf[0];
-      if (txLen > (int) sizeof txBuf)
-        txLen = 0;
+      int txLen = ++txBuf[0] % (sizeof txBuf + 1);
       printf(" > #%d, %db\n", txBuf[0], txLen);
       rf.send(0, txBuf, txLen);
     }
