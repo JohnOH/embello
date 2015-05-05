@@ -40,6 +40,7 @@ class RF69 {
       REG_AESKEYMSB     = 0x3E,
 
       MODE_SLEEP        = 0<<2,
+      MODE_STANDBY      = 1<<2,
       MODE_TRANSMIT     = 3<<2,
       MODE_RECEIVE      = 4<<2,
 
@@ -248,8 +249,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
 
 template< typename SPI >
 void RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
-  // while the mode is MODE_TRANSMIT, receive polling will not interfere
-  setMode(MODE_SLEEP);
+  setMode(MODE_STANDBY);
 
 #if RF69_SPI_BULK
   spi.enable();
@@ -261,18 +261,18 @@ void RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
     spi.transfer(((const uint8_t*) ptr)[i]);
   spi.disable();
 #else
-  writeReg(REG_FIFOTHRESH, STOP_TX);    // Wait for FIFO to be filled
+  //writeReg(REG_FIFOTHRESH, STOP_TX);    // Wait for FIFO to be filled
   writeReg(REG_FIFO, len + 2);
   writeReg(REG_FIFO, (header & 0x3F) | parity);
   writeReg(REG_FIFO, (header & 0xC0) | myId);
   for (int i = 0; i < len; ++i)
     writeReg(REG_FIFO, ((const uint8_t*) ptr)[i]);
 #endif
-  writeReg(REG_FIFOTHRESH, START_TX);   // Release FIFO for transmission
+  //writeReg(REG_FIFOTHRESH, START_TX);   // Release FIFO for transmission
 
   setMode(MODE_TRANSMIT);
   while ((readReg(REG_IRQFLAGS2) & IRQ2_PACKETSENT) == 0)
     chThdYield();
 
-  setMode(MODE_RECEIVE);
+  setMode(MODE_STANDBY);
 }
