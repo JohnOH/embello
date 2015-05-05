@@ -33,11 +33,12 @@ int main () {
     uint8_t txBuf[62];
     for (int i = 0; i < sizeof txBuf; ++i)
       txBuf[i] = i;
-    txBuf[0] = 45; // FIXME start slightly before the problem with > 48 bytes
 
     while (true) {
         if (++cnt == 0) {
-            int txLen = ++txBuf[0] % 63;
+            int txLen = ++txBuf[0];
+            if (txLen > sizeof txBuf)
+              txLen = 0;
             printf(" > #%d, %db\n", txBuf[0], txLen);
             rf.send(0, txBuf, txLen);
         }
