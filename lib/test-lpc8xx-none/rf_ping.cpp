@@ -13,7 +13,7 @@
 
 RF69<SpiDev0> rf;
 
-uint8_t rxBuf[66];
+uint8_t rxBuf[64];
 
 int main () {
     // the device pin mapping is configured at run time based on its id
@@ -96,7 +96,7 @@ int main () {
 
     while (true) {
         if (++cnt == 0) {
-            int txLen = ++txBuf[0] % 64;
+            int txLen = ++txBuf[0] % 63;
             printf(" > #%d, %db\n", txBuf[0], txLen);
             rf.send(0, txBuf, txLen);
         }
