@@ -40,7 +40,7 @@ int main () {
   LPC_GPIO_PORT->DIR[0] &= ~0b111100; // pio2..5 all inputs again
   LPC_GPIO_PORT->B[0][1] = 0;         // low, turns radio power on
 
-  sleep(100); // sleep 10 ms to let the radio start up
+  sleep(50); // sleep 5 ms to let the radio start up
 
   // SPI0 pin configuration
   // lpc810: sck=3p3, ssel=4p2, miso=2p4, mosi=5p1
@@ -48,12 +48,12 @@ int main () {
   LPC_SWM->PINASSIGN[4] = 0xFF040205; // -    nss  miso mosi
 
   // initialise the radio and put it into idle mode asap
-  rf.init(61, 42, 8683);              // node 61, group 42, 868.3 MHz
+  rf.init(61, 42, 8686);              // node 61, group 42, 868.3 MHz
   rf.sleep();
 
   // configure the radio a bit more
-  // rf.encrypt("mysecret");
-  rf.txPower(0); // 0 = min .. 31 = max
+  rf.encrypt("mysecret");
+  rf.txPower(15); // 0 = min .. 31 = max
 
   sleep(10000); // sleep 1 sec before entering the main loop
 
