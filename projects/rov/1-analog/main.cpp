@@ -11,7 +11,7 @@ static int getTemp () {
   int accum = 0;
   for (int i = 0; i < 10; ++i)
     accum += adc.result();
-  return accum / 34;
+  return accum / 35;
 }
 
 static void waitForTemp (const char* tag, int targetTemp, int dwell) {
