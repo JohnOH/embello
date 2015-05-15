@@ -1,5 +1,5 @@
 // Micro Power Snitch code, including periodic radio packet transmissions.
-// See http://jeelabs.org/2015/03/11/micro-power-snitch-part-4/
+// See http://jeelabs.org/mps for information about this project.
 
 #include "sys.h"
 
@@ -42,10 +42,9 @@ int main () {
   rf.sleep();
 
   // configure the radio a bit more
-  //rf.encrypt("mysecret");
   rf.txPower(18); // 0 = min .. 31 = max
 
-  // this data strcture will be sent as data packet
+  // this data structure will be sent as packet
   static struct {
     uint32_t uniqId;                  // "fairly unique" for each LPC chip
     uint8_t nodeType :6;              // this is an MPS, so type = 1
@@ -61,7 +60,6 @@ int main () {
   sleep(10000); // sleep 1 sec before entering the main loop
 
   while (true) {
-  //for (int i = 0; i < 3; ++i) {
     // send out one packet and go back to sleep
     rf.send(0, &payload, 5);  // not "sizeof payload", which would be 8 !
     rf.sleep();
@@ -70,8 +68,6 @@ int main () {
 
     sleep(10000); // sleep 1 sec
   }
-
-  //sleep(10000000); // sleep 1000 sec
 }
 
 extern "C" void WKT_IRQHandler () {
