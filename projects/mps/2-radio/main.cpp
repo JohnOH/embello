@@ -45,13 +45,28 @@ int main () {
   //rf.encrypt("mysecret");
   rf.txPower(18); // 0 = min .. 31 = max
 
+  // this data strcture will be sent as data packet
+  static struct {
+    uint32_t uniqId;                  // "fairly unique" for each LPC chip
+    uint8_t nodeType :6;              // this is an MPS, so type = 1
+    uint8_t seqNum :2;                // this is incremented after each tx
+  } payload = { 0, 1, 0 };
+
+  // get the 16-byte hardware id using the LPC's built-in IAP code in ROM
+  uint32_t cmd = IAP_READ_UID_CMD, result[4];
+  iap_entry(&cmd, result);
+  // xor the 16-byte hardware id to turn it into a 32-bit number
+  payload.uniqId = result[0] ^ result[1] ^ result[2] ^ result[3];
+
   sleep(10000); // sleep 1 sec before entering the main loop
 
   while (true) {
   //for (int i = 0; i < 3; ++i) {
     // send out one packet and go back to sleep
-    rf.send(0, "012345", 6);
+    rf.send(0, &payload, 5);  // not "sizeof payload", which would be 8 !
     rf.sleep();
+
+    ++payload.seqNum;
 
     sleep(10000); // sleep 1 sec
   }
