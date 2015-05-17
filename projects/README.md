@@ -7,3 +7,7 @@ In this folder:
 **Micro Power Snitch**
 
 * home page: <http://jeelabs.org/mps>
+
+**RasPi RF**
+
+* home page: <http://jeelabs.org/rpr>
