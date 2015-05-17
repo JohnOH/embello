@@ -7,7 +7,7 @@ To compile and run this demo with the Arduino IDE:
         ../arch-arduino/spi.h
         ../driver/rf69.h
 
-Then build iand upload as usual using the IDE.
+Then build and upload as usual using the IDE.
 
 Note: this code defines an "RF69" class which is not related to the "RF69"
 compatibility-mode class in JeeLib. The difference is that this version
