@@ -85,7 +85,7 @@ int main () {
   printf("\n[rf_ping] dev %x node %d\n", devId, nodeId);
 
   rf.init(nodeId, 42, 8686);
-  rf.encrypt("mysecret");
+  //rf.encrypt("mysecret");
   rf.txPower(15); // 0 = min .. 31 = max
 
   uint16_t cnt = 0;

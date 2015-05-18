@@ -18,7 +18,7 @@ void setup () {
   Serial.println("\n[rf69demo]");
 
   rf.init(28, 42, 8686);
-  /*rf.encrypt("mysecret");*/
+  //rf.encrypt("mysecret");
   rf.txPower(15); // 0 = min .. 31 = max
 
   for (int i = 0; i < (int) sizeof txBuf; ++i)

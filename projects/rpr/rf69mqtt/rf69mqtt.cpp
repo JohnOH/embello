@@ -80,8 +80,8 @@ int main () {
 
   rf.init(RF_ID, RF_GROUP, RF_FREQ);
 
-  rf.encrypt("mysecret");
-  //rf.txPower(15); // 0 = min .. 31 = max
+  //rf.encrypt("mysecret");
+  rf.txPower(15); // 0 = min .. 31 = max
 
   mqtt.connect(SERVER);
   mqtt.subscribe(0, myTopic);
