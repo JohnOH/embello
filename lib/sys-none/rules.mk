@@ -86,7 +86,7 @@ clean:
 
 # this works with NXP LPC's, using serial ISP
 isp: $(BUILDDIR)/firmware.bin
-	uploader $(ISPOPTS) $(TTY) $^ #$(BUILDDIR)/firmware.bin
+	uploader $(ISPOPTS) $(TTY) $^
 
 %.bin: %.elf
 	@$(OBJCOPY) --strip-unneeded -O binary $^ $@
