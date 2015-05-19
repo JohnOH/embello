@@ -80,9 +80,9 @@ int main () {
       // allow external pins to configure various test options
       // these pins are only checked right after reset
       plaintext = LPC_GPIO_PORT->B[0][2]; // EXT, to GND = encrypted
-      whitened = LPC_GPIO_PORT->B[0][3];  // IRQ, to GND = not whitened
-      testdata = LPC_GPIO_PORT->B[0][13]; // AIO, to GND = send 0's
       stronger = LPC_GPIO_PORT->B[0][14]; // DIO, to GND = min tx power
+      testdata = LPC_GPIO_PORT->B[0][13]; // AIO, to GND = send 0's
+      whitened = LPC_GPIO_PORT->B[0][3];  // IRQ, to GND = not whitened
       // jnp v3: sck 17, ssel 23, miso 9, mosi 8, irq 1
       LPC_SWM->PINASSIGN[0] = 0xFFFF0004;
       LPC_SWM->PINASSIGN[3] = 0x11FFFFFF;
