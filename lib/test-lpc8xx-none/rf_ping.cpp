@@ -100,6 +100,7 @@ int main () {
   rf.txPower(stronger ? 15 : 0); // 0 = min .. 31 = max
   if (!whitened)
     rf.writeReg(0x37, rf.readReg(0x37) & ~0x60);
+  // rf.writeReg(0x37, rf.readReg(0x37) & ~0x10); // no crc check
 
   uint16_t cnt = 0;
   uint8_t txBuf[62];
