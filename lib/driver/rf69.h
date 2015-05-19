@@ -17,6 +17,13 @@ class RF69 {
     uint8_t myId;
     uint8_t parity;
 
+    uint8_t readReg (uint8_t addr) {
+      return spi.rwReg(addr, 0);
+    }
+    void writeReg (uint8_t addr, uint8_t val) {
+      spi.rwReg(addr | 0x80, val);
+    }
+
   protected:
     enum {
       REG_FIFO          = 0x00,
@@ -57,12 +64,6 @@ class RF69 {
       IRQ2_PAYLOADREADY = 1<<2,
     };
 
-    uint8_t readReg (uint8_t addr) {
-      return spi.rwReg(addr, 0);
-    }
-    void writeReg (uint8_t addr, uint8_t val) {
-      spi.rwReg(addr | 0x80, val);
-    }
     void setMode (uint8_t newMode);
     void configure (const uint8_t* p);
     void setFrequency (uint32_t freq);
