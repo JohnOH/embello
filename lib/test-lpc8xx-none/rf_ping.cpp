@@ -16,6 +16,8 @@ RF69<SpiDev0> rf;
 uint8_t rxBuf[64];
 
 int main () {
+  bool plaintext = true, whitened = true, testdata = true, stronger = true;
+
   // the device pin mapping is configured at run time based on its id
   uint16_t devId = LPC_SYSCON->DEVICEID;
   // choose different node id's, depending on the chip type
@@ -73,6 +75,14 @@ int main () {
       break;
     case 0x8242:
       nodeId = 24;
+      // disable SWCLK/SWDIO
+      LPC_SWM->PINENABLE0 |= 3<<2;
+      // allow external pins to configure various test options
+      // these pins are only checked right after reset
+      plaintext = LPC_GPIO_PORT->B[0][2]; // EXT, to GND = encrypted
+      whitened = LPC_GPIO_PORT->B[0][3];  // IRQ, to GND = not whitened
+      testdata = LPC_GPIO_PORT->B[0][13]; // AIO, to GND = send 0's
+      stronger = LPC_GPIO_PORT->B[0][14]; // DIO, to GND = min tx power
       // jnp v3: sck 17, ssel 23, miso 9, mosi 8, irq 1
       LPC_SWM->PINASSIGN[0] = 0xFFFF0004;
       LPC_SWM->PINASSIGN[3] = 0x11FFFFFF;
@@ -85,13 +95,16 @@ int main () {
   printf("\n[rf_ping] dev %x node %d\n", devId, nodeId);
 
   rf.init(nodeId, 42, 8686);
-  //rf.encrypt("mysecret");
-  rf.txPower(15); // 0 = min .. 31 = max
+  if (!plaintext)
+    rf.encrypt("mysecret");
+  rf.txPower(stronger ? 15 : 0); // 0 = min .. 31 = max
+  if (!whitened)
+    rf.writeReg(0x37, rf.readReg(0x37) & ~0x60);
 
   uint16_t cnt = 0;
   uint8_t txBuf[62];
   for (int i = 0; i < (int) sizeof txBuf; ++i)
-    txBuf[i] = i;
+    txBuf[i] = testdata ? i : 0;
 
   while (true) {
     if (++cnt == 0) {
