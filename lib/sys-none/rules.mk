@@ -69,7 +69,7 @@ $(OBJDIR)/%.o: %.c
 $(OBJDIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(OBJCTS): | $(BUILDDIR)
+$(OBJCTS): | $(OBJDIR)
 
 ifeq ($(LINKWITH), GCC)
 %.elf: $(OBJCTS)
