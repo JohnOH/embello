@@ -207,7 +207,7 @@ func fixChecksum(data []byte) {
 
 func UseTelnet(s io.ReadWriter) io.ReadWriter {
 	// doesn't seem to be needed:
-	//s.Write([]byte{Iac, Will, ComPortOpt})
+	s.Write([]byte{Iac, Will, ComPortOpt})
 	return &telnetWrapper{upLink: s, inState: 0}
 }
 
