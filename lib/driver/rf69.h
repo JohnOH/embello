@@ -1,5 +1,9 @@
 // Native mode RF69 driver.
 
+#ifndef chThdYield
+#define chThdYield() // FIXME should be renamed, ChibiOS leftover
+#endif
+
 template< typename SPI >
 class RF69 {
   public:

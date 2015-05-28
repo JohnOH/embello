@@ -11,7 +11,6 @@
 #include "uart_irq.h"
 
 #if WITH_RF69
-#define chThdYield() // FIXME still used in rf69.h
 #include "spi.h"
 #include "rf69.h"
 

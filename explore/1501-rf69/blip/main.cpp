@@ -1,7 +1,6 @@
 // Periodically send out a test packet with an incrementing counter.
 // See http://jeelabs.org/2015/01/28/lpc810-meets-rfm69-part-3/
 
-#define chThdYield() // FIXME still used in rf69.h
 #include "spi.h"
 #include "rf69.h"
 

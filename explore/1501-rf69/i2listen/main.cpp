@@ -5,7 +5,6 @@
 #include "lpc_types.h"
 #include "romapi_8xx.h"
 
-#define chThdYield() // FIXME still used in rf69.h
 #include "spi.h"
 #include "rf69.h"
 

@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "serial.h"
 
-#define chThdYield() // FIXME still used in rf69.h
 #include "spi.h"
 #include "rf69.h"
 

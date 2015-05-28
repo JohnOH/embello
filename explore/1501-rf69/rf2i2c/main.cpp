@@ -1,8 +1,6 @@
 // RF69 to I2C bridge, to buffer and report all incoming radio packets.
 // See http://jeelabs.org/2014/12/31/lpc810-meets-rfm69/
 
-#define chThdYield() // FIXME still used in radio.h
-
 #include "spi.h"
 #include "rf69.h"
 #include "lpc_types.h"
