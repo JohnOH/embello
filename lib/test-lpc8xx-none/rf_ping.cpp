@@ -40,7 +40,7 @@ int main () {
     case 0x8120:
       nodeId = 12;
       LPC_SWM->PINASSIGN[0] = 0xFFFF0004;
-      // jnp v2: sck 6, ssel 8, miso 11, mosi 9, irq 10
+      // jnp v0.2: sck 6, ssel 8, miso 11, mosi 9, irq 10
       LPC_SWM->PINASSIGN[3] = 0x06FFFFFF;
       LPC_SWM->PINASSIGN[4] = 0xFF080B09;
       LPC_IOCON->PIO0[IOCON_PIO11] |= (1<<8); // std GPIO, not I2C pin
@@ -81,7 +81,7 @@ int main () {
       stronger = LPC_GPIO_PORT->B[0][14]; // DIO, to GND = min tx power
       testdata = LPC_GPIO_PORT->B[0][13]; // AIO, to GND = send 0's
       whitened = LPC_GPIO_PORT->B[0][3];  // IRQ, to GND = not whitened
-      // jnp v3: sck 17, ssel 23, miso 9, mosi 8, irq 1
+      // jnp v0.3: sck 17, ssel 23, miso 9, mosi 8, irq 1
       LPC_SWM->PINASSIGN[0] = 0xFFFF0004;
       LPC_SWM->PINASSIGN[3] = 0x11FFFFFF;
       LPC_SWM->PINASSIGN[4] = 0xFF170908;
