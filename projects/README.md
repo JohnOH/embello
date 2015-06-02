@@ -11,3 +11,7 @@ In this folder:
 **RasPi RF**
 
 * home page: <http://jeelabs.org/rpr>
+
+**Tinker Pico**
+
+* home page: <http://jeelabs.org/tkp>
