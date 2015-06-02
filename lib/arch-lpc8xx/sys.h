@@ -31,10 +31,8 @@ public:
     LPC_SYSCON->PDRUNCFG &= ~(1<<4); // power up ADC
     LPC_SYSCON->SYSAHBCLKCTRL |= (1<<24); // enable ADC clock
     LPC_ADC->CTRL = (1<<30) | 2; // start calib at 500 kHz
-    printf("a1\n");
     while (LPC_ADC->CTRL & (1<<30))
       ;
-    printf("a2\n");
     LPC_ADC->CTRL = (1<<10); // set adc clock to max speed, low-power mode
   }
 
