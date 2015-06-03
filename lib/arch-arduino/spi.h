@@ -10,13 +10,13 @@ class SpiDev {
       ;
     return SPDR;
 #else
-      // ATtiny
-      USIDR = out;
-      byte v1 = bit(USIWM0) | bit(USITC);
-      byte v2 = bit(USIWM0) | bit(USITC) | bit(USICLK);
-      for (uint8_t i = 0; i < 8; ++i) {
-        USICR = v1;
-        USICR = v2;
+    // ATtiny
+    USIDR = out;
+    byte v1 = bit(USIWM0) | bit(USITC);
+    byte v2 = bit(USIWM0) | bit(USITC) | bit(USICLK);
+    for (uint8_t i = 0; i < 8; ++i) {
+      USICR = v1;
+      USICR = v2;
     }
     return USIDR;
 #endif
@@ -36,6 +36,7 @@ public:
     SPCR = _BV(SPE) | _BV(MSTR);
     SPSR |= _BV(SPI2X);
 #else
+    // ATtiny
     pinMode(1, OUTPUT); // SS
     pinMode(4, INPUT);  // MISO 7
     pinMode(5, OUTPUT); // MOSI 8
@@ -54,4 +55,9 @@ public:
   }
 };
 
+#ifdef SPCR
 typedef SpiDev<10> SpiDev10;
+#else
+// ATtiny
+typedef SpiDev<1> SpiDev1;
+#endif
