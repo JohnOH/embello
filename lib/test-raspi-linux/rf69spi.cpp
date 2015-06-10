@@ -5,8 +5,6 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 
-#define chThdYield() delay(1) // FIXME still used in rf69.h
-
 #include "spi.h"
 #include "rf69.h"
 

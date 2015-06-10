@@ -56,8 +56,6 @@ public:
 MyMqtt mqtt;
 char myTopic [20];
 
-#define chThdYield() mqtt.loop(1) // FIXME still used in rf69.h
-
 #include "spi.h"
 #include "rf69.h"
 
