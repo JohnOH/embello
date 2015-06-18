@@ -1,4 +1,4 @@
-// Send some messages over the serial port.
+// Wait for hall sensor to trigger, then flash some LEDs
 
 const int LED1 = 1;
 const int LED2 = 6;
@@ -13,7 +13,7 @@ int main () {
     tick.init(1000);
     serial.init(115200);
 
-    printf("\n[hello]\n");
+    printf("\n[fpd]\n");
 
     LPC_GPIO_PORT->SET[0] = (1<<LED1) | (1<<LED2) | (1<<LED3);
     LPC_GPIO_PORT->DIR[0] |= (1<<LED1) | (1<<LED2) | (1<<LED3);
