@@ -51,10 +51,10 @@ int main () {
   } payload = { 0, 1, 0 };
 
   // get the 16-byte hardware id using the LPC's built-in IAP code in ROM
-  uint32_t cmd = IAP_READ_UID_CMD, result[4];
+  uint32_t cmd = IAP_READ_UID_CMD, result[5];
   iap_entry(&cmd, result);
   // xor the 16-byte hardware id to turn it into a 32-bit number
-  payload.uniqId = result[0] ^ result[1] ^ result[2] ^ result[3];
+  payload.uniqId = result[1] ^ result[2] ^ result[3] ^ result[4];
 
   sleep(10000); // sleep 1 sec before entering the main loop
 
