@@ -10,7 +10,11 @@ void acmpVccSetup () {
   //LPC_SYSCON->PRESETCTRL |= (1<<12);            // release comparator
 
   // connect ladder to CMP+ and bandgap to CMP-
-  LPC_CMP->CTRL = (6<<11); // careful: 6 on LPC81x, 5 on LPC82x !
+  // careful: 6 on LPC81x, 5 on LPC82x !
+  if (LPC_SYSCON->DEVICEID < 0x8200)
+    LPC_CMP->CTRL = (6<<11); 
+  else
+    LPC_CMP->CTRL = (5<<11); 
 }
 
 // estimate the bandgap voltage in terms of Vcc ladder steps, returns as mV
