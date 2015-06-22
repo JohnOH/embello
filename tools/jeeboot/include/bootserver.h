@@ -1,6 +1,7 @@
 #pragma once
 
 #include "packets.h"
+#include "util.h"
 
 template< typename DRIVER >
 class BootServer {
