@@ -25,13 +25,21 @@
 
 RF69<SpiDev0> rf;
 
+const char* filePath;
+
 class MyFileAccess : public FileAccess {
 public:
-    MyFileAccess () : FileAccess ("files/") {}
+    MyFileAccess () : FileAccess (filePath) {}
 };
 
 int main () {
-    printf("\n[rf69boot]\n");
+    if (argc < 2) {
+        fprintf(stderr, "Usage: rf69boot <filepathprefix>\n");
+        return 1;
+    }
+
+    filePath = argv[1];
+    printf("\n[rf69boot] using: %s*\n", filePath);
 
     wiringPiSetup();
     if (wiringPiSPISetup (0, 4000000) < 0) {
