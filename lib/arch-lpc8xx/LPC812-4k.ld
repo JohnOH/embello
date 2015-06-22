@@ -1,0 +1,7 @@
+MEMORY
+{
+  FLASH (rx) : ORIGIN = 0x00001000, LENGTH = 12k
+  RAM (rwx) : ORIGIN = 0x10000000, LENGTH = 4k
+}
+
+INCLUDE rules.ld
