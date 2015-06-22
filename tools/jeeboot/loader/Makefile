@@ -1,0 +1,14 @@
+CFLAGS += -DCORE_M0PLUS #-DSTARTUP_NO_IRQS
+CXXFLAGS += -DCORE_M0PLUS -I. -I../../embello/lib/vendor/lpcopen/inc -I../include
+ISPOPTS += -w -s -i 5
+LINK = LPC810.ld
+ARCH = lpc8xx
+
+OBJS = main.o sys.o system_LPC8xx.o gcc_startup_lpc8xx.o \
+		uart.o printf.o printf-retarget.o
+
+default: isp
+
+LIBDIR = ../../embello/lib
+SHARED = $(LIBDIR)/sys-none
+include $(SHARED)/rules.mk
