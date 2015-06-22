@@ -2,8 +2,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <errno.h>
+
+#include "util.h"
+#include "fileaccess.h"
+#include "bootserver.h"
 
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
@@ -20,39 +25,51 @@
 
 RF69<SpiDev0> rf;
 
+class MyFileAccess : public FileAccess {
+public:
+    MyFileAccess () : FileAccess ("files/") {}
+};
+
+BootServer<MyFileAccess> server;
+
 int main () {
-  printf("\n[rf69boot]\n");
+    printf("\n[rf69boot]\n");
 
-  wiringPiSetup();
-  if (wiringPiSPISetup (0, 4000000) < 0) {
-    printf("Can't open the SPI bus: %d\n", errno);
-    return 1;
-  }
-
-  rf.init(RF_ID, RF_GROUP, RF_FREQ);
-
-  //rf.encrypt("mysecret");
-  rf.txPower(15); // 0 = min .. 31 = max
-
-  struct {
-    uint8_t buf [64];
-  } rx;
-
-  while (true) {
-    int len = rf.receive(rx.buf, sizeof rx.buf);
-    if (len >= 0) {
-#if DEBUG
-      printf("OK ");
-      for (int i = 0; i < len; ++i)
-        printf("%02x", rx.buf[i]);
-      printf(" (%d%s%d:%d)\n", rf.rssi, rf.afc < 0 ? "" : "+", rf.afc, rf.lna);
-#endif
-
-      rx.afc = rf.afc;
-      rx.rssi = rf.rssi;
-      rx.lna = rf.lna;
+    wiringPiSetup();
+    if (wiringPiSPISetup (0, 4000000) < 0) {
+        printf("Can't open the SPI bus: %d\n", errno);
+        return 1;
     }
 
-    chThdYield();
-  }
+    rf.init(RF_ID, RF_GROUP, RF_FREQ);
+    //rf.encrypt("mysecret");
+    rf.txPower(15); // 0 = min .. 31 = max
+
+    uint8_t buf [64];
+
+    while (true) {
+        int len = rf.receive(buf, sizeof buf);
+        if (len >= 0) {
+#if DEBUG
+            printf("OK ");
+            for (int i = 0; i < len; ++i)
+                printf("%02x", buf[i]);
+            printf(" (%d%s%d:%d)\n",
+                    rf.rssi, rf.afc < 0 ? "" : "+", rf.afc, rf.lna);
+#endif
+
+            if (buf[1] == 0xC0) {
+                BootReply reply;
+                int len2 = server.request(buf + 2, len - 2, &reply);
+                if (len2 <= 0) {
+                    printf("ignoring %d bytes\n", len - 2);
+                } else {
+                    printf("sending %d bytes\n", len2);
+                    rf.send(0xC0, (const uint8_t*) &reply + 2, len2);
+                }
+            }
+        }
+
+        chThdYield();
+    }
 }
