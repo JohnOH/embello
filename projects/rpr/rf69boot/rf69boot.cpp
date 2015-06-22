@@ -32,7 +32,7 @@ public:
     MyFileAccess () : FileAccess (filePath) {}
 };
 
-int main () {
+int main (int argc, const char** argv) {
     if (argc < 2) {
         fprintf(stderr, "Usage: rf69boot <filepathprefix>\n");
         return 1;
