@@ -1,5 +1,5 @@
 CXXFLAGS += -I../../../lib/arch-raspi -I../../../lib/driver
-CXXFLAGS += -I../../../../jeeboot/include
+CXXFLAGS += -I../../../tools/jeeboot/include
 LDLIBS = -lwiringPi -lwiringPiDev -lpthread
 
 all: rf69boot
