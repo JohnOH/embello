@@ -18,8 +18,10 @@ class FileAccess {
 
     bool parse (const char* indexFile) {
         FILE* fp = fopen(indexFile, "r");
-        if (fp == 0)
+        if (fp == 0) {
+            perror(indexFile);
             return false;
+        }
 
         char* line = 0;
         size_t len = 0;

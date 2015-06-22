@@ -30,8 +30,6 @@ public:
     MyFileAccess () : FileAccess ("files/") {}
 };
 
-BootServer<MyFileAccess> server;
-
 int main () {
     printf("\n[rf69boot]\n");
 
@@ -45,9 +43,10 @@ int main () {
     //rf.encrypt("mysecret");
     rf.txPower(15); // 0 = min .. 31 = max
 
-    uint8_t buf [64];
+    BootServer<MyFileAccess> server;
 
     while (true) {
+        uint8_t buf [64];
         int len = rf.receive(buf, sizeof buf);
         if (len >= 0) {
 #if DEBUG
