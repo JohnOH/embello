@@ -9,7 +9,7 @@ OBJS = main.o sys.o system_LPC8xx.o gcc_startup_lpc8xx.o \
 
 default: all
 	uploader -w -o 28672 $(TTY) build/firmware.bin
-	uploader -s -i 5 $(TTY) build/firmware.bin
+	uploader -s $(TTY) build/firmware.bin
 
 LIBDIR = ../../../lib
 SHARED = $(LIBDIR)/sys-none

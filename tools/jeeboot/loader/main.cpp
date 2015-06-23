@@ -19,7 +19,7 @@
 
 RF69<SpiDev0> rf;
 
-const int PAGE_SIZE = 64, PAGE_BASE = 0x0000, LOAD_ADDR = 0x7000;
+const int PAGE_SIZE = 64, LOAD_ADDR = 0x7000;
 int pageFill, pageBuf [PAGE_SIZE/sizeof(int)];
 
 // RfDriver is used by BootLogic to talk to the RF69 driver.
@@ -72,10 +72,10 @@ bool RfDispatch (int pos, const uint8_t* buf, int len) {
 
         pageFill += count;
         if (pageFill >= PAGE_SIZE) {
-            int pageNum = (PAGE_BASE + pos) / PAGE_SIZE;
+            int pageNum = pos / PAGE_SIZE;
             D( printf("FLASH page %d pos %d\n", pageNum, pos); )
 
-            if (PAGE_BASE == 0 && pageNum == 0) {
+            if (pageNum == 0) {
                 // swap reset vector so boot loader gets control back
                 pageBuf[6] = pageBuf[1];
                 pageBuf[1] = ((const int*) LOAD_ADDR)[1];
@@ -91,7 +91,7 @@ bool RfDispatch (int pos, const uint8_t* buf, int len) {
             pageFill = 0;
 
             // D( for (int i = 0; i < PAGE_SIZE; ++i) )
-            // D(     printf("%02x", ((const uint8_t*) PAGE_BASE + pos)[i]); )
+            // D(     printf("%02x", ((const uint8_t*) pos)[i]); )
             // D( printf("\n"); )
         }
 
@@ -145,15 +145,14 @@ int main () {
         
         // if current code matches size and crc, we're done
         // unfortunately, we have to "fake-unpatch" low mem to calculate it
-        memcpy(pageBuf, (const uint8_t*) PAGE_BASE, PAGE_SIZE);
+        memcpy(pageBuf, 0x0000, PAGE_SIZE);
         pageBuf[1] = pageBuf[6];
         // this assumes entry 6 and 7 are zero in the original code file!
         pageBuf[6] = pageBuf[7] = 0;
 
         // calculate checksum over 64 bytes of RAM, rest from flash memory
         uint16_t myCrc = Util::calculateCrc(CRC_INIT, pageBuf, PAGE_SIZE);
-        myCrc = Util::calculateCrc(myCrc, (void*) (PAGE_BASE + PAGE_SIZE),
-                                            size - PAGE_SIZE);
+        myCrc = Util::calculateCrc(myCrc, (void*) PAGE_SIZE, size - PAGE_SIZE);
 
         D( printf("  myCrc %x\n", myCrc); )
         if (crc == myCrc)
