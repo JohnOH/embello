@@ -53,7 +53,7 @@ public:
     MyFileAccess () : FileAccess (filePath) {}
 };
 
-int main () {
+int main (int argc, const char** argv) {
     if (argc < 2) {
         fprintf(stderr, "Usage: rf69boot <filepathprefix>\n");
         return 1;
@@ -98,9 +98,9 @@ int main () {
                     rf.rssi, rf.afc < 0 ? "" : "+", rf.afc, rf.lna);
 #endif
 
-            if (buf[1] == 0xC0) {
+            if (rx.buf[1] == 0xC0) {
                 BootReply reply;
-                int len2 = server.request(buf + 2, len - 2, &reply);
+                int len2 = server.request(rx.buf + 2, len - 2, &reply);
                 if (len2 <= 0) {
                     printf("ignoring %d bytes\n", len - 2);
                 } else {
