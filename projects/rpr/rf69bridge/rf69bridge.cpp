@@ -130,7 +130,7 @@ int main (int argc, const char** argv) {
             //      1-byte LNA
             // followed by actual receive data:
             //      1-byte destination (6 bits) and parity (2 bits)
-            //      1-byte origin (6 bits( and header flags (2 bits)
+            //      1-byte origin (6 bits) and header flags (2 bits)
             //      ... actual payload data
 
             char hex [2 * sizeof rx + 3];
