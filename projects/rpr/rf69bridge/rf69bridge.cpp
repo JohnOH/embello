@@ -1,6 +1,12 @@
 // Raw packet bridge between an RFM69 and MQTT, as well as JeeBoot server.
 // See sibling "rf69mqtt" and "rf69boot" projects for details.
 
+// And example of incoming messages, as published to MQTT:
+//  $ mosquitto_sub -v -t '#'
+//  raw/rf69/8686-42/24 "12009a038018100102030405060708090a0b0c0d0e0f"
+//  raw/rf69/8686-42/24 "080099038018110102030405060708090a0b0c0d0e0f10"
+//  raw/rf69/8686-42/24 "040098038018120102030405060708090a0b0c0d0e0f1011"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -112,10 +118,21 @@ int main (int argc, const char** argv) {
             rx.rssi = rf.rssi;
             rx.lna = rf.lna;
 
+            // the topic includes frequency, net group, and origin node id
             char topic [30];
             sprintf(topic, "%s/%d", myTopic, rx.buf[1] & 0x3F);
 
             // construct a JSON-compatible hex string representation
+            //
+            // the format is:
+            //      2-byte AFC value (little-endian)
+            //      1-byte RSSI (raw, 0..255, as in RFM69)
+            //      1-byte LNA
+            // followed by actual receive data:
+            //      1-byte destination (6 bits) and parity (2 bits)
+            //      1-byte origin (6 bits( and header flags (2 bits)
+            //      ... actual payload data
+
             char hex [2 * sizeof rx + 3];
             for (int i = 0; i < 4 + len; ++i)
                 sprintf(hex+1+2*i, "%02x", ((const uint8_t*) &rx)[i]);
