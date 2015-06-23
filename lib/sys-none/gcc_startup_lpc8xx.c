@@ -77,13 +77,13 @@ void (* const g_pfnVectors[])(void) = {
     HardFault_Handler,                  // The hard fault handler
     0,                                  // Reserved
     0,                                  // Reserved
+// bytes 24..27 are used as shadow pointer of ResetISR for JeeBoot:
     0,                                  // Reserved
-// determined by trial and error: vector needs to have at least 7 entries (?)
+// determined by trial and error: vector needs to have at least 8 entries
 // with bytes 28..31 used to hold the ROM boot checksum:
     0,                                  // Reserved
-// and bytes 32..35 reserved as shadow pointer of ResetISR for JeeBoot:
-    0,                                  // Reserved
 #ifndef STARTUP_NO_IRQS
+    0,                                  // Reserved
     0,                                  // Reserved
     0,                                  // Reserved
     SVC_Handler,                        // SVCall handler

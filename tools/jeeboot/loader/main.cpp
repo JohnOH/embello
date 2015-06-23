@@ -77,7 +77,7 @@ bool RfDispatch (int pos, const uint8_t* buf, int len) {
 
             if (PAGE_BASE == 0 && pageNum == 0) {
                 // swap reset vector so boot loader gets control back
-                pageBuf[8] = pageBuf[1];
+                pageBuf[6] = pageBuf[1];
                 pageBuf[1] = ((const int*) LOAD_ADDR)[1];
                 // fix the vector table checksum to get past ROM boot check
                 int sum = 0;
@@ -146,7 +146,7 @@ int main () {
         // if current code matches size and crc, we're done
         uint16_t myCrc = Util::calculateCrc(CRC_INIT, (void*) PAGE_BASE, size);
         D( printf("  myCrc %x\n", myCrc); )
-        if (crc == myCrc || myCrc == 0x5eaa)
+        if (crc == myCrc || myCrc == 0x5adf)
             break;
 
         // nope, we need to download the latest firmware
@@ -168,6 +168,6 @@ int main () {
           "str     r0, [r1]\n"
           "ldr     r1, [r0]\n"
           "mov     sp, r1\n"
-          "ldr     r0, [r0, #32]\n"
+          "ldr     r0, [r0, #24]\n"
           "bx      r0\n");
 }
