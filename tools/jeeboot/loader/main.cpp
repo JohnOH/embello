@@ -40,10 +40,10 @@ public:
         }
         rf.sleep();
 
-        D( printf("  got # %d: ", len); )
-        D( for (int i = 0; i < len; ++i) )
-        D(     printf("%02x", ((const uint8_t*) rp)[i]); )
-        D( printf("\n"); )
+        D( printf("  got # %d\n", len); )
+        // D( for (int i = 0; i < len; ++i) )
+        // D(     printf("%02x", ((const uint8_t*) rp)[i]); )
+        // D( printf("\n"); )
         return len - 2;
     }
 };
