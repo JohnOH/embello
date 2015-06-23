@@ -4,12 +4,11 @@
 
 #include <string.h>
 
+typedef int (*BootLogicRequest)(const void*, unsigned, BootReply*);
 typedef bool (*BootLogicDispatch)(int, const uint8_t*, int);
 
-template< typename DRIVER, BootLogicDispatch DISPATCH >
+template< BootLogicRequest R, BootLogicDispatch D >
 class BootLogic {
-    DRIVER driver;
-
 public:
     BootReply reply;
 
@@ -22,7 +21,7 @@ public:
         if (hwid != 0)
             memcpy(req.hwId, hwid, sizeof req.hwId);
 
-        int n = driver.request(&req, sizeof req, &reply);
+        int n = R(&req, sizeof req, &reply);
         return n == sizeof reply.h;
     }
 
@@ -31,7 +30,7 @@ public:
         req.swId = swid;
         req.swIndex = index;
 
-        return driver.request(&req, sizeof req, &reply) - 2;
+        return R(&req, sizeof req, &reply) - 2;
     }
 
     bool fetchAll (uint16_t swid) {
@@ -41,12 +40,12 @@ public:
             int len = fetchOne(swid, index);
             if (len <= 0)
                 break;
-            bool ok = DISPATCH(pos, reply.f.data, len);
+            bool ok = D(pos, reply.f.data, len);
             if (!ok)
                 return false;
             pos += len;
             ++index;
         }
-        return DISPATCH(pos, 0, 0);
+        return D(pos, 0, 0);
     }
 };
