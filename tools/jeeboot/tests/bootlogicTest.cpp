@@ -11,32 +11,35 @@ static int callbackCalls;
 static uint16_t runningCrc;
 static int finalPos;
 
-static int MockHello (const HelloRequest* ip, HelloReply* op) {
-    ++driverCalls;
-    op->type = ip->type;
-    op->bootRev = ip->bootRev;
-    op->swId = MOCK_SWID;
-    op->swSize = fakedataPtr->size;
-    op->swCrc = fakedataPtr->crc;
-    return sizeof *op;
-}
+class MockDriver {
+    int hello (const HelloRequest* ip, HelloReply* op) {
+        ++driverCalls;
+        op->type = ip->type;
+        op->bootRev = ip->bootRev;
+        op->swId = MOCK_SWID;
+        op->swSize = fakedataPtr->size;
+        op->swCrc = fakedataPtr->crc;
+        return sizeof *op;
+    }
 
-static int MockFetch (const FetchRequest* ip, FetchReply* op) {
-    ++driverCalls;
-    op->swIdXor = ip->swId ^ ip->swIndex;
-    int len = fakedataPtr->getData(ip->swIndex * 43); // FIXME: hack!
-    memcpy(op, fakedataPtr->buf, (size_t) len);
-    runningCrc = Util::calculateCrc(runningCrc, op, len);
-    return 2 + len;
-}
+    int fetch (const FetchRequest* ip, FetchReply* op) {
+        ++driverCalls;
+        op->swIdXor = ip->swId ^ ip->swIndex;
+        int len = fakedataPtr->getData(ip->swIndex * 43); // FIXME: hack!
+        memcpy(op, fakedataPtr->buf, (size_t) len);
+        runningCrc = Util::calculateCrc(runningCrc, op, len);
+        return 2 + len;
+    }
 
-static int MockRequest (const void* inp, unsigned inLen, BootReply* outp) {
-    if (inLen == sizeof (HelloRequest))
-        return MockHello((const HelloRequest*) inp, &outp->h);
-    if (inLen == sizeof (FetchRequest))
-        return MockFetch((const FetchRequest*) inp, &outp->f);
-    return 0;
-}
+public:
+    int request (const void* inp, unsigned inLen, BootReply* outp) {
+        if (inLen == sizeof (HelloRequest))
+            return hello((const HelloRequest*) inp, &outp->h);
+        if (inLen == sizeof (FetchRequest))
+            return fetch((const FetchRequest*) inp, &outp->f);
+        return 0;
+    }
+};
 
 static bool MockDispatch (int pos, const uint8_t* buf, int len) {
     ++callbackCalls;
@@ -47,7 +50,7 @@ static bool MockDispatch (int pos, const uint8_t* buf, int len) {
 
 TEST_GROUP(BootLogic)
 {
-    BootLogic<MockRequest,MockDispatch> bootLogic;
+    BootLogic<MockDriver,MockDispatch> bootLogic;
     FakeData fakeData;
 
     void setup () {

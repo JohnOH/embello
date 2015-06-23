@@ -22,28 +22,31 @@ RF69<SpiDev0> rf;
 const int PAGE_SIZE = 64, LOAD_ADDR = 0x7000;
 int pageFill, pageBuf [PAGE_SIZE/sizeof(int)];
 
-// RfDriver is called by BootLogic to talk to the RF69 driver.
-int RfRequest (const void* inp, unsigned inLen, BootReply* rp) {
-    // send out the request over RF
-    D( printf("request # %d\n", inLen); )
-    rf.send(0xC0, inp, inLen);
+// RfDriver is used by BootLogic to talk to the RF69 driver.
+class RfDriver {
+public:
+    int request (const void* inp, unsigned inLen, BootReply* rp) {
+        // send out the request over RF
+        D( printf("request # %d\n", inLen); )
+        rf.send(0xC0, inp, inLen);
 
-    // wait a limited time for a reply to come back
-    int len;
-    for (int i = 0; i < 100000; ++i) {
-        len = rf.receive(rp, sizeof (BootReply));
-        // only accept packets with special flags and coming from server
-        if (len > 2 && rp->flags == 3 && rp->orig != 0 && rp->dest == 0)
-            break;
+        // wait a limited time for a reply to come back
+        int len;
+        for (int i = 0; i < 100000; ++i) {
+            len = rf.receive(rp, sizeof (BootReply));
+            // only accept packets with special flags and coming from server
+            if (len > 2 && rp->flags == 3 && rp->orig != 0 && rp->dest == 0)
+                break;
+        }
+        rf.sleep();
+
+        D( printf("  got # %d\n", len); )
+        // D( for (int i = 0; i < len; ++i) )
+        // D(     printf("%02x", ((const uint8_t*) rp)[i]); )
+        // D( printf("\n"); )
+        return len - 2;
     }
-    rf.sleep();
-
-    D( printf("  got # %d\n", len); )
-    // D( for (int i = 0; i < len; ++i) )
-    // D(     printf("%02x", ((const uint8_t*) rp)[i]); )
-    // D( printf("\n"); )
-    return len - 2;
-}
+};
 
 // RfDispatch is called by BootLogic when it wants to save to flash.
 bool RfDispatch (int pos, const uint8_t* buf, int len) {
@@ -100,7 +103,7 @@ bool RfDispatch (int pos, const uint8_t* buf, int len) {
 }
 
 // the bootLogic object encapsulates the entire... boot logic
-BootLogic<RfRequest,RfDispatch> bootLogic;
+BootLogic<RfDriver,RfDispatch> bootLogic;
 
 int main () {
     // adjust dispatch vector base
@@ -121,6 +124,9 @@ int main () {
     rf.txPower(15); // 0 = min .. 31 = max
     rf.sleep();
     D( printf("rf inited %x\n", (unsigned) pageBuf); )
+
+    // slow down a bit to avoid *fast* runaway resets
+    for (int i = 0; i < 1000000; ++i) __ASM("");
 
     // get the 16-byte h/w id using the LPC's built-in IAP code in ROM
     uint32_t cmd = IAP_READ_UID_CMD, result[5];
@@ -158,7 +164,7 @@ int main () {
     }
 
     D( printf("JUMP!\n"); )
-    D( for (int i = 0; i < 10000; ++i) __ASM(""); ) // let serial finish
+    D( for (int i = 0; i < 100000; ++i) __ASM(""); ) // let serial finish
 
     // finally, prepare to jump to user code:
     //  * reset dispatch vector base
