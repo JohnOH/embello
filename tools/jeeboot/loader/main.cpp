@@ -19,7 +19,7 @@
 
 RF69<SpiDev0> rf;
 
-const int PAGE_SIZE = 64, PAGE_BASE = 0x1000;
+const int PAGE_SIZE = 64, PAGE_BASE = 0x0000, LOAD_ADDR = 0x7000;
 int pageFill, pageBuf [PAGE_SIZE/sizeof(int)];
 
 // RfDriver is used by BootLogic to talk to the RF69 driver.
@@ -74,6 +74,18 @@ bool RfDispatch (int pos, const uint8_t* buf, int len) {
         if (pageFill >= PAGE_SIZE) {
             int pageNum = (PAGE_BASE + pos) / PAGE_SIZE;
             D( printf("FLASH page %d pos %d\n", pageNum, pos); )
+
+            if (PAGE_BASE == 0 && pageNum == 0) {
+                // swap reset vector so boot loader gets control back
+                pageBuf[8] = pageBuf[1];
+                pageBuf[1] = ((const int*) LOAD_ADDR)[1];
+                // fix the vector table checksum to get past ROM boot check
+                int sum = 0;
+                for (int i = 0; i < 7; ++i)
+                    sum -= pageBuf[i];
+                pageBuf[7] = sum;
+            }
+
             Flash64::erase(pageNum, 1);
             Flash64::save(pageNum, pageBuf);
             pageFill = 0;
@@ -94,6 +106,9 @@ bool RfDispatch (int pos, const uint8_t* buf, int len) {
 BootLogic<RfDriver,RfDispatch> bootLogic;
 
 int main () {
+    // adjust dispatch vector base
+    *((int*) 0xE000ED08) = LOAD_ADDR;
+
     // jnp 0.4 pins assignments for the RFM69 on SPI 0
     LPC_SWM->PINASSIGN[3] = 0x11FFFFFF;
     LPC_SWM->PINASSIGN[4] = 0xFF170908;
@@ -107,7 +122,11 @@ int main () {
     rf.init(0, 42, 8686);
     //rf.encrypt("mysecret");
     rf.txPower(15); // 0 = min .. 31 = max
+    rf.sleep();
     D( printf("rf inited %x\n", (unsigned) pageBuf); )
+
+    // slow down a bit to avoid *fast* runaway resets
+    for (int i = 0; i < 1000000; ++i) __ASM("");
 
     // get the 16-byte h/w id using the LPC's built-in IAP code in ROM
     uint32_t cmd = IAP_READ_UID_CMD, result[5];
@@ -127,7 +146,7 @@ int main () {
         // if current code matches size and crc, we're done
         uint16_t myCrc = Util::calculateCrc(CRC_INIT, (void*) PAGE_BASE, size);
         D( printf("  myCrc %x\n", myCrc); )
-        if (crc == myCrc)
+        if (crc == myCrc || myCrc == 0x5eaa)
             break;
 
         // nope, we need to download the latest firmware
@@ -135,20 +154,20 @@ int main () {
         bootLogic.fetchAll(swid);
     }
 
-    // finally, prepare to jump to user code:
-    //  * adjust dispatch vector base
-    //  * reset stack
-    //  * jump to reset vector entry
-
     D( printf("JUMP!\n"); )
+    D( for (int i = 0; i < 100000; ++i) __ASM(""); ) // let serial finish
 
+    // finally, prepare to jump to user code:
+    //  * reset dispatch vector base
+    //  * reset stack
+    //  * jump to (alternate!) reset vector entry
     // see http://markdingst.blogspot.nl/
     //  2012/06/make-own-bootloader-for-arm-cortex-m3.html
-    __ASM("ldr     r0, =0x1000\n" // TODO should be PAGE_BASE, how?
+    __ASM("ldr     r0, =0x0000\n"
           "ldr     r1, =0xE000ED08\n"
           "str     r0, [r1]\n"
           "ldr     r1, [r0]\n"
           "mov     sp, r1\n"
-          "ldr     r0, [r0, #4]\n"
+          "ldr     r0, [r0, #32]\n"
           "bx      r0\n");
 }
