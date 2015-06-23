@@ -144,9 +144,19 @@ int main () {
         D( printf("  swid %u size %u crc %x\n", swid, size, crc); )
         
         // if current code matches size and crc, we're done
-        uint16_t myCrc = Util::calculateCrc(CRC_INIT, (void*) PAGE_BASE, size);
+        // unfortunately, we have to "fake-unpatch" low mem to calculate it
+        memcpy(pageBuf, (const uint8_t*) PAGE_BASE, PAGE_SIZE);
+        pageBuf[1] = pageBuf[6];
+        // this assumes entry 6 and 7 are zero in the original code file!
+        pageBuf[6] = pageBuf[7] = 0;
+
+        // calculate checksum over 64 bytes of RAM, rest from flash memory
+        uint16_t myCrc = Util::calculateCrc(CRC_INIT, pageBuf, PAGE_SIZE);
+        myCrc = Util::calculateCrc(myCrc, (void*) (PAGE_BASE + PAGE_SIZE),
+                                            size - PAGE_SIZE);
+
         D( printf("  myCrc %x\n", myCrc); )
-        if (crc == myCrc || myCrc == 0x5adf)
+        if (crc == myCrc)
             break;
 
         // nope, we need to download the latest firmware
