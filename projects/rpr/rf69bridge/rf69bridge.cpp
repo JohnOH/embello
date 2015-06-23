@@ -114,7 +114,15 @@ int main (int argc, const char** argv) {
 
             char topic [30];
             sprintf(topic, "%s/%d", myTopic, rx.buf[1] & 0x3F);
-            mqtt.publish(0, topic, 4 + len, (const uint8_t*) &rx);
+
+            // construct a JSON-compatible hex string representation
+            char hex [2 * sizeof rx + 3];
+            for (int i = 0; i < 4 + len; ++i)
+                sprintf(hex+1+2*i, "%02x", ((const uint8_t*) &rx)[i]);
+            hex[0] = '"';
+            hex[9+2*len] = '"';
+
+            mqtt.publish(0, topic, 10+2*len, (const uint8_t*) hex);
         }
 
         chThdYield();
