@@ -25,7 +25,7 @@ int pageFill, pageBuf [PAGE_SIZE/sizeof(int)];
 // RfDriver is used by BootLogic to talk to the RF69 driver.
 class RfDriver {
 public:
-    int request (const void* inp, unsigned inLen, BootReply* rp) {
+    static int request (const void* inp, unsigned inLen, BootReply* rp) {
         // send out the request over RF
         D( printf("request # %d\n", inLen); )
         rf.send(0xC0, inp, inLen);
