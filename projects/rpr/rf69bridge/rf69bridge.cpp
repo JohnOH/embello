@@ -79,7 +79,7 @@ int main (int argc, const char** argv) {
     //rf.encrypt("mysecret");
     rf.txPower(15); // 0 = min .. 31 = max
 
-    BootServerRequest<MyFileAccess> server;
+    BootServer<MyFileAccess> server;
 
     mqtt.connect(SERVER);
     mqtt.subscribe(0, myTopic);
