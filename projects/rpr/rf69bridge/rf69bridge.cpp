@@ -16,7 +16,7 @@
 
 #include <mosquittopp.h>
 
-#define DEBUG   0             // prints all incoming packets to stdout if set
+#define DEBUG   1             // prints all incoming packets to stdout if set
 #define NAME    "rf69"        // name of this client, also used in topic
 #define SERVER  "127.0.0.1"   // which MQTT server to connected to
 
@@ -60,10 +60,8 @@ int main (int argc, const char** argv) {
     }
 
     filePath = argv[1];
-    printf("\n[rf69boot] using: %s*\n", filePath);
-
     sprintf(myTopic, "raw/%s/%d-%d", NAME, RF_FREQ, RF_GROUP);
-    printf("\n[rf69mqtt] %s @ %s\n", myTopic, SERVER);
+    printf("\n[rf69bridge] %s @ %s using: %s*\n", myTopic, SERVER, filePath);
 
     wiringPiSetup();
     if (wiringPiSPISetup (0, 4000000) < 0) {
