@@ -22,8 +22,6 @@ public:
     }
 };
 
-#define bootServer BootServerRequest<MockDriver>
-
 TEST_GROUP(BootServer)
 {
     FakeData fakeData;
@@ -38,7 +36,7 @@ TEST(BootServer, Hello)
 {
     static HelloRequest req; // initialised to zeros
     BootReply reply;
-    int len = bootServer(&req, sizeof req, &reply);
+    int len = BootServerRequest<MockDriver>(&req, sizeof req, &reply);
     CHECK_EQUAL(sizeof (HelloReply), len);
     CHECK_EQUAL(req.type, reply.h.type);
     CHECK_EQUAL(req.bootRev, reply.h.bootRev);
@@ -51,7 +49,7 @@ TEST(BootServer, FetchIndexZero)
 {
     FetchRequest req = { MOCK_SWID, 0 };
     BootReply reply;
-    int len = bootServer(&req, sizeof req, &reply);
+    int len = BootServerRequest<MockDriver>(&req, sizeof req, &reply);
     CHECK(len > 2);
     CHECK_EQUAL(MOCK_SWID ^ 0, reply.f.swIdXor);
     MEMCMP_EQUAL(fakeData.bytes, reply.f.data, (size_t) len - 2);
@@ -66,7 +64,7 @@ static bool MockDispatch (int pos, const uint8_t* buf, int len) {
 
 TEST_GROUP(BootEndToEnd)
 {
-    BootLogic<bootServer,MockDispatch> bootLogic;
+    BootLogic<BootServerRequest<MockDriver>,MockDispatch> bootLogic;
     FakeData fakeData;
 
     void setup () {
