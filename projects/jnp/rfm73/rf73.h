@@ -238,8 +238,6 @@ void RF73<SPI,SELPIN>::init (uint8_t chan) {
     LPC_GPIO_PORT->DIR[0] |= 1<<SELPIN; // define select pin as output
     spi.master(3);
 
-    tick.delay(200);
-
     setBank(0);
     if (readReg(29) == 0)
         writeReg(ACTIVATE_CMD, 0x73);
@@ -252,9 +250,6 @@ void RF73<SPI,SELPIN>::init (uint8_t chan) {
 
     setBank(1);
     configure(bank1_init);
-
-    //for (int i = 0; i < 100000; ++i) __ASM("");
-    tick.delay(50);
 
     setBank(0);
     rxMode();
@@ -272,28 +267,10 @@ void RF73<SPI,SELPIN>::configure (const uint8_t* data) {
 
 template< typename SPI, int SELPIN >
 int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
-#if 0
-    int t = readReg(FIFO_STATUS);
-    if (t != 0x01 && t != 0x11)
-        printf("t %x\n", t);
-    int u = readReg(8);
-    if (u != 0)
-        printf("u %x\n", u);
-#endif
-    int s = readReg(STATUS);
-#if 0
-    if (s != 0x0E) {
-        printf("s %x\n", s);
-        for (int i = 0; i < 100000; ++i) __ASM("");
-        writeReg(STATUS, s & 0x70);
-    }
-#endif
-    if (s & STATUS_RX_DR) {
-        //printf("ss %x\n", s);
+    if (readReg(STATUS) & STATUS_RX_DR) {
         do {
             uint8_t bytes = readReg(R_RX_PL_WID_CMD);
             if (bytes > 0) {
-                //printf("r %d\n", bytes);
                 if (bytes <= len) {
                     readBuf(RD_RX_PLOAD, (uint8_t*) ptr, bytes);
                     writeReg(FLUSH_RX, 0);
