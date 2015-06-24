@@ -17,7 +17,7 @@ int main () {
     LPC_SWM->PINASSIGN[3] = 0x11FFFFFF;
     LPC_SWM->PINASSIGN[4] = 0xFF170908;
 
-    tick.delay(200);
+    tick.delay(500);
     printf("init %d\n", 23);
 
     rf.init(23);
@@ -28,7 +28,7 @@ int main () {
         txBuf[i] = i;
 
     while (true) {
-        if (cnt++ == 0) {
+        if (0 && ++cnt == 0) {
             int txLen = ++txBuf[0] % RF73_MAXLEN;
             printf(" > #%d, %db\n", txBuf[0], txLen);
             rf.send(0, txBuf, /*txLen*/ 5);

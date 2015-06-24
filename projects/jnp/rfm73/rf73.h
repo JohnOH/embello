@@ -62,9 +62,7 @@
 
 const uint8_t bank0_init [] = {
     1, 0, 0x0F,
-    1, 1, 0x3F,
     1, 2, 0x3F,
-    1, 3, 0x03,
     1, 4, 0xFF,
     1, 5, 0x17,
 #if RFM73
@@ -72,9 +70,6 @@ const uint8_t bank0_init [] = {
 #else
     1, 6, 0x07,
 #endif
-    1, 7, 0x07,
-    1, 8, 0x00,
-    1, 9, 0x00,
     5, 10, 0x4A,0x4C,0x4D,0x77,0x01,
     5, 11, 0x4A,0x4C,0x4D,0x77,0x02,
     5, 16, 0x4A,0x4C,0x4D,0x77,0x01,
@@ -127,13 +122,9 @@ private:
     void readBuf (uint8_t addr, uint8_t *pBuf, uint8_t length) {
 #if 0
         spi.enable();
-        //for (int i = 0; i < 10; ++i) __ASM("");
         spi.transfer(addr);
-        //for (int i = 0; i < 10; ++i) __ASM("");
-        for (uint8_t i = 0; i < length; ++i) {
+        for (uint8_t i = 0; i < length; ++i)
             pBuf[i] = spi.transfer(0);
-            //for (int i = 0; i < 10; ++i) __ASM("");
-        }
         spi.disable();
 #else
         while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_TXRDY))
@@ -162,15 +153,11 @@ private:
     void writeBuf (uint8_t addr, const uint8_t *pBuf, uint8_t length) {
 #if 0
         spi.enable();
-        //for (int i = 0; i < 10; ++i) __ASM("");
         if (addr < 32)
             addr |= RF_WRITE_REG;
         spi.transfer(addr);
-        //for (int i = 0; i < 10; ++i) __ASM("");
-        for (uint8_t i = 0; i < length; ++i) {
+        for (uint8_t i = 0; i < length; ++i)
             spi.transfer(pBuf[i]);
-            //for (int i = 0; i < 10; ++i) __ASM("");
-        }
         spi.disable();
 #else
         if (addr < 32)
@@ -206,6 +193,8 @@ private:
 #if 0
         writeBuf(addr, &val, 1);
 #else
+        if (addr < 32)
+            addr |= RF_WRITE_REG;
         spi.rwReg(addr, val);
 #endif
     }
@@ -218,7 +207,7 @@ private:
     }
 
     void txMode () {
-        writeReg(FLUSH_TX, 0);
+        //writeReg(FLUSH_TX, 0);
         select();
         writeReg(CONFIG, readReg(CONFIG) & ~1);
         deselect();
@@ -239,19 +228,17 @@ void RF73<SPI,SELPIN>::init (uint8_t chan) {
     spi.master(3);
 
     setBank(0);
-    if (readReg(29) == 0)
-        writeReg(ACTIVATE_CMD, 0x73);
-
+    //??? writeReg(RF_CH, chan);
     configure(bank0_init);
-    writeReg(5, chan);
-
-    writeReg(CONFIG, 0x7F); // power up
-    tick.delay(10);
 
     setBank(1);
     configure(bank1_init);
 
     setBank(0);
+
+    if (readReg(29) == 0)
+        writeReg(ACTIVATE_CMD, 0x73);
+
     rxMode();
 }
 
@@ -267,18 +254,13 @@ void RF73<SPI,SELPIN>::configure (const uint8_t* data) {
 
 template< typename SPI, int SELPIN >
 int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
-    if (readReg(STATUS) & STATUS_RX_DR) {
-        do {
-            uint8_t bytes = readReg(R_RX_PL_WID_CMD);
-            if (bytes > 0) {
-                if (bytes <= len) {
-                    readBuf(RD_RX_PLOAD, (uint8_t*) ptr, bytes);
-                    writeReg(FLUSH_RX, 0);
-                    return bytes;
-                }
-                writeReg(FLUSH_RX, 0);
-            }
-        } while ((readReg(FIFO_STATUS) & FIFO_STATUS_RX_EMPTY) == 0);
+    uint8_t bytes = readReg(R_RX_PL_WID_CMD);
+    if (bytes > 0) {
+        if (bytes <= len) {
+            readBuf(RD_RX_PLOAD, (uint8_t*) ptr, bytes);
+            return bytes;
+        }
+        writeReg(FLUSH_RX, 0);
     }
     return -1;
 }
