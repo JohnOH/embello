@@ -117,41 +117,101 @@ private:
         LPC_GPIO_PORT->B[0][SELPIN] = 1; // TODO this is architecture-specific
     }
 
-    uint8_t readReg (uint8_t addr) {
-        return spi.rwReg(addr, 0);
-    }
-
-    void writeReg (uint8_t addr, uint8_t val) {
-        if (addr < 32)
-            addr |= RF_WRITE_REG;
-        spi.rwReg(addr, val);
-    }
-
     void readBuf (uint8_t addr, uint8_t *pBuf, uint8_t length) {
+#if 0
         spi.enable();
+        //for (int i = 0; i < 10; ++i) __ASM("");
         spi.transfer(addr);
-        for (uint8_t i = 0; i < length; ++i)
+        //for (int i = 0; i < 10; ++i) __ASM("");
+        for (uint8_t i = 0; i < length; ++i) {
             pBuf[i] = spi.transfer(0);
+            //for (int i = 0; i < 10; ++i) __ASM("");
+        }
         spi.disable();
+#else
+        while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_TXRDY))
+            ;
+        Chip_SPI_SendFirstFrame(spi.addr(), addr, 8);
+        while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_RXRDY))
+            ;
+        Chip_SPI_ReceiveFrame(spi.addr());
+        for (uint8_t i = 0; i < length - 1; ++i) {
+            while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_TXRDY))
+                ;
+            Chip_SPI_SendMidFrame(spi.addr(), 0);
+            while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_RXRDY))
+                ;
+            pBuf[i] = Chip_SPI_ReceiveFrame(spi.addr());
+        }
+        while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_TXRDY))
+            ;
+        Chip_SPI_SendLastFrame(spi.addr(), 0, 8);
+        while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_RXRDY))
+            ;
+        pBuf[length-1] = Chip_SPI_ReceiveFrame(spi.addr());
+#endif
     }
 
     void writeBuf (uint8_t addr, const uint8_t *pBuf, uint8_t length) {
+#if 0
         spi.enable();
+        //for (int i = 0; i < 10; ++i) __ASM("");
         if (addr < 32)
             addr |= RF_WRITE_REG;
         spi.transfer(addr);
-        for (uint8_t i = 0; i < length; ++i)
+        //for (int i = 0; i < 10; ++i) __ASM("");
+        for (uint8_t i = 0; i < length; ++i) {
             spi.transfer(pBuf[i]);
+            //for (int i = 0; i < 10; ++i) __ASM("");
+        }
         spi.disable();
+#else
+        if (addr < 32)
+            addr |= RF_WRITE_REG;
+        while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_TXRDY))
+            ;
+        Chip_SPI_SendFirstFrame_RxIgnore(spi.addr(), addr, 8);
+        for (uint8_t i = 0; i < length - 1; ++i) {
+            while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_TXRDY))
+                ;
+            Chip_SPI_SendMidFrame(spi.addr(), pBuf[i]);
+        }
+        while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_TXRDY))
+            ;
+        Chip_SPI_SendLastFrame(spi.addr(), pBuf[length-1], 8);
+        while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_RXRDY))
+            ;
+        Chip_SPI_ReceiveFrame(spi.addr());
+#endif
+    }
+
+    uint8_t readReg (uint8_t addr) {
+#if 0
+        uint8_t val;
+        readBuf(addr, &val, 1);
+        return val;
+#else
+        return spi.rwReg(addr, 0);
+#endif
+    }
+
+    void writeReg (uint8_t addr, uint8_t val) {
+#if 0
+        writeBuf(addr, &val, 1);
+#else
+        spi.rwReg(addr, val);
+#endif
     }
 
     void rxMode () {
+        //writeReg(FLUSH_RX, 0);
         select();
         writeReg(CONFIG, readReg(CONFIG) | 1);
         deselect();
     }
 
     void txMode () {
+        writeReg(FLUSH_TX, 0);
         select();
         writeReg(CONFIG, readReg(CONFIG) & ~1);
         deselect();
@@ -167,9 +227,9 @@ private:
 
 template< typename SPI, int SELPIN >
 void RF73<SPI,SELPIN>::init (uint8_t chan) {
-    LPC_GPIO_PORT->DIR[0] |= 1<<SELPIN; // define select pin as output
     deselect();
-    spi.master(2);
+    LPC_GPIO_PORT->DIR[0] |= 1<<SELPIN; // define select pin as output
+    spi.master(3);
 
     setBank(0);
     if (readReg(29) == 0)
@@ -180,6 +240,8 @@ void RF73<SPI,SELPIN>::init (uint8_t chan) {
 
     setBank(1);
     configure(bank1_init);
+
+    for (int i = 0; i < 100000; ++i) __ASM("");
 
     setBank(0);
     rxMode();
@@ -197,12 +259,22 @@ void RF73<SPI,SELPIN>::configure (const uint8_t* data) {
 
 template< typename SPI, int SELPIN >
 int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
-    if ((readReg(FIFO_STATUS) & FIFO_STATUS_RX_EMPTY) == 0) {
+    int t = readReg(FIFO_STATUS);
+    if (t != 0x01 && t != 0x11)
+        printf("t %x\n", t);
+    int u = readReg(8);
+    if (u != 0)
+        printf("u %x\n", u);
+    int s = readReg(STATUS);
+    if (s & STATUS_RX_DR) {
+        printf("s %x\n", s);
         uint8_t bytes = readReg(R_RX_PL_WID_CMD);
-        if (bytes <= RF73_MAXLEN) {
+        printf("r %d\n", bytes);
+        if (bytes <= len) {
             readBuf(RD_RX_PLOAD, (uint8_t*) ptr, bytes);
             return bytes;
         }
+        writeReg(FLUSH_RX, 0);
     }
     return -1;
 }
