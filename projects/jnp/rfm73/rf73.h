@@ -64,7 +64,6 @@ const uint8_t bank0_init [] = {
     1, 0, 0x0F,
     1, 2, 0x3F,
     1, 4, 0xFF,
-    1, 5, 0x17,
 #if RFM73
     1, 6, 0x00,
 #else
@@ -228,8 +227,8 @@ void RF73<SPI,SELPIN>::init (uint8_t chan) {
     spi.master(3);
 
     setBank(0);
-    //??? writeReg(RF_CH, chan);
     configure(bank0_init);
+    writeReg(RF_CH, chan);
 
     setBank(1);
     configure(bank1_init);

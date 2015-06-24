@@ -21,6 +21,7 @@ int main () {
     printf("init %d\n", 23);
 
     rf.init(23);
+    rf.init(23);
 
     uint16_t cnt = 0;
     uint8_t txBuf[RF73_MAXLEN];
