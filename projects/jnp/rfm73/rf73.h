@@ -226,17 +226,20 @@ void RF73<SPI,SELPIN>::init (uint8_t chan) {
     LPC_GPIO_PORT->DIR[0] |= 1<<SELPIN; // define select pin as output
     spi.master(3);
 
-    setBank(0);
-    configure(bank0_init);
-    writeReg(RF_CH, chan);
+    // FIXME this only works after power-up if inits are done twice ?!
 
-    setBank(1);
-    configure(bank1_init);
+    for (int i = 0; i < 2; ++i) {
+        setBank(0);
+        configure(bank0_init);
+        writeReg(RF_CH, chan);
 
-    setBank(0);
+        setBank(1);
+        configure(bank1_init);
 
-    if (readReg(29) == 0)
-        writeReg(ACTIVATE_CMD, 0x73);
+        setBank(0);
+        if (readReg(29) == 0)
+            writeReg(ACTIVATE_CMD, 0x73);
+    }
 
     rxMode();
 }

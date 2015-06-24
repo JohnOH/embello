@@ -3,7 +3,7 @@
 #include "sys.h"
 #include "spi.h"
 
-#define RFM73 0 // 0 = RFM70, 1 = RFM73
+#define RFM73 0 // 0 = RFM70, 1 = RFM73 (default)
 #include "rf73.h"
 
 RF73<SpiDev0,15> rf;
@@ -17,10 +17,9 @@ int main () {
     LPC_SWM->PINASSIGN[3] = 0x11FFFFFF;
     LPC_SWM->PINASSIGN[4] = 0xFF170908;
 
-    tick.delay(500);
+    tick.delay(50);
     printf("init %d\n", 23);
 
-    rf.init(23);
     rf.init(23);
 
     uint16_t cnt = 0;
