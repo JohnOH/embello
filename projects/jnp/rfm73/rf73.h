@@ -61,17 +61,24 @@
 #define FIFO_STATUS_RX_EMPTY 	0x01
 
 const uint8_t bank0_init [] = {
-    1, 0, 0x7F, //0x0F,
+    1, 0, 0x0F,
+    1, 1, 0x3F,
     1, 2, 0x3F,
+    1, 3, 0x03,
     1, 4, 0xFF,
+    1, 5, 0x17,
 #if RFM73
     1, 6, 0x00,
 #else
     1, 6, 0x07,
 #endif
+    1, 7, 0x07,
+    1, 8, 0x00,
+    1, 9, 0x00,
     5, 10, 0x4A,0x4C,0x4D,0x77,0x01,
     5, 11, 0x4A,0x4C,0x4D,0x77,0x02,
     5, 16, 0x4A,0x4C,0x4D,0x77,0x01,
+    1, 23, 0x00,
     1, 28, 0x3F,
     1, 29, 0x07,
     0,
@@ -231,6 +238,8 @@ void RF73<SPI,SELPIN>::init (uint8_t chan) {
     LPC_GPIO_PORT->DIR[0] |= 1<<SELPIN; // define select pin as output
     spi.master(3);
 
+    tick.delay(200);
+
     setBank(0);
     if (readReg(29) == 0)
         writeReg(ACTIVATE_CMD, 0x73);
@@ -238,10 +247,14 @@ void RF73<SPI,SELPIN>::init (uint8_t chan) {
     configure(bank0_init);
     writeReg(5, chan);
 
+    writeReg(CONFIG, 0x7F); // power up
+    tick.delay(10);
+
     setBank(1);
     configure(bank1_init);
 
-    for (int i = 0; i < 100000; ++i) __ASM("");
+    //for (int i = 0; i < 100000; ++i) __ASM("");
+    tick.delay(50);
 
     setBank(0);
     rxMode();
@@ -266,22 +279,29 @@ int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
     int u = readReg(8);
     if (u != 0)
         printf("u %x\n", u);
+#endif
     int s = readReg(STATUS);
+#if 0
     if (s != 0x0E) {
         printf("s %x\n", s);
         for (int i = 0; i < 100000; ++i) __ASM("");
         writeReg(STATUS, s & 0x70);
     }
 #endif
-    uint8_t bytes = readReg(R_RX_PL_WID_CMD);
-    if (bytes > 0) {
-        printf("r %d\n", bytes);
-        if (bytes <= len) {
-            readBuf(RD_RX_PLOAD, (uint8_t*) ptr, bytes);
-            writeReg(FLUSH_RX, 0);
-            return bytes;
-        }
-        writeReg(FLUSH_RX, 0);
+    if (s & STATUS_RX_DR) {
+        //printf("ss %x\n", s);
+        do {
+            uint8_t bytes = readReg(R_RX_PL_WID_CMD);
+            if (bytes > 0) {
+                //printf("r %d\n", bytes);
+                if (bytes <= len) {
+                    readBuf(RD_RX_PLOAD, (uint8_t*) ptr, bytes);
+                    writeReg(FLUSH_RX, 0);
+                    return bytes;
+                }
+                writeReg(FLUSH_RX, 0);
+            }
+        } while ((readReg(FIFO_STATUS) & FIFO_STATUS_RX_EMPTY) == 0);
     }
     return -1;
 }

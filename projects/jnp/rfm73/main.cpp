@@ -17,7 +17,7 @@ int main () {
     LPC_SWM->PINASSIGN[3] = 0x11FFFFFF;
     LPC_SWM->PINASSIGN[4] = 0xFF170908;
 
-    tick.delay(3000);
+    //tick.delay(3000);
     printf("init %d\n", 23);
 
     rf.init(23);
