@@ -61,7 +61,7 @@
 #define FIFO_STATUS_RX_EMPTY 	0x01
 
 const uint8_t bank0_init [] = {
-    1, 0, 0x0F,
+    1, 0, 0x7F, //0x0F,
     1, 2, 0x3F,
     1, 4, 0xFF,
 #if RFM73
@@ -259,6 +259,7 @@ void RF73<SPI,SELPIN>::configure (const uint8_t* data) {
 
 template< typename SPI, int SELPIN >
 int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
+#if 0
     int t = readReg(FIFO_STATUS);
     if (t != 0x01 && t != 0x11)
         printf("t %x\n", t);
@@ -266,12 +267,18 @@ int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
     if (u != 0)
         printf("u %x\n", u);
     int s = readReg(STATUS);
-    if (s & STATUS_RX_DR) {
+    if (s != 0x0E) {
         printf("s %x\n", s);
-        uint8_t bytes = readReg(R_RX_PL_WID_CMD);
+        for (int i = 0; i < 100000; ++i) __ASM("");
+        writeReg(STATUS, s & 0x70);
+    }
+#endif
+    uint8_t bytes = readReg(R_RX_PL_WID_CMD);
+    if (bytes > 0) {
         printf("r %d\n", bytes);
         if (bytes <= len) {
             readBuf(RD_RX_PLOAD, (uint8_t*) ptr, bytes);
+            writeReg(FLUSH_RX, 0);
             return bytes;
         }
         writeReg(FLUSH_RX, 0);
