@@ -258,13 +258,11 @@ template< typename SPI, int SELPIN >
 int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
     if ((readReg(FIFO_STATUS) & FIFO_STATUS_RX_EMPTY) == 0) {
         uint8_t bytes = readReg(R_RX_PL_WID_CMD);
-        if (bytes > 0) {
-            if (bytes <= len) {
-                readBuf(RD_RX_PLOAD, (uint8_t*) ptr, bytes);
-                return bytes;
-            }
-            writeReg(FLUSH_RX, 0);
+        if (bytes <= len) {
+            readBuf(RD_RX_PLOAD, (uint8_t*) ptr, bytes);
+            return bytes;
         }
+        writeReg(FLUSH_RX, 0);
     }
     return -1;
 }
