@@ -61,7 +61,7 @@
 #define FIFO_STATUS_RX_EMPTY 	0x01
 
 const uint8_t bank0_init [] = {
-    //1, 0, 0x0F,
+    1, 0, 0x0F,
     1, 2, 0x3F,
     1, 4, 0xFF,
 #if RFM73
@@ -72,10 +72,6 @@ const uint8_t bank0_init [] = {
     5, 10, 0x4A,0x4C,0x4D,0x77,0x01,
     5, 11, 0x4A,0x4C,0x4D,0x77,0x02,
     5, 16, 0x4A,0x4C,0x4D,0x77,0x01,
-    0,
-};
-
-const uint8_t bank0_init2 [] = {
     1, 28, 0x3F,
     1, 29, 0x07,
     0,
@@ -239,12 +235,10 @@ bool RF73<SPI,SELPIN>::init (uint8_t chan) {
     spi.master(4);
 
     setBank(0);
-    writeReg(RF_CH, chan);
-
-    configure(bank0_init);
     if (readReg(29) == 0)
         writeReg(ACTIVATE_CMD, 0x73);
-    configure(bank0_init2);
+    writeReg(RF_CH, chan);
+    configure(bank0_init);
 
     setBank(1);
     configure(bank1_init);
@@ -252,7 +246,7 @@ bool RF73<SPI,SELPIN>::init (uint8_t chan) {
     uint8_t ok = readReg(8) == 0x63;
 
     setBank(0);
-    writeReg(CONFIG, 0x0F);
+    rxMode();
     
     return ok;
 }
