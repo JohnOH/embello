@@ -27,9 +27,9 @@ int main () {
 
     while (true) {
         if (++cnt == 0) {
-            int txLen = ++txBuf[0] % (RF73_MAXLEN + 1);
-            printf(" > #%d, %db ", txBuf[0], txLen);
-            printf("-> ok %d\n", rf.send(1, txBuf, txLen));
+            int txLen = txBuf[0]++ % RF73_MAXLEN + 1;
+            printf(" > #%d, %db -> ok %d\n", txBuf[0], txLen,
+                    rf.send(1, txBuf, txLen));
         }
 
         uint8_t rxBuf [RF73_MAXLEN];

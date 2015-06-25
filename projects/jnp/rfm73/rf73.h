@@ -280,12 +280,13 @@ bool RF73<SPI,SELPIN>::send (uint8_t ack, const void* ptr, int len) {
     txMode();
     writeBuf(ack ? WR_TX_PLOAD : W_TX_PAYLOAD_NOACK_CMD, pbuf, len);
 
-    while ((readReg(STATUS) & (STATUS_TX_DS | STATUS_MAX_RT)) == 0)
-        ;
-    bool ok = (readReg(STATUS) & STATUS_MAX_RT) == 0;
-
-    writeReg(STATUS, STATUS_TX_DS | STATUS_MAX_RT);
-    rxMode();
-
-    return ok;
+    // wait for either transmit completion or retry count exceeded
+    for (;;) {
+        int s = readReg(STATUS) & (STATUS_TX_DS | STATUS_MAX_RT);
+        if (s != 0) {
+            writeReg(STATUS, s);
+            rxMode();
+            return (s & STATUS_TX_DS) != 0;
+        }
+    }
 }
