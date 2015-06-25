@@ -238,11 +238,10 @@ void RF73<SPI,SELPIN>::init (uint8_t chan) {
     // FIXME this only works if some power-up if inits are done twice ?!
 
     setBank(0);
+    writeReg(RF_CH, chan);
 
     for (int i = 0; i < 2; ++i) {
         configure(bank0_init);
-        writeReg(RF_CH, chan);
-
         if (readReg(29) == 0)
             writeReg(ACTIVATE_CMD, 0x73);
     }
