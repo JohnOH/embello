@@ -113,7 +113,7 @@ public:
     bool init (uint8_t chan);
 
     int receive (void* ptr, int len);
-    void send (uint8_t ack, const void* ptr, int len);
+    bool send (uint8_t ack, const void* ptr, int len);
 
 private:
     void configure (const uint8_t* p);
@@ -275,11 +275,17 @@ int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
 }
 
 template< typename SPI, int SELPIN >
-void RF73<SPI,SELPIN>::send (uint8_t ack, const void* ptr, int len) {
+bool RF73<SPI,SELPIN>::send (uint8_t ack, const void* ptr, int len) {
     const uint8_t* pbuf = (const uint8_t*) ptr;
     txMode();
     writeBuf(ack ? WR_TX_PLOAD : W_TX_PAYLOAD_NOACK_CMD, pbuf, len);
-    while ((readReg(STATUS) & STATUS_TX_DS) == 0)
+
+    while ((readReg(STATUS) & (STATUS_TX_DS | STATUS_MAX_RT)) == 0)
         ;
+    bool ok = (readReg(STATUS) & STATUS_MAX_RT) == 0;
+
+    writeReg(STATUS, STATUS_TX_DS | STATUS_MAX_RT);
     rxMode();
+
+    return ok;
 }
