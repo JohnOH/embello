@@ -17,10 +17,8 @@ int main () {
     LPC_SWM->PINASSIGN[3] = 0x11FFFFFF;
     LPC_SWM->PINASSIGN[4] = 0xFF170908;
 
-    tick.delay(50);
-    printf("init %d\n", 23);
-
-    rf.init(23);
+    tick.delay(20);
+    printf("init %d %d\n", 23, rf.init(23));
 
     uint16_t cnt = 0;
     uint8_t txBuf[RF73_MAXLEN];

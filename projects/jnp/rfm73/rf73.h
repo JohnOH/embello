@@ -72,7 +72,10 @@ const uint8_t bank0_init [] = {
     5, 10, 0x4A,0x4C,0x4D,0x77,0x01,
     5, 11, 0x4A,0x4C,0x4D,0x77,0x02,
     5, 16, 0x4A,0x4C,0x4D,0x77,0x01,
-    1, 23, 0x00,
+    0,
+};
+
+const uint8_t bank0_init2 [] = {
     1, 28, 0x3F,
     1, 29, 0x07,
     0,
@@ -96,7 +99,7 @@ const uint8_t bank1_init [] = {
     4, 13, 0x46,0xB4,0x80,0x00,
 #endif
     11, 14, 0x41,0x20,0x08,0x04,0x81,0x20,0xCF,0xF7,0xFE,0xFF,0xFF,
-#if 0 // TODO
+#if 1 // TODO
 #if RFM73
     4, 4, 0xDF,0x9E,0x86,0x0B,
     4, 4, 0xD9,0x9E,0x86,0x0B,
@@ -111,7 +114,7 @@ const uint8_t bank1_init [] = {
 template< typename SPI, int SELPIN >
 class RF73 {
 public:
-    void init (uint8_t chan);
+    bool init (uint8_t chan);
 
     int receive (void* ptr, int len);
     void send (uint8_t ack, const void* ptr, int len);
@@ -230,28 +233,28 @@ private:
 };
 
 template< typename SPI, int SELPIN >
-void RF73<SPI,SELPIN>::init (uint8_t chan) {
+bool RF73<SPI,SELPIN>::init (uint8_t chan) {
     deselect();
     LPC_GPIO_PORT->DIR[0] |= 1<<SELPIN; // define select pin as output
-    spi.master(3);
-
-    // FIXME this only works if some power-up if inits are done twice ?!
+    spi.master(4);
 
     setBank(0);
     writeReg(RF_CH, chan);
 
-    for (int i = 0; i < 2; ++i) {
-        configure(bank0_init);
-        if (readReg(29) == 0)
-            writeReg(ACTIVATE_CMD, 0x73);
-    }
+    configure(bank0_init);
+    if (readReg(29) == 0)
+        writeReg(ACTIVATE_CMD, 0x73);
+    configure(bank0_init2);
 
     setBank(1);
     configure(bank1_init);
 
+    uint8_t ok = readReg(8) == 0x63;
+
     setBank(0);
     writeReg(CONFIG, 0x0F);
-    //rxMode();
+    
+    return ok;
 }
 
 template< typename SPI, int SELPIN >
