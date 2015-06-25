@@ -279,5 +279,7 @@ void RF73<SPI,SELPIN>::send (uint8_t ack, const void* ptr, int len) {
     const uint8_t* pbuf = (const uint8_t*) ptr;
     txMode();
     writeBuf(ack ? WR_TX_PLOAD : W_TX_PAYLOAD_NOACK_CMD, pbuf, len);
+    while ((readReg(STATUS) & STATUS_TX_DS) == 0)
+        ;
     rxMode();
 }

@@ -26,7 +26,7 @@ int main () {
         txBuf[i] = i;
 
     while (true) {
-        if (0 && ++cnt == 0) {
+        if (++cnt == 0) {
             int txLen = ++txBuf[0] % RF73_MAXLEN;
             printf(" > #%d, %db\n", txBuf[0], txLen);
             rf.send(0, txBuf, /*txLen*/ 5);
