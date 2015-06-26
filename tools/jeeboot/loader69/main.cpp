@@ -1,6 +1,6 @@
 // Boot loader, using RFM69 native driver w/ JeeBoot protocol.
 
-#define DEBUG 1     // set to 1 to include serial printf debugging. else 0
+#define DEBUG 1     // set to 1 to include serial printf debugging, else 0
 
 #include "sys.h"
 
