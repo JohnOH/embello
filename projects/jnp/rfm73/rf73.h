@@ -107,7 +107,7 @@ const uint8_t bank1_init [] = {
 #endif
 };
 
-template< typename SPI, int SELPIN >
+template< typename SPI, int SEL >
 class RF73 {
 public:
     bool init (uint8_t chan);
@@ -119,11 +119,11 @@ private:
     void configure (const uint8_t* p);
 
     void select () {
-        LPC_GPIO_PORT->B[0][SELPIN] = 0; // TODO this is architecture-specific
+        sel = 0;
     }
 
     void deselect () {
-        LPC_GPIO_PORT->B[0][SELPIN] = 1; // TODO this is architecture-specific
+        sel = 1;
     }
 
     void readBuf (uint8_t addr, uint8_t *pBuf, uint8_t length) {
@@ -207,14 +207,12 @@ private:
     }
 
     void rxMode () {
-        //writeReg(FLUSH_RX, 0);
         select();
         writeReg(CONFIG, readReg(CONFIG) | 1);
         deselect();
     }
 
     void txMode () {
-        //writeReg(FLUSH_TX, 0);
         select();
         writeReg(CONFIG, readReg(CONFIG) & ~1);
         deselect();
@@ -226,12 +224,13 @@ private:
     }
 
     SPI spi;
+    Pin<SEL> sel;
 };
 
-template< typename SPI, int SELPIN >
-bool RF73<SPI,SELPIN>::init (uint8_t chan) {
+template< typename SPI, int SEL >
+bool RF73<SPI,SEL>::init (uint8_t chan) {
     deselect();
-    LPC_GPIO_PORT->DIR[0] |= 1<<SELPIN; // define select pin as output
+    sel.setOutput();
     spi.master(4);
 
     setBank(0);
@@ -251,8 +250,8 @@ bool RF73<SPI,SELPIN>::init (uint8_t chan) {
     return ok;
 }
 
-template< typename SPI, int SELPIN >
-void RF73<SPI,SELPIN>::configure (const uint8_t* data) {
+template< typename SPI, int SEL >
+void RF73<SPI,SEL>::configure (const uint8_t* data) {
     while (*data) {
         uint8_t len = *data++;
         uint8_t reg = *data++;
@@ -261,8 +260,8 @@ void RF73<SPI,SELPIN>::configure (const uint8_t* data) {
     }
 }
 
-template< typename SPI, int SELPIN >
-int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
+template< typename SPI, int SEL >
+int RF73<SPI,SEL>::receive (void* ptr, int len) {
     if ((readReg(FIFO_STATUS) & FIFO_STATUS_RX_EMPTY) == 0) {
         uint8_t bytes = readReg(R_RX_PL_WID_CMD);
         if (bytes <= len) {
@@ -274,8 +273,8 @@ int RF73<SPI,SELPIN>::receive (void* ptr, int len) {
     return -1;
 }
 
-template< typename SPI, int SELPIN >
-bool RF73<SPI,SELPIN>::send (uint8_t ack, const void* ptr, int len) {
+template< typename SPI, int SEL >
+bool RF73<SPI,SEL>::send (uint8_t ack, const void* ptr, int len) {
     const uint8_t* pbuf = (const uint8_t*) ptr;
     txMode();
     writeBuf(ack ? WR_TX_PLOAD : W_TX_PAYLOAD_NOACK_CMD, pbuf, len);
