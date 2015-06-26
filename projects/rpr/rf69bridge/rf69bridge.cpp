@@ -106,9 +106,9 @@ int main (int argc, const char** argv) {
                 BootReply reply;
                 int len2 = server.request(rx.buf + 2, len - 2, &reply);
                 if (len2 < 0) {
-                    printf("ignoring %d bytes\n", len2);
+                    printf("ignoring %d -> %d bytes\n", len - 2, len2);
                 } else {
-                    printf("sending %d bytes\n", len2);
+                    printf("sending %d -> %d bytes\n", len - 2, len2);
                     rf.send(0xC0, (const uint8_t*) &reply + 2, len2);
                 }
             }
