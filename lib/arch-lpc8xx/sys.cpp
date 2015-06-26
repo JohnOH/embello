@@ -7,5 +7,5 @@ Analog analog;
 volatile unsigned Tick::millis;
 
 extern "C" void SysTick_Handler () {
-  ++Tick::millis;
+    ++Tick::millis;
 }
