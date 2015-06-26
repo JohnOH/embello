@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef BOOT_DATA_MAX
+#define BOOT_DATA_MAX 60
+#endif
+
 const int BOOT_REVISION = 1;
 
 struct HelloRequest {
@@ -23,7 +27,7 @@ struct FetchRequest {
 
 struct FetchReply {
     uint16_t swIdXor;
-    uint8_t data [60];
+    uint8_t data [BOOT_DATA_MAX];
 };
 
 struct BootReply {
