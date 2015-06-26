@@ -25,7 +25,7 @@ int pageFill, pageBuf [PAGE_SIZE/sizeof(int)];
 // RfDriver is used by BootLogic to talk to the RF69 driver.
 class RfDriver {
 public:
-    static int request (const void* inp, unsigned inLen, BootReply* rp) {
+    static int requestOnce (const void* inp, unsigned inLen, BootReply* rp) {
         // send out the request over RF
         D( printf("request # %d\n", inLen); )
         rf.send(0xC0, inp, inLen);
@@ -37,6 +37,7 @@ public:
             // only accept packets with special flags and coming from server
             if (len > 2 && rp->flags == 3 && rp->orig != 0 && rp->dest == 0)
                 break;
+            len = 0;
         }
         rf.sleep();
 
@@ -45,6 +46,20 @@ public:
         // D(     printf("%02x", ((const uint8_t*) rp)[i]); )
         // D( printf("\n"); )
         return len - 2;
+    }
+
+    static int request (const void* inp, unsigned inLen, BootReply* rp) {
+        for (int retry = 0; retry < 10; ++retry) {
+            // send request and wait for a response
+            int len = requestOnce(inp, inLen, rp);
+            if (len > 0)
+                return len;
+            // add an exponential back-off delay
+            // TODO go to sleep
+            int n = 1 << (retry + 20);
+            for (int i = 0; i < n; ++i) __ASM("");
+        }
+        return -1;
     }
 };
 

@@ -34,7 +34,7 @@ public:
         BootReply reply;
 
         int len = server.request(msg->payload, msg->payloadlen, &reply);
-        if (len <= 0) {
+        if (len < 0) {
             printf("ignoring %d bytes\n", msg->payloadlen);
             return;
         }

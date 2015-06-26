@@ -22,6 +22,8 @@ class BootServer {
         const int chunkSize = sizeof op->data;
         int pos = ip->swIndex * chunkSize;
         int len = size - pos;
+        if (len < 0)
+            len = 0;
         if (len > chunkSize)
             len = chunkSize;
         op->swIdXor = ip->swId ^ ip->swIndex;
