@@ -70,7 +70,7 @@ And this is the server side, built, launched, and showing a full upload cycle:
 
 To see the actual incoming data via MQTT, you can use a Mosquitto utility:
 
-    $ mosquitto_sub -h 127.0.0.1 -v -t '#'
+    $ mosquitto_sub -v -t '#'
     raw/rf69/8686-42/0 "14008b0380c063103f700407679c61aede84a053870200f5"
     raw/rf69/8686-42/0 "10008e0380c0e0ff0000"
     [...]
