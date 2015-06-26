@@ -22,7 +22,7 @@
 
 #include <mosquittopp.h>
 
-#define DEBUG   1             // prints all incoming packets to stdout if set
+#define DEBUG   0             // prints all incoming packets to stdout if set
 #define NAME    "rf69"        // name of this client, also used in topic
 #define SERVER  "127.0.0.1"   // which MQTT server to connected to
 
@@ -111,7 +111,6 @@ int main (int argc, const char** argv) {
                     printf("sending %d bytes\n", len2);
                     rf.send(0xC0, (const uint8_t*) &reply + 2, len2);
                 }
-                continue;
             }
 
             rx.afc = rf.afc;
