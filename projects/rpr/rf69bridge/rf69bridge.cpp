@@ -107,9 +107,10 @@ int main (int argc, const char** argv) {
                 int len2 = server.request(rx.buf + 2, len - 2, &reply);
                 if (len2 < 0) {
                     printf("ignoring %d -> %d bytes\n", len - 2, len2);
-                } else if (len - 2 != sizeof (FetchRequest) ||
-                        len2 != sizeof (FetchReply)) {
-                    printf("sending %d -> %d bytes\n", len - 2, len2);
+                } else {
+                    if (len - 2 != sizeof (FetchRequest) ||
+                            len2 != sizeof (FetchReply))
+                        printf("sending %d -> %d bytes\n", len - 2, len2);
                     rf.send(0xC0, (const uint8_t*) &reply + 2, len2);
                 }
             }
