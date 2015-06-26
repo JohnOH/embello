@@ -33,7 +33,7 @@ class FileAccess {
             // TODO format string depends on SW_MAX
             int numFields = sscanf(line, " %32s = %d %d %d %d %d ", buf,
                     &val[0], &val[1], &val[2], &val[3], &val[4]);
-            if (*buf == 0 || *buf == '#')
+            if (*buf == 0 || *buf == '#' || numFields < 0)
                 continue;
             if (numFields < 2 || strlen(buf) != 32) {
                 printf("can't parse #%d: %s\n", fill, line);
