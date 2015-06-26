@@ -1,4 +1,4 @@
-CFLAGS += -DCORE_M0PLUS #-DSTARTUP_NO_IRQS
+CFLAGS += -DCORE_M0PLUS -DSTARTUP_NO_IRQS
 CXXFLAGS += -DCORE_M0PLUS -I. -I../../../lib/vendor/lpcopen/inc -I../include
 ISPOPTS += -w -s -i 5
 LINK = LPC824-28k.ld

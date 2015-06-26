@@ -165,6 +165,7 @@ int main () {
 
     D( printf("JUMP!\n"); )
     D( for (int i = 0; i < 100000; ++i) __ASM(""); ) // let serial finish
+    D( LPC_SWM->PINASSIGN[0] = 0xFFFFFFFF; );        // disable serial pin
 
     // finally, prepare to jump to user code:
     //  * reset dispatch vector base
