@@ -1,6 +1,6 @@
 // Simple Reflow Oven controller, using the Thermo Plug w/ AD597.
 
-#include "sys.h"
+#include "embello.h"
 #include "adc_sct.h"
 
 AdcSct<1> adc;  // use ACMP_I1 on 0p8

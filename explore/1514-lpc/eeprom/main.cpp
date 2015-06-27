@@ -1,7 +1,7 @@
 // Try out eeprom emulation using upper flash memory.
 // see http://jeelabs.org/2015/04/01/emulating-eeprom/
 
-#include "sys.h"
+#include "embello.h"
 #include <string.h>
 
 #include "flash.h"

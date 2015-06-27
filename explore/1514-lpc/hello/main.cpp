@@ -1,6 +1,6 @@
 // Simple hello world baseline code, for smoke testing and size reference.
 
-#include "sys.h"
+#include "embello.h"
 
 int main () {
   tick.init(1000);

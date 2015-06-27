@@ -4,7 +4,7 @@
 #define WITH_RF69     0   // include the RF69 driver
 #define WITH_ROMVARS  0   // include the RomVars eeprom code
 
-#include "sys.h"
+#include "embello.h"
 #include <stdlib.h>
 #include <string.h>
 

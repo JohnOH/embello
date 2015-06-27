@@ -1,6 +1,6 @@
 // I2C master, reads out an attached RTC chip on I2C address 0x68.
 
-#include "sys.h"
+#include "embello.h"
 
 #include "lpc_types.h"
 #include "romapi_8xx.h"

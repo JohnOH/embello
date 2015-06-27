@@ -1,6 +1,6 @@
 // Interface to an SPI-connected 8 MB dataflash memory chip.
 
-#include "sys.h"
+#include "embello.h"
 #include "spi_flash.h"
 
 SpiFlash<SpiDev0> spif;

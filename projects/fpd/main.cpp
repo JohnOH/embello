@@ -1,6 +1,6 @@
 // Wait for hall sensor to trigger, then flash some LEDs
 
-#include "sys.h"
+#include "embello.h"
 
 const int LED1 = 1;
 const int LED2 = 6;

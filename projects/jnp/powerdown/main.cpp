@@ -1,6 +1,6 @@
 // Put attached RFM69 radio and the processor in total power-down mode.
 
-#include "sys.h"
+#include "embello.h"
 
 #include "spi.h"
 #include "rf69.h"

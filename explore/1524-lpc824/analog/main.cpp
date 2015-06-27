@@ -1,6 +1,6 @@
 // Report 12-bit analog measurements over serial twice per second.
 
-#include "sys.h"
+#include "embello.h"
 
 int main () {
   tick.init(1000);

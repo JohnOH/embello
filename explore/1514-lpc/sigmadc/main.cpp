@@ -1,6 +1,6 @@
 // ADC implementation using analog comparator with State Configurable timer.
 
-#include "sys.h"
+#include "embello.h"
 #include "adc_sct.h"
 
 AdcSct<1> adc;  // use ACMP_I1

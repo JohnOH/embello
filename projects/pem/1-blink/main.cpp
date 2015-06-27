@@ -1,6 +1,6 @@
 // Blink the Pico Emu's red LED and send a message to the serial port.
 
-#include "sys.h"
+#include "embello.h"
 
 void emuInit (const char* name) {
   tick.init(1000);

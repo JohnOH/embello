@@ -4,7 +4,7 @@ ISPOPTS += -s -i 5
 LINK = LPC812.ld
 ARCH = lpc8xx
 
-OBJS = main.o sys.o system_LPC8xx.o gcc_startup_lpc8xx.o \
+OBJS = main.o embello.o system_LPC8xx.o gcc_startup_lpc8xx.o \
 		printf.o printf-retarget.o
 
 default: isp

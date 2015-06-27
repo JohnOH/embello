@@ -1,6 +1,6 @@
 // Test code for the RF73 driver, with continuous reads and periodic sends.
 
-#include "sys.h"
+#include "embello.h"
 #include "spi.h"
 
 #define RFM73 0 // 0 = RFM70, 1 = RFM73 (default)

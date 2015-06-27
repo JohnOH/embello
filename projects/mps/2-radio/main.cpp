@@ -1,7 +1,7 @@
 // Micro Power Snitch code, including periodic radio packet transmissions.
 // See http://jeelabs.org/mps for information about this project.
 
-#include "sys.h"
+#include "embello.h"
 
 #include "spi.h"
 #include "rf69.h"

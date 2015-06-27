@@ -1,6 +1,6 @@
 // Generate sine waves, with the SCT generating PWM pulses through an RC filter.
 
-#include "sys.h"
+#include "embello.h"
 #include "sine.h"
 
 static void pwmSetup () {

@@ -1,8 +1,8 @@
 // Demo of a C++ template wrapper for GPIO pins.
 
-#include "sys.h"
+#include "embello.h"
 
-#if 0 // see sys.h
+#if 0 // see embello.h
 
 template < int N >
 class Pin {
