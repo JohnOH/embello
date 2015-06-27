@@ -61,7 +61,7 @@ public:
 
 int main (int argc, const char** argv) {
     if (argc < 2) {
-        fprintf(stderr, "Usage: rf69boot <filepathprefix>\n");
+        fprintf(stderr, "Usage: rf69bridge <filepathprefix>\n");
         return 1;
     }
 
