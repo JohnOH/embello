@@ -23,7 +23,7 @@
 
 #include <mosquittopp.h>
 
-#define DEBUG   0             // prints all incoming packets to stdout if set
+#define DEBUG   1             // prints all incoming packets to stdout if set
 #define NAME    "rf73"        // name of this client, also used in topic
 #define SERVER  "127.0.0.1"   // which MQTT server to connected to
 
@@ -41,19 +41,22 @@ public:
 MyMqtt mqtt;
 char myTopic [20];
 
-template< int PIN >
+template< int N >
 class Pin {
 public:
-    operator int () { return 0; }
-    void operator = (int value) {}
-    void setOutput() {}
+    operator int ()             { return digitalRead(N); }
+    void operator = (int value) { digitalWrite(N, value); }
+    void setInput ()            { pinMode(N, INPUT); }
+    void setOutput ()           { pinMode(N, OUTPUT); }
+    void toggle ()              { digitalWrite(N, !digitalRead(N)); }
+    int pin ()                  { return N; }
 };
 
 #include "spi.h"
 #define RFM73 0 // use RFM70
 #include "rf73.h"
 
-RF73<SpiDev0, 15> rf;
+RF73<SpiDev1, 6> rf;
 
 void MyMqtt::on_message (const struct mosquitto_message* msg) {
     uint8_t hdr = (msg->payload[0] & 0x3F) | (msg->payload[1] & 0xC0);
@@ -69,21 +72,21 @@ public:
 
 int main (int argc, const char** argv) {
     if (argc < 2) {
-        fprintf(stderr, "Usage: rf69boot <filepathprefix>\n");
+        fprintf(stderr, "Usage: rf73bridge <filepathprefix>\n");
         return 1;
     }
 
     filePath = argv[1];
     sprintf(myTopic, "raw/%s/%d", NAME, RF_CHANNEL);
-    printf("\n[rf69bridge] %s @ %s using: %s*\n", myTopic, SERVER, filePath);
+    printf("\n[rf73bridge] %s @ %s using: %s*\n", myTopic, SERVER, filePath);
 
     wiringPiSetup();
-    if (wiringPiSPISetup (0, 4000000) < 0) {
+    if (wiringPiSPISetup (1, 4000000) < 0) {
         printf("Can't open the SPI bus: %d\n", errno);
         return 1;
     }
 
-    rf.init(RF_CHANNEL);
+    printf("init %d\n", rf.init(RF_CHANNEL));
     //rf.encrypt("mysecret");
     //rf.txPower(15); // 0 = min .. 31 = max
 
@@ -96,18 +99,19 @@ int main (int argc, const char** argv) {
         int16_t afc;
         uint8_t rssi;
         uint8_t lna;
-        uint8_t buf [64];
+        uint8_t buf [32];
     } rx;
 
     while (true) {
         int len = rf.receive(rx.buf, sizeof rx.buf);
-        if (len >= 0) {
+        if (len > 0) {
 #if DEBUG
             printf("OK ");
             for (int i = 0; i < len; ++i)
                 printf("%02x", rx.buf[i]);
-            printf(" (%d%s%d:%d)\n",
-                    rf.rssi, rf.afc < 0 ? "" : "+", rf.afc, rf.lna);
+            //printf(" (%d%s%d:%d)\n",
+            //        rf.rssi, rf.afc < 0 ? "" : "+", rf.afc, rf.lna);
+            printf("\n");
 #endif
 
             if (rx.buf[1] == 0xC0) {
