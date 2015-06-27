@@ -57,10 +57,10 @@ class Pin {
 public:
     operator int ()             { return LPC_GPIO_PORT->B[0][N]; }
     void operator= (int value)  { LPC_GPIO_PORT->B[0][N] = value != 0; }
-    void setInput()             { LPC_GPIO_PORT->DIR[0] &= ~(1<<N); }
-    void setOutput()            { LPC_GPIO_PORT->DIR[0] |= 1<<N; }
-    void toggle()               { LPC_GPIO_PORT->NOT[0] = 1<<N; }
-    int pin()                   { return N; }
+    void setInput ()            { LPC_GPIO_PORT->DIR[0] &= ~(1<<N); }
+    void setOutput ()           { LPC_GPIO_PORT->DIR[0] |= 1<<N; }
+    void toggle ()              { LPC_GPIO_PORT->NOT[0] = 1<<N; }
+    int pin ()                  { return N; }
 };
 
 extern Tick tick;
