@@ -133,7 +133,7 @@ private:
         for (uint8_t i = 0; i < length; ++i)
             pBuf[i] = spi.transfer(0);
         spi.disable();
-#else
+#elif 0
         while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_TXRDY))
             ;
         Chip_SPI_SendFirstFrame(spi.addr(), addr, 8);
@@ -154,6 +154,12 @@ private:
         while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_RXRDY))
             ;
         pBuf[length-1] = Chip_SPI_ReceiveFrame(spi.addr());
+#else
+        typename SPI::Chunk xfer[2] = {
+            { 1, &addr, 0 },
+            { length, 0, pBuf },
+        };
+        spi.pseudoDma(xfer, 2);
 #endif
     }
 
@@ -166,7 +172,7 @@ private:
         for (uint8_t i = 0; i < length; ++i)
             spi.transfer(pBuf[i]);
         spi.disable();
-#else
+#elif 0
         if (addr < 32)
             addr |= RF_WRITE_REG;
         while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_TXRDY))
@@ -183,6 +189,12 @@ private:
         while (!(Chip_SPI_GetStatus(spi.addr()) & SPI_STAT_RXRDY))
             ;
         Chip_SPI_ReceiveFrame(spi.addr());
+#else
+        typename SPI::Chunk xfer[2] = {
+            { 1, &addr, 0 },
+            { length, pBuf, 0 },
+        };
+        spi.pseudoDma(xfer, 2);
 #endif
     }
 

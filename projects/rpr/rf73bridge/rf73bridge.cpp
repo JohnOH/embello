@@ -80,11 +80,11 @@ int main (int argc, const char** argv) {
     sprintf(myTopic, "raw/%s/%d", NAME, RF_CHANNEL);
     printf("\n[rf73bridge] %s @ %s using: %s*\n", myTopic, SERVER, filePath);
 
-    wiringPiSetup();
-    if (wiringPiSPISetup (1, 4000000) < 0) {
-        printf("Can't open the SPI bus: %d\n", errno);
-        return 1;
-    }
+    //wiringPiSetup();
+    //if (wiringPiSPISetup (1, 4000000) < 0) {
+    //    printf("Can't open the SPI bus: %d\n", errno);
+    //    return 1;
+    //}
 
     printf("init %d\n", rf.init(RF_CHANNEL));
     //rf.encrypt("mysecret");

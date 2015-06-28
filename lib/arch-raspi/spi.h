@@ -1,33 +1,68 @@
 template< int N, int S =0 >
 class SpiDev {
-  public:
-    static void master (int div) {
+public:
+    struct Chunk {
+        int count;
+        const uint8_t* out;
+        uint8_t* in;
+        Chunk* next;
+    };
+
+    static bool master (int mhz) {
+        wiringPiSetup();
+        if (wiringPiSPISetup (N, mhz * 1000000) < 0) {
+            printf("Can't open the SPI bus: %d\n", errno);
+            return false;
+        }
+        return true;
     }
 
-    static void enable () {
-      // careful: TXCTL needs to be set as 8, TXDATCTL would be 8-1 (crazy!)
-      ///addr()->TXCTRL = SPI_TXCTL_FLEN(8) | SPI_TXCTL_DEASSERTNUM_SSEL(S);
-    }
+    // static void enable () {}
+    // static void disable () {}
+    // static uint8_t transfer (uint8_t val) {}
+    
+    static void pseudoDma (const Chunk* desc, int num) {
+        // calculate transfer size
+        int totalLength = 0;
+        for (const Chunk* p = desc; p < desc + num; ++p)
+            totalLength = p->count;
+        if (totalLength <= 0)
+            return;
 
-    static void disable () {
-      ///addr()->STAT |= SPI_STAT_EOT;
-    }
+        // fill buffer with outgoing data
+        uint8_t* buf = (uint8_t*) malloc(totalLength);
+        uint8_t* ofill = buf;
+        for (const Chunk* p = desc; p != 0; ++p) {
+            if (p->out != 0)
+                memcpy(ofill, p->out, p->count);
+            else
+                memset(ofill, 0, p->count);
+            ofill += p->count;
+        }
 
-    static uint8_t transfer (uint8_t val) {
-      ///addr()->TXDAT = val;
-      ///while ((addr()->STAT & SPI_STAT_RXRDY) == 0)
-      ///  ;
-      ///return addr()->RXDAT;
-      return 0;
+        // perform the SPI transfer
+        if (wiringPiSPIDataRW (N, buf, totalLength) == -1) {
+            printf("SPI error\n");
+            free(buf);
+            return;
+        }
+
+        // copy incoming data back to the chunks
+        uint8_t* ifill = buf;
+        for (const Chunk* p = desc; p < desc + num; ++p) {
+            if (p->in != 0)
+                memcpy(p->in, ifill, p->count);
+            ifill += p->count;
+        }
     }
 
     static uint8_t rwReg (uint8_t cmd, uint8_t val) {
-      uint8_t data[2] = { cmd, val };
-      if (wiringPiSPIDataRW (N, data, 2) == -1) {
-        printf("SPI error\n");
-        return 0;
-      }
-      return data[1];
+        uint8_t data[2] = { cmd, val };
+        if (wiringPiSPIDataRW (N, data, 2) == -1) {
+            printf("SPI error\n");
+            return 0;
+        }
+        return data[1];
     }
 
     //static LPC_SPI_T* addr () { return N == 0 ? LPC_SPI0 : LPC_SPI1; }
