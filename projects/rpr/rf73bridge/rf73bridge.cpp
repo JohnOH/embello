@@ -56,7 +56,7 @@ public:
 #define RFM73 0 // use RFM70
 #include "rf73.h"
 
-RF73<SpiDev1, 6> rf;
+RF73<SpiDev1,6> rf;
 
 void MyMqtt::on_message (const struct mosquitto_message* msg) {
     uint8_t hdr = (msg->payload[0] & 0x3F) | (msg->payload[1] & 0xC0);
@@ -104,7 +104,7 @@ int main (int argc, const char** argv) {
 
     while (true) {
         int len = rf.receive(rx.buf, sizeof rx.buf);
-        if (len > 0) {
+        if (len >= 0) {
 #if DEBUG
             printf("OK ");
             for (int i = 0; i < len; ++i)
@@ -156,5 +156,6 @@ int main (int argc, const char** argv) {
         }
 
         //chThdYield();
+        delay(1);
     }
 }
