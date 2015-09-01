@@ -7,12 +7,11 @@ class FileAccess {
     const char* prefix;
 
     struct SwidMap {
-        static const int SW_MAX = 5; // TODO entries > 0 are still ignored
         uint8_t hwId [16];
-        uint16_t swIds [SW_MAX];
+        uint16_t swId;
     };
 
-    SwidMap map [10];
+    SwidMap map [10]; // TODO fixed max number of items for now
     int fill;
     uint8_t* lastFile;
 
@@ -28,14 +27,12 @@ class FileAccess {
 
         while ((int) getline(&line, &len, fp) != -1) {
             char buf [33];
-            int val [SwidMap::SW_MAX] = {0,0,0,0,0};
+            int val = 0;
 
-            // TODO format string depends on SW_MAX
-            int numFields = sscanf(line, " %32s %*c %d %d %d %d %d ", buf,
-                    &val[0], &val[1], &val[2], &val[3], &val[4]);
+            int numFields = sscanf(line, " %32s %*c %d ", buf, &val);
             if (*buf == 0 || *buf == '#' || numFields < 0)
                 continue;
-            if (numFields < 2 || strlen(buf) != 32) {
+            if (numFields != 2 || strlen(buf) != 32) {
                 printf("can't parse #%d: %s\n", fill, line);
                 continue;
             }
@@ -43,20 +40,19 @@ class FileAccess {
             SwidMap* p = &map[fill];
 
             bool ok = true;
-            unsigned hex;
             for (int i = 0; i < 16; ++i) {
-                if (sscanf(buf+2*i, "%2x", &hex) != 1) {
-                    printf("non-hex hardware id #%d: %s\n", fill, buf);
+                unsigned hex;
+                if (sscanf(buf+2*i, "%2x", &hex) == 1)
+                    p->hwId[i] = (uint8_t) hex;
+                else
                     ok = false;
-                    continue;
-                }
-                p->hwId[i] = (uint8_t) hex;
             }
-            if (!ok)
+            if (!ok) {
+                printf("non-hex hardware id #%d: %s\n", fill, buf);
                 continue;
+            }
 
-            for (int i = 0; i < SwidMap::SW_MAX; ++i)
-                p->swIds[0] = (uint16_t) val[0];
+            p->swId = (uint16_t) val;
             ++fill;
         }
 
@@ -91,7 +87,7 @@ public:
         uint16_t swid = type;
         for (int i = 0; i < fill; ++i)
             if (memcmp(hwid, map[i].hwId, 16) == 0)
-                swid = map[i].swIds[0];
+                swid = map[i].swId;
 
         return swid;
     }
