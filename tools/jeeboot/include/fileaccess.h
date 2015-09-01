@@ -25,13 +25,13 @@ class FileAccess {
 
         char* line = 0;
         size_t len = 0;
-        fill = 0; 
+
         while ((int) getline(&line, &len, fp) != -1) {
             char buf [33];
             int val [SwidMap::SW_MAX] = {0,0,0,0,0};
 
             // TODO format string depends on SW_MAX
-            int numFields = sscanf(line, " %32s = %d %d %d %d %d ", buf,
+            int numFields = sscanf(line, " %32s %*c %d %d %d %d %d ", buf,
                     &val[0], &val[1], &val[2], &val[3], &val[4]);
             if (*buf == 0 || *buf == '#' || numFields < 0)
                 continue;
@@ -56,7 +56,7 @@ class FileAccess {
                 continue;
 
             for (int i = 0; i < SwidMap::SW_MAX; ++i)
-                p->swIds[0] = (uint16_t) val[0]; 
+                p->swIds[0] = (uint16_t) val[0];
             ++fill;
         }
 
@@ -72,7 +72,7 @@ public:
     uint16_t selectCode (uint16_t type, const uint8_t* hwid) {
         char* fileName = 0;
         asprintf(&fileName, "%sindex.txt", prefix);
-        
+
         bool ok = parse(fileName);
 
         // extra parentheses to avoid macro expansion and bypass CppUTest's
@@ -114,7 +114,7 @@ public:
 
         lastFile = (uint8_t*) realloc(lastFile, *sizep);
         fread(lastFile, 1, *sizep, fp);
-        
+
         fclose(fp);
         return lastFile;
     }

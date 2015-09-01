@@ -31,7 +31,7 @@ class BootServer {
             memcpy(op->data, data + pos, (size_t) len);
         return 2 + len;
     }
- 
+
 public:
     int request (const void* inp, unsigned inLen, BootReply* outp) {
         if (inLen == sizeof (HelloRequest))
