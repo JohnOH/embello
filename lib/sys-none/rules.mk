@@ -1,12 +1,13 @@
 # gcc Makefile for LPC810
 # based on original file by Kamal Mostafa <kamal@whence.com>
 
+LIBDIR = $(dir $(SHARED))
 LINKWITH = GCC
 #LINKWITH = LD
 
-ARCHDIR = $(LIBDIR)/arch-$(ARCH)
-INCLUDES = -I$(ARCHDIR) -I$(SHARED) -I$(LIBDIR)/driver -I$(LIBDIR)/util \
-					 -I$(LIBDIR)/vendor -I$(LIBDIR)/vendor/lpcopen/inc
+ARCHDIR = $(LIBDIR)arch-$(ARCH)
+INCLUDES = -I$(ARCHDIR) -I$(SHARED) -I$(LIBDIR)driver -I$(LIBDIR)util \
+					 -I$(LIBDIR)vendor -I$(LIBDIR)vendor/lpcopen/inc
 
 # Output directory and files
 BUILDDIR = build
@@ -15,7 +16,7 @@ OUTFILES = $(BUILDDIR)/firmware.elf \
            $(BUILDDIR)/firmware.bin
 OBJDIR    = $(BUILDDIR)/obj
 
-VPATH = $(ARCHDIR):$(SHARED):$(LIBDIR)/util:$(LIBDIR)/vendor
+VPATH = $(ARCHDIR):$(SHARED):$(LIBDIR)util:$(LIBDIR)vendor
 
 CROSS = arm-none-eabi-
 CPU = -mthumb -mcpu=cortex-m0plus -DCORE_M0PLUS
