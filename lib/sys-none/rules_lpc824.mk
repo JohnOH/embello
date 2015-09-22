@@ -7,6 +7,6 @@ APP_OBJS ?= $(patsubst %.c,%.o,$(wildcard *.c)) \
 OBJS = $(APP_OBJS) embello.o system_LPC8xx.o gcc_startup_lpc8xx.o \
        uart.o printf.o printf-retarget.o
 
-upload: isp
+.DEFAULT_GOAL = isp
 
 include $(SHARED)/rules.mk
