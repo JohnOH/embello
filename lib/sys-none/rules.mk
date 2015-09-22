@@ -5,7 +5,8 @@ LINKWITH = GCC
 #LINKWITH = LD
 
 ARCHDIR = $(LIBDIR)/arch-$(ARCH)
-INCLUDES = -I$(ARCHDIR) -I$(SHARED) -I$(LIBDIR)/driver -I$(LIBDIR)/util -I$(LIBDIR)/vendor
+INCLUDES = -I$(ARCHDIR) -I$(SHARED) -I$(LIBDIR)/driver -I$(LIBDIR)/util \
+					 -I$(LIBDIR)/vendor -I$(LIBDIR)/vendor/lpcopen/inc
 
 # Output directory and files
 BUILDDIR = build
@@ -17,7 +18,7 @@ OBJDIR    = $(BUILDDIR)/obj
 VPATH = $(ARCHDIR):$(SHARED):$(LIBDIR)/util:$(LIBDIR)/vendor
 
 CROSS = arm-none-eabi-
-CPU = -mthumb -mcpu=cortex-m0plus
+CPU = -mthumb -mcpu=cortex-m0plus -DCORE_M0PLUS
 WARN = -Wall
 STD = -std=gnu99
 
