@@ -51,8 +51,9 @@ char myTopic [20];
 RF69<SpiDev0> rf;
 
 void MyMqtt::on_message (const struct mosquitto_message* msg) {
-    uint8_t hdr = (msg->payload[0] & 0x3F) | (msg->payload[1] & 0xC0);
-    rf.send(hdr, msg->payload + 2, msg->payloadlen - 2);
+    const uint8_t* payload = (const uint8_t*) msg->payload;
+    uint8_t hdr = (payload[0] & 0x3F) | (payload[1] & 0xC0);
+    rf.send(hdr, payload + 2, msg->payloadlen - 2);
 }
 
 const char* filePath;
