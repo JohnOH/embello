@@ -22,6 +22,9 @@
 
 #include <mosquittopp.h>
 
+// uncomment this on a Raspberry Pi with an ancient version of WiringPi
+//#define mosqpp mosquittopp
+
 #define DEBUG   0             // prints all incoming packets to stdout if set
 #define NAME    "rf69"        // name of this client, also used in topic
 #define SERVER  "127.0.0.1"   // which MQTT server to connected to
@@ -31,9 +34,9 @@
 #define RF_GROUP  42
 #define RF_ID     62
 
-class MyMqtt : public mosquittopp::mosquittopp {
+class MyMqtt : public mosqpp::mosquittopp {
 public:
-    MyMqtt () : mosquittopp::mosquittopp (NAME) { MyMqtt::lib_init(); }
+    MyMqtt () : mosqpp::mosquittopp (NAME) { mosqpp::lib_init(); }
     virtual void on_connect (int rc) { printf("connected %d\n", rc); }
     virtual void on_disconnect () { printf("disconnected\n"); }
     virtual void on_message (const struct mosquitto_message* msg);
