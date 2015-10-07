@@ -63,7 +63,6 @@ all: $(OUTFILES)
 
 $(BUILDDIR) $(OBJDIR):
 	mkdir -p $(OBJDIR)
-	echo $(LINKWITH)
 
 $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
