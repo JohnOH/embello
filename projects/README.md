@@ -8,13 +8,13 @@ In this folder:
 
 * home page: <http://jeelabs.org/mps>
 
+**RF Node Watcher**
+
+* home page: <http://jeelabs.org/rnw>
+
 **RasPi RF**
 
 * home page: <http://jeelabs.org/rpr>
-
-**STM32 with Arduino IDE**
-
-* home page: <http://jeelabs.org/stm>
 
 **Tinker Pico**
 
