@@ -10,7 +10,7 @@ void setup () {
     Serial.begin(115200);
     Serial.println("[radio]");
 
-    rf.init(1, 42, 868);
+    rf.init(1, 42, 8686);
 }
 
 void loop () {
