@@ -66,10 +66,10 @@ void loop() {
         oled.print('b');
         
         // RSSI as dB
-        int rssi = 255 - rf.rssi;
         oled.setCursor(42, yPos);
-        oled.print(-rssi/2);
-        oled.print(rssi & 1 ? ".5dB" : ".0dB");
+        oled.print('-');
+        oled.print(rf.rssi/2);
+        oled.print(rf.rssi & 1 ? ".5dB" : ".0dB");
         
         // AFC as signed offset
         int afc = rf.afc;
