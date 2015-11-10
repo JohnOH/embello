@@ -6,6 +6,8 @@
 #define RX_PIN      4   // Arduino Digital.4, ATmega portD.4, ATMega328 pin.6
 #define TX_PIN      14  // Arduino Analog.0, ATmega portC.0, ATMega328 pin.23
 
+// only uncomment one the boot loaders mentioned below (or add your own)
+//#define BOOT_LOADER "boot-maplemini-v20.h"
 #define BOOT_LOADER "boot-usbSerial-v01.h"
 
 const uint8_t data[] PROGMEM = {
@@ -65,9 +67,7 @@ static void sendByte (uint8_t b) {
 }
 
 static void sendCmd (uint8_t cmd) {
-    //delay(100);
     Serial.flush();
-    //Target.flush();
     sendByte(cmd);
     sendByte(~cmd);
     wantAck();
@@ -164,7 +164,6 @@ void setup () {
         sendByte(check);
         wantAck();
         sendByte(256-1);
-        //check = 0;
         for (int i = 0; i < 256; ++i)
             sendByte(getData(i));
         sendByte(check);
