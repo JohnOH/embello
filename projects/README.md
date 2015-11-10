@@ -1,25 +1,13 @@
 In this folder:
 
-**Arduino Sketch Collection**
+**Arduino Sketch Collection** - <http://jeelabs.org/ask>
 
-* home page: <http://jeelabs.org/ask>
+**Garage Parking Aid** - <http://jeelabs.org/gpa>
 
-**Garage Parking Aid**
+**Micro Power Snitch** - <http://jeelabs.org/mps>
 
-* home page: <http://jeelabs.org/gpa>
+**RF Node Watcher** - <http://jeelabs.org/rnw>
 
-**Micro Power Snitch**
+**RasPi RF** - <http://jeelabs.org/rpr>
 
-* home page: <http://jeelabs.org/mps>
-
-**RF Node Watcher**
-
-* home page: <http://jeelabs.org/rnw>
-
-**RasPi RF**
-
-* home page: <http://jeelabs.org/rpr>
-
-**Tinker Pico**
-
-* home page: <http://jeelabs.org/tkp>
+**Tinker Pico** - <http://jeelabs.org/tkp>
