@@ -7,7 +7,7 @@ void setup () {
 }
 
 void loop () {
-    // 255 of off, 0 is maximally on
+    // 255 is fully off, 0 is maximally on
     for (int i = 255; i >= 0; --i) {
         analogWrite(LED, i);
         delay(5);
