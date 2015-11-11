@@ -4,6 +4,10 @@
 #include <Arduino.h>
 
 #ifdef __AVR_ATmega328P__ // use a modified SoftwareSerial implementation
+#define USE_SOFT_PARITY 1
+#endif
+
+#if USE_SOFT_PARITY
 
 #include "ParitySerial.h"
 
@@ -83,7 +87,7 @@ static void sendByte (uint8_t b) {
     Target.write(b);
 }
 
-// send a command and wait for the coorresponding ACK
+// send a command and wait for the corresponding ACK
 static void sendCmd (uint8_t cmd) {
     Serial.flush();
     sendByte(cmd);
@@ -93,10 +97,10 @@ static void sendCmd (uint8_t cmd) {
 
 // special infinite loop to trigger target autobaud and wait for ACK or NAK
 static void connectToTarget () {
-#ifdef __AVR_ATmega328P__   // use a modified SoftwareSerial implementation
+#ifdef USE_SOFT_PARITY
     Target.begin(9600);
-#else                       // use serial port hardware, set to even parity
-    Target.begin(9600, SERIAL_8E1);
+#else // use serial port hardware, can run much faster
+    Target.begin(115200, SERIAL_8E1);
 #endif
 
     uint8_t b = 0;
@@ -104,7 +108,6 @@ static void connectToTarget () {
         Serial.print(".");
         Target.write(0x7F);
         b = getReply();
-        //Serial.print(b, HEX);
     } while (b != ACK && b != NAK); // NAK is fine, it's still a response
 }
 
