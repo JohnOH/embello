@@ -9,6 +9,9 @@
 
 #include "ParitySerial.h"
 
+// The LED, if used, will blink at approx the following rate on 16 MHz ATmega:
+// 0.5 Hz = trying to connect, 1 Hz = programming, 5 Hz = error, steady = done
+
 #define LED_PIN     13      // Arduino Dig.13, AVR port B.5, ATMega328 pin.13
 #define RESET_PIN   5       // Arduino Dig.5, AVR port D.5, ATMega328 pin.11
 #define ISP_PIN     15      // Arduino Ana.1, AVR port C.1, ATMega328 pin.24
@@ -259,10 +262,6 @@ void setup () {
     Log.print("        Done: ");
     Log.print(sizeof data);
     Log.println(" bytes uploaded.");
-
-#ifdef LED_PIN
-    digitalWrite(LED_PIN, 0);
-#endif
 
     // pulse RESET pin low while keeping ISP pin high to start target code
     controlPins(false, false);
