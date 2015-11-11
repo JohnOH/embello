@@ -9,13 +9,15 @@
 
 #include "ParitySerial.h"
 
-#define RX_PIN      4       // Arduino Dig.4, ATmega portD.4, ATMega328 pin.6
-#define TX_PIN      14      // Arduino Ana.0, ATmega portC.0, ATMega328 pin.23
+#define LED_PIN     13      // Arduino Dig.13, AVR port B.5, ATMega328 pin.13
+
+#define RX_PIN      4       // Arduino Dig.4, AVR port D.4, ATMega328 pin.6
+#define TX_PIN      14      // Arduino Ana.0, AVR port C.0, ATMega328 pin.23
 ParitySerial Target (RX_PIN, TX_PIN); // defaults to even parity
 
 static void targetInit () { Target.begin(9600); }
 
-#define SPEED       2       // relative CPU speed for use in busy loops
+#define SPEED       1       // relative CPU speed for use in busy loops
 
 #else // probably a STM32F103 running at 64 or 72 MHz, with hardware serial
 
@@ -29,7 +31,7 @@ static void targetInit () { Target.begin(9600); }
 
 static void targetInit () { Target.begin(9600, SERIAL_8E1); }
 
-#define SPEED       20      // this runs a bit faster than an ATmega328
+#define SPEED       10      // busy loops run a lot faster than on ATmega328
 
 #endif // __AVR_ATmega328P__
 
@@ -58,6 +60,14 @@ enum {
     RDUNP_CMD = 0x92,
 };
 
+// toggle the LED to indicate what's going on
+static void toggleLed () {
+#ifdef LED_PIN
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, ! digitalRead(LED_PIN));
+#endif
+}
+
 // get the specific data byte to send to the target
 static uint8_t getData (uint16_t index) {
     if (index >= sizeof data)
@@ -71,6 +81,7 @@ static uint8_t getReply () {
     for (long i = 0; i < SPEED * 100000; ++i)
         if (Target.available())
             return Target.read();
+    toggleLed();
     return 0;
 }
 
@@ -91,7 +102,11 @@ static void wantAck () {
     }
     Log.print(" FAILED - got 0x");
     Log.println(b, HEX);
-    while (true) ; // halt
+
+    while (true) { // halt, blinking rapidly
+        toggleLed();
+        delay(100);
+    }
 }
 
 // send a byte to the target and update the global checkum value
@@ -117,7 +132,7 @@ static void connectToTarget () {
         Log.print(".");
         Target.write(0x7F);
         b = getReply();
-        Log.print(b, HEX);
+        //Log.print(b, HEX);
     } while (b != ACK && b != NAK); // NAK is fine, it's still a response
 }
 
@@ -194,6 +209,7 @@ void setup () {
     
     Log.print("     Writing: ");
     for (uint16_t offset = 0; offset < sizeof data; offset += 256) {
+        toggleLed();
         Log.print('+');
         sendCmd(WRITE_CMD);
         uint32_t addr = 0x08000000 + offset;
@@ -214,6 +230,10 @@ void setup () {
     Log.print("        Done: ");
     Log.print(sizeof data);
     Log.println(" bytes uploaded.");
+
+#ifdef LED_PIN
+    digitalWrite(LED_PIN, 0);
+#endif
 }
 
 void loop () {}
