@@ -20,7 +20,7 @@ ParitySerial Target (RX_PIN, TX_PIN); // defaults to even parity
 
 #endif
 
-// only uncomment one the boot loaders mentioned below (or add your own)
+// only uncomment one of the boot loaders mentioned below (or add your own)
 //#define BOOT_LOADER "boot-maplemini-v20.h"
 #define BOOT_LOADER "boot-usbSerial-v01.h"
 //#define BOOT_LOADER "boot-bmp-jc66-v01.h"
@@ -172,7 +172,7 @@ void setup () {
     
     Serial.print("     Writing: ");
     for (uint16_t offset = 0; offset < sizeof data; offset += 256) {
-        Serial.print('.');
+        Serial.print('+');
         sendCmd(WRITE_CMD);
         uint32_t addr = 0x08000000 + offset;
         sendByte(addr >> 24);
