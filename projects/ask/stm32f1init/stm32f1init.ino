@@ -29,13 +29,11 @@ const uint8_t data[] PROGMEM = {
 #include BOOT_LOADER
 };
 
-uint8_t check;
+uint8_t check;  // this checksum will get updated on each call to sendByte()
 
-enum {
-    ACK = 0x79,
-    NAK = 0x1F,
-};
+enum { ACK = 0x79, NAK = 0x1F };
 
+// boot request codes sent to the target, based on STM's USART protocol
 enum {
     GET_CMD = 0x00,
     GETID_CMD = 0x02,
@@ -45,10 +43,13 @@ enum {
     RDUNP_CMD = 0x92,
 };
 
+// get the specific data byte to send to the target
 static uint8_t getData (uint16_t index) {
+    // this is equivalent to data[index] on ARM chips
     return pgm_read_byte(data + index);
 }
 
+// read a reply from the target, or return 0 after a certain amount of time
 static uint8_t getReply () {
     for (long i = 0; i < TIMEOUT; ++i)
         if (Target.available())
@@ -56,30 +57,33 @@ static uint8_t getReply () {
     return 0;
 }
 
+// wait for an ACK reply, else print an error message and halt
 static void wantAck () {
     uint8_t b = 0;
+    // wait a bit longer than normal getReply() timeouts, if needed
     for (int i = 0; i < 5; ++i) {
         b = getReply();
         if (b == 0) {
-            Serial.print('.');
+            Serial.print('.'); // each retry prints a dot
             continue;
         }
         if (b != ACK)
             break;
-        check = 0;
+        check = 0; // the global checksum is always cleared after an ACK
         return;
     }
     Serial.print(" FAILED - got 0x");
     Serial.println(b, HEX);
-    while (true)
-        ; // halt
+    while (true) ; // halt
 }
 
+// send a byte to the target and update the global checkum value
 static void sendByte (uint8_t b) {
     check ^= b;
     Target.write(b);
 }
 
+// send a command and wait for the coorresponding ACK
 static void sendCmd (uint8_t cmd) {
     Serial.flush();
     sendByte(cmd);
@@ -87,6 +91,7 @@ static void sendCmd (uint8_t cmd) {
     wantAck();
 }
 
+// special infinite loop to trigger target autobaud and wait for ACK or NAK
 static void connectToTarget () {
 #ifdef __AVR_ATmega328P__   // use a modified SoftwareSerial implementation
     Target.begin(9600);
@@ -100,9 +105,10 @@ static void connectToTarget () {
         Target.write(0x7F);
         b = getReply();
         //Serial.print(b, HEX);
-    } while (b != ACK && b != NAK);
+    } while (b != ACK && b != NAK); // NAK is fine, it's still a response
 }
 
+// boot loader request for the boot version, ignoring the rest
 static uint8_t getBootVersion () {
     sendCmd(GET_CMD);
     uint8_t n = getReply();
@@ -113,6 +119,7 @@ static uint8_t getBootVersion () {
     return bootRev;
 }
 
+// boot loader request for the chip type, as 16-bit int
 static uint16_t getChipType () {
     sendCmd(GETID_CMD);
     getReply(); // should be 1
@@ -122,6 +129,7 @@ static uint16_t getChipType () {
     return chipType;
 }
 
+// boot loader request for a mass erase of flash memory
 static void massErase () {
 #if 1
     sendCmd(ERASE_CMD);
@@ -137,6 +145,7 @@ static void massErase () {
 #endif
 }
 
+// main sketch logic
 void setup () {
     Serial.begin(115200);
     Serial.print("[stm32f1init] ");
