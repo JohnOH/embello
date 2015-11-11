@@ -3,37 +3,39 @@
 
 #include <Arduino.h>
 
-#ifdef __AVR_ATmega328P__ // use a modified SoftwareSerial implementation
-#define USE_SOFT_PARITY 1
-#endif
+#if __AVR_ATmega328P__ // ATmega uses a modified SoftwareSerial implementation
 
-#if USE_SOFT_PARITY
+#define Log         Serial  // use Serial for console output
 
 #include "ParitySerial.h"
 
-#define RX_PIN      4   // Arduino Digital.4, ATmega portD.4, ATMega328 pin.6
-#define TX_PIN      14  // Arduino Analog.0, ATmega portC.0, ATMega328 pin.23
+#define RX_PIN      4       // Arduino Dig.4, ATmega portD.4, ATMega328 pin.6
+#define TX_PIN      14      // Arduino Ana.0, ATmega portC.0, ATMega328 pin.23
 ParitySerial Target (RX_PIN, TX_PIN); // defaults to even parity
 
-#define Log     Serial
+static void targetInit () { Target.begin(9600); }
 
-#define TIMEOUT 200000
+#define SPEED       2       // relative CPU speed for use in busy loops
 
-#else // assume an STM32F103 running at 72 MHz, with hardware serial
+#else // probably a STM32F103 running at 64 or 72 MHz, with hardware serial
 
 #ifdef ARDUINO_STM_NUCLEO_F103RB
-#define Target  Serial
-#define Log     Serial1
+#define Log         Serial1
+#define Target      Serial
 #else
-#define Target  Serial1
-#define Log     Serial
+#define Log         Serial
+#define Target      Serial1
 #endif
 
-#define TIMEOUT 2000000
+static void targetInit () { Target.begin(9600, SERIAL_8E1); }
 
-#endif
+#define SPEED       20      // this runs a bit faster than an ATmega328
+
+#endif // __AVR_ATmega328P__
 
 // only uncomment one of the boot loaders mentioned below (or add your own)
+// see etc/bin2h.c for the utility code used to make these include files
+
 //#define BOOT_LOADER "boot-maplemini-v20.h"
 #define BOOT_LOADER "boot-usbSerial-v01.h"
 //#define BOOT_LOADER "boot-bmp-jc66-v01.h"
@@ -66,7 +68,7 @@ static uint8_t getData (uint16_t index) {
 
 // read a reply from the target, or return 0 after a certain amount of time
 static uint8_t getReply () {
-    for (long i = 0; i < TIMEOUT; ++i)
+    for (long i = 0; i < SPEED * 100000; ++i)
         if (Target.available())
             return Target.read();
     return 0;
@@ -108,11 +110,7 @@ static void sendCmd (uint8_t cmd) {
 
 // special infinite loop to trigger target autobaud and wait for ACK or NAK
 static void connectToTarget () {
-#ifdef USE_SOFT_PARITY
-    Target.begin(9600);
-#else // use serial port hardware, can run much faster
-    Target.begin(9600, SERIAL_8E1);
-#endif
+    targetInit();
 
     uint8_t b = 0;
     do {
