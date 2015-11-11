@@ -21,8 +21,13 @@ ParitySerial Target (RX_PIN, TX_PIN); // defaults to even parity
 
 #else // assume an STM32F103 running at 72 MHz, with hardware serial
 
+#ifdef ARDUINO_STM_NUCLEO_F103RB
+#define Target  Serial
+#define Log     Serial1
+#else
 #define Target  Serial1
 #define Log     Serial
+#endif
 
 #define TIMEOUT 2000000
 
