@@ -15,12 +15,16 @@
 #define TX_PIN      14  // Arduino Analog.0, ATmega portC.0, ATMega328 pin.23
 ParitySerial Target (RX_PIN, TX_PIN); // defaults to even parity
 
+#define Log     Serial
+
 #define TIMEOUT 200000
 
 #else // assume an STM32F103 running at 72 MHz, with hardware serial
 
 #define Target  Serial1
-#define TIMEOUT 800000
+#define Log     Serial
+
+#define TIMEOUT 2000000
 
 #endif
 
@@ -70,7 +74,7 @@ static void wantAck () {
     for (int i = 0; i < 5; ++i) {
         b = getReply();
         if (b == 0) {
-            Serial.print('.'); // each retry prints a dot
+            Log.print('.'); // each retry prints a dot
             continue;
         }
         if (b != ACK)
@@ -78,8 +82,8 @@ static void wantAck () {
         check = 0; // the global checksum is always cleared after an ACK
         return;
     }
-    Serial.print(" FAILED - got 0x");
-    Serial.println(b, HEX);
+    Log.print(" FAILED - got 0x");
+    Log.println(b, HEX);
     while (true) ; // halt
 }
 
@@ -91,7 +95,7 @@ static void sendByte (uint8_t b) {
 
 // send a command and wait for the corresponding ACK
 static void sendCmd (uint8_t cmd) {
-    Serial.flush();
+    Log.flush();
     sendByte(cmd);
     sendByte(~cmd);
     wantAck();
@@ -102,14 +106,15 @@ static void connectToTarget () {
 #ifdef USE_SOFT_PARITY
     Target.begin(9600);
 #else // use serial port hardware, can run much faster
-    Target.begin(115200, SERIAL_8E1);
+    Target.begin(9600, SERIAL_8E1);
 #endif
 
     uint8_t b = 0;
     do {
-        Serial.print(".");
+        Log.print(".");
         Target.write(0x7F);
         b = getReply();
+        Log.print(b, HEX);
     } while (b != ACK && b != NAK); // NAK is fine, it's still a response
 }
 
@@ -152,41 +157,41 @@ static void massErase () {
 
 // main sketch logic
 void setup () {
-    Serial.begin(115200);
-    Serial.print("[stm32f1init] ");
-    Serial.println(BOOT_LOADER);
-    Serial.println();
-    Serial.println("(When you see a question mark: RESET your TARGET board!)");
-    Serial.println();
+    Log.begin(115200);
+    Log.print("[stm32f1init] ");
+    Log.println(BOOT_LOADER);
+    Log.println();
+    Log.println("(When you see a question mark: RESET your TARGET board!)");
+    Log.println();
 
-    Serial.print("  Connecting? ");
+    Log.print("  Connecting? ");
     connectToTarget();
-    Serial.println(" OK");
+    Log.println(" OK");
 
     uint8_t bootRev = getBootVersion();
-    Serial.print("Boot version: 0x");
-    Serial.println(bootRev, HEX);
+    Log.print("Boot version: 0x");
+    Log.println(bootRev, HEX);
 
     uint16_t chipType = getChipType();
-    Serial.print("   Chip type: 0x");
-    Serial.println(chipType, HEX);
+    Log.print("   Chip type: 0x");
+    Log.println(chipType, HEX);
 
-    Serial.print("Unprotecting: ");
+    Log.print("Unprotecting: ");
     sendCmd(RDUNP_CMD);
     wantAck();
-    Serial.println("OK");
+    Log.println("OK");
 
-    Serial.print("    Resuming? ");
+    Log.print("    Resuming? ");
     connectToTarget();
-    Serial.println(" OK");
+    Log.println(" OK");
 
-    Serial.print("     Erasing: ");
+    Log.print("     Erasing: ");
     massErase();
-    Serial.println("OK");
+    Log.println("OK");
     
-    Serial.print("     Writing: ");
+    Log.print("     Writing: ");
     for (uint16_t offset = 0; offset < sizeof data; offset += 256) {
-        Serial.print('+');
+        Log.print('+');
         sendCmd(WRITE_CMD);
         uint32_t addr = 0x08000000 + offset;
         sendByte(addr >> 24);
@@ -201,11 +206,11 @@ void setup () {
         sendByte(check);
         wantAck();
     }
-    Serial.println(" OK");
+    Log.println(" OK");
 
-    Serial.print("        Done: ");
-    Serial.print(sizeof data);
-    Serial.println(" bytes uploaded.");
+    Log.print("        Done: ");
+    Log.print(sizeof data);
+    Log.println(" bytes uploaded.");
 }
 
 void loop () {}
