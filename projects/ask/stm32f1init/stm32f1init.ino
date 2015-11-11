@@ -9,8 +9,8 @@
 
 #include "ParitySerial.h"
 
-// The LED, if used, will blink at approx the following rate on 16 MHz ATmega:
-// 0.5 Hz = trying to connect, 1 Hz = programming, 5 Hz = error, steady = done
+// the LED, if used, will blink at approx the following rate on 16 MHz ATmega:
+// 0.25 Hz = trying to connect, 1 Hz = programming, 5 Hz = error, steady = done
 
 #define LED_PIN     13      // Arduino Dig.13, AVR port B.5, ATMega328 pin.13
 #define RESET_PIN   5       // Arduino Dig.5, AVR port D.5, ATMega328 pin.11
@@ -24,7 +24,7 @@ static void targetInit () { Target.begin(9600); }
 
 #define SPEED       1       // relative CPU speed for use in busy loops
 
-#else // probably a STM32F103 running at 64 or 72 MHz, with hardware serial
+#else // probably an STM32F103 running at 64 or 72 MHz, with hardware serial
 
 #ifdef ARDUINO_STM_NUCLEO_F103RB
 #define Log         Serial1
@@ -46,7 +46,7 @@ static void targetInit () { Target.begin(9600, SERIAL_8E1); }
 #endif // __AVR_ATmega328P__
 
 // only uncomment one of the boot loaders mentioned below (or add your own)
-// see etc/bin2h.c for the utility code used to make these include files
+// see ./etc/bin2h.c for the utility code used to make these include files
 
 //#define BOOT_LOADER "boot-maplemini-v20.h"
 #define BOOT_LOADER "boot-usbSerial-v01.h"
