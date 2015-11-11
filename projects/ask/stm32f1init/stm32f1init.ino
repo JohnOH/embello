@@ -1,10 +1,24 @@
 // Initialise an STM32F103 with a boot loader, embedded in this code.
 // MIT license, see https://github.com/jeelabs/embello -jcw, 2015-11-10
 
+#include <Arduino.h>
+
+#ifdef __AVR_ATmega328P__ // use a modified SoftwareSerial implementation
+
 #include "ParitySerial.h"
 
 #define RX_PIN      4   // Arduino Digital.4, ATmega portD.4, ATMega328 pin.6
 #define TX_PIN      14  // Arduino Analog.0, ATmega portC.0, ATMega328 pin.23
+ParitySerial Target (RX_PIN, TX_PIN); // defaults to even parity
+
+#define TIMEOUT 200000
+
+#else // assume an STM32F103 running at 72 MHz, with hardware serial
+
+#define Target  Serial1
+#define TIMEOUT 800000
+
+#endif
 
 // only uncomment one the boot loaders mentioned below (or add your own)
 //#define BOOT_LOADER "boot-maplemini-v20.h"
@@ -14,7 +28,6 @@ const uint8_t data[] PROGMEM = {
 #include BOOT_LOADER
 };
 
-ParitySerial Target (RX_PIN, TX_PIN); // defaults to even parity
 uint8_t check;
 
 enum {
@@ -36,7 +49,7 @@ static uint8_t getData (uint16_t index) {
 }
 
 static uint8_t getReply () {
-    for (long i = 0; i < 200000; ++i)
+    for (long i = 0; i < TIMEOUT; ++i)
         if (Target.available())
             return Target.read();
     return 0;
@@ -74,7 +87,11 @@ static void sendCmd (uint8_t cmd) {
 }
 
 static void connectToTarget () {
+#ifdef __AVR_ATmega328P__   // use a modified SoftwareSerial implementation
     Target.begin(9600);
+#else                       // use serial port hardware, set to even parity
+    Target.begin(9600, SERIAL_8E1);
+#endif
 
     uint8_t b = 0;
     do {
