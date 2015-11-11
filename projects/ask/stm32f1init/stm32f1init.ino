@@ -49,6 +49,8 @@ enum {
 
 // get the specific data byte to send to the target
 static uint8_t getData (uint16_t index) {
+    if (index >= sizeof data)
+        return 0xFF;
     // this is equivalent to data[index] on ARM chips
     return pgm_read_byte(data + index);
 }
