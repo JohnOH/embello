@@ -10,9 +10,11 @@
 #include "ParitySerial.h"
 
 #define LED_PIN     13      // Arduino Dig.13, AVR port B.5, ATMega328 pin.13
-
+#define RESET_PIN   5       // Arduino Dig.5, AVR port D.5, ATMega328 pin.11
+#define ISP_PIN     15      // Arduino Ana.1, AVR port C.1, ATMega328 pin.24
 #define RX_PIN      4       // Arduino Dig.4, AVR port D.4, ATMega328 pin.6
 #define TX_PIN      14      // Arduino Ana.0, AVR port C.0, ATMega328 pin.23
+
 ParitySerial Target (RX_PIN, TX_PIN); // defaults to even parity
 
 static void targetInit () { Target.begin(9600); }
@@ -28,6 +30,11 @@ static void targetInit () { Target.begin(9600); }
 #define Log         Serial
 #define Target      Serial1
 #endif
+
+// adjust as needed to blink an LED and to adjust target ISP & RESET modes
+//#define LED_PIN     ...
+//#define RESET_PIN   ...
+//#define ISP_PIN     ...
 
 static void targetInit () { Target.begin(9600, SERIAL_8E1); }
 
@@ -64,7 +71,19 @@ enum {
 static void toggleLed () {
 #ifdef LED_PIN
     pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, ! digitalRead(LED_PIN));
+    digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+#endif
+}
+
+// adjust the control pins to reset the target and get it into ISP mode
+static void controlPins (bool isp, bool reset) {
+#ifdef ISP_PIN
+    pinMode(ISP_PIN, OUTPUT);
+    digitalWrite(ISP_PIN, !isp);
+#endif
+#ifdef RESET_PIN
+    pinMode(RESET_PIN, OUTPUT);
+    digitalWrite(RESET_PIN, !reset);
 #endif
 }
 
@@ -103,6 +122,7 @@ static void wantAck () {
     Log.print(" FAILED - got 0x");
     Log.println(b, HEX);
 
+    controlPins(false, false);
     while (true) { // halt, blinking rapidly
         toggleLed();
         delay(100);
@@ -129,6 +149,13 @@ static void connectToTarget () {
 
     uint8_t b = 0;
     do {
+        // pulse RESET pin low while keeping ISP pin low
+        controlPins(true, false);
+        delay(10);
+        controlPins(true, true);
+        delay(10);
+        controlPins(true, false);
+
         Log.print(".");
         Target.write(0x7F);
         b = getReply();
@@ -175,6 +202,8 @@ static void massErase () {
 
 // main sketch logic
 void setup () {
+    controlPins(false, false);
+
     Log.begin(115200);
     Log.print("[stm32f1init] ");
     Log.println(BOOT_LOADER);
@@ -234,6 +263,13 @@ void setup () {
 #ifdef LED_PIN
     digitalWrite(LED_PIN, 0);
 #endif
+
+    // pulse RESET pin low while keeping ISP pin high to start target code
+    controlPins(false, false);
+    delay(10);
+    controlPins(false, true);
+    delay(10);
+    controlPins(false, false);
 }
 
 void loop () {}
