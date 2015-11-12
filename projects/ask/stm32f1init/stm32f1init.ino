@@ -49,7 +49,7 @@ static void targetInit () { Target.begin(9600, SERIAL_8E1); }
 // see ./etc/bin2h.c for the utility code used to make these include files
 
 //#define BOOT_LOADER "boot-maplemini-v20.h"
-#define BOOT_LOADER "boot-usbSerial-v01.h"
+#define BOOT_LOADER "boot-usbserup-v01.h"
 //#define BOOT_LOADER "boot-bmp-jc66-v01.h"
 
 const uint8_t data[] PROGMEM = {
