@@ -1,0 +1,7 @@
+*.d
+*.bin
+*.elf
+*.o
+*.map
+bin2h
+/libopencm3
