@@ -4,7 +4,7 @@ Embello Tools
 Installing Go on ARM
 --------------------
 
-Many of the tools here are written in [Go](http://golang.org) and require the Go toolchain to be installed in order to complile
+Some of the tools here are written in [Go](http://golang.org) and require the Go toolchain to be installed in order to complile
 them. The tools can be installed on Linux, OS-X and Windows to run on x86 and ARM. For x86 and i386 installas download a binary
 package starting from http://golang.org/doc/install, for ARM installs visit http://dave.cheney.net/unofficial-arm-tarballs for
 info and follow these instructions (tested on a BBB running Ubuntu 14.04, on an RPi replace `armv7-1` by `armv6-1` below):
