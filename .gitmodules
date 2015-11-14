@@ -1,0 +1,3 @@
+[submodule "tools/usbserup/libopencm3"]
+	path = tools/usbserup/libopencm3
+	url = https://github.com/libopencm3/libopencm3

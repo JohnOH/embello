@@ -164,7 +164,7 @@ int main (void) {
 	//gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
 	//	      GPIO_CNF_OUTPUT_PUSHPULL, GPIO1);
 
-	gusbd_dev = usbd_init(&stm32f103_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));
+	gusbd_dev = usbd_init(&st_usbfs_v1_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));
 	usbd_register_set_config_callback(gusbd_dev, cdcacm_set_config);
 
 	//gpio_set(GPIOA, GPIO1);

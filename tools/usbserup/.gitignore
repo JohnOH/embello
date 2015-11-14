@@ -4,4 +4,3 @@
 *.o
 *.map
 bin2h
-/libopencm3
