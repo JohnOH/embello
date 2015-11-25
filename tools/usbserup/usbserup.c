@@ -17,6 +17,8 @@
 #include "upload.h"
 #include "usbinfo.h"
 
+#define LAZY_ERASE 1 // 1 = erase is no-op, write erases just-in-time
+
 static const char *usb_strings[] = {
 	"JeeLabs",
 	"USB Serial w/ Upload v0.1",
@@ -99,7 +101,7 @@ static void flush (void) {
 static uint8_t getByte (void) {
     flush();
     int i;
-    for (i = 0; i < 100000000; ++i) {
+    for (i = 0; i < 500000; ++i) {
         if (gpos < glen)
             return gbuf[gpos++];
         usbd_poll(gusbd_dev);
@@ -113,36 +115,39 @@ static void putByte (uint8_t b) {
 	outBuf[outFill++] = b;
 }
 
-#if 0
 const int pageBits = 10; // 1K pages on medium-density F103's
 const int bootPages = 8; // first 8 KB of flash contains boot loader
+#if 0
 const int totalPages = 128; // total flash memory size
+#else
+const int totalPages = 20;  // total flash memory size
+#endif
 const uint32_t flashStart = 0x08000000;  // start of flash memory
 
-const int pageSize = 1 << pageBits;
-const uint32_t userStart = flashStart + bootPages * pageSize;
-const uint32_t userLimit = flashStart + totalPages * pageSize;
-#else
-#define pageBits 10
-#define bootPages 8
-#define totalPages 28
-#define flashStart 0x08000000
+//const int pageSize = 1 << pageBits;
+//const uint32_t userStart = flashStart + bootPages * pageSize;
+//const uint32_t userLimit = flashStart + totalPages * pageSize;
 #define pageSize (1 << pageBits)
 #define userStart (flashStart + bootPages * pageSize)
 #define userLimit (flashStart + totalPages * pageSize)
-#endif
 
 static void eraseFlash (void) {
+#if !LAZY_ERASE
     // don't mass erase, erase only all the user pages in a loop
     uint32_t addr;
     for (addr = userStart; addr < userLimit; addr += pageSize)
         flash_erase_page(addr);
     flash_wait_for_last_operation();
+#endif
 }
 
 static void writeFlash (uint32_t addr, const uint8_t* ptr, int len) {
     if (addr < userStart)
         return; // don't overwrite the boot loader
+#if LAZY_ERASE
+    if (addr % pageSize == 0)
+        flash_erase_page(addr);
+#endif
     int i;
     for (i = 0; i < len; i += sizeof (uint32_t))
         flash_program_word(addr + i, *(const uint32_t*) (ptr + i));
@@ -159,15 +164,13 @@ int main (void) {
 		      GPIO_CNF_OUTPUT_OPENDRAIN, GPIO0);
 	gpio_clear(GPIOA, GPIO0);
 
-	// Setup GPIOA Pin 1 for the LED, inverted logic
-	//gpio_clear(GPIOA, GPIO1);
-	//gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
-	//	      GPIO_CNF_OUTPUT_PUSHPULL, GPIO1);
-
 	gusbd_dev = usbd_init(&st_usbfs_v1_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));
 	usbd_register_set_config_callback(gusbd_dev, cdcacm_set_config);
 
-	//gpio_set(GPIOA, GPIO1);
+	// Setup GPIOA Pin 1 for the LED, inverted logic
+	gpio_clear(GPIOA, GPIO1);
+	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
+		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO1);
 
     if (initialSync()) {
         flash_unlock();
@@ -176,6 +179,8 @@ int main (void) {
         flash_lock();
         flush();
     }
+
+	gpio_set(GPIOA, GPIO1);
 
 	SCB_VTOR = userStart;
     uint32_t sp = ((const uint32_t*) userStart)[0];
