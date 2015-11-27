@@ -11,11 +11,6 @@ const int bootPages = 16; // first 8 KB of flash contains boot loader
 const int totalPages = 128; // total flash memory size
 const uint32_t flashStart = 0x08000000; // start of flash memory
 
-// need to use a copy of the vector jump table when reflashing low-memory
-// this probably needs to be 256-byte aligned, so let's manually put it in RAM
-const uint32_t vectorCopy = 0x20002000; // for a copy of the vector table
-const uint32_t vectorSize = 0x200;      // more than enough for all vectors
-
 #define pageSize (1 << pageBits)
 
 #define userStart (flashStart)
@@ -28,12 +23,6 @@ const uint8_t data[] = {
 void setup () {
     Log.begin(115200);
     Log.println("[installboot]");
-
-#if 0
-    memcpy((void*) vectorCopy, (const void*) flashStart, vectorSize);
-    uint32_t* SCB_VTOR = (uint32_t*) 0xE000ED08;
-    *SCB_VTOR = vectorCopy;
-#endif
 
     FLASH_Unlock();
     FLASH_Status status;
@@ -91,21 +80,6 @@ void setup () {
         }
         return; // abort
     }
-
-#if 0
-    Log.print("Fixing boot jump: ");
-    delay(100);
-
-    FLASH_ErasePage(flashStart);
-
-    for (int i = 0; i < 8; i += 2) {
-        uint16_t val = *(const uint16_t*) (data + i);
-        status = FLASH_ProgramHalfWord(flashStart + i, val);
-        Log.print(status);
-        delay(2);
-    }
-    Log.println(" OK.");
-#endif
 
     FLASH_Lock();
     Log.println("Done - the boot loader has been installed.");
