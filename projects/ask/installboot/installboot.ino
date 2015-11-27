@@ -6,9 +6,9 @@
 
 #define Log Serial
 
-const int pageBits = 10; // 1K pages on medium-density F103's
-const int bootPages = 16; // first 8 KB of flash contains boot loader
-const int totalPages = 128; // total flash memory size
+const int pageBits = 10;    // 1K pages on medium-density F103's
+const int bootPages = 8;    // first 8 KB of flash contains boot loader
+const int totalPages = 64;  // total flash memory size
 const uint32_t flashStart = 0x08000000; // start of flash memory
 
 #define pageSize (1 << pageBits)
@@ -81,7 +81,7 @@ void setup () {
         return; // abort
     }
 
-    FLASH_Lock();
+    //FLASH_Lock();
     Log.println("Done - the boot loader has been installed.");
     delay(100);
 
