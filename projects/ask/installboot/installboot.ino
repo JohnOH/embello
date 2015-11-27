@@ -83,6 +83,7 @@ void setup () {
 
     FLASH_Lock();
     Log.println("Done - the boot loader has been installed.");
+    delay(100);
 
     //*SCB_VTOR = flashStart;
     uint32_t vec1 = ((const uint32_t*) data)[1];
