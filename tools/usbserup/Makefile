@@ -20,7 +20,8 @@
 BINARY = usbserup
 
 OPENCM3_DIR=./libopencm3
-LDSCRIPT = $(OPENCM3_DIR)/lib/stm32/f1/stm32f100xb.ld
+#LDSCRIPT = $(OPENCM3_DIR)/lib/stm32/f1/stm32f100xb.ld
+LDSCRIPT = ./stm32f100xb-high.ld
 CFLAGS = -std=gnu99
 
 default: all data.h

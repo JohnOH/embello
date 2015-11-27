@@ -1,6 +1,6 @@
 /*
  * This file was adapted from the usb_cdcacm example in the libopencm3 project.
- * It use libopencm3 as is, the code below is released in the public domain.
+ * It uses libopencm3 as is, the code below is released in the public domain.
  *
  * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
  * Copyright (C) 2015 Jean-Claude Wippler <jc@wippler.nl>
@@ -17,7 +17,8 @@
 #include "upload.h"
 #include "usbinfo.h"
 
-#define LAZY_ERASE 1 // 1 = erase is no-op, write erases just-in-time
+#define LAZY_ERASE 1    // if 1: erase is no-op, write erases just-in-time
+#define SHADOW_HIGH 1   // if 1: boot loader resides at the top of flash mem
 
 static const char *usb_strings[] = {
 	"JeeLabs",
@@ -116,41 +117,48 @@ static void putByte (uint8_t b) {
 }
 
 const int pageBits = 10; // 1K pages on medium-density F103's
-const int bootPages = 8; // first 8 KB of flash contains boot loader
-#if 0
+const int bootPages = 16; // first 8 KB of flash contains boot loader
 const int totalPages = 128; // total flash memory size
-#else
-const int totalPages = 20;  // total flash memory size
-#endif
 const uint32_t flashStart = 0x08000000;  // start of flash memory
 
-//const int pageSize = 1 << pageBits;
-//const uint32_t userStart = flashStart + bootPages * pageSize;
-//const uint32_t userLimit = flashStart + totalPages * pageSize;
 #define pageSize (1 << pageBits)
+
+#if SHADOW_HIGH
+#define userStart (flashStart)
+#define userLimit (flashStart + (totalPages-bootPages) * pageSize)
+#else
 #define userStart (flashStart + bootPages * pageSize)
 #define userLimit (flashStart + totalPages * pageSize)
+#endif
 
 static void eraseFlash (void) {
-#if !LAZY_ERASE
-    // don't mass erase, erase only all the user pages in a loop
-    uint32_t addr;
-    for (addr = userStart; addr < userLimit; addr += pageSize)
-        flash_erase_page(addr);
-    flash_wait_for_last_operation();
-#endif
+    if (!LAZY_ERASE) {
+        // partial mass erase, erasing only all the user pages in a loop
+        uint32_t addr;
+        for (addr = userStart; addr < userLimit; addr += pageSize)
+            flash_erase_page(addr);
+        flash_wait_for_last_operation();
+    }
 }
 
 static void writeFlash (uint32_t addr, const uint8_t* ptr, int len) {
-    if (addr < userStart)
+    if (addr < userStart || addr >= userLimit)
         return; // don't overwrite the boot loader
-#if LAZY_ERASE
-    if (addr % pageSize == 0)
+    if (LAZY_ERASE && addr % pageSize == 0)
         flash_erase_page(addr);
-#endif
     int i;
-    for (i = 0; i < len; i += sizeof (uint32_t))
-        flash_program_word(addr + i, *(const uint32_t*) (ptr + i));
+    for (i = 0; i < len; i += sizeof (uint32_t)) {
+        uint32_t data = *(const uint32_t*) (ptr + i);
+        // when the boot loader is up high, it needs to patch the user code:
+        //  vector #0 is re-used to save the actual reset address
+        //  vector #1 is reset jump, patched to jump to the boot loader
+        if (SHADOW_HIGH && addr == flashStart)
+            switch (i) {
+                case 0: data = *(const uint32_t*) (ptr + 4); break;
+                case 4: data = *(const uint32_t*) (userLimit + 4); break;
+            }
+        flash_program_word(addr + i, data);
+    }
     flash_wait_for_last_operation();
 }
 
@@ -158,19 +166,19 @@ int main (void) {
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
 	rcc_periph_clock_enable(RCC_GPIOA);
 
-	// Setup GPIOA Pin 0 to pull up the D+ high, so autodect works
-	// with the bootloader.  The circuit is active low.
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
-		      GPIO_CNF_OUTPUT_OPENDRAIN, GPIO0);
-	gpio_clear(GPIOA, GPIO0);
-
-	gusbd_dev = usbd_init(&st_usbfs_v1_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));
-	usbd_register_set_config_callback(gusbd_dev, cdcacm_set_config);
-
 	// Setup GPIOA Pin 1 for the LED, inverted logic
 	gpio_clear(GPIOA, GPIO1);
 	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO1);
+
+	// Setup GPIOA Pin 0 to pull up the D+ high, so autodect works
+	// with the bootloader.  The circuit is active low.
+	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
+		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO0);
+	gpio_clear(GPIOA, GPIO0);
+
+	gusbd_dev = usbd_init(&st_usbfs_v1_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));
+	usbd_register_set_config_callback(gusbd_dev, cdcacm_set_config);
 
     if (initialSync()) {
         flash_unlock();
@@ -183,10 +191,15 @@ int main (void) {
 	gpio_set(GPIOA, GPIO1);
 
 	SCB_VTOR = userStart;
-    uint32_t sp = ((const uint32_t*) userStart)[0];
-    uint32_t ip = ((const uint32_t*) userStart)[1];
+    uint32_t vec0 = ((const uint32_t*) userStart)[0];
+    uint32_t vec1 = ((const uint32_t*) userStart)[1];
     
     // set up stack pointer, then jump to reset vector entry
-    __asm volatile ("msr PSP, %0" : : "r" (sp));
-    ((void (*)(void)) ip)();
+    if (SHADOW_HIGH) {
+        // don't change the stack, assume that user code will do this
+        ((void (*)(void)) vec0)();
+    } else {
+        __asm volatile ("msr PSP, %0" : : "r" (vec0));
+        ((void (*)(void)) vec1)();
+    }
 }
