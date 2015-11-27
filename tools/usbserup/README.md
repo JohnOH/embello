@@ -23,7 +23,7 @@ Usbserup currently has some hard-coded assumptions:
 ## High-flash
 
 This boot loader normally resides in _high_ flash memory. This avoids having to
-build your uploaded code to run at a different starting addres, i.e. you can
+build your uploaded code to run at a different starting address, i.e. you can
 upload and run the same code compiled to start at 0x08000000 regardless of
 whether you use the serial USB uploader or STM's built-in serial boot ROM.
 
@@ -56,7 +56,7 @@ Build instructions: "`git submodule update --init`", followed by "`make`".
 One tricky bit is getting this code into the correct area of flash memory, and
 then getting it started up. This can be done via the "installboot.ino" sketch,
 see `embello/projects/ask/installboot/`. This is a normal sketch which you need
-to get running first, using whetever upload mechanism you already have working.
+to get running first, using whatever upload mechanism you already have working.
 
 ## How it works
 
