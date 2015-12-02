@@ -16,7 +16,10 @@ int main (int argc, const char** argv) {
     }
 
     int width = 0;
-    while (!feof(inf)) {
+    while (1) {
+        int c = fgetc(inf);
+        if (c < 0)
+            break;
         width += printf("%d,", fgetc(inf));
         if (width > 75 || feof(inf)) {
             putchar('\n');
