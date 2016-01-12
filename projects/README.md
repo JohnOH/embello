@@ -4,6 +4,8 @@ In this folder:
 
 **Garage Parking Aid** - <http://jeelabs.org/gpa>
 
+**Hy-Tiny Base Board** - <http://jeelabs.org/hbb>
+
 **Micro Power Snitch** - <http://jeelabs.org/mps>
 
 **RF Node Watcher** - <http://jeelabs.org/rnw>
