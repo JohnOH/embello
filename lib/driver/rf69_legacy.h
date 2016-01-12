@@ -118,7 +118,7 @@ void RF69<SPI>::configure (const uint8_t* p) {
 }
 
 static const uint8_t configRegs [] = {
-  0x01, 0x00, // OpMode = sleep
+// POR value is better for first rf_sleep  0x01, 0x00, // OpMode = sleep
   0x02, 0x00, // DataModul = packet mode, fsk
   0x03, 0x02, // BitRateMsb, data rate = 49,261 khz
   0x04, 0x8A, // BitRateLsb, divider = 32 MHz / 650 == 49,230 khz
@@ -131,6 +131,8 @@ static const uint8_t configRegs [] = {
   0x1A, 0x42, // AfcBw 125 KHz Channel filter BW
 
   0x1E, 0x00, // 
+
+  0x26, 0x07, // disable clkout
 
   0x29, 0xFF, // RssiThresh ... -127.5dB
 
