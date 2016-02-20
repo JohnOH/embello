@@ -2,19 +2,20 @@
 // It sends out text lines from a file without over-running the input buffer.
 // Relies on the fact that processing starts after a newline has been sent.
 //
-// Msend does this by waiting up to 250 milliseconds for new input to arrive.
+// Msend does this by waiting up to 500 milliseconds for new input to arrive.
 // The trick is that as soon as a received text line matches what was just
 // sent out plus an "ok." prompt at the end, then it immediately moves on to
 // the next line. This allows sending source code lines at maximum speed.
 //
-// #include <filename>
+// include <filename>
 //		Include directives can be used to insert another source file.
 //
-// #require <filename>
-//		Similar to #include, but this won't re-include a file if already sent.
+// require <filename>
+//		Similar to include, but this won't re-include a file if already sent.
 //
 // To reduce clutter, the exact-echo lines are also not passed on to picocom.
 // Only lines which are not precisely the same as the input will be shown.
+// Comment lines starting with "\" are not sent.
 //
 // If there's a "not found" error, it will be shown and abort the upload.
 //
@@ -74,15 +75,19 @@ func send(fname string) {
 	scanner := bufio.NewScanner(f)
 	lineNum := 0
 	defer func() {
-		fmt.Fprintf(os.Stderr, "\t<<< %s (%d lines)\n", fname, lineNum)
+		fmt.Fprintf(os.Stderr, "\t<<<<<<<<<<<< %s (%d lines)\n", fname, lineNum)
 	}()
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		lineNum++
 
-		incl := strings.HasPrefix(line, "#include ")
-		if incl || strings.HasPrefix(line, "#require ") {
+		if strings.HasPrefix(line, "\\ ") {
+			continue // don't send comment-only lines
+		}
+
+		incl := strings.HasPrefix(line, "include ")
+		if incl || strings.HasPrefix(line, "require ") {
 			fn := strings.Split(line, " ")[1]
 			if _, ok := filesSeen[fn]; incl || !ok {
 				fmt.Fprintf(os.Stderr, "\t>>> %s\n", line)
@@ -107,8 +112,8 @@ func send(fname string) {
 				goto L
 			}
 
-		// continue sending if no matching input was found within 250 ms
-		case <-time.After(250 * time.Millisecond):
+		// continue sending if no matching input was found within 500 ms
+		case <-time.After(500 * time.Millisecond):
 		}
 	}
 }
