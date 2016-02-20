@@ -75,7 +75,7 @@ func send(fname string) {
 	scanner := bufio.NewScanner(f)
 	lineNum := 0
 	defer func() {
-		fmt.Fprintf(os.Stderr, "\t<<<<<<<<<<<< %s (%d lines)\n", fname, lineNum)
+		fmt.Fprintf(os.Stderr, "\t<<<<<<<<<<< %s (%d lines)\n", fname, lineNum)
 	}()
 
 	for scanner.Scan() {
