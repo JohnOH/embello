@@ -13,7 +13,7 @@ the next line. This allows sending source code lines at maximum speed.
     Include directives can be used to insert another source file.
 
 * **require** _filename_  
-    Similar to #include, but this won't re-include a file if already sent.
+    Similar to include, but this won't re-include a file if already sent.
 
 To reduce clutter, the exact-echo lines are also not passed on to picocom.
 Only lines which are not precisely the same as the input will be shown.
