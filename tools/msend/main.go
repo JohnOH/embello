@@ -15,7 +15,7 @@
 //
 // To reduce clutter, the exact-echo lines are also not passed on to picocom.
 // Only lines which are not precisely the same as the input will be shown.
-// Comment lines starting with "\" are not sent.
+// Comment lines starting with "\" and empty lines are not sent.
 //
 // If there's a "not found" error, it will be shown and abort the upload.
 //
@@ -82,8 +82,8 @@ func send(fname string) {
 		line := scanner.Text()
 		lineNum++
 
-		if strings.HasPrefix(line, "\\ ") {
-			continue // don't send comment-only lines
+		if line == "" || strings.HasPrefix(line, "\\ ") {
+			continue // don't send empty or comment-only lines
 		}
 
 		incl := strings.HasPrefix(line, "include ")
