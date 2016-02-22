@@ -3,7 +3,7 @@ An exploration of Mecrisp-Stellaris Forth 2.2.1 on HyTiny STM32F103.
 This code runs on the "RF Node Watcher" hardware described on the [weblog][R].
 It includes an ARM-based [Hy-TinySTM103T][H], an RFM69 connected over SPI, and
 a small 128x64 pixel OLED display connected over I2C. It should also work on
-other STM32F103 boards, see the "h" file for pin definitions.
+many other STM32F103 boards, see the "h" file for pin definitions.
 
 ## Installation
 
@@ -29,7 +29,7 @@ In day-to-day use, "h" and "l" get loaded once and then remain on the chip,
 ready for use after power-up. This creates a fairly elaborate context for
 development, including bit-banged SPI and I2C drivers, as well as the OLED
 and RF69 drivers. There is a complete graphics library, able to draw lines,
-circles, and text, as well as a logo bitmap and an ASCII 8x8 text font.
+circles, and text, plus a logo bitmap and an ASCII 8x8 text font.
 
 Flash memory use is well under 32 KB for all of the above plus Mecrisp Forth.
 

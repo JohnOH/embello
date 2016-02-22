@@ -7,7 +7,7 @@ include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
 include ../flib/hexdump.fs
 
-\ board definitions for HyTiny-STM32
+\ board definitions for Hy-TinySTM103T
 
 PA1 constant LED
 
