@@ -11,9 +11,7 @@ include ../flib/hal-stm32f1.fs
 
 PA1 constant LED
 
-PA4 variable (ssel)  \ this can be changed at run time
-: SSEL (ssel) @  inline ;
-
+PA4 variable ssel  \ can be changed at run time
 PA5 constant SCLK
 PA6 constant MISO
 PA7 constant MOSI
