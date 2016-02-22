@@ -1,0 +1,33 @@
+\ install hardware abstractions in flash
+
+eraseflash
+compiletoflash
+
+include ../flib/io-stm32f1.fs
+include ../flib/hal-stm32f1.fs
+include ../flib/hexdump.fs
+
+\ board definitions for HyTiny-STM32
+
+PA1 constant LED
+
+PA4 constant SSEL
+PA5 constant SCLK
+PA6 constant MISO
+PA7 constant MOSI
+
+PB6 constant SCL
+PB7 constant SDA
+
+: init ( -- )  \ board initialisation
+  -jtag  \ disable JTAG, we only need SWD
+  LED OMODE-PP io-mode!
+  72MHz
+\ 1000 systick-hz
+;
+
+cornerstone {hal-rnw}
+compiletoram
+init
+
+\ vim: set ft=forth :

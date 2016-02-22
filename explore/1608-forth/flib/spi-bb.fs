@@ -1,0 +1,26 @@
+\ bit-banged SPI driver
+
+: +spi ( -- ) SSEL io-0! ;  \ select SPI
+: -spi ( -- ) SSEL io-1! ;  \ deselect SPI
+
+: >spi> ( c -- c )  \ bit-banged SPI, 8 bits
+  8 0 do
+    dup $80 and MOSI io!
+    SCLK io-1!
+    shl
+    MISO io@ or
+    SCLK io-0!
+  loop
+  $FF and ;
+
+\ single byte transfers
+: spi> ( -- c ) 0 >spi> ;  \ read byte from SPI
+: >spi ( c -- ) >spi> drop ;  \ write byte to SPI
+
+: init-spi ( -- )  \ set up bit-banged SPI
+  OMODE-PP   SSEL io-mode!
+  OMODE-PP   SCLK io-mode!
+  IMODE-OPEN MISO io-mode!
+  OMODE-PP   MOSI io-mode!
+  -spi spi> drop  \ cycle SCLK a few times with SSEL off (high)
+;

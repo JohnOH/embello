@@ -1,0 +1,33 @@
+\ test loader
+\ needs l
+
+( cornerstone) {lib-rnw}
+
+: blink ( -- )  \ blink the on-board LED until a key is pressed
+  OMODE-PP LED io-mode!
+  begin
+    LED iox!
+    1000000 0 do loop
+  key? until ;
+
+\ print out received packet info until a key is pressed
+\ format: #bytes b3..b0 b7..b4 rssi lna afc
+: rftry ( -- )
+  8686 init-rf
+  begin
+    rf-recv  ?dup if
+      cr . rf.buf @ hex. rf.buf 4 + @ hex. rf.rssi @ . rf.lna @ . rf.afc @ .
+    then
+  key? until ;
+
+: lcdtry ( -- )
+  init-lcd show-logo
+  2000000 0 do loop
+  init-lcd demo
+;
+
+: rtctry ( -- )  init-i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+
+\ lcdtry
+\ rftry  \ must be last, continues to run until keypress
+\ vim: set ft=forth :
