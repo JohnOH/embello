@@ -95,6 +95,47 @@ _Dump the RF69's internal register settings:_
     40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
     50: 14 C5 88 08 00 00 01 00 1B 09 55 80 70 33 CA 08 ok.
 
+Here is a complete transcript of loading "h" and then "l" into the system:
+
+    Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
+
+    *** file: h
+    msend h 
+    cr eraseflash 
+    Finished. Reset !Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
+        >>> include ../flib/io-stm32f1.fs
+        <<<<<<<<<<< ../flib/io-stm32f1.fs (59 lines)
+        >>> include ../flib/hal-stm32f1.fs
+        <<<<<<<<<<< ../flib/hal-stm32f1.fs (109 lines)
+        >>> include ../flib/hexdump.fs
+        <<<<<<<<<<< ../flib/hexdump.fs (73 lines)
+        <<<<<<<<<<< h (33 lines)
+
+    *** exit status: 0
+
+    *** file: l
+    msend l 
+    ( cornerstone ) {hal-rnw} 
+    Finished. Reset !Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
+        >>> include ../flib/spi-bb.fs
+        <<<<<<<<<<< ../flib/spi-bb.fs (26 lines)
+        >>> include ../flib/rf69.fs
+        <<<<<<<<<<< ../flib/rf69.fs (174 lines)
+        >>> include ../flib/i2c-bb.fs
+        <<<<<<<<<<< ../flib/i2c-bb.fs (51 lines)
+        >>> include ../flib/oled.fs
+        <<<<<<<<<<< ../flib/oled.fs (93 lines)
+        >>> include ../flib/graphics.fs
+        <<<<<<<<<<< ../flib/graphics.fs (247 lines)
+    ( code-size ) here swap - . 8264  ok.
+        >>> include d
+    ( cornerstone) {lib-rnw} 
+    Finished. Reset !Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
+        <<<<<<<<<<< d (33 lines)
+        <<<<<<<<<<< l (23 lines)
+
+    *** exit status: 0
+
 That's it for now. Enjoy!
 
   [R]: http://jeelabs.org/book/1545f/

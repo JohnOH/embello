@@ -1,6 +1,6 @@
 \ install hardware abstractions in flash
 
-eraseflash
+cr eraseflash
 compiletoflash
 
 include ../flib/io-stm32f1.fs
