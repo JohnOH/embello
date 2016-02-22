@@ -1,12 +1,12 @@
 \ I/O pin primitives
 
 $40010800 constant GPIO-BASE
-      $00 constant GPIO.CRL   \ Reset $44444444 Port Conf Register Low
-      $04 constant GPIO.CRH   \ Reset $44444444 Port Conf Register High
+      $00 constant GPIO.CRL   \ reset $44444444 port Conf Register Low
+      $04 constant GPIO.CRH   \ reset $44444444 port Conf Register High
       $08 constant GPIO.IDR   \ RO              Input Data Register
-      $0C constant GPIO.ODR   \ Reset 0         Output Data Register
-      $10 constant GPIO.BSRR  \ Reset 0         Port Bit Set/Reset Reg
-      $14 constant GPIO.BRR   \ Reset 0         Port Bit Reset Register
+      $0C constant GPIO.ODR   \ reset 0         Output Data Register
+      $10 constant GPIO.BSRR  \ reset 0         port Bit Set/Reset Reg
+      $14 constant GPIO.BRR   \ reset 0         port Bit Reset Register
 
 : io ( port# pin# -- pin )  \ combine port and pin into single int
   swap 8 lshift or  2-foldable ;
@@ -30,17 +30,17 @@ $40010800 constant GPIO-BASE
 : iox! ( pin -- )  \ toggle pin
   dup io@ 0= swap io! ;
 
-%0000 constant IMODE-ADC
-%0100 constant IMODE-OPEN
-%1000 constant IMODE-PULL
+%0000 constant IMODE-ADC    \ input, analog
+%0100 constant IMODE-OPEN   \ input, floating
+%1000 constant IMODE-PULL   \ input, pull-up/down
 
-%0001 constant OMODE-PP
-%0101 constant OMODE-OD
-%1001 constant OMODE-AF-PP
-%1101 constant OMODE-AF-OD
+%0001 constant OMODE-PP     \ output, push-pull
+%0101 constant OMODE-OD     \ output, open drain
+%1001 constant OMODE-AF-PP  \ alternate function, push-pull
+%1101 constant OMODE-AF-OD  \ alternate function, open drain
 
-  %01 constant OMODE-SLOW  \ add to OMODE-* for 2 MHz iso 10 MHz drive
-  %10 constant OMODE-FAST  \ add to OMODE-* for 50 MHz iso 10 MHz drive
+  %01 constant OMODE-SLOW   \ add to OMODE-* for 2 MHz iso 10 MHz drive
+  %10 constant OMODE-FAST   \ add to OMODE-* for 50 MHz iso 10 MHz drive
 
 : io-mode! ( mode pin -- )  \ set the CNF and MODE bits for a pin
   dup io-base GPIO.CRL + over 8 and shr + >r ( R: crl/crh )
