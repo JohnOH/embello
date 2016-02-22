@@ -44,16 +44,16 @@ Here are a few examples, using definitions included in "h" and "l".
 Show current GPIO settings:
 
     io.all 
-    PIN 0  PORT A  CRL 14114414  CRH 000004B0  IDR 00000459  ODR 0000A010 
-    PIN 0  PORT B  CRL 44484444  CRH 44444444  IDR 000000DA  ODR 00000010 
-    PIN 0  PORT C  CRL 44444444  CRH 44444444  IDR 00000000  ODR 00000000 
-    PIN 0  PORT D  CRL 44444444  CRH 44444444  IDR 00000000  ODR 00000000 
-    PIN 0  PORT E  CRL 44444444  CRH 44444444  IDR 00000000  ODR 00000000  ok.
+    PIN 0  PORT A  CRL 14114414  CRH 000004B0  IDR 0459  ODR A010
+    PIN 0  PORT B  CRL 44484444  CRH 44444444  IDR 00DA  ODR 0010
+    PIN 0  PORT C  CRL 44444444  CRH 44444444  IDR 0000  ODR 0000
+    PIN 0  PORT D  CRL 44444444  CRH 44444444  IDR 0000  ODR 0000
+    PIN 0  PORT E  CRL 44444444  CRH 44444444  IDR 0000  ODR 0000 ok.
 
 Show GPIO info related to a specific pin:
 
     led io. 
-    PIN 1  PORT A  CRL 14114414  CRH 000004B0  IDR 00000459  ODR 0000A010  ok.
+    PIN 1  PORT A  CRL 14114414  CRH 000004B0  IDR 0459  ODR A010 ok.
 
 Scan the I2C bus for attached devices:
 
@@ -88,7 +88,7 @@ Receive some RF69 test packets, in HEX format (stopped by keypress):
 Dump the RF69's internal register settings:
 
     rf. 
-        0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 
+         0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 
     00: -- 10 00 02 8A 02 E1 D9 26 40 41 60 02 92 F5 20
     10: 24 9F 09 1A 40 B0 7B 9B 18 4A 42 40 80 06 5C 00
     20: 00 FF F3 00 83 00 07 D9 46 A0 00 00 00 05 88 2D
