@@ -11,7 +11,9 @@ include ../flib/hexdump.fs
 
 PA1 constant LED
 
-PA4 constant SSEL
+PA4 variable (ssel)  \ this can be changed at run time
+: SSEL (ssel) @  inline ;
+
 PA5 constant SCLK
 PA6 constant MISO
 PA7 constant MOSI
