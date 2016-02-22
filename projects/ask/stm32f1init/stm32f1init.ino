@@ -47,10 +47,12 @@ static void targetInit () { Target.begin(9600, SERIAL_8E1); }
 
 // only uncomment one of the boot loaders mentioned below (or add your own)
 // see ./etc/bin2h.c for the utility code used to make these include files
+// (moved to https://github.com/jeelabs/embello/tree/master/tools/bin2h)
 
 //#define BOOT_LOADER "boot-maplemini-v20.h"
-#define BOOT_LOADER "boot-usbserup-v01.h"
+//#define BOOT_LOADER "boot-usbserup-v01.h"
 //#define BOOT_LOADER "boot-bmp-jc66-v01.h"
+#define BOOT_LOADER "mecrisp-v221a.h"
 
 const uint8_t data[] PROGMEM = {
 #include BOOT_LOADER

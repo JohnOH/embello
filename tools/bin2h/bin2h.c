@@ -20,7 +20,7 @@ int main (int argc, const char** argv) {
         int c = fgetc(inf);
         if (c < 0)
             break;
-        width += printf("%d,", fgetc(inf));
+        width += printf("%d,", c);
         if (width > 75 || feof(inf)) {
             putchar('\n');
             width = 0;
