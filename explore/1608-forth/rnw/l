@@ -14,6 +14,8 @@ include ../flib/i2c-bb.fs
 include ../flib/oled.fs
 include ../flib/graphics.fs
 
+include ../flib/multi.fs
+
 ( code-size ) here swap - .
 
 cornerstone {lib-rnw}
