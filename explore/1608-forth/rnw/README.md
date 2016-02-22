@@ -1,4 +1,4 @@
-An exploration of Mecrisp-Stellaris Forth 2.2.1 on HyTiny STM32F103.
+An exploration of Mecrisp-Stellaris Forth 2.2.1 on Hy-TinySTM103T.
 
 This code runs on the "RF Node Watcher" hardware described on the [weblog][R].
 It includes an ARM-based [Hy-TinySTM103T][H], an RFM69 connected over SPI, and
@@ -7,7 +7,7 @@ many other STM32F103 boards, see the "h" file for pin definitions.
 
 ## Installation
 
-The board must have Mecrisp-Stellaris Forth pre-loaded, see [SourceForge][M].
+The board must have Mecrisp-Stellaris Forth pre-loaded, see [SourceForge][F].
 This 16 KB firmware provides a nice runtime environment, everything else here
 has been implemented on top in pure Forth.
 
@@ -37,9 +37,11 @@ New code and definitions can be typed in interactively, or added to "d" and
 reloaded. Once the code is stable enough, it can then be moved to a new source
 file and included in "l" to make it more permanent.
 
-Next are a few examples, using definitions from "h" and "l".
+## Examples
 
-_Show current GPIO settings:_
+Here are a few examples, using definitions included in "h" and "l".
+
+Show current GPIO settings:
 
     io.all 
     PIN 0  PORT A  CRL 14114414  CRH 000004B0  IDR 00000459  ODR 0000A010 
@@ -48,12 +50,12 @@ _Show current GPIO settings:_
     PIN 0  PORT D  CRL 44444444  CRH 44444444  IDR 00000000  ODR 00000000 
     PIN 0  PORT E  CRL 44444444  CRH 44444444  IDR 00000000  ODR 00000000  ok.
 
-_Show GPIO info related to a specific pin:_
+Show GPIO info related to a specific pin:
 
     led io. 
     PIN 1  PORT A  CRL 14114414  CRH 000004B0  IDR 00000459  ODR 0000A010  ok.
 
-_Scan the I2C bus for attached devices:_
+Scan the I2C bus for attached devices:
 
     init-i2c i2c. 
     00: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -65,7 +67,7 @@ _Scan the I2C bus for attached devices:_
     60: -- -- -- -- -- -- -- -- 68 -- -- -- -- -- -- --
     70: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- ok.
 
-_Receive some RF69 test packets (stopped by keypress):_
+Receive some RF69 test packets (stopped by keypress):
 
     rfdemo 
     OK 128 24 64 
@@ -75,7 +77,7 @@ _Receive some RF69 test packets (stopped by keypress):_
     OK 128 24 69 1 2 3 4 5 
     ok.
 
-_Receive some RF69 test packets, in HEX format (stopped by keypress):_
+Receive some RF69 test packets, in HEX format (stopped by keypress):
 
     rfdemox 
     OKX 801846010203040506
@@ -84,7 +86,7 @@ _Receive some RF69 test packets, in HEX format (stopped by keypress):_
     OKX 801849010203040506070809
     ok.
 
-_Dump the RF69's internal register settings:_
+Dump the RF69's internal register settings:
 
     rf. 
         0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 
@@ -95,7 +97,10 @@ _Dump the RF69's internal register settings:_
     40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
     50: 14 C5 88 08 00 00 01 00 1B 09 55 80 70 33 CA 08 ok.
 
-Here is a complete transcript of loading "h" and then "l" into the system:
+## Firmware upload
+
+This is a transcript of loading "h" and then "l" into the system with the
+[PicoCom][P] terminal utility and [msend][M]:
 
     Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
 
@@ -128,6 +133,7 @@ Here is a complete transcript of loading "h" and then "l" into the system:
         >>> include ../flib/graphics.fs
         <<<<<<<<<<< ../flib/graphics.fs (247 lines)
     ( code-size ) here swap - . 8264  ok.
+    ( flash-end ) here hex. 00007400  ok.
         >>> include d
     reset UMecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
         <<<<<<<<<<< d (33 lines)
@@ -139,4 +145,6 @@ That's it for now. Enjoy!
 
   [R]: http://jeelabs.org/book/1545f/
   [H]: http://www.hotmcu.com/stm32f103tb-arm-cortex-m3-development-board-p-222.html
-  [M]: http://mecrisp.sourceforge.net/
+  [F]: http://mecrisp.sourceforge.net/
+  [M]: https://github.com/jeelabs/embello/tree/master/tools/msend
+  [P]: https://github.com/npat-efault/picocom

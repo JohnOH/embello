@@ -17,6 +17,9 @@ include ../flib/graphics.fs
 ( code-size ) here swap - .
 
 cornerstone {lib-rnw}
+
+( flash-end ) here hex.
+
 compiletoram
 
 include d

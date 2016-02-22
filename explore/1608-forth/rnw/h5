@@ -1,0 +1,34 @@
+\ install hardware abstractions in flash
+\ modified version, for the HyTiny 50x50 baseboard w/ RF69 on an Arduino shield
+
+cr eraseflash
+compiletoflash
+
+include ../flib/io-stm32f1.fs
+include ../flib/hal-stm32f1.fs
+include ../flib/hexdump.fs
+
+\ board definitions for Hy-TinySTM103T
+
+PA1 constant LED
+
+PA15 constant SSEL
+PA5 constant SCLK
+PA6 constant MISO
+PA7 constant MOSI
+
+PB6 constant SCL
+PB7 constant SDA
+
+: init ( -- )  \ board initialisation
+  -jtag  \ disable JTAG, we only need SWD
+  LED OMODE-PP io-mode!
+  72MHz
+\ 1000 systick-hz
+;
+
+cornerstone {hal-rnw}
+compiletoram
+init
+
+\ vim: set ft=forth :
