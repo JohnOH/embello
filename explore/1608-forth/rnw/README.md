@@ -107,12 +107,12 @@ This is a transcript of loading "h" and then "l" into the system with the
     msend h 
     cr eraseflash 
     Finished. Reset !Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
+        >>> include ../flib/hexdump.fs
+        <<<<<<<<<<< ../flib/hexdump.fs (73 lines)
         >>> include ../flib/io-stm32f1.fs
         <<<<<<<<<<< ../flib/io-stm32f1.fs (59 lines)
         >>> include ../flib/hal-stm32f1.fs
         <<<<<<<<<<< ../flib/hal-stm32f1.fs (109 lines)
-        >>> include ../flib/hexdump.fs
-        <<<<<<<<<<< ../flib/hexdump.fs (73 lines)
         <<<<<<<<<<< h (33 lines)
 
     *** exit status: 0
@@ -124,19 +124,21 @@ This is a transcript of loading "h" and then "l" into the system with the
         >>> include ../flib/spi-bb.fs
         <<<<<<<<<<< ../flib/spi-bb.fs (26 lines)
         >>> include ../flib/rf69.fs
-        <<<<<<<<<<< ../flib/rf69.fs (174 lines)
+        <<<<<<<<<<< ../flib/rf69.fs (164 lines)
         >>> include ../flib/i2c-bb.fs
-        <<<<<<<<<<< ../flib/i2c-bb.fs (51 lines)
+        <<<<<<<<<<< ../flib/i2c-bb.fs (49 lines)
         >>> include ../flib/oled.fs
         <<<<<<<<<<< ../flib/oled.fs (93 lines)
         >>> include ../flib/graphics.fs
         <<<<<<<<<<< ../flib/graphics.fs (247 lines)
-    ( code-size ) here swap - . 8264  ok.
-    ( flash-end ) here hex. 00007400  ok.
+        >>> include ../flib/multi.fs
+        <<<<<<<<<<< ../flib/multi.fs (206 lines)
+    ( code-size ) here swap - . 10016  ok.
+    ( flash-end ) here hex. 00007800  ok.
         >>> include d
     reset UMecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
         <<<<<<<<<<< d (33 lines)
-        <<<<<<<<<<< l (23 lines)
+        <<<<<<<<<<< l (28 lines)
 
     *** exit status: 0
 
