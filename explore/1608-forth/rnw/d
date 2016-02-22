@@ -1,7 +1,7 @@
 \ test loader
 \ needs l
 
-( cornerstone) {lib-rnw}
+reset
 
 : blink ( -- )  \ blink the on-board LED until a key is pressed
   OMODE-PP LED io-mode!

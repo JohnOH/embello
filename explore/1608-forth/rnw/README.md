@@ -11,7 +11,7 @@ The board must have Mecrisp-Stellaris Forth pre-loaded, see [SourceForge][M].
 This 16 KB firmware provides a nice runtime environment, everything else here
 has been implemented on top in pure Forth.
 
-There are three small "wrapper" files in this area, which include several more
+There are a few small "wrapper" files in this area, which include several more
 substantial source files from `../flib/`:
 
 * "h" will install a hardware abstraction layer into flash memory
@@ -129,8 +129,7 @@ Here is a complete transcript of loading "h" and then "l" into the system:
         <<<<<<<<<<< ../flib/graphics.fs (247 lines)
     ( code-size ) here swap - . 8264  ok.
         >>> include d
-    ( cornerstone) {lib-rnw} 
-    Finished. Reset !Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
+    reset UMecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
         <<<<<<<<<<< d (33 lines)
         <<<<<<<<<<< l (23 lines)
 
