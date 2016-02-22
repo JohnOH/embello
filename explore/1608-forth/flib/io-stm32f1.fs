@@ -55,5 +55,5 @@ $40010800 constant GPIO-BASE
   io-base
   ."   CRL " dup @ hex.  4 +
   ."  CRH " dup @ hex.  4 +
-  ."  IDR " dup @ hex.  4 +
-  ."  ODR " dup @ hex. drop ;
+  ."  IDR " dup @ h.4  4 +
+  ."   ODR " dup @ h.4 drop ;

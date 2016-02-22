@@ -70,7 +70,6 @@ Scan the I2C bus for attached devices:
 Receive some RF69 test packets (stopped by keypress):
 
     rfdemo 
-    OK 128 24 64 
     OK 128 24 66 1 2 
     OK 128 24 67 1 2 3 
     OK 128 24 68 1 2 3 4 

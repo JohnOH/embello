@@ -3,9 +3,9 @@
 cr eraseflash
 compiletoflash
 
+include ../flib/hexdump.fs
 include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
-include ../flib/hexdump.fs
 
 \ board definitions for Hy-TinySTM103T
 

@@ -137,38 +137,28 @@ align
   cr
   begin
     rf-recv ?dup if
-      ." OK "
-      0 do  rf.buf i + c@ . loop
-      cr
+      ." OK "  0 do  rf.buf i + c@ . loop  cr
     then
   key? until ;
-
-\ : u.2 ( u -- ) 0 <# # # #> type ;
 
 : rfdemox ( -- )  \ display incoming packets in RF12demo HEX format
   8686 rf-init
   cr
   begin
     rf-recv ?dup if
-      base @ hex swap  \ switch to hex numbers
-      ." OKX "
-      0 do  rf.buf i + c@ u.2  loop
-      cr
-      base !  \ restore previous number base
+      ." OKX "  0 do  rf.buf i + c@ h.2  loop  cr
     then
   key? until ;
 
 : rf. ( -- )  \ print out all the RF69 registers
-  base @ hex
-  cr 4 spaces  16 0 do space i . loop
+  cr 4 spaces  base @ hex  16 0 do space i . loop  base !
   $60 $00 do
     cr
-    i u.2 ." :"
+    i h.2 ." :"
     16 0 do  space
-      i j + ?dup if rf@ u.2 else ." --" then
+      i j + ?dup if rf@ h.2 else ." --" then
     loop
-  $10 +loop
-  base ! ;
+  $10 +loop ;
 
 \ 8686 rf-init rf-recv .
 \ rfdemo(x)

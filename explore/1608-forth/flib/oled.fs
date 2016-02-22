@@ -1,10 +1,10 @@
 \ interface to 128x64 OLED
 \ uses i2c
 
-: check ( nak -- ) if ." nak " then ;
+: nak? ( nak -- ) if ." nak " then ;
 
 : lcd!c ( v -- )  \ send a command to the lcd
-  $3C i2c-tx check $00 >i2c check >i2c check i2c-stop ;
+  $3C i2c-tx nak? $00 >i2c nak? >i2c nak? i2c-stop ;
 
 \ the oled's display memory buffer is set up as 8 rows of 128 bytes
 \ each byte is 8 pixels down, from b0 at the top to b7 at the bottom
@@ -26,8 +26,8 @@
   $40 lcd!c  \ SETSTARTLINE
 
   lcdmem  64 0 do  \ send as a number of 16-byte data messages
-    $3C i2c-tx check $40 >i2c check
-    16 0 do  dup c@ >i2c check  1 +  loop
+    $3C i2c-tx nak? $40 >i2c nak?
+    16 0 do  dup c@ >i2c nak?  1 +  loop
     i2c-stop
   loop drop ;
 

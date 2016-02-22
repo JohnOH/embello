@@ -41,11 +41,9 @@
   rtc: i2c-start $68 i2c-rx drop 1 i2c> i2c-stop ;
 
 : i2c. ( -- )  \ scan and report all I2C devices on the bus
-  base @ hex
   128 0 do
-    cr i u.2 ." :"
+    cr i h.2 ." :"
     16 0 do  space
-      i j +  dup i2c-rx i2c-stop  if drop ." --" else u.2 then
+      i j +  dup i2c-rx i2c-stop  if drop ." --" else h.2 then
     loop
-  16 +loop
-  base ! ;
+  16 +loop ;
