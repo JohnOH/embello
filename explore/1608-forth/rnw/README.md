@@ -18,7 +18,7 @@ substantial source files from `../flib/`:
 * "l" installs a set of library packages on top of "h", also in flash memory
 * "d" is development and testing code which requires "h" and "l" to be in flash
 
-(with Picoterm, "^A ^S d" is very conveniently placed on the home row of keys)
+(with Picocom, "^A ^S d" is very conveniently placed on the home row of keys)
 
 Loading "h" will erase flash (everything but Mecrisp) before re-installing
 itself. Similarly, loading "l" leaves Mecrisp and the "h" code intact, but
