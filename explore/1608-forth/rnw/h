@@ -23,7 +23,7 @@ PB7 constant SDA
 
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD
-  LED OMODE-PP io-mode!
+  OMODE-PP LED io-mode!
   72MHz
 \ 1000 systick-hz
 ;
