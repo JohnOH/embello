@@ -17,7 +17,7 @@
 : spi> ( -- c ) 0 >spi> ;  \ read byte from SPI
 : >spi ( c -- ) >spi> drop ;  \ write byte to SPI
 
-: init-spi ( -- )  \ set up bit-banged SPI
+: spi-init ( -- )  \ set up bit-banged SPI
   OMODE-PP   SSEL io-mode!
   OMODE-PP   SCLK io-mode!
   IMODE-OPEN MISO io-mode!

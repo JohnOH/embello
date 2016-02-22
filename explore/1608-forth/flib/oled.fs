@@ -61,8 +61,8 @@ decimal
   loop
   2drop display ;
 
-: init-lcd ( -- )  \ initialise the oled display
-  init-i2c
+: lcd-init ( -- )  \ initialise the oled display
+  i2c-init
   $AE lcd!c  \ DISPLAYOFF
   $D5 lcd!c  \ SETDISPLAYCLOCKDIV
   $80 lcd!c
@@ -90,4 +90,4 @@ decimal
   $AF lcd!c  \ DISPLAYON
 ;
 
-\ init-lcd show-logo
+\ lcd-init show-logo

@@ -13,7 +13,7 @@ reset
 \ print out received packet info until a key is pressed
 \ format: #bytes b3..b0 b7..b4 rssi lna afc
 : rftry ( -- )
-  8686 init-rf
+  8686 rf-init
   begin
     rf-recv  ?dup if
       cr . rf.buf @ hex. rf.buf 4 + @ hex. rf.rssi @ . rf.lna @ . rf.afc @ .
@@ -21,12 +21,12 @@ reset
   key? until ;
 
 : lcdtry ( -- )
-  init-lcd show-logo
+  lcd-init show-logo
   2000000 0 do loop
-  init-lcd demo
+  lcd-init demo
 ;
 
-: rtctry ( -- )  init-i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+: rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 
 \ lcdtry
 \ rftry  \ must be last, continues to run until keypress

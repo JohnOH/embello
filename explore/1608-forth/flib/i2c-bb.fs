@@ -1,7 +1,7 @@
 \ bit-banged i2c driver
 \ adapted from http://excamera.com/sphinx/article-forth-i2c.html
 
-: init-i2c ( -- )  \ initialise bit-banged I2C
+: i2c-init ( -- )  \ initialise bit-banged I2C
   OMODE-PP SCL io-mode!
   OMODE-OD SDA io-mode!
 ;
@@ -42,10 +42,10 @@
 
 : i2c. ( -- )  \ scan and report all I2C devices on the bus
   base @ hex
-  $80 $00 do
+  128 0 do
     cr i u.2 ." :"
     16 0 do  space
-      i j + i2c-rx if ." --" else i j + u.2 then  i2c-stop
+      i j +  dup i2c-rx i2c-stop  if drop ." --" else u.2 then
     loop
-  $10 +loop
+  16 +loop
   base ! ;

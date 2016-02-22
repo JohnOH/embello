@@ -100,8 +100,8 @@ align
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
   drop ;
 
-: init-rf ( freq -- )  \ TODO add nodeid and group, hard-coded for now
-  init-spi
+: rf-init ( freq -- )  \ TODO add nodeid and group, hard-coded for now
+  spi-init
   $AA rf-check  $55 rf-check
   rf:init rf-config!
   rf-freq ;
@@ -133,7 +133,7 @@ align
   else 0 then ;
 
 : rfdemo ( -- )  \ display incoming packets in RF12demo format
-  8686 init-rf
+  8686 rf-init
   cr
   begin
     rf-recv ?dup if
@@ -146,7 +146,7 @@ align
 \ : u.2 ( u -- ) 0 <# # # #> type ;
 
 : rfdemox ( -- )  \ display incoming packets in RF12demo HEX format
-  8686 init-rf
+  8686 rf-init
   cr
   begin
     rf-recv ?dup if
@@ -170,5 +170,5 @@ align
   $10 +loop
   base ! ;
 
-\ 8686 init-rf rf-recv .
+\ 8686 rf-init rf-recv .
 \ rfdemo(x)
