@@ -96,6 +96,19 @@ Dump the RF69's internal register settings:
     40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
     50: 14 C5 88 08 00 00 01 00 1B 09 55 80 70 33 CA 08 ok.
 
+Dump memory contents:
+
+    $4800 128 dump 
+    00004800   40 00 03 50 41 35 47 F8   04 6D 05 26 70 47 00 00   @..PA5G. .m.&pG..
+    00004810   24 48 00 00 40 00 03 50   41 36 47 F8 04 6D 06 26   $H..@..P A6G..m.&
+    00004820   70 47 00 00 38 48 00 00   40 00 03 50 41 37 47 F8   pG..8H.. @..PA7G.
+    00004830   04 6D 07 26 70 47 00 00   4C 48 00 00 40 00 03 50   .m.&pG.. LH..@..P
+    00004840   41 38 47 F8 04 6D 08 26   70 47 00 00 60 48 00 00   A8G..m.& pG..`H..
+    00004850   40 00 03 50 41 39 47 F8   04 6D 09 26 70 47 00 00   @..PA9G. .m.&pG..
+    00004860   74 48 00 00 40 00 04 50   41 31 30 00 47 F8 04 6D   tH..@..P A10.G..m
+    00004870   0A 26 70 47 88 48 00 00   40 00 04 50 41 31 31 00   .&pG.H.. @..PA11.
+    ok.
+
 ## Firmware upload
 
 This is a transcript of loading "h" and then "l" into the system with the
@@ -113,7 +126,9 @@ This is a transcript of loading "h" and then "l" into the system with the
         <<<<<<<<<<< ../flib/io-stm32f1.fs (59 lines)
         >>> include ../flib/hal-stm32f1.fs
         <<<<<<<<<<< ../flib/hal-stm32f1.fs (109 lines)
-        <<<<<<<<<<< h (33 lines)
+        >>> include ../flib/adc-stm32f1.fs
+        <<<<<<<<<<< ../flib/adc-stm32f1.fs (26 lines)
+        <<<<<<<<<<< h (34 lines)
 
     *** exit status: 0
 
@@ -134,10 +149,10 @@ This is a transcript of loading "h" and then "l" into the system with the
         >>> include ../flib/multi.fs
         <<<<<<<<<<< ../flib/multi.fs (206 lines)
     ( code-size ) here swap - . 10016  ok.
-    ( flash-end ) here hex. 00007800  ok.
+    ( flash-end ) here hex. 00007C00  ok.
         >>> include d
     reset UMecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
-        <<<<<<<<<<< d (33 lines)
+        <<<<<<<<<<< d (35 lines)
         <<<<<<<<<<< l (28 lines)
 
     *** exit status: 0
