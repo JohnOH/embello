@@ -18,9 +18,9 @@
 : >spi ( c -- ) >spi> drop ;  \ write byte to SPI
 
 : spi-init ( -- )  \ set up bit-banged SPI
-  OMODE-PP   ssel @ io-mode!
-  OMODE-PP   SCLK io-mode!
-  IMODE-OPEN MISO io-mode!
-  OMODE-PP   MOSI io-mode!
+  OMODE-PP  ssel @ io-mode!
+  OMODE-PP    SCLK io-mode!
+  IMODE-FLOAT MISO io-mode!
+  OMODE-PP    MOSI io-mode!
   -spi spi> drop  \ cycle SCLK a few times with ssel off (high)
 ;

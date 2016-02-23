@@ -31,7 +31,7 @@ $40010800 constant GPIO-BASE
   dup io@ 0= swap io! ;
 
 %0000 constant IMODE-ADC    \ input, analog
-%0100 constant IMODE-OPEN   \ input, floating
+%0100 constant IMODE-FLOAT  \ input, floating
 %1000 constant IMODE-PULL   \ input, pull-up/down
 
 %0001 constant OMODE-PP     \ output, push-pull
