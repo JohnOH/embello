@@ -7,8 +7,6 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../flib/adc.fs
-
 include ../flib/spi-bb.fs
 include ../flib/rf69.fs
 
