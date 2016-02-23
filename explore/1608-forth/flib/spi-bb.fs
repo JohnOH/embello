@@ -22,5 +22,5 @@
   OMODE-PP    SCLK io-mode!
   IMODE-FLOAT MISO io-mode!
   OMODE-PP    MOSI io-mode!
-  -spi spi> drop  \ cycle SCLK a few times with ssel off (high)
+  -spi spi> drop  \ cycle SCLK a few times with ssel off
 ;
