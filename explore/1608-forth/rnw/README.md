@@ -137,7 +137,7 @@ This is a transcript of loading "h" and then "l" into the system with the
 
     *** file: l
     msend l 
-    ( cornerstone ) {hal-rnw} 
+    ( cornerstone ) <<<hal-rnw>>> 
     Finished. Reset !Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
         >>> include ../flib/spi-bb.fs
         <<<<<<<<<<< ../flib/spi-bb.fs (26 lines)
