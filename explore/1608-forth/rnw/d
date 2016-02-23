@@ -28,6 +28,8 @@ reset
 
 : rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 
+: adctry init-adc  100 0 do loop  begin  PB0 adc .  key? until ;
+
 \ lcdtry
 \ rftry  \ must be last, continues to run until keypress
 \ vim: set ft=forth :
