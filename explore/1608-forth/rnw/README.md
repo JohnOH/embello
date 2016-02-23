@@ -1,11 +1,12 @@
 **An exploration of Mecrisp-Stellaris Forth 2.2.1 on STM32F103 µCs.**
 
 This code runs on the "RF Node Watcher" hardware described on the [weblog][R].
-It includes an ARM-based [Hy-TinySTM103T][H], an RFM69 connected over SPI, and
-a small 128x64 pixel OLED display connected over I2C. It should also work on
-many other STM32F103 boards, see the "h" file for pin definitions.
+The RNW includes an ARM-based [Hy-TinySTM103T][H], an RFM69 connected over SPI,
+and a small 128x64 pixel OLED display connected over I2C. It should also work
+on many other STM32F103 boards, see the "h" file for pin definitions.
 
-> Note: currently no USB support, only serial on PA9 (TX) and PA10 (RX) !
+> Note: there's currently no USB support, only serial @ 115200 baud on PA9 (TX)
+and PA10 (RX) !
 
 ## Installation
 
