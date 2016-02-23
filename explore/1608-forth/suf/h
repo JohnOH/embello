@@ -1,0 +1,33 @@
+\ install hardware abstractions in flash
+
+cr eraseflash
+compiletoflash
+
+include ../flib/hexdump.fs
+include ../flib/io-stm32f1.fs
+include ../flib/hal-stm32f1.fs
+
+\ board definitions for Hy-TinySTM103T
+
+PA1 constant LED
+
+PA4 variable ssel  \ can be changed at run time
+PA5 constant SCLK
+PA6 constant MISO
+PA7 constant MOSI
+
+PB6 constant SCL
+PB7 constant SDA
+
+: init ( -- )  \ board initialisation
+  -jtag  \ disable JTAG, we only need SWD
+  OMODE-PP LED io-mode!
+  72MHz
+\ 1000 systick-hz
+;
+
+cornerstone <<<hal-suf>>>
+compiletoram
+init
+
+\ vim: set ft=forth :
