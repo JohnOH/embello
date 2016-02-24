@@ -30,17 +30,16 @@ reset
 
 : adctry init-adc  ( 1 µs ) 10 0 do loop  begin  PB0 adc .  key? until ;
 
-  : ledon led io-0! ;
-  : ledoff led io-1! ;
-  : busy ( u -- ) 100 * 0 ?do loop ;
-  : %pwm ( pct -- )
-    begin
-      ledon  dup busy
-      ledoff  100 over - busy
-    key? until ;
+: ledon led io-0! ;
+: ledoff led io-1! ;
+: busy ( u -- ) 100 * 0 ?do loop ;
+: %pwm ( pct -- )
+  begin
+    ledon  dup busy
+    ledoff  100 over - busy
+  key? until ;
 
-  30 %pwm
-
-  \ lcdtry
-  \ rftry  \ must be last, continues to run until keypress
-  \ vim: set ft=forth :
+\ 10 %pwm
+\ lcdtry
+\ rftry  \ must be last, continues to run until keypress
+\ vim: set ft=forth :

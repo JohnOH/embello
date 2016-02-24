@@ -17,9 +17,10 @@ has been implemented on top in pure Forth.
 There are a few small "wrapper" files in this area, which include several more
 substantial source files from `../flib/`:
 
-* "h" will install a hardware abstraction layer into flash memory
-* "l" installs a set of library packages on top of "h", also in flash memory
-* "d" is development and testing code which requires "h" and "l" to be in flash
+* "h" will install a simple **H**ardware abstraction layer into flash memory
+* "l" installs some **L**ibrary packages on top of "h", also in flash memory
+* "d" is **D**evelopment and testing code which expects "h" and "l" in flash
+* "a" is reserved for "sealed" ready-to-run **A**pplications (not used here)
 
 (with Picocom, "^A ^S d" is very conveniently placed on the home row of keys)
 
@@ -27,6 +28,12 @@ Loading "h" will erase flash (everything but Mecrisp) before re-installing
 itself. Similarly, loading "l" leaves Mecrisp and the "h" code intact, but
 erases everything else before re-installing "l" (it then ends by loading "d").
 Loading "d" is a RAM-only affair, allowing fast and frequent edit-run cycles.
+
+The plan is to put everything deemed _essential_ in "h", while creating several
+different versions of "d", depending on the application. In fact, the idea is
+to have one folder with at least their own "l" and "d" files for each project.
+All generic (or "official", if you prefer) code will be placed in "`../flib/`".
+A completely sealed & ready-to-run application should be saved as an "a" file.
 
 In day-to-day use, "h" and "l" get loaded once and then remain on the chip,
 ready for use after power-up. This creates a fairly elaborate context for
