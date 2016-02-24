@@ -15,6 +15,7 @@ include ../flib/oled.fs
 include ../flib/graphics.fs
 
 include ../flib/multi.fs
+include ../flib/ring.fs
 
 ( code-size ) here swap - .
 

@@ -39,6 +39,10 @@ reset
     ledoff  100 over - busy
   key? until ;
 
+4 4 + buffer: ring2
+
+: try ring2 4 init-ring ;
+
 \ 10 %pwm
 \ lcdtry
 \ rftry  \ must be last, continues to run until keypress

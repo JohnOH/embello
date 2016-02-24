@@ -87,8 +87,8 @@ $40022000 constant FLASH
 ;
 
 : systick ( ticks -- )  \ enable systick interrupt
-  1 - $E000E014 !  \ How many ticks between interrupts ?
-  7 $E000E010 !    \ Enable the systick interrupt.
+  1- $E000E014 !  \ How many ticks between interrupts ?
+  7 $E000E010 !   \ Enable the systick interrupt.
 ;
 
 0 variable ticks
