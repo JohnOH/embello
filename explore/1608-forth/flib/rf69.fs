@@ -92,8 +92,8 @@ align
   begin dup 100000000 < while 10 * repeat
   ( f ) 2 lshift  32000000 11 rshift u/mod nip  \ avoid / use u/ instead
   ( u ) dup 10 rshift  RF:FRF rf!
-  ( u ) dup 2 rshift  RF:FRF 1 + rf!
-  ( u ) 6 lshift RF:FRF 2 + rf!
+  ( u ) dup 2 rshift  RF:FRF 1+ rf!
+  ( u ) 6 lshift RF:FRF 2+ rf!
 ;
 
 : rf-check ( b -- )  \ check that the register can be accessed over SPI
@@ -111,7 +111,7 @@ align
     rf.last  RF:IRQ1_RXRDY over xor!  @ if
       RF:RSSI rf@  rf.rssi !
       RF:LNA rf@  3 rshift  7 and  rf.lna !
-      RF:AFC rf@  8 lshift  RF:AFC 1 + rf@  or rf.afc !
+      RF:AFC rf@  8 lshift  RF:AFC 1+ rf@  or rf.afc !
     then
   then ;
 

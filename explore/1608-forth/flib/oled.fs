@@ -27,7 +27,7 @@
 
   lcdmem  64 0 do  \ send as a number of 16-byte data messages
     $3C i2c-tx nak? $40 >i2c nak?
-    16 0 do  dup c@ >i2c nak?  1 +  loop
+    16 0 do  dup c@ >i2c nak?  1+  loop
     i2c-stop
   loop drop ;
 

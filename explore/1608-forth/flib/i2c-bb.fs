@@ -28,7 +28,7 @@
 : i2c-tx ( addr -- nak )  \ start device send
   i2c-start shl >i2c ;
 : i2c-rx ( addr -- nak )  \ start device receive
-  i2c-start shl 1 + >i2c ;
+  i2c-start shl 1+ >i2c ;
 
 \ RTC example, this is small enough to leave it in
 \ nak's will be silently ignored
