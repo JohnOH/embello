@@ -7,6 +7,40 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
+\ Emulate c, which is not available in hardware on some chips.
+\ copied from Mecrisp's common/charcomma.txt
+
+0 variable c,collection
+
+: c, ( c -- )
+  c,collection @ ?dup if $FF and swap 8 lshift or h,
+                         0 c,collection !
+                      else $100 or c,collection ! then ;
+
+: calign ( -- )
+  c,collection @ if 0 c, then ;
+
+create usb:1
+     18 c, \ bLength
+    $01 c, \ USB_DEVICE_DESCRIPTOR_TYPE
+    $00 c,
+    $02 c, \ bcdUSB = 2.00
+    $02 c, \ bDeviceClass: CDC
+    $00 c, \ bDeviceSubClass
+    $00 c, \ bDeviceProtocol
+    $40 c, \ bMaxPacketSize0
+    $83 c,
+    $04 c, \ idVendor = 0x0483
+    $40 c,
+    $57 c, \ idProduct = 0x7540
+    $00 c,
+    $02 c, \ bcdDevice = 2.00
+    1 c,     \ Index of string descriptor describing manufacturer
+    2 c,     \ Index of string descriptor describing product
+    3 c,     \ Index of string descriptor describing the device's serial number
+    $01 c, \ bNumConfigurations
+calign
+
 ( code-size ) here swap - .
 
 cornerstone <<<lib-suf>>>

@@ -2,23 +2,155 @@
 \ needs l
 
 reset
+led io-1!
 
-: blink ( -- )  \ blink the on-board LED until a key is pressed
-  OMODE-PP LED io-mode!
-  begin
-    LED iox!
-    1000000 0 do loop
-  key? until ;
+$40005C00 constant USB
+     USB $00 + constant USB.EP0R
+     USB $04 + constant USB.EP1R
+     USB $08 + constant USB.EP2R
+     USB $0C + constant USB.EP3R
+     USB $10 + constant USB.EP4R
+     USB $14 + constant USB.EP5R
+     USB $18 + constant USB.EP6R
+     USB $1C + constant USB.EP7R
+     USB $40 + constant USB.CNTR
+     USB $44 + constant USB.ISTR
+     USB $48 + constant USB.FNR
+     USB $4C + constant USB.DADDR
+     USB $50 + constant USB.BTABLE
+$40006000 constant USBMEM
 
-: ledon led io-0! ;
-: ledoff led io-1! ;
-: busy ( u -- ) 100 * 0 ?do loop ;
-: %pwm ( pct -- )
-  begin
-    ledon  dup busy
-    ledoff  100 over - busy
-  key? until ;
+RCC $4 + constant RCC.CFGR
+1 22 lshift constant USBPRE
+RCC $10 + constant RCC.APB1RSTR
+1 23 lshift constant USBRST
+RCC $1C + constant RCC_APB1ENR
+1 23 lshift constant USBEN
 
-10 %pwm
+\ good to know: access to STM32F1's serial h/w id
+\ $1FFFF7E8 constant ID1
+\ $1FFFF7EC constant ID2
+\ $1FFFF7F0 constant ID3
+
+\ HyTiny enables USB via PA0, inverted logic
+: usb-on ( -- ) OMODE-PP PA0 io-mode!  PA0 io-0! ;
+: usb-off ( -- ) PA0 io-1! ;
+
+create usb:init
+hex
+  0080 h,  \ ADDR0_TX
+  0000 h,  \ COUNT0_TX
+  0040 h,  \ ADDR0_RX
+  0040 h,  \ COUNT0_RX
+  00C0 h,  \ ADDR1_TX
+  0000 h,  \ COUNT1_TX
+  0000 h,  \ ADDR1_RX
+  0000 h,  \ COUNT1_RX
+  0100 h,  \ ADDR2_TX
+  0000 h,  \ COUNT2_TX
+  0000 h,  \ ADDR2_RX
+  0000 h,  \ COUNT2_RX
+  0000 h,  \ ADDR3_TX
+  0000 h,  \ COUNT3_TX
+  0110 h,  \ ADDR3_RX
+  0040 h,  \ COUNT3_RX
+decimal
+
+: usb-clear ( -- )
+  1024 0 do  0 i USBMEM + h!  4 +loop ;
+
+: usb-init ( -- )
+  usb:init  64 0 do
+    dup h@  i USBMEM + h!
+    2 +
+  4 +loop  drop ;
+
+: usb-reset ( -- )
+\  5432109876543210
+  %1011001110010000 USB.EP0R h!  \ ctrl rx-val tx-stall
+  %1000000010100000 USB.EP1R h!  \ bulk rx-dis tx-nak
+  %1000011010100000 USB.EP2R h!  \ intr rx-dis tx-nak
+  %1011000010000000 USB.EP3R h!  \ bulk rx-val tx-dis
+;
+
+: +usb ( -- )  \ init USB hardware
+  $0001 USB.CNTR h!  \ usb_pwr.c:73
+  usb-on
+  OMODE-AF-PP OMODE-FAST + PA11 io-mode!  \ hw_config.c:115
+  OMODE-AF-PP OMODE-FAST + PA12 io-mode!
+  USBEN RCC_APB1ENR bis!  \ hw_config.c:162
+  $0000 USB.CNTR h!  \ usb_pwr.c:77
+  usb-clear
+  usb-init
+  usb-reset
+  $1C00 USB.CNTR h!  \ usb_pwr.c:82
+  ;
+
+: -usb ( -- )  \ deinit USB hardware
+  USBEN RCC_APB1ENR bic!
+  usb-off
+  $0001 USB.CNTR h! ;
+
+0 variable last
+
+: send-desc ( addr -- )  \ see definitions of usb:1 etc
+  dup c@ 0 do
+    dup i + h@  i $80 + shl USBMEM + h!
+  2 +loop
+  c@ USBMEM 4 + h!  \ COUNT0_TX
+\  5432109876543210
+  %1000001010100000 USB.EP0R h!  \ tx-stall -> tx-val
+;
+
+: istr. ( u -- )
+  ." ISTR: "
+  dup $1000 and if ." wkup " then
+  dup $0800 and if ." susp " then
+  dup $0400 and if ." reset " then
+  dup $0200 and if ." sof " then
+  dup $0100 and if ." esof " then
+  dup $0010 and if ." dir " then
+  drop
+;
+
+: usb-poll ( -- )
+  USB.ISTR h@  dup last @ <> if
+    dup last !  dup h.4 space  dup if dup istr. cr then
+  then
+  $400 and if  \ reset
+    usb-init usb-reset
+    usb:1 send-desc
+  then
+  0 USB.ISTR h!  \ clear all pending interrupts
+;
+
+: usb. ( -- )  \ dump USB info
+  cr ." EP0R " USB.EP0R h@ h.4
+    ."  EP1R " USB.EP1R h@ h.4
+    ."  EP2R " USB.EP2R h@ h.4
+    ."  EP3R " USB.EP3R h@ h.4
+  cr ." EP4R " USB.EP4R h@ h.4
+    ."  EP5R " USB.EP5R h@ h.4
+    ."  EP6R " USB.EP6R h@ h.4
+    ."  EP7R " USB.EP7R h@ h.4
+  cr ." CNTR " USB.CNTR h@ h.4
+    ."  ISTR " USB.ISTR h@ h.4
+     ."  FNR " USB.FNR h@ h.4
+   ."  DADDR " USB.DADDR h@ h.4
+  ."  BTABLE " USB.BTABLE h@ h.4 ;
+
+: usb.mem ( -- )  \ dump packet buffer memory
+  $150 0 do
+    i $0F and 0= if cr i h.4 space then
+    i $7 and 0= if space then
+    i shl USBMEM + h@ h.4 space
+  2 +loop ;
+
+: try +usb  usb. \ usb.mem
+  \ 5 0 do  cr cr 100000 0 do usb-poll loop  cr usb.  loop
+  1 0 do  cr cr 10000 0 do usb-poll loop  cr usb.  loop
+  cr usb.mem cr usb. -usb ;
+
+try
 
 \ vim: set ft=forth :
