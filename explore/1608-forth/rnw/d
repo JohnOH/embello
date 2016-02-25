@@ -39,14 +39,10 @@ reset
     ledoff  100 over - busy
   key? until ;
 
-4 4 + buffer: rr
-
-: try rr 4 init-ring ;
-
 \ -----------------------------------------------------------------------------
 \ -----------------------------------------------------------------------------
 
-: utry uart-init uart. ;
+: utry uart-irq-init uart. ;
 
 \ 10 %pwm
 \ lcdtry
