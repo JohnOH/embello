@@ -29,11 +29,7 @@ $40004400 constant USART2
   %0010000000001100 USART2.CR1 !
 ;
 
-: uart-emit?    ( -- f )
-  1 7 lshift USART2.SR bit@ ;
-: uart-key?     ( -- f )
-  1 5 lshift USART2.SR bit@ ;
-: uart-key      ( -- c )
-  begin uart-key? until  USART2.DR @ ;
-: uart-emit     ( c -- )
-  begin uart-emit? until  USART2.DR ! ;
+: uart-key? ( -- f ) 1 5 lshift USART2.SR bit@ ;
+: uart-key ( -- c ) begin uart-key? until  USART2.DR @ ;
+: uart-emit? ( -- f ) 1 7 lshift USART2.SR bit@ ;
+: uart-emit ( c -- ) begin uart-emit? until  USART2.DR ! ;
