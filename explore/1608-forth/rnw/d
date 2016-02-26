@@ -13,7 +13,7 @@ reset
 \ print out received packet info until a key is pressed
 \ format: #bytes b3..b0 b7..b4 rssi lna afc
 : rftry ( -- )
-  8686 rf-init
+  42 8686 rf-init
   begin
     rf-recv  ?dup if
       cr . rf.buf @ hex. rf.buf 4 + @ hex. rf.rssi @ . rf.lna @ . rf.afc @ .

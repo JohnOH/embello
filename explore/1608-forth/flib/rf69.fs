@@ -46,32 +46,12 @@
     66 buffer: rf.buf
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
-  $0200 h,
-  $0302 h,
-  $048A h,
-  $0502 h,
-  $06E1 h,
-  $07D9 h,  \ $D92640 = 868.6 MHz
-  $0826 h,
-  $0940 h,
-  $0B20 h,
-  $194A h,
-  $1A42 h,
-  $1E0C h,
-  $2607 h,
-  $29A0 h,
-  $2D05 h,
-  $2E88 h,
-  $2F2D h,
-  $302A h,  \ group 42
-  $37D0 h,
-  $3842 h,
-  $3C8F h,
-  $3D12 h,
-  $6F20 h,
-  $7102 h,
-      0 h,  \ marks end of init sequence
-align
+hex
+  0200 h, 0302 h, 048A h, 0502 h, 06E1 h, 0B20 h, 194A h, 1A42 h,
+  1E0C h, 2607 h, 29A0 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
+  3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h,
+  0 h,  \ marks end of init sequence
+decimal align
 
 \ r/w access to the RF registers
 : rf!@ ( b reg -- b ) +spi >spi >spi> -spi ;
@@ -79,9 +59,7 @@ align
 : rf! ( b reg -- ) $80 or rf!@ drop ;
 
 : rf-h! ( h -- ) dup $FF and swap 8 rshift rf! ;
-
-: rf-config! ( addr -- )
-  begin  dup h@  ?dup while  rf-h!  2+ repeat drop ;
+: rf-config! ( addr -- ) begin  dup h@  ?dup while  rf-h!  2+ repeat drop ;
 
 : rf!mode ( b -- )  \ set the radio mode, and store a copy in a variable
   dup rf.mode !
@@ -96,15 +74,17 @@ align
   ( u ) 6 lshift RF:FRF 2+ rf!
 ;
 
+: rf-group ( u -- ) RF:SYN2 rf@ ;  \ set the net group (1..250)
+
 : rf-check ( b -- )  \ check that the register can be accessed over SPI
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
   drop ;
 
-: rf-init ( freq -- )  \ TODO add nodeid and group, hard-coded for now
+: rf-init ( group freq -- )  \ init the RFM69 radio module
   spi-init
-  $AA rf-check  $55 rf-check
+  $AA rf-check  $55 rf-check  \ will hang if there is no radio!
   rf:init rf-config!
-  rf-freq ;
+  rf-freq rf-group ;
 
 : rf-status ( -- )  \ update status values on RXRDY
   RF:IRQ1 rf@  RF:IRQ1_RXRDY and  rf.last @ <> if
@@ -115,7 +95,7 @@ align
     then
   then ;
 
-: rf-n@spi ( addr len -- )  \ send N bytes to the FIFO
+: rf-n@spi ( addr len -- )  \ load N bytes from the FIFO
   0 ?do
     RF:FIFO rf@ over c! 1+
   loop drop ;
@@ -133,7 +113,7 @@ align
   else 0 then ;
 
 : rfdemo ( -- )  \ display incoming packets in RF12demo format
-  8686 rf-init
+  42 8686 rf-init
   cr
   begin
     rf-recv ?dup if
@@ -142,7 +122,7 @@ align
   key? until ;
 
 : rfdemox ( -- )  \ display incoming packets in RF12demo HEX format
-  8686 rf-init
+  42 8686 rf-init
   cr
   begin
     rf-recv ?dup if
@@ -160,5 +140,5 @@ align
     loop
   $10 +loop ;
 
-\ 8686 rf-init rf-recv .
+\ 42 8686 rf-init rf-recv .
 \ rfdemo(x)
