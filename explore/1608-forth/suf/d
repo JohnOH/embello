@@ -62,7 +62,7 @@ decimal
 : usb-init ( -- )
   usb:init  64 0 do
     dup h@  i USBMEM + h!
-    2 +
+    2+
   4 +loop  drop ;
 
 : usb-reset ( -- )
