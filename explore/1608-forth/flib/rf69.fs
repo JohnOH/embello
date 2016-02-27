@@ -76,6 +76,9 @@ decimal align
 
 : rf-group ( u -- ) RF:SYN2 rf@ ;  \ set the net group (1..250)
 
+: rf-power ( n -- )  \ change TX power level
+  RF:PA rf@ $E0 and or RF:PA rf! ;
+
 : rf-check ( b -- )  \ check that the register can be accessed over SPI
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
   drop ;
@@ -95,10 +98,10 @@ decimal align
     then
   then ;
 
-: rf-n@spi ( addr len -- )  \ load N bytes from the FIFO
-  0 ?do
-    RF:FIFO rf@ over c! 1+
-  loop drop ;
+: rf-n@spi ( addr len -- )  \ read N bytes from the FIFO
+  0 do  RF:FIFO rf@ over c! 1+  loop drop ;
+: rf-n!spi ( addr len -- )  \ write N bytes to the FIFO
+  0 do  dup c@ RF:FIFO rf! 1+  loop drop ;
 
 : rf-sleep ( -- ) RF:M_SLEEP rf!mode ;  \ put radio module to sleep
 
@@ -111,6 +114,20 @@ decimal align
     RF:FIFO rf@
     rf.buf over 66 max rf-n@spi
   else 0 then ;
+
+: rf-parity ( -- u )  \ calculate group parity bits
+  RF:SYN2 rf@ dup 4 lshift xor dup 2 lshift xor $C0 and ;
+
+: rf-send ( addr count hdr -- )  \ send out one packet
+  RF:M_STDBY rf!mode
+  over 2+ RF:FIFO rf!
+  dup rf-parity or RF:FIFO rf!
+  $C0 and 1 or RF:FIFO rf!  \ TODO hardwired node 1
+  ( addr count ) rf-n!spi
+  RF:M_TX rf!mode
+  begin RF:IRQ2 rf@ RF:IRQ2_SENT and until
+  RF:M_STDBY rf!mode
+;
 
 : rfdemo ( -- )  \ display incoming packets in RF12demo format
   42 8686 rf-init
