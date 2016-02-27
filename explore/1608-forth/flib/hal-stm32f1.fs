@@ -30,18 +30,18 @@ $40013800 constant USART1
 
 $40021000 constant RCC
       RCC $0 + constant RCC-CR
-   1 24 lshift constant PLLON
-   1 25 lshift constant PLLRDY
-   1 16 lshift constant HSEON
-   1 17 lshift constant HSERDY
+        24 bit constant PLLON
+        25 bit constant PLLRDY
+        16 bit constant HSEON
+        17 bit constant HSERDY
       RCC $4 + constant RCC-CFGR
-   1 16 lshift constant PLLSRC
+        16 bit constant PLLSRC
 
 $40022000 constant FLASH
     FLASH $0 + constant FLASH-ACR
 
 : -jtag ( -- )  \ disable JTAG on PB3 PB4 PA15
-  1 25 lshift AFIO-MAPR bis! ;
+  25 bit AFIO-MAPR bis! ;
 
 \ adjusted for STM32F103 @ 72 MHz (original STM32F100 by Igor de om1zz, 2015)
 

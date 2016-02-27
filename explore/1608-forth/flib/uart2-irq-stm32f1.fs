@@ -7,21 +7,21 @@
 128 4 + buffer: uart-ring
 
 : uart-irq-handler ( -- )  \ handle the USART receive interrupt
-  USART2.DR @  \ will drop input when there is no room left
+  USART2-DR @  \ will drop input when there is no room left
   uart-ring dup ring? if >ring else 2drop then ;
 
-$E000E104 constant NVIC.EN1.R       \ IRQ 32 to 63 Set Enable Register
-    1 6 lshift constant INT38       \ USART2 Interrupt 38
+$E000E104 constant NVIC-EN1.R       \ IRQ 32 to 63 Set Enable Register
+         6 bit constant INT38       \ USART2 Interrupt 38
 
-1 5 lshift constant RXNEIE
+5 bit constant RXNEIE
 
 : uart-init ( -- )  \ redefined
 \ initialise the USART2, using a receive ring buffer
   uart-init
   uart-ring 128 init-ring
   ['] uart-irq-handler irq-usart2 !
-  INT38 NVIC.EN1.R !
-  RXNEIE USART2.CR1 bis! ;
+  INT38 NVIC-EN1.R !
+  RXNEIE USART2-CR1 bis! ;
 
 : uart-key? ( -- f )  \ redefined
   uart-ring ring# 0<> ;

@@ -8,12 +8,15 @@ $40010800 constant GPIO-BASE
       $10 constant GPIO.BSRR  \ reset 0         port Bit Set/Reset Reg
       $14 constant GPIO.BRR   \ reset 0         port Bit Reset Register
 
+: bit ( u -- u )  \ turn a bit position into a single-bit mask
+  1 swap lshift  1-foldable ;
+
 : io ( port# pin# -- pin )  \ combine port and pin into single int
   swap 8 lshift or  2-foldable ;
 : io# ( pin -- u )  \ convert pin to bit position
   $1F and  1-foldable ;
 : io-mask ( pin -- u )  \ convert pin to bit mask
-  1 swap io# lshift  1-foldable ;
+  io# bit  1-foldable ;
 : io-port ( pin -- u )  \ convert pin to port number (A=0, B=1, etc)
   8 rshift  1-foldable ;
 : io-base ( pin -- addr )  \ convert pin to GPIO base address
