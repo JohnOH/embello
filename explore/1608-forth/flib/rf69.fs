@@ -26,44 +26,42 @@
 
        $C2 constant RF:START_TX
        $42 constant RF:STOP_TX
-
        $80 constant RF:RCCALSTART
-1 7 lshift constant RF:IRQ1_MRDY
-1 6 lshift constant RF:IRQ1_RXRDY
-1 0 lshift constant RF:IRQ1_SMATCH
 
-1 6 lshift constant RF:IRQ2_FIFO_NE
-1 3 lshift constant RF:IRQ2_SENT
-1 2 lshift constant RF:IRQ2_RECVD
+     7 bit constant RF:IRQ1_MRDY
+     6 bit constant RF:IRQ1_RXRDY
+     0 bit constant RF:IRQ1_SMATCH
 
-    0 variable rf.mode
-\   1 variable rf.nodeid
-\ $80 variable rf.parity  \ corresponds to group 42
-    0 variable rf.rssi
-    0 variable rf.lna
-    0 variable rf.afc
-    0 variable rf.last
-    66 buffer: rf.buf
+     6 bit constant RF:IRQ2_FIFO_NE
+     3 bit constant RF:IRQ2_SENT
+     2 bit constant RF:IRQ2_RECVD
+
+0 variable rf.mode
+0 variable rf.rssi
+0 variable rf.lna
+0 variable rf.afc
+0 variable rf.last
+
+66 buffer: rf.buf
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 hex
   0200 h, 0302 h, 048A h, 0502 h, 06E1 h, 0B20 h, 194A h, 1A42 h,
   1E0C h, 2607 h, 29A0 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
-  3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h,
-  0 h,  \ marks end of init sequence
+  3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
 decimal align
 
 \ r/w access to the RF registers
 : rf!@ ( b reg -- b ) +spi >spi >spi> -spi ;
-: rf@ ( reg -- b ) 0 swap rf!@ ;
 : rf! ( b reg -- ) $80 or rf!@ drop ;
+: rf@ ( reg -- b ) 0 swap rf!@ ;
 
 : rf-h! ( h -- ) dup $FF and swap 8 rshift rf! ;
 : rf-config! ( addr -- ) begin  dup h@  ?dup while  rf-h!  2+ repeat drop ;
 
 : rf!mode ( b -- )  \ set the radio mode, and store a copy in a variable
   dup rf.mode !
-      RF:OP rf@  $E3 and  or RF:OP rf!
+  RF:OP rf@  $E3 and  or RF:OP rf!
   begin  RF:IRQ1 rf@  RF:IRQ1_MRDY and  until ;
 
 : rf-freq ( u -- )  \ set the frequency, supports any input precision
@@ -109,7 +107,6 @@ decimal align
   rf.mode @ RF:M_RX <> if
     RF:M_RX rf!mode
   else rf-status then
-
   RF:IRQ2 rf@  RF:IRQ2_RECVD and if
     RF:FIFO rf@
     rf.buf over 66 max rf-n@spi
@@ -138,8 +135,7 @@ decimal align
   key? until ;
 
 : rfdemox ( -- )  \ display incoming packets in RF12demo HEX format
-  42 8686 rf-init
-  cr
+  42 8686 rf-init  cr
   begin
     rf-recv ?dup if
       ." OKX "  0 do  rf.buf i + c@ h.2  loop  cr
