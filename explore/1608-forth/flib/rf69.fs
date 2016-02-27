@@ -76,7 +76,7 @@ decimal align
 
 : rf-group ( u -- ) RF:SYN2 rf@ ;  \ set the net group (1..250)
 
-: rf-power ( n -- )  \ change TX power level
+: rf-power ( n -- )  \ change TX power level (0..31)
   RF:PA rf@ $E0 and or RF:PA rf! ;
 
 : rf-check ( b -- )  \ check that the register can be accessed over SPI
@@ -126,8 +126,7 @@ decimal align
   ( addr count ) rf-n!spi
   RF:M_TX rf!mode
   begin RF:IRQ2 rf@ RF:IRQ2_SENT and until
-  RF:M_STDBY rf!mode
-;
+  RF:M_STDBY rf!mode ;
 
 : rfdemo ( -- )  \ display incoming packets in RF12demo format
   42 8686 rf-init
