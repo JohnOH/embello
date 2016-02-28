@@ -7,7 +7,8 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../flib/spi-bb.fs
+\ include ../flib/spi-bb.fs
+include ../flib/spi-stm32f1.fs
 include ../flib/rf69.fs
 
 include ../flib/i2c-bb.fs
