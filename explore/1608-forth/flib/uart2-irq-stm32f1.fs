@@ -11,17 +11,15 @@
   uart-ring dup ring? if >ring else 2drop then ;
 
 $E000E104 constant NVIC-EN1.R       \ IRQ 32 to 63 Set Enable Register
-         6 bit constant INT38       \ USART2 Interrupt 38
-
-5 bit constant RXNEIE
 
 : uart-init ( -- )  \ redefined
 \ initialise the USART2, using a receive ring buffer
   uart-init
   uart-ring 128 init-ring
   ['] uart-irq-handler irq-usart2 !
-  INT38 NVIC-EN1.R !
-  RXNEIE USART2-CR1 bis! ;
+  6 bit NVIC-EN1.R !  \ enable USART2 interrupt 38
+  5 bit USART2-CR1 bis!  \ set RXNEIE
+;
 
 : uart-key? ( -- f )  \ redefined
   uart-ring ring# 0<> ;

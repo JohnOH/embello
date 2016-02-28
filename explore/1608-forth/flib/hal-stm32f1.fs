@@ -30,12 +30,7 @@ $40013800 constant USART1
 
 $40021000 constant RCC
      RCC $00 + constant RCC-CR
-        24 bit constant PLLON
-        25 bit constant PLLRDY
-        16 bit constant HSEON
-        17 bit constant HSERDY
      RCC $04 + constant RCC-CFGR
-        16 bit constant PLLSRC
      RCC $18 + constant RCC-APB2ENR
      RCC $1C + constant RCC-APB1ENR
 
@@ -51,15 +46,15 @@ $40022000 constant FLASH
 
 : 72MHz ( -- )  \ set the main clock to 72 MHz, keep baud rate at 115200
   2 FLASH-ACR bis!                \ two flash mem wait states
-  HSEON RCC-CR bis!               \ switch HSE ON
-  begin HSERDY RCC-CR bit@ until  \ wait for HSE to be ready
-  PLLSRC                          \ HSE clock is 8 MHz Xtal source
+  16 bit RCC-CR bis!              \ set HSEON
+  begin 17 bit RCC-CR bit@ until  \ wait for HSERDY
+  1 16 lshift                     \ HSE clock is 8 MHz Xtal source for PLL
   7 18 lshift or                  \ PLL factor: 8 MHz * 9 = 72 MHz = HCLK
   4  8 lshift or                  \ PCLK1 = HCLK/2
   3 14 lshift or                  \ ADCPRE = PCLK2/8
             2 or  RCC-CFGR !      \ PLL is the system clock
-  PLLON RCC-CR bis!               \ switch PLL ON
-  begin PLLRDY RCC-CR bit@ until  \ wait for PLL to lock
+  24 bit RCC-CR bis!              \ set PLLON
+  begin 25 bit RCC-CR bit@ until  \ wait for PLLRDY
   72000000 clock-hz !
   $271 USART1-BRR ! \ set baud rate divider for 115200 Baud at PCLK2=72MHz
 ;
