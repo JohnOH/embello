@@ -2,8 +2,6 @@
 \ needs ring.fs
 \ needs uart2-stm32f1.fs
 
-\ these definitions redefine three words in uart2-stm32f1.fs
-
 128 4 + buffer: uart-ring
 
 : uart-irq-handler ( -- )  \ handle the USART receive interrupt
@@ -12,8 +10,7 @@
 
 $E000E104 constant NVIC-EN1.R       \ IRQ 32 to 63 Set Enable Register
 
-: uart-init ( -- )  \ redefined
-\ initialise the USART2, using a receive ring buffer
+: uart-irq-init ( -- )  \ initialise the USART2 using a receive ring buffer
   uart-init
   uart-ring 128 init-ring
   ['] uart-irq-handler irq-usart2 !
@@ -21,7 +18,7 @@ $E000E104 constant NVIC-EN1.R       \ IRQ 32 to 63 Set Enable Register
   5 bit USART2-CR1 bis!  \ set RXNEIE
 ;
 
-: uart-key? ( -- f )  \ redefined
+: uart-irq-key? ( -- f )  \ input check for interrupt-driven ring buffer
   uart-ring ring# 0<> ;
-: uart-key ( -- c )  \ redefined
-  begin uart-key? until  uart-ring ring> ;
+: uart-irq-key ( -- c )  \ input read from interrupt-driven ring buffer
+  begin uart-irq-key? until  uart-ring ring> ;
