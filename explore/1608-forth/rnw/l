@@ -7,13 +7,9 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-\ include ../flib/spi-bb.fs
 include ../flib/rf69.fs
-
-include ../flib/i2c-bb.fs
 include ../flib/oled.fs
 include ../flib/graphics.fs
-
 include ../flib/multi.fs
 
 ( code-size ) here swap - .

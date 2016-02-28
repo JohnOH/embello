@@ -20,9 +20,12 @@ PA4 variable ssel  \ can be changed at run time
 \ PA7 constant MOSI
 
 include ../flib/spi-stm32f1.fs
+\ include ../flib/spi-bb.fs
 
 PB6 constant SCL
 PB7 constant SDA
+
+include ../flib/i2c-bb.fs
 
 PA1 constant LED
 
