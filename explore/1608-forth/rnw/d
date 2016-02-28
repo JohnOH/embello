@@ -20,11 +20,13 @@ reset
     then
   key? until ;
 
-: lcdtry ( -- )
-  lcd-init show-logo
-  2000000 0 do loop
-  lcd-init demo
-;
+\ : lcdtry ( -- )
+\   lcd-init show-logo
+\   2000000 0 do loop
+\   lcd-init demo
+\ ;
+
+: tftry ( -- ) tft-init demo ;
 
 : rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 
@@ -39,10 +41,9 @@ reset
     ledoff  100 over - busy
   key? until ;
 
-\ -----------------------------------------------------------------------------
-
 : txtry ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
 
+\ -----------------------------------------------------------------------------
 \ -----------------------------------------------------------------------------
 
 : utry uart-init uart. ;

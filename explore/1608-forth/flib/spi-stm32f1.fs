@@ -1,8 +1,5 @@
 \ hardware SPI driver
 
-\ RCC $18 + constant RCC-APB2ENR
-     12 bit constant SPI1EN
-
 $40013000 constant SPI1  
      SPI1 $0 + constant SPI1-CR1
      SPI1 $4 + constant SPI1-CR2
@@ -25,11 +22,11 @@ $40013000 constant SPI1
 : >spi ( c -- ) >spi> drop ;  \ write byte to SPI
 
 : spi-init ( -- )  \ set up hardware SPI
-  SPI1EN RCC-APB2ENR bis!
-\  5432109876543210
+  12 bit RCC-APB2ENR bis!  \ set SPI1EN
   %0000000001010100 SPI1-CR1 !  \ clk/8, i.e. 9 MHz, master
   2 bit SPI1-CR2 bis!  \ SS output enable
-  OMODE-PP ssel @ io-mode! -spi
+  OMODE-PP OMODE-FAST + ssel @ io-mode! -spi
   OMODE-AF-PP PA5 io-mode!
-  OMODE-AF-PP PA6 io-mode!
+\ OMODE-AF-PP PA6 io-mode!
+  IMODE-FLOAT PA6 io-mode!
   OMODE-AF-PP PA7 io-mode! ;

@@ -8,13 +8,13 @@
   USART2-DR @  \ will drop input when there is no room left
   uart-ring dup ring? if >ring else 2drop then ;
 
-$E000E104 constant NVIC-EN1.R       \ IRQ 32 to 63 Set Enable Register
+$E000E104 constant NVIC-EN1R \ IRQ 32 to 63 Set Enable Register
 
 : uart-irq-init ( -- )  \ initialise the USART2 using a receive ring buffer
   uart-init
   uart-ring 128 init-ring
   ['] uart-irq-handler irq-usart2 !
-  6 bit NVIC-EN1.R !  \ enable USART2 interrupt 38
+  6 bit NVIC-EN1R !  \ enable USART2 interrupt 38
   5 bit USART2-CR1 bis!  \ set RXNEIE
 ;
 
