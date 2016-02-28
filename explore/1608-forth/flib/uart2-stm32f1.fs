@@ -1,7 +1,7 @@
 \ polled access to the second UART (USART2)
 
-RCC $1C + constant RCC.APB1ENR
-        17 bit constant USART2EN
+\ RCC $1C + constant RCC-APB1ENR
+17 bit constant USART2EN
 
 $40004400 constant USART2
    USART2 $00 + constant USART2-SR
@@ -24,7 +24,7 @@ $40004400 constant USART2
 : uart-init ( -- )
   OMODE-AF-PP OMODE-FAST + PA2 io-mode!
 \ IMODE-FLOAT PA3 io-mode!
-  USART2EN RCC.APB1ENR bis!
+  USART2EN RCC-APB1ENR bis!
   $138 USART2-BRR ! \ set baud rate divider for 115200 Baud at PCLK1=36MHz
   %0010000000001100 USART2-CR1 !
 ;

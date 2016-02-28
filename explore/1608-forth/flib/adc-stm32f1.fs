@@ -1,7 +1,7 @@
 \ simple one-shot ADC
 
-RCC $18 + constant RCC-APB2ENR
-         9 bit constant ADC1EN
+\ RCC $18 + constant RCC-APB2ENR
+      9 bit constant ADC1EN
 
 $40012400 constant ADC1
     ADC1 $00 + constant ADC1-SR

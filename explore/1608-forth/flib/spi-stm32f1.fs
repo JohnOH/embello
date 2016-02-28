@@ -1,7 +1,7 @@
 \ hardware SPI driver
 
-RCC $18 + constant RCC-APB2ENR
-        12 bit constant SPI1EN
+\ RCC $18 + constant RCC-APB2ENR
+     12 bit constant SPI1EN
 
 $40013000 constant SPI1  
      SPI1 $0 + constant SPI1-CR1

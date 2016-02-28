@@ -29,13 +29,15 @@ $40013800 constant USART1
    USART1 $8 + constant USART1-BRR
 
 $40021000 constant RCC
-      RCC $0 + constant RCC-CR
+     RCC $00 + constant RCC-CR
         24 bit constant PLLON
         25 bit constant PLLRDY
         16 bit constant HSEON
         17 bit constant HSERDY
-      RCC $4 + constant RCC-CFGR
+     RCC $04 + constant RCC-CFGR
         16 bit constant PLLSRC
+     RCC $18 + constant RCC-APB2ENR
+     RCC $1C + constant RCC-APB1ENR
 
 $40022000 constant FLASH
     FLASH $0 + constant FLASH-ACR
