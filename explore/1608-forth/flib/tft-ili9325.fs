@@ -30,7 +30,7 @@ decimal
 
 : tft! ( val reg -- )
   0 +tft 0 >spi >spi -tft
-  2 +tft dup 8 rshift >spi $FF and >spi -tft ;
+  2 +tft dup 8 rshift >spi >spi -tft ;
 
 : tft. ( -- )  \ dump ILI9325 register contents
   cr space 16 0 do 2 spaces i h.2 loop
