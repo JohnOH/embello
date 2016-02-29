@@ -25,7 +25,7 @@ $40013000 constant SPI1
   12 bit RCC-APB2ENR bis!  \ set SPI1EN
   %0000000001010100 SPI1-CR1 !  \ clk/8, i.e. 9 MHz, master
   2 bit SPI1-CR2 bis!  \ SS output enable
-  OMODE-PP OMODE-FAST + ssel @ io-mode! -spi
+  OMODE-PP ssel @ io-mode! -spi
   OMODE-AF-PP PA5 io-mode!
 \ OMODE-AF-PP PA6 io-mode!
   IMODE-FLOAT PA6 io-mode!

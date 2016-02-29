@@ -59,9 +59,9 @@ $FC00 variable tft-fg
   IMODE-FLOAT PA5 io-mode!
   IMODE-FLOAT PA6 io-mode!
   IMODE-FLOAT PA7 io-mode!
-  OMODE-AF-PP OMODE-FAST + PB3 io-mode!
-  OMODE-AF-PP OMODE-FAST + PB4 io-mode!
-  OMODE-AF-PP OMODE-FAST + PB5 io-mode!
+  OMODE-AF-PP PB3 io-mode!
+  OMODE-AF-PP PB4 io-mode!
+  OMODE-AF-PP PB5 io-mode!
   OMODE-PP PB2 io-mode!  PB2 io-1!
   %0000000001010110 SPI1-CR1 !  \ clk/16, i.e. 4.5 MHz, master, CPOL=1 (!)
   tft-config ;
