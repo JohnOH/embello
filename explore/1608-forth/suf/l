@@ -21,7 +21,7 @@ compiletoflash
   c,collection @ if 0 c, then ;
 
 create usb:1
-     18 c, \ bLength
+    18 c,  \ bLength
     $01 c, \ USB_DEVICE_DESCRIPTOR_TYPE
     $00 c,
     $02 c, \ bcdUSB = 2.00
@@ -39,7 +39,158 @@ create usb:1
     2 c,     \ Index of string descriptor describing product
     3 c,     \ Index of string descriptor describing the device's serial number
     $01 c, \ bNumConfigurations
+\ USB Configuration Descriptor
+    9 c,   \ bLength: Configuration Descriptor size */
+    $02 c, \ USB_CONFIGURATION_DESCRIPTOR_TYPE
+    67 c,  \ VIRTUAL_COM_PORT_SIZ_CONFIG_DESC
+    0 c,
+    2 c,   \ bNumInterfaces: 2 interface
+    1 c,   \ bConfigurationValue
+    0 c,   \ iConfiguration
+    $C0 c, \ bmAttributes: self powered */
+    $32 c, \ MaxPower 0 mA */
+\ Interface Descriptor*/
+    $09 c, \ bLength: Interface Descriptor size */
+    $04 c, \ USB_INTERFACE_DESCRIPTOR_TYPE
+    $00 c, \ bInterfaceNumber: Number of Interface */
+    $00 c, \ bAlternateSetting: Alternate setting */
+    $01 c, \ bNumEndpoints: One endpoints used */
+    $02 c, \ bInterfaceClass: Communication Interface Class */
+    $02 c, \ bInterfaceSubClass: Abstract Control Model */
+    $01 c, \ bInterfaceProtocol: Common AT commands */
+    $00 c, \ iInterface: */
+\ Header Functional Descriptor*/
+    $05 c, \ bLength: Endpoint Descriptor size */
+    $24 c, \ bDescriptorType: CS_INTERFACE */
+    $00 c, \ bDescriptorSubtype: Header Func Desc */
+    $10 c, \ bcdCDC: spec release number */
+    $01 c,
+\ Call Management Functional Descriptor*/
+    $05 c, \ bFunctionLength */
+    $24 c, \ bDescriptorType: CS_INTERFACE */
+    $01 c, \ bDescriptorSubtype: Call Management Func Desc */
+    $00 c, \ bmCapabilities: D0+D1 */
+    $01 c, \ bDataInterface: 1 */
+\ ACM Functional Descriptor*/
+    $04 c, \ bFunctionLength */
+    $24 c, \ bDescriptorType: CS_INTERFACE */
+    $02 c, \ bDescriptorSubtype: Abstract Control Management desc */
+    $02 c, \ bmCapabilities */
+\ Union Functional Descriptor*/
+    $05 c, \ bFunctionLength */
+    $24 c, \ bDescriptorType: CS_INTERFACE */
+    $06 c, \ bDescriptorSubtype: Union func desc */
+    $00 c, \ bMasterInterface: Communication class interface */
+    $01 c, \ bSlaveInterface0: Data Class Interface */
+\ Endpoint 2 Descriptor*/
+    $07 c, \ bLength: Endpoint Descriptor size */
+    $05 c, \ USB_ENDPOINT_DESCRIPTOR_TYPE
+    $82 c, \ bEndpointAddress: (IN2) */
+    $03 c, \ bmAttributes: Interrupt */
+    8 c,   \ VIRTUAL_COM_PORT_INT_SIZE
+    0 c,
+    $FF c, \ bInterval: */
+\ Data class interface descriptor*/
+    $09 c, \ bLength: Endpoint Descriptor size */
+    $04 c, \ USB_INTERFACE_DESCRIPTOR_TYPE
+    $01 c, \ bInterfaceNumber: Number of Interface */
+    $00 c, \ bAlternateSetting: Alternate setting */
+    $02 c, \ bNumEndpoints: Two endpoints used */
+    $0A c, \ bInterfaceClass: CDC */
+    $00 c, \ bInterfaceSubClass: */
+    $00 c, \ bInterfaceProtocol: */
+    $00 c, \ iInterface: */
+\ Endpoint 3 Descriptor*/
+    $07 c, \ bLength: Endpoint Descriptor size */
+    $05 c, \ USB_ENDPOINT_DESCRIPTOR_TYPE
+    $03 c, \ bEndpointAddress: (OUT3) */
+    $02 c, \ bmAttributes: Bulk */
+    64 c,  \ VIRTUAL_COM_PORT_DATA_SIZE
+    0 c,
+    $00 c, \ bInterval: ignore for Bulk transfer */
+\ Endpoint 1 Descriptor*/
+    $07 c, \ bLength: Endpoint Descriptor size */
+    $05 c, \ USB_ENDPOINT_DESCRIPTOR_TYPE
+    $81 c, \ bEndpointAddress: (IN1) */
+    $02 c, \ bmAttributes: Bulk */
+    64 c,  \ VIRTUAL_COM_PORT_DATA_SIZE
+    0 c,
+    $00 c, \ bInterval */
 calign
+
+$40005C00 constant USB
+     USB $00 + constant USB-EP0R
+     USB $04 + constant USB-EP1R
+     USB $08 + constant USB-EP2R
+     USB $0C + constant USB-EP3R
+     USB $10 + constant USB-EP4R
+     USB $14 + constant USB-EP5R
+     USB $18 + constant USB-EP6R
+     USB $1C + constant USB-EP7R
+     USB $40 + constant USB-CNTR
+     USB $44 + constant USB-ISTR
+     USB $48 + constant USB-FNR
+     USB $4C + constant USB-DADDR
+     USB $50 + constant USB-BTABLE
+$40006000 constant USBMEM
+
+create usb:init
+hex
+  0080 h,  \ ADDR0_TX
+  0000 h,  \ COUNT0_TX
+  0040 h,  \ ADDR0_RX
+  0040 h,  \ COUNT0_RX
+  00C0 h,  \ ADDR1_TX
+  0000 h,  \ COUNT1_TX
+  0000 h,  \ ADDR1_RX
+  0000 h,  \ COUNT1_RX
+  0100 h,  \ ADDR2_TX
+  0000 h,  \ COUNT2_TX
+  0000 h,  \ ADDR2_RX
+  0000 h,  \ COUNT2_RX
+  0000 h,  \ ADDR3_TX
+  0000 h,  \ COUNT3_TX
+  0110 h,  \ ADDR3_RX
+  0040 h,  \ COUNT3_RX
+decimal
+
+: usb-init ( -- )
+  usb:init  64 0 do
+    dup h@  i USBMEM + h!
+    2+
+  4 +loop  drop ;
+
+: istr. ( u -- )
+  ." ISTR: "
+  dup $1000 and if ." wkup " then
+  dup $0800 and if ." susp " then
+  dup $0400 and if ." reset " then
+  dup $0200 and if ." sof " then
+  dup $0100 and if ." esof " then
+  dup $0010 and if ." dir " then
+  drop ;
+
+: usb. ( -- )  \ dump USB info
+  cr ." EP0R " USB-EP0R h@ h.4
+    ."  EP1R " USB-EP1R h@ h.4
+    ."  EP2R " USB-EP2R h@ h.4
+    ."  EP3R " USB-EP3R h@ h.4
+  cr ." EP4R " USB-EP4R h@ h.4
+    ."  EP5R " USB-EP5R h@ h.4
+    ."  EP6R " USB-EP6R h@ h.4
+    ."  EP7R " USB-EP7R h@ h.4
+  cr ." CNTR " USB-CNTR h@ h.4
+    ."  ISTR " USB-ISTR h@ h.4
+     ."  FNR " USB-FNR h@ h.4
+   ."  DADDR " USB-DADDR h@ h.4
+  ."  BTABLE " USB-BTABLE h@ h.4 ;
+
+: usb.mem ( -- )  \ dump packet buffer memory
+  $150 0 do
+    i $0F and 0= if cr i h.4 space then
+    i $7 and 0= if space then
+    i shl USBMEM + h@ h.4 space
+  2 +loop ;
 
 ( code-size ) here swap - .
 
