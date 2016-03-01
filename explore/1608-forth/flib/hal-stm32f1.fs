@@ -2,6 +2,11 @@
 \ adapted from mecrisp-stellaris 2.2.1a (GPL3)
 \ needs io.fs
 
+\ good to know: access to STM32F1's serial h/w id
+\ $1FFFF7E8 constant ID1
+\ $1FFFF7EC constant ID2
+\ $1FFFF7F0 constant ID3
+
 : io.all ( -- )  \ display all the readable GPIO registers
   5 0 do i 0 io io. loop ;
 
@@ -31,6 +36,7 @@ $40013800 constant USART1
 $40021000 constant RCC
      RCC $00 + constant RCC-CR
      RCC $04 + constant RCC-CFGR
+     RCC $10 + constant RCC-APB1RSTR
      RCC $18 + constant RCC-APB2ENR
      RCC $1C + constant RCC-APB1ENR
 
