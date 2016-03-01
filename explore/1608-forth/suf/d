@@ -5,27 +5,27 @@ reset
 led io-1!
 
 $40005C00 constant USB
-     USB $00 + constant USB.EP0R
-     USB $04 + constant USB.EP1R
-     USB $08 + constant USB.EP2R
-     USB $0C + constant USB.EP3R
-     USB $10 + constant USB.EP4R
-     USB $14 + constant USB.EP5R
-     USB $18 + constant USB.EP6R
-     USB $1C + constant USB.EP7R
-     USB $40 + constant USB.CNTR
-     USB $44 + constant USB.ISTR
-     USB $48 + constant USB.FNR
-     USB $4C + constant USB.DADDR
-     USB $50 + constant USB.BTABLE
+     USB $00 + constant USB-EP0R
+     USB $04 + constant USB-EP1R
+     USB $08 + constant USB-EP2R
+     USB $0C + constant USB-EP3R
+     USB $10 + constant USB-EP4R
+     USB $14 + constant USB-EP5R
+     USB $18 + constant USB-EP6R
+     USB $1C + constant USB-EP7R
+     USB $40 + constant USB-CNTR
+     USB $44 + constant USB-ISTR
+     USB $48 + constant USB-FNR
+     USB $4C + constant USB-DADDR
+     USB $50 + constant USB-BTABLE
 $40006000 constant USBMEM
 
-RCC $4 + constant RCC.CFGR
-1 22 lshift constant USBPRE
-RCC $10 + constant RCC.APB1RSTR
-1 23 lshift constant USBRST
-RCC $1C + constant RCC_APB1ENR
-1 23 lshift constant USBEN
+\ RCC $04 + constant RCC-CFGR
+        22 bit constant USBPRE
+RCC $10 + constant RCC-APB1RSTR
+        23 bit constant USBRST
+\ RCC $1C + constant RCC-APB1ENR
+        23 bit constant USBEN
 
 \ good to know: access to STM32F1's serial h/w id
 \ $1FFFF7E8 constant ID1
@@ -67,40 +67,48 @@ decimal
 
 : usb-reset ( -- )
 \  5432109876543210
-  %1011001110010000 USB.EP0R h!  \ ctrl rx-val tx-stall
-  %1000000010100000 USB.EP1R h!  \ bulk rx-dis tx-nak
-  %1000011010100000 USB.EP2R h!  \ intr rx-dis tx-nak
-  %1011000010000000 USB.EP3R h!  \ bulk rx-val tx-dis
+  %1011001110010000 USB-EP0R h!  \ ctrl rx-val tx-stall
+  %1000000010100000 USB-EP1R h!  \ bulk rx-dis tx-nak
+  %1000011010100000 USB-EP2R h!  \ intr rx-dis tx-nak
+  %1011000010000000 USB-EP3R h!  \ bulk rx-val tx-dis
 ;
 
-: +usb ( -- )  \ init USB hardware
-  $0001 USB.CNTR h!  \ usb_pwr.c:73
-  usb-on
-  OMODE-AF-PP OMODE-FAST + PA11 io-mode!  \ hw_config.c:115
-  OMODE-AF-PP OMODE-FAST + PA12 io-mode!
-  USBEN RCC_APB1ENR bis!  \ hw_config.c:162
-  $0000 USB.CNTR h!  \ usb_pwr.c:77
-  usb-clear
-  usb-init
-  usb-reset
-  $1C00 USB.CNTR h!  \ usb_pwr.c:82
-  ;
-
-: -usb ( -- )  \ deinit USB hardware
-  USBEN RCC_APB1ENR bic!
-  usb-off
-  $0001 USB.CNTR h! ;
-
-0 variable last
+: set-txstat ( u -- )  \ awful code, avoids toggling/setting any other fields
+  4 lshift  USB-CNTR h@ tuck  xor
+\  5432109876543210
+  %0000000000110000 and swap
+  %0000011100001111 and
+  %1000000010000000 or
+  or USB-CNTR h! ;
 
 : send-desc ( addr -- )  \ see definitions of usb:1 etc
   dup c@ 0 do
     dup i + h@  i $80 + shl USBMEM + h!
   2 +loop
   c@ USBMEM 4 + h!  \ COUNT0_TX
-\  5432109876543210
-  %1000001010100000 USB.EP0R h!  \ tx-stall -> tx-val
+  %11 set-txstat ;
+
+: +usb ( -- )  \ init USB hardware
+  usb-off
+  usb-on
+  OMODE-AF-PP OMODE-FAST + PA11 io-mode!  \ hw_config.c:115
+  OMODE-AF-PP OMODE-FAST + PA12 io-mode!
+  USBEN RCC-APB1ENR bis!  \ hw_config.c:162
+  $0001 USB-CNTR h!  \ usb_pwr.c:73
+  usb-clear
+  $0000 USB-CNTR h!  \ usb_pwr.c:77
+  usb-init
+  0 USB-ISTR h!  \ clear all pending interrupts
+  usb-reset
+  $1C00 USB-CNTR h!  \ usb_pwr.c:82
 ;
+
+: -usb ( -- )  \ deinit USB hardware
+  USBEN RCC-APB1ENR bic!
+  usb-off
+  $0001 USB-CNTR h! ;
+
+0 variable last
 
 : istr. ( u -- )
   ." ISTR: "
@@ -114,30 +122,33 @@ decimal
 ;
 
 : usb-poll ( -- )
-  USB.ISTR h@  dup last @ <> if
+  USB-ISTR h@  dup last @ <> if
     dup last !  dup h.4 space  dup if dup istr. cr then
   then
   $400 and if  \ reset
+    ." RESET!"
     usb-init usb-reset
     usb:1 send-desc
+  else
+    usb:1 send-desc
   then
-  0 USB.ISTR h!  \ clear all pending interrupts
+  0 USB-ISTR h!  \ clear all pending interrupts
 ;
 
 : usb. ( -- )  \ dump USB info
-  cr ." EP0R " USB.EP0R h@ h.4
-    ."  EP1R " USB.EP1R h@ h.4
-    ."  EP2R " USB.EP2R h@ h.4
-    ."  EP3R " USB.EP3R h@ h.4
-  cr ." EP4R " USB.EP4R h@ h.4
-    ."  EP5R " USB.EP5R h@ h.4
-    ."  EP6R " USB.EP6R h@ h.4
-    ."  EP7R " USB.EP7R h@ h.4
-  cr ." CNTR " USB.CNTR h@ h.4
-    ."  ISTR " USB.ISTR h@ h.4
-     ."  FNR " USB.FNR h@ h.4
-   ."  DADDR " USB.DADDR h@ h.4
-  ."  BTABLE " USB.BTABLE h@ h.4 ;
+  cr ." EP0R " USB-EP0R h@ h.4
+    ."  EP1R " USB-EP1R h@ h.4
+    ."  EP2R " USB-EP2R h@ h.4
+    ."  EP3R " USB-EP3R h@ h.4
+  cr ." EP4R " USB-EP4R h@ h.4
+    ."  EP5R " USB-EP5R h@ h.4
+    ."  EP6R " USB-EP6R h@ h.4
+    ."  EP7R " USB-EP7R h@ h.4
+  cr ." CNTR " USB-CNTR h@ h.4
+    ."  ISTR " USB-ISTR h@ h.4
+     ."  FNR " USB-FNR h@ h.4
+   ."  DADDR " USB-DADDR h@ h.4
+  ."  BTABLE " USB-BTABLE h@ h.4 ;
 
 : usb.mem ( -- )  \ dump packet buffer memory
   $150 0 do
@@ -147,8 +158,10 @@ decimal
   2 +loop ;
 
 : try +usb  usb. \ usb.mem
-  \ 5 0 do  cr cr 100000 0 do usb-poll loop  cr usb.  loop
-  1 0 do  cr cr 10000 0 do usb-poll loop  cr usb.  loop
+\ 5 0 do  cr cr 100000 0 do usb-poll loop  cr usb.  loop
+\ 1 0 do  cr cr 10000 0 do usb-poll loop  cr usb.  loop
+  cr cr
+  10000 0 do usb-poll loop
   cr usb.mem cr usb. -usb ;
 
 try

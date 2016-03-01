@@ -20,7 +20,7 @@ $40004400 constant USART2
 
 : uart-init ( -- )
   OMODE-AF-PP OMODE-FAST + PA2 io-mode!
-  OMODE-AF-PP PA3 io-mode!
+  IMODE-FLOAT PA3 io-mode!
   17 bit RCC-APB1ENR bis!  \ set USART2EN
   $138 USART2-BRR ! \ set baud rate divider for 115200 Baud at PCLK1=36MHz
   %0010000000001100 USART2-CR1 ! ;

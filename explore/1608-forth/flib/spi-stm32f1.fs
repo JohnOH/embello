@@ -27,6 +27,5 @@ $40013000 constant SPI1
   2 bit SPI1-CR2 bis!  \ SS output enable
   OMODE-PP ssel @ io-mode! -spi
   OMODE-AF-PP PA5 io-mode!
-\ OMODE-AF-PP PA6 io-mode!
   IMODE-FLOAT PA6 io-mode!
   OMODE-AF-PP PA7 io-mode! ;
