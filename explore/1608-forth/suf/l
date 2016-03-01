@@ -20,7 +20,7 @@ compiletoflash
 : calign ( -- )
   c,collection @ if 0 c, then ;
 
-create usb:1
+create usb:dev
     18 c,  \ bLength
     $01 c, \ USB_DEVICE_DESCRIPTOR_TYPE
     $00 c,
@@ -41,7 +41,7 @@ create usb:1
     $01 c, \ bNumConfigurations
 calign
 
-create usb:2  \ total length = 67 bytes
+create usb:conf  \ total length = 67 bytes
 \ USB Configuration Descriptor
     9 c,   \ bLength: Configuration Descriptor size
     $02 c, \ USB_CONFIGURATION_DESCRIPTOR_TYPE

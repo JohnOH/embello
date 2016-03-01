@@ -4,8 +4,8 @@
 reset
 led io-1!
 
-\ : usb-clear ( -- )
-\   1024 0 do  0 i USBMEM + h!  4 +loop ;
+: usb-clear ( -- )
+  1024 0 do  0 i USBMEM + h!  4 +loop ;
 
 : usb-reset ( -- )
 \  5432109876543210
@@ -39,7 +39,7 @@ led io-1!
   10 0 do loop
   $0001 USB-CNTR h!  \ usb_pwr.c:73
   10 0 do loop
-\ usb-clear
+  usb-clear
   $0000 USB-CNTR h!  \ usb_pwr.c:77
   usb-init
   0 USB-ISTR h!  \ clear all pending interrupts
@@ -66,7 +66,8 @@ led io-1!
   then
   $200 and if  \ sof
     ." SOF!"
-    usb:1 send-desc
+    usb.mem cr
+    usb:dev send-desc
   then
   0 USB-ISTR h!  \ clear all pending interrupts
 ;
