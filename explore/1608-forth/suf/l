@@ -200,7 +200,7 @@ hex
   0000 h,  \ ADDR3_TX
   0000 h,  \ COUNT3_TX
   0110 h,  \ ADDR3_RX
-  0040 h,  \ COUNT3_RX
+  8400 h,  \ COUNT3_RX
 decimal
 
 : usb-init ( -- )
