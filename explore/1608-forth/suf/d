@@ -39,12 +39,12 @@ led io-1!
   10 0 do loop
   $0001 USB-CNTR h!  \ usb_pwr.c:73
   10 0 do loop
-  usb-clear
   $0000 USB-CNTR h!  \ usb_pwr.c:77
+  usb-clear
   usb-init
-  0 USB-ISTR h!  \ clear all pending interrupts
   usb-reset
   $1C00 USB-CNTR h!  \ usb_pwr.c:82
+  0 USB-ISTR h!  \ clear all pending interrupts
   PA0 io-0!  \ usb-on HyTiny
 ;
 
@@ -60,22 +60,16 @@ led io-1!
     dup last !  dup h.4 space  dup if dup istr. cr then
   then
   dup $400 and if  \ reset
-    ." RESET!"
-    usb-init usb-reset
-    usb. cr cr
+    ." RESET!" usb-init usb-reset usb. cr cr
   then
   $200 and if  \ sof
-    ." SOF!"
-    usb.mem cr
-    usb:dev send-desc
+    ." SOF!" usb.mem cr usb:dev send-desc
   then
   0 USB-ISTR h!  \ clear all pending interrupts
 ;
 
-: try +usb  usb. \ usb.mem
-\ 5 0 do  cr cr 100000 0 do usb-poll loop  cr usb.  loop
-\ 1 0 do  cr cr 10000 0 do usb-poll loop  cr usb.  loop
-  cr cr
+: try ( -- )
+  +usb  usb. cr cr
   1000000 0 do usb-poll loop
   cr usb.mem cr usb. -usb ;
 
