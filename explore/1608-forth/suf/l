@@ -160,12 +160,35 @@ $40005C00 constant USB
      USB $50 + constant USB-BTABLE
 $40006000 constant USBMEM
 
+: rxstat! ( u -- )  \ set stat_rx without toggling/setting any other fields
+  12 lshift  USB-EP0R h@ tuck  xor
+\  5432109876543210
+  %0011000000000000 and swap
+  %0000011100001111 and
+  %1000000010000000 or
+  or USB-EP0R h! ;
+
+: txstat! ( u -- )  \ set stat_tx without toggling/setting any other fields
+  4 lshift  USB-EP0R h@ tuck  xor
+\  5432109876543210
+  %0000000000110000 and swap
+  %0000011100001111 and
+  %1000000010000000 or
+  or USB-EP0R h! ;
+
+: send-desc ( addr count -- )  \ see definitions of usb:dev etc
+  dup >r 0 ?do
+    dup i + h@  i $80 + shl USBMEM + h!
+  2 +loop
+  drop r> USBMEM 4 + h!  \ COUNT0_TX
+  %11 txstat! ;
+
 create usb:init
 hex
   0080 h,  \ ADDR0_TX
   0000 h,  \ COUNT0_TX
   0040 h,  \ ADDR0_RX
-  0040 h,  \ COUNT0_RX
+  8400 h,  \ COUNT0_RX
   00C0 h,  \ ADDR1_TX
   0000 h,  \ COUNT1_TX
   0000 h,  \ ADDR1_RX
@@ -188,6 +211,8 @@ decimal
 
 : istr. ( u -- )
   ." ISTR: "
+  dup $8000 and if ." ctr " then
+  dup $2000 and if ." err " then
   dup $1000 and if ." wkup " then
   dup $0800 and if ." susp " then
   dup $0400 and if ." reset " then

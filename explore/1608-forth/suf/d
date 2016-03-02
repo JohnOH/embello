@@ -8,43 +8,30 @@ led io-1!
   1024 0 do  0 i USBMEM + h!  4 +loop ;
 
 : usb-reset ( -- )
+  0 USB-BTABLE h!
+  usb-init
 \  5432109876543210
   %1011001010010000 USB-EP0R h!  \ ctrl rx-val tx-stall
   %1000000010100001 USB-EP1R h!  \ bulk rx-dis tx-nak
   %1000011010100010 USB-EP2R h!  \ intr rx-dis tx-nak
   %1011000010000011 USB-EP3R h!  \ bulk rx-val tx-dis
-  $80 USB-DADDR h! ;
-
-: set-txstat ( u -- )  \ awful code, avoids toggling/setting any other fields
-  4 lshift  USB-EP0R h@ tuck  xor
-\  5432109876543210
-  %0000000000110000 and swap
-  %0000011100001111 and
-  %1000000010000000 or
-  or USB-EP0R h! ;
-
-: send-desc ( addr -- )  \ see definitions of usb:1 etc
-  dup c@ 0 do
-    dup i + h@  i $80 + shl USBMEM + h!
-  2 +loop
-  c@ USBMEM 4 + h!  \ COUNT0_TX
-  %11 set-txstat ;
+  0 USB-ISTR h!
+  $80 USB-DADDR h!
+;
 
 : +usb ( -- )  \ init USB hardware
   OMODE-PP PA0 io-mode!  PA0 io-1!  \ usb-off HyTiny
+  10000 0 do loop
   OMODE-AF-PP OMODE-FAST + PA11 io-mode!  \ hw_config.c:115
   OMODE-AF-PP OMODE-FAST + PA12 io-mode!
   23 bit RCC-APB1ENR bis!  \ USBEN hw_config.c:162
-  $0003 USB-CNTR h!
-  10 0 do loop
   $0001 USB-CNTR h!  \ usb_pwr.c:73
-  10 0 do loop
+  100 0 do loop
   $0000 USB-CNTR h!  \ usb_pwr.c:77
   usb-clear
-  usb-init
+  100 0 do loop
+  $1E00 USB-CNTR h!  \ usb_pwr.c:82
   usb-reset
-  $1C00 USB-CNTR h!  \ usb_pwr.c:82
-  0 USB-ISTR h!  \ clear all pending interrupts
   PA0 io-0!  \ usb-on HyTiny
 ;
 
@@ -60,10 +47,27 @@ led io-1!
     dup last !  dup h.4 space  dup if dup istr. cr then
   then
   dup $400 and if  \ reset
-    ." RESET!" usb-init usb-reset usb. cr cr
+    ." reset!" usb-reset usb. cr
+    drop 0
   then
-  $200 and if  \ sof
-    ." SOF!" usb.mem cr usb:dev send-desc
+  dup $200 and if  \ sof
+\   dup $10 and if usb:dev 18 send-desc then  \ dir=out
+    ." sof! "
+    ( usb. usb.mem ) USB-EP0R h@ h.4 space USBMEM $80 + h@
+    dup h.4 space
+    case
+      $0500 of ." setaddr "
+        USBMEM $84 + h@ dup h.4 $80 or USB-DADDR h!
+        0 0 send-desc  \ ack
+      endof
+      ." SOF? " dup if usb.mem then
+    endcase
+    cr
+  then
+  $8000 and if
+\   USB-EP0R h@ $3000 and $3000 <> if
+\     ." ctr!" %11 rxstat!
+\   then
   then
   0 USB-ISTR h!  \ clear all pending interrupts
 ;
@@ -71,7 +75,26 @@ led io-1!
 : try ( -- )
   +usb  usb. cr cr
   1000000 0 do usb-poll loop
-  cr usb.mem cr usb. -usb ;
+  cr usb.mem usb. -usb ;
+
+0 variable finish
+
+: usb-poll2 ( -- )
+  USB-ISTR h@  dup last @ <> if
+    dup last !  dup h.4 space  dup if dup istr. cr then
+  then
+  dup $400 and if  \ reset
+    ." reset!" usb-reset usb. cr
+    drop 0
+  then
+  $8000 and finish !  \ sof
+  0 USB-ISTR h!  \ clear all pending interrupts
+;
+
+: try2 ( -- )
+  +usb  usb. cr cr
+  begin usb-poll2 finish @ until
+  cr usb. usb.mem -usb ;
 
 try
 
