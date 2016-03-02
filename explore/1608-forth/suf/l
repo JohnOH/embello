@@ -162,18 +162,20 @@ $40006000 constant USBMEM
 
 : rxstat! ( u -- )  \ set stat_rx without toggling/setting any other fields
   12 lshift  USB-EP0R h@ tuck  xor
+\  R^rrseekT^ttnnnn
 \  5432109876543210
   %0011000000000000 and swap
   %0000011100001111 and
-  %1000000010000000 or
+  %0000000010000000 or
   or USB-EP0R h! ;
 
 : txstat! ( u -- )  \ set stat_tx without toggling/setting any other fields
   4 lshift  USB-EP0R h@ tuck  xor
+\  R^rrseekT^ttnnnn
 \  5432109876543210
   %0000000000110000 and swap
   %0000011100001111 and
-  %1000000010000000 or
+  %1000000000000000 or
   or USB-EP0R h! ;
 
 : send-desc ( addr count -- )  \ see definitions of usb:dev etc
