@@ -38,39 +38,30 @@ led io-1!
   PA0 io-1!  \ usb-off HyTiny
   $0001 USB-CNTR h! ;
 
-: got-reset ( -- )
-  ."  reset!" usb-reset ( %10 rxstat! usb. )
-  0 0 send-desc
-;
-
-: got-recv ( -- )
+: got-xfer ( -- )
   USBMEM $80 + h@
-\ dup h.4
   case
-    $0500 of ."  sa "
-      USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
-      0 0 send-desc ( usb. )  \ ack
+    $0500 of
+      0 0 send-desc
       %11 rxstat!
+      ." Sa"
+      USBMEM $84 + h@ dup h.2 $80 or USB-DADDR h!
     endof
-    $0680 of ."  gd "
+    $0680 of
       usb:dev 18 send-desc
+      ." Gd"
     endof
-    $0880 of ."  gc "
+    $0880 of
+      ." Gc"
     endof
-    ."  SOF? " dup if usb. ( usb.mem ) then
+    ." S?" dup if usb. then
   endcase ;
 
 : usb-poll ( -- )
   USB-ISTR h@
-  dup $0400 and if got-reset drop 0 then
-\ dup $200 and if  \ SOF
-\   ." sof "
-\ then
-  dup $8000 and if
-\     dup $1F and h.2 [char] : emit  \ show dir and endpoint
-      dup $10 and if 0 0 send-desc then
-      got-recv
-  then
+  dup $0400 and if ." R " usb-reset drop 0 then
+\ dup $0200 and if ." F#" then
+  dup $8000 and if got-xfer then
   drop
   0 USB-ISTR h!  \ clear all pending interrupts
 ;
