@@ -115,7 +115,7 @@ led io-1!
 : try ( -- )
   +usb  cr
   2000000 0 do i 50000 mod 0= if [char] . emit then  usb-poll loop
-  cr usb.mem usb. -usb ;
+  halt ;
 
 try
 
