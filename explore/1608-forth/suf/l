@@ -165,8 +165,8 @@ $40006000 constant USBMEM
 \  R^rrseekT^ttnnnn
 \  5432109876543210
   %0011000000000000 and swap
-  %0000011100001111 and
-  %0000000010000000 or
+  %0000111100001111 and
+  %1000000010000000 or
   or USB-EP0R h! ;
 
 : txstat! ( u -- )  \ set stat_tx without toggling/setting any other fields
@@ -174,16 +174,21 @@ $40006000 constant USBMEM
 \  R^rrseekT^ttnnnn
 \  5432109876543210
   %0000000000110000 and swap
-  %0000011100001111 and
-\ %1000000000000000 or
+  %0000111100001111 and
+  %1000000010000000 or
   or USB-EP0R h! ;
+
+: rxclear ( ep -- )
+  4 * USB + dup h@ $7FFF and $8F8F and swap h! ;
+: txclear ( ep -- )
+  4 * USB + dup h@ $FF7F and $8F8F and swap h! ;
 
 : send-desc ( addr count -- )  \ see definitions of usb:dev etc
   dup >r 0 ?do
     dup i + h@  i $80 + shl USBMEM + h!
   2 +loop
   drop r> USBMEM 4 + h!  \ COUNT0_TX
-  %11 txstat! ;
+  %11 txstat! 0 txclear ;
 
 create usb:init
 hex
@@ -243,6 +248,23 @@ decimal
     i $7 and 0= if space then
     i shl USBMEM + h@ h.4 space
   2 +loop ;
+
+5000 buffer: outbuf
+0 variable outpos
+
+: buf-emit? true ;
+: buf-emit outpos @ dup 5000 < if outbuf + c!  1 outpos +!  else drop then ;
+
+: save-to-buf
+  ['] buf-emit? hook-emit? !
+  ['] buf-emit hook-emit !
+  0 outpos ! ;
+: restore-buf
+  ['] serial-emit? hook-emit? !
+  ['] serial-emit hook-emit !
+  outbuf outpos @ type  0 outpos ! ;
+
+: test-buf save-to-buf ." abc" [char] : serial-emit restore-buf ;
 
 ( code-size ) here swap - .
 

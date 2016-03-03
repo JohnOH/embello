@@ -52,38 +52,44 @@ led io-1!
 0 variable outData
 0 variable outLen
 
-: halt ( -- ) usb. ( usb.mem ) -usb cr ." HALT" reset ;
+: halt ( -- ) usb. ( usb.mem ) -usb cr restore-buf cr reset ;
 
 : out? ( -- f ) USB-ISTR h@ $10 and 0<> ;
+
+: wait-tx ( -- ) begin USB-EP0R h@ $80 until 0 txclear ;
 
 : got-in ( -- )
   ." send#"
   outData @  outLen @ 64 min
-  USBMEM $8C + h@ ?dup if min then
+\ USBMEM $8C + h@ ?dup if min then
   dup . dup >r  send-desc
   r@ outData +! r> negate outLen +!
-  %11 rxstat! ;
+  0 rxclear ;
 
 : got-out ( -- )
   0 0 send-desc
-  %11 rxstat! ;
+  0 rxclear ;
 
 : got-setup ( -- )
   USBMEM $80 + h@
   case
     $0500 of
-      0 0 send-desc
       ." sA "
+      0 0 send-desc
       USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
-      usb:dev outData ! 18 outLen !
+\     usb:dev outData ! 18 outLen !
+\     usb:dev 18 send-desc
+      0 txclear
     endof
     $0680 of
-      0 0 send-desc
       ." gD"
-      usb:conf outData ! 67 outLen !
-\     usb:dev outData ! 18 outLen !
+\     0 0 send-desc
+      usb:dev 18 send-desc
+\     0 txclear
+\     usb:conf outData ! 67 outLen !
+      usb:dev outData ! 18 outLen !
     endof
-    ." S?" usb. usb.mem -usb cr begin again \ intentional hang
+    ." S?" halt
   endcase ;
 
 : usb-poll ( -- )
@@ -96,7 +102,7 @@ led io-1!
       USB-EP0R h@ $800 and if  \ setup bit set
         setup.
         got-setup
-        %11 rxstat!
+        0 rxclear
       else
         out? if ." OUT " got-out else ." IN " got-in then
       then
@@ -111,6 +117,7 @@ led io-1!
   27 emit ." [2J" 27 emit ." [;H" ;
 
 : try ( -- )
+  ." TRY" cr save-to-buf
   +usb  cr
   2000000 0 do i 50000 mod 0= if [char] . emit then  usb-poll loop
   halt ;
