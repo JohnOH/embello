@@ -38,37 +38,48 @@ led io-1!
   PA0 io-1!  \ usb-off HyTiny
 ;
 
+: setup. ( -- )  \ dump received setup packet
+  cr ." setup: " $A0 $80 do i USBMEM + h@ h.4 space 4 +loop ;
+
 ' nop variable next-tx
 
 : gd2 0 0 send-desc ; \ ['] nop next-tx ! ;
 : gd1 usb:dev 18 send-desc ['] gd2 next-tx ! ;
 
 0 variable zero
+0 variable outData
+0 variable outLen
 
-: got-xfer ( outf -- )
-  >r
+: out? ( -- f ) USB-ISTR h@ $10 and 0<> ;
+
+: got-xfer ( -- )
+  out? >r
   USBMEM $80 + h@
   case
     $0000 of
-      r@ if zero 2 send-desc else %01 txstat! then
+\     r@ if 0 0 send-desc else %01 txstat! then
+      r@ if %01 txstat! then
       %11 rxstat!
       ." Ss" usb. cr
     endof
     $0500 of
-      r@ if 0 0 send-desc else %01 txstat! then
+      USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
+      usb:dev 18 send-desc
       %11 rxstat!
-      ." Sa"
-      r@ if USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h! then
-      ['] gd1 next-tx !
+      ." Sa" usb. setup. cr
+\     ['] gd1 next-tx !
     endof
     $0680 of
 \     next-tx @ execute
-      r@ if usb:dev
-        18 USBMEM $C + h@ $FF and min dup .
-        send-desc
-      else %01 txstat! then
+      usb:conf 9 send-desc
       %11 rxstat!
-      ." Gd"
+      ." Gd" \ usb. usb.mem cr
+\     r@ if usb:conf
+\       67 USBMEM $C + h@ $FF and min dup .
+\       send-desc
+\     else %01 txstat! then
+\     %11 rxstat!
+\     ." Gd"
     endof
     $0880 of
       ." Gc"
@@ -76,12 +87,44 @@ led io-1!
     ." S?" usb. usb.mem -usb cr begin again \ intentional hang
   endcase r> drop ;
 
+: got-setup ( -- )
+  USBMEM $80 + h@
+  case
+    $0500 of
+      0 0 send-desc
+      ." sA "
+\     USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
+    endof
+    $0680 of
+      usb:dev
+      18 USBMEM $C + h@ $FF and min dup .
+      send-desc
+      ." gD" setup.
+    endof
+    ." S?" usb. usb.mem -usb cr begin again \ intentional hang
+  endcase ;
+
 : usb-poll ( -- )
   USB-ISTR h@
-  dup $8C00 and if cr istr. then
+  dup $8400 and if
+    cr istr.
+    USB-EP0R h@ $800 and if ." setup "
+\     out? dup if ." out " then
+      got-setup drop 0
+      %11 rxstat!
+    then
+  then
   dup $0400 and if ." R " usb-reset drop 0 then
 \ dup $0200 and if ." F#" then
-  dup $8000 and if dup $10 and got-xfer then
+  dup $8000 and if
+    out? if
+      ." OUT "
+      got-xfer
+    else
+      ." IN "
+      got-xfer
+    then
+  then
   drop
   0 USB-ISTR h!  \ clear all pending interrupts
 ;
@@ -91,6 +134,6 @@ led io-1!
   2000000 0 do i 50000 mod 0= if [char] . emit then  usb-poll loop
   cr usb.mem usb. -usb ;
 
-\ try
+try
 
 \ vim: set ft=forth :
