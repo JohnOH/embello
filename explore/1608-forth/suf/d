@@ -40,13 +40,15 @@ led io-1!
 
 : got-reset ( -- )
   ."  reset!" usb-reset ( %10 rxstat! usb. )
+  0 0 send-desc
 ;
 
-: got-sof ( -- )
+: got-recv ( -- )
   USBMEM $80 + h@
+  dup h.4
   case
     $0500 of ."  sa "
-      USBMEM $84 + h@ dup h.2 $80 or USB-DADDR h!
+      USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
       0 0 send-desc ( usb. )  \ ack
       %11 rxstat!
     endof
@@ -60,11 +62,14 @@ led io-1!
 
 : usb-poll ( -- )
   USB-ISTR h@
-  dup $400 and if got-reset drop 0 then
-  dup $200 and if
-    USBMEM 12 + h@ $FF and if
-      got-sof
-    then
+  dup $0400 and if got-reset drop 0 then
+\ dup $200 and if  \ SOF
+\   ." sof "
+\ then
+  dup $8000 and if
+      dup $1F and h.2 [char] : emit  \ show dir and endpoint
+      dup $10 and if 0 0 send-desc then
+      got-recv
   then
   drop
   0 USB-ISTR h!  \ clear all pending interrupts
@@ -75,6 +80,6 @@ led io-1!
   2000000 0 do i 50000 mod 0= if [char] . emit then  usb-poll loop
   cr usb.mem usb. -usb ;
 
-try
+\ try
 
 \ vim: set ft=forth :
