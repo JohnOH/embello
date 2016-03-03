@@ -45,7 +45,7 @@ led io-1!
 
 : got-recv ( -- )
   USBMEM $80 + h@
-  dup h.4
+\ dup h.4
   case
     $0500 of ."  sa "
       USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
@@ -67,7 +67,7 @@ led io-1!
 \   ." sof "
 \ then
   dup $8000 and if
-      dup $1F and h.2 [char] : emit  \ show dir and endpoint
+\     dup $1F and h.2 [char] : emit  \ show dir and endpoint
       dup $10 and if 0 0 send-desc then
       got-recv
   then
