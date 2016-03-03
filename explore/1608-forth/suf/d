@@ -38,8 +38,10 @@ led io-1!
   PA0 io-1!  \ usb-off HyTiny
 ;
 
+: fnr. ( -- )  \ print last seen frame number
+  [char] # emit USB-FNR h@ $3FF and h.4 space ;
 : setup. ( -- )  \ dump received setup packet
-  ." setup: " $A0 $80 do i USBMEM + h@ h.4 space 4 +loop ;
+  ." setup: " $90 $80 do i USBMEM + h@ h.4 space 4 +loop ;
 
 ' nop variable next-tx
 
@@ -55,30 +57,11 @@ led io-1!
 : out? ( -- f ) USB-ISTR h@ $10 and 0<> ;
 
 : got-in ( -- )
-  USBMEM $80 + h@
-  case
-    $0000 of
-      %11 rxstat!
-      ." Ss" usb. cr
-    endof
-    $0500 of
-      USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
-      usb:dev 18 send-desc
-      %11 rxstat!
-      ." Sa" usb. cr
-\     ['] gd1 next-tx !
-    endof
-    $0680 of
-\     next-tx @ execute
-      usb:conf 9 send-desc
-      %11 rxstat!
-      ." Gd"
-    endof
-    $0880 of
-      ." Gc"
-    endof
-    ." S?" halt
-  endcase r> drop ;
+  ." send#"
+  outData @  outLen @ 64 min
+  USBMEM $8C + h@ ?dup if min then
+  dup . dup >r  send-desc
+  r@ outData +! r> negate outLen +! ;
 
 : got-setup ( -- )
   USBMEM $80 + h@
@@ -86,13 +69,14 @@ led io-1!
     $0500 of
       0 0 send-desc
       ." sA "
-\     USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
+      USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
+      usb:dev outData ! 18 outLen !
     endof
     $0680 of
-      usb:dev
-      18 USBMEM $C + h@ $FF and min dup .
-      send-desc
+      0 0 send-desc
       ." gD"
+      usb:conf outData ! 67 outLen !
+\     usb:dev outData ! 18 outLen !
     endof
     ." S?" usb. usb.mem -usb cr begin again \ intentional hang
   endcase ;
@@ -100,10 +84,12 @@ led io-1!
 : usb-poll ( -- )
   USB-ISTR h@
   dup $8400 and if
-    cr istr.
+    cr istr. fnr.
     USB-EP0R h@ $800 and if
       setup.
       got-setup drop 0
+    then
+    dup $8000 and if
       %11 rxstat!
     then
   then
@@ -113,11 +99,11 @@ led io-1!
     out? if
       0 0 send-desc
       ." OUT "
-      %11 rxstat!
     else
       ." IN "
       got-in
     then
+    %11 rxstat!
   then
   drop
   0 USB-ISTR h!  \ clear all pending interrupts
