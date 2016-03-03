@@ -58,6 +58,13 @@ led io-1!
 
 : wait-tx ( -- ) begin USB-EP0R h@ $80 until 0 txclear ;
 
+: getdesc ( typidx -- addr count )
+  case
+    $0100 of usb:dev 18 endof
+    $0200 of usb:conf 67 endof
+    dup $FF and cells usb:str + @ dup c@
+  endcase ;
+
 : got-in ( -- )
   ." send#"
   outData @  outLen @ 64 min
@@ -83,11 +90,8 @@ led io-1!
     endof
     $0680 of
       ." gD"
-\     0 0 send-desc
-      usb:dev 18 send-desc
-\     0 txclear
-\     usb:conf outData ! 67 outLen !
-      usb:dev outData ! 18 outLen !
+      0 0 send-desc
+      USBMEM $84 + h@ getdesc outLen ! outData !
     endof
     ." S?" halt
   endcase ;
