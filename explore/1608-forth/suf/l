@@ -175,7 +175,7 @@ $40006000 constant USBMEM
 \  5432109876543210
   %0000000000110000 and swap
   %0000011100001111 and
-  %1000000000000000 or
+\ %1000000000000000 or
   or USB-EP0R h! ;
 
 : send-desc ( addr count -- )  \ see definitions of usb:dev etc
@@ -187,21 +187,21 @@ $40006000 constant USBMEM
 
 create usb:init
 hex
-  0080 h,  \ ADDR0_TX
+  0080 h,  \ ADDR0_TX   control - rx: 64b @ +040/080, tx: 64b @ +080/100
   0000 h,  \ COUNT0_TX
   0040 h,  \ ADDR0_RX
   8400 h,  \ COUNT0_RX
-  00C0 h,  \ ADDR1_TX
+  00C0 h,  \ ADDR1_TX   bulk - tx: 64b @ +0C0/180
   0000 h,  \ COUNT1_TX
   0000 h,  \ ADDR1_RX
   0000 h,  \ COUNT1_RX
-  0100 h,  \ ADDR2_TX
+  0140 h,  \ ADDR2_TX   interrupt - tx: 8b @ +140/280
   0000 h,  \ COUNT2_TX
   0000 h,  \ ADDR2_RX
   0000 h,  \ COUNT2_RX
-  0000 h,  \ ADDR3_TX
+  0000 h,  \ ADDR3_TX   bulk - rx: 64b @ +100/200
   0000 h,  \ COUNT3_TX
-  0110 h,  \ ADDR3_RX
+  0100 h,  \ ADDR3_RX
   8400 h,  \ COUNT3_RX
 decimal
 
@@ -211,7 +211,7 @@ decimal
     2+
   4 +loop  drop ;
 
-: istr. ( u -- )
+: istr. ( u -- u )
   ." ISTR: "
   dup $8000 and if ." ctr " then
   dup $2000 and if ." err " then
@@ -220,18 +220,17 @@ decimal
   dup $0400 and if ." reset " then
   dup $0200 and if ." sof " then
   dup $0100 and if ." esof " then
-  dup $0010 and if ." dir " then
-  drop ;
+  dup $0010 and if ." dir " then ;
 
 : usb. ( -- )  \ dump USB info
   cr ." EP0R " USB-EP0R h@ h.4
     ."  EP1R " USB-EP1R h@ h.4
     ."  EP2R " USB-EP2R h@ h.4
     ."  EP3R " USB-EP3R h@ h.4
-  cr ." EP4R " USB-EP4R h@ h.4
-    ."  EP5R " USB-EP5R h@ h.4
-    ."  EP6R " USB-EP6R h@ h.4
-    ."  EP7R " USB-EP7R h@ h.4
+\ cr ." EP4R " USB-EP4R h@ h.4
+\   ."  EP5R " USB-EP5R h@ h.4
+\   ."  EP6R " USB-EP6R h@ h.4
+\   ."  EP7R " USB-EP7R h@ h.4
   cr ." CNTR " USB-CNTR h@ h.4
     ."  ISTR " USB-ISTR h@ h.4
      ."  FNR " USB-FNR h@ h.4

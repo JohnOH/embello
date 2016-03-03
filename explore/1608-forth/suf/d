@@ -36,38 +36,58 @@ led io-1!
 : -usb ( -- )  \ deinit USB hardware
   23 bit RCC-APB1ENR bic!  \ USBEN
   PA0 io-1!  \ usb-off HyTiny
-  $0001 USB-CNTR h! ;
+;
 
-: got-xfer ( -- )
+' nop variable next-tx
+
+: gd2 0 0 send-desc ; \ ['] nop next-tx ! ;
+: gd1 usb:dev 18 send-desc ['] gd2 next-tx ! ;
+
+0 variable zero
+
+: got-xfer ( outf -- )
+  >r
   USBMEM $80 + h@
   case
+    $0000 of
+      r@ if zero 2 send-desc else %01 txstat! then
+      %11 rxstat!
+      ." Ss" usb. cr
+    endof
     $0500 of
-      0 0 send-desc
+      r@ if 0 0 send-desc else %01 txstat! then
       %11 rxstat!
       ." Sa"
-      USBMEM $84 + h@ dup h.2 $80 or USB-DADDR h!
+      r@ if USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h! then
+      ['] gd1 next-tx !
     endof
     $0680 of
-      usb:dev 18 send-desc
+\     next-tx @ execute
+      r@ if usb:dev
+        18 USBMEM $C + h@ $FF and min dup .
+        send-desc
+      else %01 txstat! then
+      %11 rxstat!
       ." Gd"
     endof
     $0880 of
       ." Gc"
     endof
-    ." S?" dup if usb. then
-  endcase ;
+    ." S?" usb. usb.mem -usb cr begin again \ intentional hang
+  endcase r> drop ;
 
 : usb-poll ( -- )
   USB-ISTR h@
+  dup $8C00 and if cr istr. then
   dup $0400 and if ." R " usb-reset drop 0 then
 \ dup $0200 and if ." F#" then
-  dup $8000 and if got-xfer then
+  dup $8000 and if dup $10 and got-xfer then
   drop
   0 USB-ISTR h!  \ clear all pending interrupts
 ;
 
 : try ( -- )
-  +usb  usb. cr cr
+  +usb  cr
   2000000 0 do i 50000 mod 0= if [char] . emit then  usb-poll loop
   cr usb.mem usb. -usb ;
 
