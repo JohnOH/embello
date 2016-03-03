@@ -144,6 +144,13 @@ create usb:serial
 create usb:str
   usb:langid , usb:vendor , usb:product , usb:serial ,
 
+: getdesc ( typidx -- addr count )
+  case
+    $0100 of usb:dev 18 endof
+    $0200 of usb:conf 67 endof
+    dup $FF and cells usb:str + @ dup c@
+  endcase ;
+
 $40005C00 constant USB
      USB $00 + constant USB-EP0R
      USB $04 + constant USB-EP1R
