@@ -56,7 +56,7 @@ $40010800 constant GPIO-BASE
     ." PIN " dup io#  dup .  10 < if space then
    ." PORT " dup io-port [char] A + emit
   io-base
-  ."   CRL " dup @ hex.  4 +
-   ."  CRH " dup @ hex.  4 +
+  ."   CRL " dup @ hex. 4 +
+   ."  CRH " dup @ hex. 4 +
    ."  IDR " dup @ h.4  4 +
   ."   ODR " dup @ h.4 drop ;
