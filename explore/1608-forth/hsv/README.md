@@ -1,8 +1,8 @@
-Setup for the HY-MiniSTM32V board - work in progress...
+Setup for the HY-MiniSTM32V board
 
 * STM32F103VC µC - 256K flash, 48K RAM, 100-pin package
 * USART1 on PA9/PA10 connected via PL2303 USB interface
-* 3.2" LCD connected bia 16-bit parallel on FSMC pins
+* 3.2" LCD connected via 16-bit R61505U driver on FSMC pins
 * 2 user buttons (PC13/PB2)
 * 2 user LEDs (PB0/PB1)
 * µSD card slot on SDIO
