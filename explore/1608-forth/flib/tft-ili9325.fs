@@ -1,7 +1,4 @@
-\ tft driver for ili9325 chip
-
-: ms ( u -- )  \ millisecond delay
-  0 do 10000 0 do loop loop ;
+\ tft driver for ILI9325 chip
 
 create tft:init
 hex
@@ -76,4 +73,3 @@ $FC00 variable tft-fg
   $21 tft! $20 tft! tft-fg @ $22 tft! ;
 
 : display ( -- ) ;  \ update tft from display memory (ignored)
-

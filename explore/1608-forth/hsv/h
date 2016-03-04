@@ -51,14 +51,15 @@ PB1 constant LED2
 PC13 constant KEYA
 PB2  constant KEYB
 
-PB5 constant LCD-BL
+PB5 constant TFT-BL
 PB7 constant USB-EN
 
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD
+  6 bit RCC-APB2ENR bis!  \ enable port E
+  OMODE-PP TFT-BL io-mode!  \ turns off LCD backlight
   OMODE-PP LED1 io-mode!
   OMODE-PP LED2 io-mode!
-  OMODE-PP LCD-BL io-mode!
   72MHz
 \ 1000 systick-hz
 ;

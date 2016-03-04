@@ -78,6 +78,9 @@ $40022000 constant FLASH
   ['] ++ticks irq-systick !
   clock-hz @ swap / systick ;
 
+: ms ( u -- )  \ millisecond delay (very sloppy busy loop for now)
+  10000 * 0 ?do loop ;
+
 : list ( -- )  \ list all words in dictionary, short form
   cr dictionarystart begin
     dup 6 + ctype space
