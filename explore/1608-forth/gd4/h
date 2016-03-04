@@ -1,0 +1,49 @@
+\ install hardware abstractions in flash
+
+cr eraseflash
+compiletoflash
+
+include ../flib/hexdump.fs
+include ../flib/io-stm32f4.fs
+include ../flib/hal-stm32f4.fs
+\ include ../flib/adc-stm32f4.fs
+
+\ include ../flib/ring.fs
+\ include ../flib/uart2-stm32f1.fs
+\ include ../flib/uart2-irq-stm32f1.fs
+
+\ board definitions for GoldDragon407
+
+\ PA4 variable ssel  \ can be changed at run time
+\ PA5 constant SCLK
+\ PA6 constant MISO
+\ PA7 constant MOSI
+
+\ include ../flib/spi-stm32f1.fs
+\ include ../flib/spi-bb.fs
+
+\ PB6 constant SCL
+\ PB7 constant SDA
+
+\ include ../flib/i2c-bb.fs
+
+4 0 io constant LED0
+4 1 io constant LED1
+4 2 io constant LED2
+4 3 io constant LED3
+
+: init ( -- )  \ board initialisation
+\ -jtag  \ disable JTAG, we only need SWD
+  OMODE-PP LED0 io-mode!
+  OMODE-PP LED1 io-mode!
+  OMODE-PP LED2 io-mode!
+  OMODE-PP LED3 io-mode!
+\ 72MHz
+\ 1000 systick-hz
+;
+
+\ cornerstone <<<hal-gd4>>>
+compiletoram
+\ init
+
+\ vim: set ft=forth :
