@@ -100,4 +100,3 @@ $FFFF variable tft-fg
   $21 tft! $20 tft! tft-fg @ $22 tft! ;
 
 : display ( -- ) ;  \ update tft from display memory (ignored)
-
