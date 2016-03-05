@@ -11,7 +11,6 @@ $40007400 constant DAC
 
 : dac-init ( -- )
   29 bit RCC-APB1ENR bis!  \ set DACEN
-  10 0 do loop  \ needed?
   IMODE-ADC PA4 io-mode!
   IMODE-ADC PA5 io-mode!
   $00010001 DAC-CR !  \ enable channel 1 and 2
@@ -21,7 +20,7 @@ $40007400 constant DAC
 : triangle
   dac-init
   begin
-    $1000 0 do  i          $FFF i - 2dac! 10 0 do loop  loop
-    $1000 0 do  $FFF i -   i        2dac! 10 0 do loop  loop
+    $1000 0 do  i          $FFF i - 2dac! loop
+    $1000 0 do  $FFF i -   i        2dac! loop
   key? until
 ;
