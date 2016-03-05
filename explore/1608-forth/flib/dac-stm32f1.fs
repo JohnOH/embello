@@ -10,7 +10,7 @@ $40007400 constant DAC
   16 lshift or DAC-DHR12RD ! ;
 
 : dac-init ( -- )
-  29 bit RCC-APB2ENR bis!  \ set DACEN
+  29 bit RCC-APB1ENR bis!  \ set DACEN
   10 0 do loop  \ needed?
   IMODE-ADC PA4 io-mode!
   IMODE-ADC PA5 io-mode!
