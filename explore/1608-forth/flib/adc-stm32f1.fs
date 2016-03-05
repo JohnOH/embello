@@ -7,7 +7,7 @@ $40012400 constant ADC1
     ADC1 $4C + constant ADC1-DR
 
 : init-adc ( -- )  \ initialise ADC
-  9 bit RCC-APB2ENR bis!  \ set EDC1EN
+  9 bit RCC-APB2ENR bis!  \ set ADC1EN
   1 ADC1-CR2 bis!  \ set ADON to enable ADC
 ;
 

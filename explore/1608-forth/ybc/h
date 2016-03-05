@@ -7,6 +7,7 @@ include ../flib/hexdump.fs
 include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
 include ../flib/adc-stm32f1.fs
+include ../flib/dac-stm32f1.fs
 
 include ../flib/ring.fs
 include ../flib/uart2-stm32f1.fs
