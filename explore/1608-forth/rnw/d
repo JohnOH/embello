@@ -20,13 +20,8 @@ reset
     then
   key? until ;
 
-\ : lcdtry ( -- )
-\   lcd-init show-logo
-\   2000000 0 do loop
-\   lcd-init demo
-\ ;
-
-: tftry ( -- ) tft-init demo ;
+: tftry ( -- ) lcd-init show-logo  10000000 0 do loop  lcd-init demo ;
+\ : tftry ( -- ) tft-init demo ;
 
 : rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 
