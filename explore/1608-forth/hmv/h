@@ -12,17 +12,9 @@ include ../flib/ring.fs
 include ../flib/uart2-stm32f1.fs
 include ../flib/uart2-irq-stm32f1.fs
 
-\ board definitions for Hy-TinySTM103T
+\ board definitions for Hy-MiniSTM32V
 
-PA4 variable ssel  \ can be changed at run time
-\ PA5 constant SCLK
-\ PA6 constant MISO
-\ PA7 constant MOSI
-
-include ../flib/spi-stm32f1.fs
-\ include ../flib/spi-bb.fs
-
-\ add missing pin definitions for V package with 100 i.s.o 64 pins
+\ add missing pin definitions for V package with 100 i.s.o 48 pins
 2 0  io constant PC0                                4 0  io constant PE0
 2 1  io constant PC1                                4 1  io constant PE1
 2 2  io constant PC2      3 2  io constant PD2      4 2  io constant PE2
@@ -39,6 +31,14 @@ include ../flib/spi-stm32f1.fs
                           3 13 io constant PD13     4 13 io constant PE13
                           3 14 io constant PD14     4 14 io constant PE14
                           3 15 io constant PD15     4 15 io constant PE15
+
+PA4 variable ssel  \ can be changed at run time
+\ PA5 constant SCLK
+\ PA6 constant MISO
+\ PA7 constant MOSI
+
+include ../flib/spi-stm32f1.fs
+\ include ../flib/spi-bb.fs
 
 PB6 constant SCL
 PB7 constant SDA
@@ -64,7 +64,7 @@ PB7 constant USB-EN
 \ 1000 systick-hz
 ;
 
-cornerstone <<<hal-rnw>>>
+cornerstone <<<hal-hmv>>>
 compiletoram
 init
 

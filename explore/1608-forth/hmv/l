@@ -2,21 +2,18 @@
 \ needs h
 \ includes d
 
-( cornerstone ) <<<hal-rnw>>>
+( cornerstone ) <<<hal-hmv>>>
 compiletoflash
 
 ( code-start, see code-size below ) here
 
-\ include ../flib/rf69.fs
-\ include ../flib/oled.fs
-\ include ../flib/tft-ili9325.fs
 include ../flib/tft-fsmc-r61505u.fs
 include ../flib/graphics.fs
-\ include ../flib/multi.fs
+include ../flib/multi.fs
 
 ( code-size ) here swap - .
 
-cornerstone <<<lib-rnw>>>
+cornerstone <<<lib-hmv>>>
 
 ( flash-end ) here hex.
 
