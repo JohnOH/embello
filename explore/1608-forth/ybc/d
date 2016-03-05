@@ -10,30 +10,12 @@ reset
     1000000 0 do loop
   key? until ;
 
-\ print out received packet info until a key is pressed
-\ format: #bytes b3..b0 b7..b4 rssi lna afc
-: rftry ( -- )
-  42 8686 rf-init
-  begin
-    rf-recv  ?dup if
-      cr . rf.buf @ hex. rf.buf 4 + @ hex. rf.rssi @ . rf.lna @ . rf.afc @ .
-    then
-  key? until ;
-
-\ : lcdtry ( -- )
-\   lcd-init show-logo
-\   2000000 0 do loop
-\   lcd-init demo
-\ ;
-
-: tftry ( -- ) tft-init demo ;
-
 : rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 
 : adctry init-adc  ( 1 µs ) 10 0 do loop  begin  PB0 adc .  key? until ;
 
-: ledon led io-0! ;
-: ledoff led io-1! ;
+: ledon led io-1! ;
+: ledoff led io-0! ;
 : busy ( u -- ) 100 * 0 ?do loop ;
 : %pwm ( pct -- )
   begin
@@ -41,14 +23,10 @@ reset
     ledoff  100 over - busy
   key? until ;
 
-: txtry ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
-
 \ -----------------------------------------------------------------------------
 \ -----------------------------------------------------------------------------
 
 : utry uart-init uart. ;
 
 \ 10 %pwm
-\ lcdtry
-\ rftry  \ must be last, continues to run until keypress
 \ vim: set ft=forth :

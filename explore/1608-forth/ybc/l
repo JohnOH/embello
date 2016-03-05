@@ -7,7 +7,6 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../flib/rf69.fs
 include ../flib/multi.fs
 
 ( code-size ) here swap - .
