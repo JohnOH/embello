@@ -2,12 +2,14 @@
 \ adapted from mecrisp-stellaris 2.2.1a (GPL3)
 \ needs io.fs
 
-: flash-kb ( -- u )  \ return size of flash memory in KB
-  $1FFFF7E0 h@ ;
 : chipid ( -- u1 u2 u3 3 )  \ unique chip ID as N values on the stack
   $1FFFF7E8 @ $1FFFF7EC @ $1FFFF7F0 @ 3 ;
 : hwid ( -- u )  \ a "fairly unique" hardware ID as single 32-bit int
   chipid 1- 0 do xor loop ;
+: flash-kb ( -- u )  \ return size of flash memory in KB
+  $1FFFF7E0 h@ ;
+: flash-pagesize ( addr - u )  \ return size of flash page at given address
+  drop flash-kb 128 <= if 1024 else 2048 then ;
 
 : io.all ( -- )  \ display all the readable GPIO registers
   5 0 do i 0 io io. loop ;
@@ -90,5 +92,5 @@ $40022000 constant FLASH
   dictionarynext until drop ;
 
 : cornerstone ( "name" -- )  \ define a flash memory cornerstone
-  <builds begin here $3FF and while 0 h, repeat
-  does>   begin dup  $3FF and while 2+   repeat  cr eraseflashfrom ;
+  <builds begin here dup flash-pagesize 1- and while 0 h, repeat
+  does>   begin dup  dup flash-pagesize 1- and while 2+   repeat  cr eraseflashfrom ;

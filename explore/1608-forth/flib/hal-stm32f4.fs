@@ -2,12 +2,12 @@
 \ adapted from mecrisp-stellaris 2.2.1a (GPL3)
 \ needs io.fs
 
-: flash-kb ( -- u )  \ return size of flash memory in KB
-  $1FFFF7E0 h@ ;
 : chipid ( -- u1 u2 u3 3 )  \ unique chip ID as N values on the stack
   $1FFFF7E8 @ $1FFFF7EC @ $1FFFF7F0 @ 3 ;
 : hwid ( -- u )  \ a "fairly unique" hardware ID as single 32-bit int
   chipid 1- 0 do xor loop ;
+: flash-kb ( -- u )  \ return size of flash memory in KB
+  $1FFFF7E0 h@ ;
 
 : io.all ( -- )  \ display all the readable GPIO registers
   9 0 do i 0 io io. loop ;
