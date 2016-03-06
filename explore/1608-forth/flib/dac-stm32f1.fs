@@ -1,11 +1,17 @@
-\ DAC output
+\ DAC output, software-driven, timer-driven, or DMA wavetable-driven
 
 $40007400 constant DAC
      DAC $00 + constant DAC-CR
 \    DAC $04 + constant DAC-SWTRIGR
-\    DAC $08 + constant DAC-DHR12R1
-\    DAC $14 + constant DAC-DHR12R2
+     DAC $08 + constant DAC-DHR12R1
+     DAC $14 + constant DAC-DHR12R2
      DAC $20 + constant DAC-DHR12RD
+
+$40020400 constant DMA2
+    DMA2 $30 + constant DMA2-CCR3
+    DMA2 $34 + constant DMA2-CNDTR3
+    DMA2 $38 + constant DMA2-CPAR3
+    DMA2 $3C + constant DMA2-CMAR3
 
 : 2dac! ( u1 u2 -- )  \ send values to each of the DACs
   16 lshift or DAC-DHR12RD ! ;
@@ -44,4 +50,21 @@ $40007400 constant DAC
                      \ TSEL1 = timer 6 TRGO
            2 bit or  \ TEN1
   DAC-CR !
+;
+
+: dac1-dma ( addr -- )  \ feed DAC1 from 4096 2-byte words at given address
+  1 bit RCC-AHBENR bis!     \ DMA2EN clock enable
+  DMA2-CMAR3 !              \ read from address passed as input
+  DAC-DHR12R1 DMA2-CPAR3 !  \ write to DAC1
+  4096 DMA2-CNDTR3 !        \ 4096 2-byte entries
+
+  0
+  %01 10 lshift or          \ MSIZE = 16-bits
+   %01 8 lshift or          \ PSIZE = 16 bits
+          7 bit or          \ MINC
+          5 bit or          \ CIRC
+          4 bit or          \ DIR = from mem to peripheral
+          0 bit or          \ EN
+  DMA2-CCR3 !
+  12 bit DAC-CR bis!        \ DMAEN1
 ;

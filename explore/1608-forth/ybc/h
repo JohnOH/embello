@@ -6,6 +6,7 @@ compiletoflash
 include ../flib/hexdump.fs
 include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
+include ../flib/timer-stm32f1.fs
 include ../flib/adc-stm32f1.fs
 include ../flib/dac-stm32f1.fs
 
