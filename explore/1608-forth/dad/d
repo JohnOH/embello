@@ -1,0 +1,13 @@
+\ load development code
+\ needs l
+
+reset
+
+: rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+: adctry ( -- )  init-adc  begin  PB0 adc .  key? until ;
+: uartry ( -- )  uart-init uart. ;
+
+\ -----------------------------------------------------------------------------
+\ -----------------------------------------------------------------------------
+
+\ vim: set ft=forth :
