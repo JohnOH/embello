@@ -34,7 +34,7 @@ include ../flib/i2c-bb.fs
 \ 1000 systick-hz
 ;
 
-cornerstone <<<hal-rnw>>>
+cornerstone <<<hal-dad>>>
 compiletoram
 init
 

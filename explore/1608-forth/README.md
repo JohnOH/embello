@@ -4,6 +4,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32F103 boards:
 * **gd4** - GoldDragon 407 w/ STM32F407ZG and 3.2" LCD
 * **hmv** - Haoyu Hy-STM32MiniV board w/ STM32F103VC and 3.2" LCD
 * **rnw** - RF Node Watcher w/ HyTiny STM32F103TB, RFM69, and 128x64 OLED
+* **wpz** - WaveShare Port103Z w/ STM32F103ZE
 * **ybc** - Yellow Blue STM32F103VC board
 
 These files implement a range of hardware drivers and other generic functions:

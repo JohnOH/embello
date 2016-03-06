@@ -2,7 +2,7 @@
 \ needs h
 \ includes d
 
-( cornerstone ) <<<hal-rnw>>>
+( cornerstone ) <<<hal-dad>>>
 compiletoflash
 
 ( code-start, see code-size below ) here
@@ -11,7 +11,7 @@ include ../flib/multi.fs
 
 ( code-size ) here swap - .
 
-cornerstone <<<lib-rnw>>>
+cornerstone <<<lib-dad>>>
 
 ( flash-end ) here hex.
 
