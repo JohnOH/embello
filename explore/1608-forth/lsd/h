@@ -16,7 +16,7 @@ include ../flib/uart2-irq-stm32f1.fs
 
 \ board definitions for Yellow Blue STM32F103RC
 
-\ add missing pin definitions for V package with 64 i.s.o 48 pins
+\ add missing pin definitions for R package with 64 i.s.o 48 pins
 2 0  io constant PC0
 2 1  io constant PC1
 2 2  io constant PC2
