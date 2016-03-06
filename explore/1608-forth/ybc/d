@@ -11,8 +11,8 @@ reset
   key? until ;
 
 : rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
-
-: adctry init-adc  ( 1 µs ) 10 0 do loop  begin  PB0 adc .  key? until ;
+: adctry ( -- )  init-adc  begin  PB0 adc .  key? until ;
+: uartry ( -- )  uart-init uart. ;
 
 : ledon led io-1! ;
 : ledoff led io-0! ;
@@ -25,9 +25,18 @@ reset
 
 \ -----------------------------------------------------------------------------
 
-\ -----------------------------------------------------------------------------
+: dac1-dma ( u -- )
+  tim6-init dac-init
+  0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
+  12 bit DAC-CR bis!  \ DMAEN1
+;
 
-: utry uart-init uart. ;
+: dac1-awg ( -- )  \ generate arbitrary waveform on DAC1 via DMA
+  dac1-dma
+  fill-sinetable
+;
+
+\ -----------------------------------------------------------------------------
 
 \ 10 %pwm
 \ vim: set ft=forth :

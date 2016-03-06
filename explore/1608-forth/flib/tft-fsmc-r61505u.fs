@@ -1,7 +1,5 @@
 \ tft driver for R61505U chip, connected as 16-bit parallel via FSMC
 
-RCC $14 + constant RCC-AHBENR
-
 $A0000000 constant FSMC-BCR1
 $A0000004 constant FSMC-BTR1
 $A0000104 constant FSMC-BWTR1
