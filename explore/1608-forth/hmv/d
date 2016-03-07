@@ -24,17 +24,26 @@ reset
 \ -----------------------------------------------------------------------------
 
 \ located above the 20K RAM area used by Mecrisp's std build for STM32F103's
-$20008000 600 2constant adc-buffer  \ 300 2-byte ints in range 0..4095
+$20008000 1200 2constant adc-buffer  \ 600 2-byte ints in range 0..4095
 
 100 dac1-triangle
 adc-buffer PB0 4200 adc1-dma
 
+: grid
+  $AAAA tft-fg !
+  225 0 do  305 0 do  j i putpixel  5 +loop  25 +loop
+  325 0 do  205 0 do  i j putpixel  5 +loop  25 +loop
+  $FFFF tft-fg !
+;
+
 : scope ( -- )  \ very crude continuous ADC capture w/ graph plot
   tft-init TFT-BL ios!
-  begin clear 
+  begin clear grid
     300 0 do
       adc-buffer drop i 2* + h@ 20 / i putpixel
     loop
+    500 ms
+    0 ms
   key? until ;
 
 \ -----------------------------------------------------------------------------
