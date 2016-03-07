@@ -27,9 +27,9 @@ reset
 
 \ located above the 20K RAM area used by Mecrisp's std build for STM32F103's
 $20008000 constant adc-buffer  \ 4096 2-byte ints in range 0..4095
-adc-buffer 8192 0 fill
 
-30000 dac1-triangle  adc-buffer PB0 36000 adc1-dma
+30000 dac1-triangle
+adc-buffer 8192 PB0 36000 adc1-dma
 
 \ -----------------------------------------------------------------------------
 

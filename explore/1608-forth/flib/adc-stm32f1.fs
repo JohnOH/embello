@@ -27,14 +27,15 @@ $40020000 constant DMA1
   begin 1 bit ADC1-SR bit@ until  \ wait until EOC set
   ADC1-DR @ ;
 
-: adc1-dma ( addr pin rate -- )  \ continuous DMA-based conversion
+: adc1-dma ( addr count pin rate -- )  \ continuous DMA-based conversion
   3 +timer
   +adc  adc drop  \ perform one conversion to set up the ADC
+  2dup 0 fill  \ clear sampling buffer
 
     0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
+      2/ DMA1-CNDTR1 !     \ 2-byte entries
           DMA1-CMAR1 !     \ write to address passed as input
   ADC1-DR DMA1-CPAR1 !     \ read from ADC1
-    4096 DMA1-CNDTR1 !     \ 4096 2-byte entries
 
                 0   \ register settings for CCR1 of DMA1:
   %01 10 lshift or  \ MSIZE = 16-bits
