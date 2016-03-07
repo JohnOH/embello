@@ -43,7 +43,7 @@ $40020400 constant DMA2
 ;
 
 : dac1-triangle ( u -- )  \ generate triangle on DAC1 (PA4) with given period
-  tim6-init +dac
+  +timer6 +dac
            0 bit     \ EN1
   %1011 8 lshift or  \ MAMP1 max
     %10 6 lshift or  \ WAVE1 = noise
