@@ -23,6 +23,22 @@ reset
 
 \ -----------------------------------------------------------------------------
 
+\ located above the 20K RAM area used by Mecrisp's std build for STM32F103's
+$20008000 600 2constant adc-buffer  \ 300 2-byte ints in range 0..4095
+
+100 dac1-triangle
+adc-buffer PB0 4200 adc1-dma
+
+: scope ( -- )  \ very crude continuous ADC capture w/ graph plot
+  tft-init TFT-BL ios!
+  begin clear 
+    300 0 do
+      adc-buffer drop i 2* + h@ 20 / i putpixel
+    loop
+  key? until ;
+
+\ -----------------------------------------------------------------------------
+
 : sleep ( -- ) [ $BF30 h, ] inline ;  \ WFI Opcode, enters sleep mode
 
 $40007000 constant PWR
