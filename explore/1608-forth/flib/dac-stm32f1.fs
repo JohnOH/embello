@@ -52,11 +52,11 @@ $40020400 constant DMA2
   DAC-CR !
 ;
 
-: dac1-dma ( addr -- )  \ feed DAC1 from 4096 2-byte words at given address
+: dac1-dma ( addr count -- )  \ feed DAC1 from wave table at given address
         1 bit RCC-AHBENR bis!  \ DMA2EN clock enable
+          2/ DMA2-CNDTR3 !     \ 2-byte entries
               DMA2-CMAR3 !     \ read from address passed as input
   DAC-DHR12R1 DMA2-CPAR3 !     \ write to DAC1
-        4096 DMA2-CNDTR3 !     \ 4096 2-byte entries
 
                 0   \ register settings for CCR3 of DMA2:
   %01 10 lshift or  \ MSIZE = 16-bits
