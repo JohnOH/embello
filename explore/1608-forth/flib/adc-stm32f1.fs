@@ -51,5 +51,4 @@ $40020000 constant DMA1
   %100 17 lshift or  \ timer 3 TRGO event
            8 bit or  \ DMA
            0 bit or  \ ADON
-        ADC1-CR2 !
-;
+        ADC1-CR2 ! ;

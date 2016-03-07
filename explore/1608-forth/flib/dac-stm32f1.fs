@@ -39,8 +39,7 @@ $40020400 constant DMA2
     %01 6 lshift or  \ WAVE1 = noise
                      \ TSEL1 = timer 6 TRGO
            2 bit or  \ TEN1
-  DAC-CR !
-;
+  DAC-CR ! ;
 
 : dac1-triangle ( u -- )  \ generate triangle on DAC1 (PA4) with given period
   6 +timer +dac
@@ -49,8 +48,7 @@ $40020400 constant DMA2
     %10 6 lshift or  \ WAVE1 = noise
                      \ TSEL1 = timer 6 TRGO
            2 bit or  \ TEN1
-  DAC-CR !
-;
+  DAC-CR ! ;
 
 : dac1-dma ( addr count -- )  \ feed DAC1 from wave table at given address
         1 bit RCC-AHBENR bis!  \ DMA2EN clock enable
@@ -68,5 +66,5 @@ $40020400 constant DMA2
       DMA2-CCR3 !
 
 \ set up DAC1 to convert on each write from DMA1
-  12 bit DAC-CR bis!        \ DMAEN1
+  12 bit DAC-CR bis!  \ DMAEN1
 ;

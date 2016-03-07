@@ -10,8 +10,8 @@ compiletoflash
 include ../flib/rf69.fs
 include ../flib/oled.fs
 \ include ../flib/tft-ili9325.fs
-include ../flib/graphics.fs
-include ../flib/multi.fs
+include ../mlib/graphics.fs
+include ../mlib/multi.fs
 
 ( code-size ) here swap - .
 

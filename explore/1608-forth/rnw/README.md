@@ -154,10 +154,10 @@ This is a transcript of loading "h" and then "l" into the system with the
         <<<<<<<<<<< ../flib/i2c-bb.fs (49 lines)
         >>> include ../flib/oled.fs
         <<<<<<<<<<< ../flib/oled.fs (93 lines)
-        >>> include ../flib/graphics.fs
-        <<<<<<<<<<< ../flib/graphics.fs (247 lines)
-        >>> include ../flib/multi.fs
-        <<<<<<<<<<< ../flib/multi.fs (206 lines)
+        >>> include ../mlib/graphics.fs
+        <<<<<<<<<<< ../mlib/graphics.fs (247 lines)
+        >>> include ../mlib/multi.fs
+        <<<<<<<<<<< ../mlib/multi.fs (206 lines)
     ( code-size ) here swap - . 10016  ok.
     ( flash-end ) here hex. 00007C00  ok.
         >>> include d

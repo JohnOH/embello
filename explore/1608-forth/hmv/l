@@ -8,8 +8,8 @@ compiletoflash
 ( code-start, see code-size below ) here
 
 include ../flib/tft-fsmc-r61505u.fs
-include ../flib/graphics.fs
-include ../flib/multi.fs
+include ../mlib/graphics.fs
+include ../mlib/multi.fs
 
 ( code-size ) here swap - .
 
