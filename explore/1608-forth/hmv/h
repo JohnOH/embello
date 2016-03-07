@@ -3,6 +3,8 @@
 cr eraseflash
 compiletoflash
 
+5 constant io-ports  \ A..E
+
 include ../flib/hexdump.fs
 include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs

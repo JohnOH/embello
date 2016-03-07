@@ -8,7 +8,7 @@
 \ $1FFFF7F0 constant ID3
 
 : io.all ( -- )  \ display all the readable GPIO registers
-  5 0 do i 0 io io. loop ;
+  io-ports 0 do i 0 io io. loop ;
 
 0 0  io constant PA0      1 0  io constant PB0      3 0  io constant PD0
 0 1  io constant PA1      1 1  io constant PB1      3 1  io constant PD1

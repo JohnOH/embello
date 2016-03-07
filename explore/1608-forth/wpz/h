@@ -3,6 +3,8 @@
 cr eraseflash
 compiletoflash
 
+7 constant io-ports  \ A..G
+
 include ../flib/hexdump.fs
 include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
@@ -71,6 +73,7 @@ PA7 constant LED4
 
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD
+  %111000000 RCC-APB2ENR bis!  \ enable ports E..G
   OMODE-PP LED1 io-mode!
   OMODE-PP LED2 io-mode!
   OMODE-PP LED3 io-mode!
