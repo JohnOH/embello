@@ -27,21 +27,33 @@ reset
 $20008000 1200 2constant adc-buffer  \ 600 2-byte ints in range 0..4095
 
 : grid
-  $3333 tft-fg !
-  225 0 do
-    305 0 do  j i putpixel  5 +loop
-    154 147 do  j i putpixel  loop
+  $0888 tft-fg !
+  200 25 do
+    305   0 do  j i putpixel  5 +loop
+    153 148 do  j i putpixel     loop
   25 +loop
   205 0 do
+      3   1 do  j i putpixel  loop
     152 149 do  j i putpixel  loop
+    300 298 do  j i putpixel  loop
   5 +loop
-  325 0 do
+  201 0 do
+    i 0 putpixel
+    i 300 putpixel
+  loop
+  300 25 do
     205 0 do  i j putpixel  5 +loop
-    104 97 do  i j putpixel  loop
+    103 98 do  i j putpixel  loop
   25 +loop
   305 0 do
-    102 99 do  i j putpixel  loop
+      3   1 do  i j putpixel  loop
+    102  99 do  i j putpixel  loop
+    200 198 do  i j putpixel  loop
   5 +loop
+  301 0 do
+    0 i putpixel
+    200 i putpixel
+  loop
   $FFFF tft-fg !
 ;
 
@@ -55,8 +67,7 @@ $20008000 1200 2constant adc-buffer  \ 600 2-byte ints in range 0..4095
     300 0 do
       adc-buffer drop i 2* + h@ 20 / i putpixel
     loop
-    500 ms
-    0 ms
+\   500 ms
   key? until ;
 
 \ -----------------------------------------------------------------------------
