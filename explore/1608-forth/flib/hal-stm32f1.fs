@@ -86,6 +86,18 @@ $40022000 constant FLASH
 : ms ( u -- )  \ millisecond delay (very sloppy busy loop for now)
   10000 * 0 ?do loop ;
 
+\ emulate c, which is not available in hardware on some chips.
+\ copied from Mecrisp's common/charcomma.txt
+0 variable c,collection
+
+: c, ( c -- )  \ emulate c, with h,
+  c,collection @ ?dup if $FF and swap 8 lshift or h,
+                         0 c,collection !
+                      else $100 or c,collection ! then ;
+
+: calign ( -- )  \ must be called to flush after odd number of c, calls
+  c,collection @ if 0 c, then ;
+
 : list ( -- )  \ list all words in dictionary, short form
   cr dictionarystart begin
     dup 6 + ctype space

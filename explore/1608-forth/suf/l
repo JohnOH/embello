@@ -7,19 +7,6 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-\ Emulate c, which is not available in hardware on some chips.
-\ copied from Mecrisp's common/charcomma.txt
-
-0 variable c,collection
-
-: c, ( c -- )
-  c,collection @ ?dup if $FF and swap 8 lshift or h,
-                         0 c,collection !
-                      else $100 or c,collection ! then ;
-
-: calign ( -- )
-  c,collection @ if 0 c, then ;
-
 create usb:dev
   18 c,  \ bLength
   $01 c, \ USB_DEVICE_DESCRIPTOR_TYPE

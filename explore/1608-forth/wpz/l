@@ -29,7 +29,7 @@ $20006000 constant wavetable  \ 4096 2-byte ints in range 0..4095
 ;
 
 : dac1-awg ( u -- )  \ generate on DAC1 via DMA with given timer period
-  tim6-init  +dac  wavetable dac1-dma  fill-sinewave ;
+  +timer6  +dac  wavetable dac1-dma  fill-sinewave ;
 
 ( code-size ) here swap - .
 

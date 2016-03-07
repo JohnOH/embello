@@ -12,7 +12,7 @@ $40001000 constant TIM6
     TIM6 $0C + constant TIM6-DIER
     TIM6 $2C + constant TIM6-ARR
 
-: tim3-init ( u -- )  \ see timer 3 to free-running with given period
+: +timer3 ( u -- )  \ see timer 3 to free-running with given period
   1 bit RCC-APB1ENR bis!  \ TIM3EN clock enable
   TIM3-ARR !
   8 bit TIM3-DIER bis!  \ UDE
@@ -20,7 +20,7 @@ $40001000 constant TIM6
   0 bit TIM3-CR1 !  \ CEN
 ;
 
-: tim6-init ( u -- )  \ see timer 6 to free-running with given period
+: +timer6 ( u -- )  \ see timer 6 to free-running with given period
   4 bit RCC-APB1ENR bis!  \ TIM6EN clock enable
   TIM6-ARR !
   8 bit TIM6-DIER bis!  \ UDE

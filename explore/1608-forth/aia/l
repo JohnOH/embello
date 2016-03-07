@@ -29,7 +29,7 @@ $20006000 constant sinetable  \ 4096 2-byte ints in range 0..4095
 ;
 
 : dac1-awg ( u -- )  \ generate on DAC1 via DMA with given timer period
-  tim6-init  +dac  sinetable dac1-dma  fill-sinetable ;
+  +timer6  +dac  sinetable dac1-dma  fill-sinetable ;
 
 ( code-size ) here swap - .
 
