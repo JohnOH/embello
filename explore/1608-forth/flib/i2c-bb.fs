@@ -1,7 +1,7 @@
 \ bit-banged i2c driver
 \ adapted from http://excamera.com/sphinx/article-forth-i2c.html
 
-: i2c-init ( -- )  \ initialise bit-banged I2C
+: +i2c ( -- )  \ initialise bit-banged I2C
   OMODE-PP SCL io-mode!
   OMODE-OD SDA io-mode!
 ;

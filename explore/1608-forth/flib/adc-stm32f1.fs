@@ -12,7 +12,7 @@ $40020000 constant DMA1
     DMA1 $10 + constant DMA1-CPAR1
     DMA1 $14 + constant DMA1-CMAR1
 
-: init-adc ( -- )  \ initialise ADC
+: +adc ( -- )  \ initialise ADC
   9 bit RCC-APB2ENR bis!  \ set ADC1EN
   1 ADC1-CR2 bis!  \ set ADON to enable ADC
 ;
@@ -29,7 +29,7 @@ $40020000 constant DMA1
 
 : adc1-dma ( addr pin rate -- )  \ continuous DMA-based conversion
   tim3-init
-  init-adc  adc drop  \ perform one conversion to set up the ADC
+  +adc  adc drop  \ perform one conversion to set up the ADC
 
     0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
           DMA1-CMAR1 !     \ write to address passed as input

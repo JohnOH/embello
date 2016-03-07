@@ -18,7 +18,7 @@ $40004400 constant USART2
 \  ."  CR3 " USART2-CR3 @ h.4
 \ ."  GPTR " USART2-GPTR @ h.4 ;
 
-: uart-init ( -- )
+: +uart ( -- )
   OMODE-AF-PP OMODE-FAST + PA2 io-mode!
   IMODE-FLOAT PA3 io-mode!
   17 bit RCC-APB1ENR bis!  \ set USART2EN

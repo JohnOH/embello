@@ -23,9 +23,9 @@ reset
 : tftry ( -- ) lcd-init show-logo  10000000 0 do loop  lcd-init demo ;
 \ : tftry ( -- ) tft-init demo ;
 
-: rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
-
-: adctry init-adc  ( 1 µs ) 10 0 do loop  begin  PB0 adc .  key? until ;
+: rtctry ( -- )  +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+: adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
+: uartry ( -- )  +uart uart. ;
 
 : ledon led io-0! ;
 : ledoff led io-1! ;
@@ -40,8 +40,6 @@ reset
 
 \ -----------------------------------------------------------------------------
 \ -----------------------------------------------------------------------------
-
-: utry uart-init uart. ;
 
 \ 10 %pwm
 \ lcdtry

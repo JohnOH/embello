@@ -16,7 +16,7 @@ $40020400 constant DMA2
 : 2dac! ( u1 u2 -- )  \ send values to each of the DACs
   16 lshift or DAC-DHR12RD ! ;
 
-: dac-init ( -- )  \ initialise the two D/A converters on PA4 and PA5
+: +dac ( -- )  \ initialise the two D/A converters on PA4 and PA5
   29 bit RCC-APB1ENR bis!  \ DACEN clock enable
   IMODE-ADC PA4 io-mode!
   IMODE-ADC PA5 io-mode!
@@ -25,7 +25,7 @@ $40020400 constant DMA2
 ;
 
 : dac-triangle ( -- )  \ software-driven dual triangle waveform until keypress
-  dac-init
+  +dac
   begin
     $1000 0 do  i          $FFF i - 2dac! loop
     $1000 0 do  $FFF i -   i        2dac! loop
@@ -33,7 +33,7 @@ $40020400 constant DMA2
 ;
 
 : dac1-noise ( u -- )  \ generate noise on DAC1 (PA4) with given period
-  tim6-init dac-init
+  tim6-init +dac
            0 bit     \ EN1
   %1011 8 lshift or  \ MAMP1 max
     %01 6 lshift or  \ WAVE1 = noise
@@ -43,7 +43,7 @@ $40020400 constant DMA2
 ;
 
 : dac1-triangle ( u -- )  \ generate triangle on DAC1 (PA4) with given period
-  tim6-init dac-init
+  tim6-init +dac
            0 bit     \ EN1
   %1011 8 lshift or  \ MAMP1 max
     %10 6 lshift or  \ WAVE1 = noise

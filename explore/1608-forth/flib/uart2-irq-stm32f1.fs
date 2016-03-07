@@ -10,8 +10,8 @@
 
 $E000E104 constant NVIC-EN1R \ IRQ 32 to 63 Set Enable Register
 
-: uart-irq-init ( -- )  \ initialise the USART2 using a receive ring buffer
-  uart-init
+: +uart-irq ( -- )  \ initialise the USART2 using a receive ring buffer
+  +uart
   uart-ring 128 init-ring
   ['] uart-irq-handler irq-usart2 !
   6 bit NVIC-EN1R !  \ enable USART2 interrupt 38
