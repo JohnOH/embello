@@ -14,8 +14,8 @@ reset
 : adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
 : uartry ( -- )  +uart uart. ;
 
-: ledon led io-1! ;
-: ledoff led io-0! ;
+: ledon led ios! ;
+: ledoff led ioc! ;
 : busy ( u -- ) 100 * 0 ?do loop ;
 : %pwm ( pct -- )
   begin

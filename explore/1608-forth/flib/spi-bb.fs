@@ -1,15 +1,15 @@
 \ bit-banged SPI driver
 
-: +spi ( -- ) ssel @ io-0! ;  \ select SPI
-: -spi ( -- ) ssel @ io-1! ;  \ deselect SPI
+: +spi ( -- ) ssel @ ioc! ;  \ select SPI
+: -spi ( -- ) ssel @ ios! ;  \ deselect SPI
 
 : >spi> ( c -- c )  \ bit-banged SPI, 8 bits
   8 0 do
     dup $80 and MOSI io!
-    SCLK io-1!
+    SCLK ios!
     shl
     MISO io@ or
-    SCLK io-0!
+    SCLK ioc!
   loop
   $FF and ;
 

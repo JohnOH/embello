@@ -37,13 +37,13 @@ $40020000 constant GPIO-BASE
   $F00 and 2 lshift GPIO-BASE +  1-foldable ;
 : io@ ( pin -- u )  \ get pin value (0 or 1)
   dup io-base GPIO.IDR + @ swap io# rshift 1 and ;
-: io-0! ( pin -- )  \ clear pin to low
+: ioc! ( pin -- )  \ clear pin to low
   dup io-mask swap io-base GPIO.BRR + ! ;
-: io-1! ( pin -- )  \ set pin to high
+: ios! ( pin -- )  \ set pin to high
   dup io-mask swap io-base GPIO.BSRR + ! ;
 : io! ( f pin -- )  \ set pin value
   \ use upper 16 bits in BSRR to reset with same operation
-  swap 0= $10 and + io-1! ;
+  swap 0= $10 and + ios! ;
 : iox! ( pin -- )  \ toggle pin
   dup io@ 0= swap io! ;
 

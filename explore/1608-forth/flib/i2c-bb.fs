@@ -11,14 +11,14 @@
   inline ; \ no half-cycle delay, max speed
 
 : i2c-start ( -- )  \ with SCL high, change SDA from 1 to 0
-  1 SDA io! i2c-half SCL io-1! i2c-half 0 SDA io! i2c-half SCL io-0! ;
+  1 SDA io! i2c-half SCL ios! i2c-half 0 SDA io! i2c-half SCL ioc! ;
 : i2c-stop  ( -- )  \ with SCL high, change SDA from 0 to 1
-  0 SDA io! i2c-half SCL io-1! i2c-half 1 SDA io! i2c-half ;
+  0 SDA io! i2c-half SCL ios! i2c-half 1 SDA io! i2c-half ;
 
 : b>i2c ( f -- )  \ send one I2C bit
-  0<> SDA io! i2c-half SCL io-1! i2c-half SCL io-0! ;
+  0<> SDA io! i2c-half SCL ios! i2c-half SCL ioc! ;
 : i2c>b ( -- b )  \ receive one I2C bit
-  SDA io-1! i2c-half SCL io-1! i2c-half SDA io@ SCL io-0! ;
+  SDA ios! i2c-half SCL ios! i2c-half SDA io@ SCL ioc! ;
 
 : >i2c ( b -- nak )  \ send one byte
   8 0 do dup 128 and b>i2c 2* loop drop i2c>b ;

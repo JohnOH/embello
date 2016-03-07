@@ -11,8 +11,8 @@ $40013000 constant SPI1
     ."  CR2 " SPI1-CR2 @ h.4
      ."  SR " SPI1-SR @ h.4 ;
 
-: +spi ( -- ) ssel @ io-0! ;  \ select SPI
-: -spi ( -- ) ssel @ io-1! ;  \ deselect SPI
+: +spi ( -- ) ssel @ ioc! ;  \ select SPI
+: -spi ( -- ) ssel @ ios! ;  \ deselect SPI
 
 : >spi> ( c -- c )  \ hardware SPI, 8 bits
   SPI1-DR !  begin SPI1-SR @ 1 and until  SPI1-DR @ ;

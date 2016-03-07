@@ -2,7 +2,7 @@
 \ needs l
 
 reset
-led io-1!
+led ios!
 
 : usb-clear ( -- )
   1024 0 do  0 i USBMEM + h!  4 +loop ;
@@ -21,7 +21,7 @@ led io-1!
 ;
 
 : +usb ( -- )  \ init USB hardware
-  OMODE-PP PA0 io-mode!  PA0 io-1!  \ usb-off HyTiny
+  OMODE-PP PA0 io-mode!  PA0 ios!  \ usb-off HyTiny
 \ OMODE-AF-PP OMODE-FAST + PA11 io-mode!  \ hw_config.c:115
 \ OMODE-AF-PP OMODE-FAST + PA12 io-mode!
   23 bit RCC-APB1ENR bis!  \ USBEN hw_config.c:162
@@ -30,12 +30,12 @@ led io-1!
   $0000 USB-CNTR h!  \ usb_pwr.c:77
   usb-clear
   usb-reset
-  PA0 io-0!  \ usb-on HyTiny
+  PA0 ioc!  \ usb-on HyTiny
 ;
 
 : -usb ( -- )  \ deinit USB hardware
   23 bit RCC-APB1ENR bic!  \ USBEN
-  PA0 io-1!  \ usb-off HyTiny
+  PA0 ios!  \ usb-off HyTiny
 ;
 
 : fnr. ( -- )  \ print last seen frame number
