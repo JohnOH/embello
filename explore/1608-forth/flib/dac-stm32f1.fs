@@ -33,7 +33,7 @@ $40020400 constant DMA2
 ;
 
 : dac1-noise ( u -- )  \ generate noise on DAC1 (PA4) with given period
-  +timer6 +dac
+  6 +timer +dac
            0 bit     \ EN1
   %1011 8 lshift or  \ MAMP1 max
     %01 6 lshift or  \ WAVE1 = noise
@@ -43,7 +43,7 @@ $40020400 constant DMA2
 ;
 
 : dac1-triangle ( u -- )  \ generate triangle on DAC1 (PA4) with given period
-  +timer6 +dac
+  6 +timer +dac
            0 bit     \ EN1
   %1011 8 lshift or  \ MAMP1 max
     %10 6 lshift or  \ WAVE1 = noise

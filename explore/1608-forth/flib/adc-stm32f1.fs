@@ -28,7 +28,7 @@ $40020000 constant DMA1
   ADC1-DR @ ;
 
 : adc1-dma ( addr pin rate -- )  \ continuous DMA-based conversion
-  +timer3
+  3 +timer
   +adc  adc drop  \ perform one conversion to set up the ADC
 
     0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
