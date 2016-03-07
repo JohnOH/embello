@@ -7,6 +7,8 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
+include ../flib/tft-ili9163.fs
+include ../mlib/graphics.fs
 include ../mlib/multi.fs
 include ../mlib/sine.fs
 
