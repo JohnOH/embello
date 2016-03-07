@@ -23,7 +23,7 @@ reset
     ledoff  100 over - busy
   key? until ;
 
-\ -----------------------------------------------------------------------------
+\ try out on-board WinBond W25Q16 2 MB flash memory
 
 256 buffer: membuf
 membuf 256 0 fill
@@ -33,14 +33,15 @@ membuf 256 0 fill
   smem-id hex. 
 \ smem-wipe
   $10 smem-erase
-  c" abcdef" $10 >smem
-  c" ABCDEF" $20 >smem
-  c" ghijkl" $30 >smem
-  c" GHI" $30 >smem
-  membuf $10 smem> membuf 32 dump
-  membuf $20 smem> membuf 32 dump
-  membuf $30 smem> membuf 32 dump
+  c" abcde" $10 >smem
+  c" ABCDEF" $11 >smem
+  c" ghijklm" $12 >smem
+  membuf $10 smem>  membuf count dup . type space
+  membuf $11 smem>  membuf count dup . type space
+  membuf $12 smem>  membuf count dup . type space
 ;
+
+\ -----------------------------------------------------------------------------
 
 \ -----------------------------------------------------------------------------
 
