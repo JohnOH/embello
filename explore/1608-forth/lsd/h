@@ -48,6 +48,13 @@ PB7 constant SDA
 
 include ../flib/i2c-bb.fs
 
+PB12 constant TFT-CS  \ chip select
+PB13 constant TFT-SC  \ serial clock
+PB15 constant TFT-DI  \ data into LCD
+PC6  constant TFT-RS  \ register select
+
+\ include ../flib/tft-ili9163.fs
+
 PA8 constant LED1
 PD2 constant LED2
 

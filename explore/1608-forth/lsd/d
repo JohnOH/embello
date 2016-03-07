@@ -24,6 +24,24 @@ reset
   key? until ;
 
 \ -----------------------------------------------------------------------------
+
+256 buffer: membuf
+membuf 256 0 fill
+
+: memtry ( -- )
+  spi-init PA2 ssel ! spi-init
+  smem-id hex. 
+\ smem-wipe
+  $10 smem-erase
+  c" abcdef" $10 >smem
+  c" ABCDEF" $20 >smem
+  c" ghijkl" $30 >smem
+  c" GHI" $30 >smem
+  membuf $10 smem> membuf 32 dump
+  membuf $20 smem> membuf 32 dump
+  membuf $30 smem> membuf 32 dump
+;
+
 \ -----------------------------------------------------------------------------
 
 \ 10 %pwm
