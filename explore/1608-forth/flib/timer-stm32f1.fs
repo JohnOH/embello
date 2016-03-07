@@ -31,7 +31,7 @@ calign
 
 : timer-enabit ( n -- bit addr )  \ return bit and enable address for timer n
   timer-lookup
-  dup 100 < if  bit RCC-APB1ENR  else  111 - bit RCC-APB2ENR  then ;
+  dup 100 < if  bit RCC-APB1ENR  else  100 - bit RCC-APB2ENR  then ;
 
 : +timer ( u n -- )  \ enable timer n as free-running with period u
   dup timer-enabit bis!  \ clock enable
