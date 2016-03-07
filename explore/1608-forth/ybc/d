@@ -24,15 +24,6 @@ reset
   key? until ;
 
 \ -----------------------------------------------------------------------------
-
-\ for ADC1
-$40020000 constant DMA1
-    DMA1 $08 + constant DMA1-CCR1
-    DMA1 $0C + constant DMA1-CNDTR1
-    DMA1 $10 + constant DMA1-CPAR1
-    DMA1 $14 + constant DMA1-CMAR1
-
-
 \ -----------------------------------------------------------------------------
 
 \ 10 %pwm

@@ -53,18 +53,20 @@ $40020400 constant DMA2
 ;
 
 : dac1-dma ( addr -- )  \ feed DAC1 from 4096 2-byte words at given address
-  1 bit RCC-AHBENR bis!     \ DMA2EN clock enable
-  DMA2-CMAR3 !              \ read from address passed as input
-  DAC-DHR12R1 DMA2-CPAR3 !  \ write to DAC1
-  4096 DMA2-CNDTR3 !        \ 4096 2-byte entries
+        1 bit RCC-AHBENR bis!  \ DMA2EN clock enable
+              DMA2-CMAR3 !     \ read from address passed as input
+  DAC-DHR12R1 DMA2-CPAR3 !     \ write to DAC1
+        4096 DMA2-CNDTR3 !     \ 4096 2-byte entries
 
-  0
-  %01 10 lshift or          \ MSIZE = 16-bits
-   %01 8 lshift or          \ PSIZE = 16 bits
-          7 bit or          \ MINC
-          5 bit or          \ CIRC
-          4 bit or          \ DIR = from mem to peripheral
-          0 bit or          \ EN
-  DMA2-CCR3 !
+                0   \ register settings for CCR3 of DMA2:
+  %01 10 lshift or  \ MSIZE = 16-bits
+   %01 8 lshift or  \ PSIZE = 16 bits
+          7 bit or  \ MINC
+          5 bit or  \ CIRC
+          4 bit or  \ DIR = from mem to peripheral
+          0 bit or  \ EN
+      DMA2-CCR3 !
+
+\ set up DAC1 to convert on each write from DMA1
   12 bit DAC-CR bis!        \ DMAEN1
 ;
