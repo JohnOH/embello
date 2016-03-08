@@ -84,7 +84,7 @@ $40022000 constant FLASH
   clock-hz @ swap / systick ;
 
 : ms ( u -- )  \ millisecond delay (very sloppy busy loop for now)
-  10000 * 0 ?do loop ;
+  12000 * 0 ?do loop ;
 
 \ emulate c, which is not available in hardware on some chips.
 \ copied from Mecrisp's common/charcomma.txt
