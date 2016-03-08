@@ -24,47 +24,39 @@ reset
 \ -----------------------------------------------------------------------------
 
 \ located above the 20K RAM area used by Mecrisp's std build for STM32F103's
-$20008000 600 2constant adc-buffer  \ 300 2-byte ints in range 0..4095
+$20008000 602 2constant adc-buffer  \ 301 2-byte ints in range 0..4095
 
 : pp ( x y )  10 + swap 20 + swap putpixel ;
 
 : border
   $0888 tft-fg !
-  201 0 do  i 0 pp  i 300 pp  loop
-  301 0 do  0 i pp  200 i pp  loop
+  202 -1 do  i -1 pp  i 301 pp  loop
+  302 -1 do  -1 i pp  201 i pp  loop
   $FFFF tft-fg ! ;
 
 : grid
   $0888 tft-fg !
-  200 25 do
-    305   0 do  j i pp  5 +loop
-    153 148 do  j i pp     loop
+  225 0 do
+    305   0 do  j i pp  5 +loop          \ horizontal grid lines
+    i 148 pp  i 152 pp                   \ major tick marks on Y axis
   25 +loop
-  205 0 do
-      3   1 do  j i pp  loop
-    152 149 do  j i pp  loop
-    300 298 do  j i pp  loop
-  5 +loop
-  300 25 do
-    205 0 do  i j pp  5 +loop
-    103 98 do  i j pp  loop
+  205 0 do  i 149 pp  i 151 pp  5 +loop  \ minor tick marks on Y axis
+  325 0 do
+    205  0 do  i j pp  5 +loop           \ vertical grid lines
+    98 i pp 102 i pp                     \ major tick marks on X axis
   25 +loop
-  305 0 do
-      3   1 do  i j pp  loop
-    102  99 do  i j pp  loop
-    200 198 do  i j pp  loop
-  5 +loop
+  305 0 do  99 i pp 101 i pp  5 +loop    \ minor tick marks on X axis
   $FFFF tft-fg ! ;
 
-600 buffer: trace
+602 buffer: trace
 
 : scope ( -- )  \ very crude continuous ADC capture w/ graph plot
   1000 systick-hz
   TFT-BL ioc!
   tft-init
-  ticks @ clear ticks @ swap - .
-  ticks @ border ticks @ swap - .
-  ticks @ grid ticks @ swap - .
+  ticks @ clear  ticks @ swap - .  \ ms to clear the screen
+  ticks @ border ticks @ swap - .  \ ms to draw the border
+  ticks @ grid   ticks @ swap - .  \ ms to draw the grid
   TFT-BL ios!
 
   11 dac1-awg
@@ -73,7 +65,7 @@ $20008000 600 2constant adc-buffer  \ 300 2-byte ints in range 0..4095
   begin
 \   ticks @
     \ grab and draw the trace
-    300 1 do
+    301 0 do
       adc-buffer drop i 2* + h@ 20 / 1+
       dup trace i 2* + h!  \ also save a copy in a buffer
       i pp
@@ -81,14 +73,14 @@ $20008000 600 2constant adc-buffer  \ 300 2-byte ints in range 0..4095
     40 ms  \ leave the trace on the screen for a while
     \ bail out on key press, with the trace stil showing
     key? 0= while
-    \ now clear the trace and redraw the grid
-    $0000 tft-fg !
-    300 1 do
+    \ clear the trace again
+    tft-bg @ tft-fg !
+    301 0 do
       trace i 2* + h@
       i pp
     loop
     $FFFF tft-fg !
-    grid
+    grid  \ redraw the grid
 \   ticks @ swap - .
   repeat ;
 
