@@ -40,6 +40,7 @@ include ../flib/hal-stm32f4.fs
   OMODE-PP LED3 io-mode!
   168MHz
 \ 1000 systick-hz
+  flash-kb . ." KB <gd4> " hwid hex. cr
 ;
 
 \ cornerstone <<<hal-gd4>>>

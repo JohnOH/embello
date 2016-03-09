@@ -55,6 +55,7 @@ PB0 constant LED
   OMODE-PP LED io-mode!
   72MHz
 \ 1000 systick-hz
+  flash-kb . ." KB <aia> " hwid hex. cr
 ;
 
 cornerstone <<<hal-aia>>>

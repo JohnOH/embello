@@ -66,6 +66,7 @@ PB7 constant USB-EN
   OMODE-PP LED2 io-mode!
   72MHz
 \ 1000 systick-hz
+  flash-kb . ." KB <hmv> " hwid hex. cr
 ;
 
 cornerstone <<<hal-hmv>>>

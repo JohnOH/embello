@@ -3,6 +3,8 @@
 cr eraseflash
 compiletoflash
 
+4 constant io-ports  \ A..D
+
 include ../flib/hexdump.fs
 include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
@@ -53,6 +55,7 @@ PD2 constant LED
   OMODE-PP LED io-mode!
   72MHz
 \ 1000 systick-hz
+  flash-kb . ." KB <ybc> " hwid hex. cr
 ;
 
 cornerstone <<<hal-ybc>>>

@@ -35,6 +35,7 @@ include ../flib/i2c-bb.fs
 \ OMODE-PP LED io-mode!
   72MHz
 \ 1000 systick-hz
+  flash-kb . ." KB <dad> " hwid hex. cr
 ;
 
 cornerstone <<<hal-dad>>>

@@ -37,6 +37,7 @@ PA1 constant LED
   OMODE-PP LED io-mode!
   72MHz
 \ 1000 systick-hz
+  flash-kb . ." KB <rnw> " hwid hex. cr
 ;
 
 cornerstone <<<hal-rnw>>>

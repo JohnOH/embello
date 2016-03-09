@@ -26,6 +26,7 @@ PB7 constant SDA
   OMODE-PP LED io-mode!
   72MHz
 \ 1000 systick-hz
+  flash-kb . ." KB <suf> " hwid hex. cr
 ;
 
 cornerstone <<<hal-suf>>>

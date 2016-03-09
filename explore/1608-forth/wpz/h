@@ -80,6 +80,7 @@ PA7 constant LED4
   OMODE-PP LED4 io-mode!
   72MHz
 \ 1000 systick-hz
+  flash-kb . ." KB <wpz> " hwid hex. cr
 ;
 
 cornerstone <<<hal-wpz>>>
