@@ -45,6 +45,6 @@ include ../flib/hal-stm32f4.fs
 
 \ cornerstone <<<hal-gd4>>>
 compiletoram
-\ init
+init
 
 \ vim: set ft=forth :
