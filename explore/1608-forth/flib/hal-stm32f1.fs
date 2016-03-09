@@ -62,7 +62,7 @@ $40022000 constant FLASH
   1 16 lshift                     \ HSE clock is 8 MHz Xtal source for PLL
   7 18 lshift or                  \ PLL factor: 8 MHz * 9 = 72 MHz = HCLK
   4  8 lshift or                  \ PCLK1 = HCLK/2
-  3 14 lshift or                  \ ADCPRE = PCLK2/8
+  2 14 lshift or                  \ ADCPRE = PCLK2/6
             2 or  RCC-CFGR !      \ PLL is the system clock
   24 bit RCC-CR bis!              \ set PLLON
   begin 25 bit RCC-CR bit@ until  \ wait for PLLRDY
