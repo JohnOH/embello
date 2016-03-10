@@ -10,16 +10,9 @@ reset
     1000000 0 do loop
   key? until ;
 
-: ledon led2 ios! ;
-: ledoff led2 ioc! ;
-: busy ( u -- ) 100 * 0 ?do loop ;
-: %pwm ( pct -- )
-  begin
-    ledon  dup busy
-    ledoff  100 over - busy
-  key? until ;
-
 : tftry tft-init clear TFT-BL ios! demo ;
+
+: pwmtry ( -- )  7200 LED2 +pwm 100 LED2 pwm ;
 
 \ -----------------------------------------------------------------------------
 

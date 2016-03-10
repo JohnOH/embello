@@ -4,24 +4,16 @@
 reset
 
 : blink ( -- )  \ blink the on-board LED until a key is pressed
-  OMODE-PP LED1 io-mode!
+  OMODE-PP LED2 io-mode!
   begin
-    LED1 iox!
+    LED2 iox!
     1000000 0 do loop
   key? until ;
 
 : rtctry ( -- )  +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 : adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
 : uartry ( -- )  +uart uart. ;
-
-: ledon LED2 ioc! ;
-: ledoff LED2 ios! ;
-: busy ( u -- ) 100 * 0 ?do loop ;
-: %pwm ( pct -- )
-  begin
-    ledon  dup busy
-    ledoff  100 over - busy
-  key? until ;
+: pwmtry ( -- )  7200 LED1 +pwm 100 LED1 pwm ;
 
 \ try out on-board WinBond W25Q16 2 MB flash memory
 
