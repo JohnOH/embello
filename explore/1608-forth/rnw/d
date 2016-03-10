@@ -31,9 +31,18 @@ reset
 : txtry ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
 
 \ -----------------------------------------------------------------------------
-\ -----------------------------------------------------------------------------
 
-\ 10 %pwm
-\ lcdtry
-\ rftry  \ must be last, continues to run until keypress
+: freq-gen ( freq duty pin -- freq )  \ frequency with duty cycle 10/20/../90%
+\ freq range is 110 Hz .. 7.2 MHz, but steps are very coarse at the high end
+  >r ( freq duty R: pin ) 1 r@ +pwm       \ first set up basic pwm
+  9 r@ p2tim timer-base TIM.ARR + !       \ reload value is 9, i.e. cycle 10
+  10 / 10 swap - r@ pwm                   \ use 1..9, for use with PWM cycle 10
+  7200000 dup rot /                       \ find best divider (may be too low)
+  dup 1- r> p2tim timer-base TIM.PSC + !  \ set pre-scaler accordingly
+  /                                       \ return actual freq (may be higher)
+;
+
+1000 30 PA1 freq-gen .
+
+\ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
