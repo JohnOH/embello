@@ -1,4 +1,5 @@
 \ pulse width modulation
+\ needs io-stm32f1.fs
 \ needs timer-stm32f1.fs
 
 \ the following pins are supported for PWM setup:
