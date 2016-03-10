@@ -13,6 +13,17 @@ include ../flib/oled.fs
 include ../mlib/graphics.fs
 include ../mlib/multi.fs
 
+3,33 2variable Vref  \ fixed-point Vref for 4095 reading
+
+: vmeter ( -- )  \ a simple voltmeter on PA4
+  +adc
+  begin cr
+    PA4 adc ( dup . )             \ take a reading
+    0 swap  4095,0 f/ Vref 2@ f*  \ convert to Volt
+    3 f.n ." V"                   \ display the result
+    500 ms                        \ slow down
+  key? until ;
+
 ( code-size ) here swap - .
 
 cornerstone <<<lib-rnw>>>
