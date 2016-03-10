@@ -33,7 +33,8 @@ reset
 \ -----------------------------------------------------------------------------
 
 : freq-gen ( freq duty pin -- freq )  \ frequency with duty cycle 10/20/../90%
-\ freq range is 110 Hz .. 7.2 MHz, but steps are very coarse at the high end
+\ freq range is 110 Hz .. 7.2 MHz, but steps can be very coarse above 100 KHz
+\ better dividers could be used, but this should be usable in the audio range
   >r ( freq duty R: pin ) 1 r@ +pwm       \ first set up basic pwm
   9 r@ p2tim timer-base TIM.ARR + !       \ reload value is 9, i.e. cycle 10
   10 / 10 swap - r@ pwm                   \ use 1..9, for use with PWM cycle 10
