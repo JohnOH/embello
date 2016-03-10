@@ -60,7 +60,7 @@ $20008000 602 2constant adc-buffer  \ 301 2-byte ints in range 0..4095
   TFT-BL ios!
 
   11 dac1-awg
-  adc-buffer PB0 501 ( 58000 ) adc1-dma
+  adc-buffer PB0 162 adc1-dma
 
   begin
 \   ticks @
