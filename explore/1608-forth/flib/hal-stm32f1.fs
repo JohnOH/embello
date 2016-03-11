@@ -83,8 +83,29 @@ $40022000 constant FLASH
   ['] ++ticks irq-systick !
   clock-hz @ swap / systick ;
 
-: ms ( u -- )  \ millisecond delay (very sloppy busy loop for now)
-  12000 * 0 ?do loop ;
+: micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
+\ assumes systick is running at 1000 Hz, overhead is about 1.8 us @ 72 MHz
+\ get current ticks and systick, spinloops if ticks changed while we looked
+  0 dup  begin 2drop  ticks @ $E000E018 @  over ticks @ = until
+  $E000E014 @ 1+ swap -  \ convert down-counter to remaining
+  clock-hz @ 1000000 / ( ticks systicks mhz )
+  / swap 1000 * + ;
+
+: millis ( -- u )  \ return elapsed milliseconds, this wraps after 49 days
+  ticks @ ;
+
+: us ( n -- )  \ microsecond delay, maximum is about 2000s
+  3 -  \ adjust for approximate overhead of this code itself
+  micros +  begin dup micros - 0< until  drop ;
+
+: ms ( n -- )  \ millisecond delay, maximum is about 2000s
+  1000 * us ;
+
+\ : j0 micros 1000000 0 do 1 us loop micros swap - . ;
+\ : j1 micros 1000000 0 do 5 us loop micros swap - . ;
+\ : j2 micros 1000000 0 do 10 us loop micros swap - . ;
+\ : j3 micros 1000000 0 do 20 us loop micros swap - . ;
+\ : jn j0 j1 j2 j3 ;  \ sample results: 4065044 5988036 10542166 20833317
 
 \ emulate c, which is not available in hardware on some chips.
 \ copied from Mecrisp's common/charcomma.txt

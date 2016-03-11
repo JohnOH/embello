@@ -25,8 +25,8 @@ PB7 constant SDA
   -jtag  \ disable JTAG, we only need SWD
   OMODE-PP LED io-mode!
   72MHz
-\ 1000 systick-hz
   flash-kb . ." KB <suf> " hwid hex. cr
+  1000 systick-hz
 ;
 
 cornerstone <<<hal-suf>>>

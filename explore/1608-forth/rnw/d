@@ -43,7 +43,7 @@ reset
   /                                       \ return actual freq (may be higher)
 ;
 
-1000 30 PA1 freq-gen .
+\ 1000 30 PA1 freq-gen .
 
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
