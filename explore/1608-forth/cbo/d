@@ -59,21 +59,24 @@ $A000010C constant FSMC-BWTR2
 \                   \ FSMC_WriteBurst_Disable
   FSMC-BCR2 !
 
+\ for 72 MHz, i.e. 13.89 ns per clock cycle
+\ assuming address setup > 70 ns and data setup > 20 ns + 1 cycle
+
   0
-  10 0 lshift or    \ FSMC_AddressSetupTime = 10
+  5 0 lshift or     \ FSMC_AddressSetupTime = 6
 \                   \ FSMC_AddressHoldTime = 0
-  10 8 lshift or    \ FSMC_DataSetupTime = 10
-  1 16 lshift or    \ FSMC_BusTurnAroundDuration = 0x01
+  2 8 lshift or     \ FSMC_DataSetupTime = 3
+  1 16 lshift or    \ FSMC_BusTurnAroundDuration = 2
 \                   \ FSMC_CLKDivision = 0x00
 \                   \ FSMC_DataLatency = 0x00
 \                   \ FSMC_AccessMode_A
   FSMC-BTR2 !
 
   $0FF00000         \ keep reset value
-  10 0 lshift or    \ FSMC_AddressSetupTime = 10
+  5 0 lshift or     \ FSMC_AddressSetupTime = 6
 \                   \ FSMC_AddressHoldTime = 0
-  10 8 lshift or    \ FSMC_DataSetupTime = 10
-  1 16 lshift or    \ FSMC_BusTurnAroundDuration = 0x01
+  2 8 lshift or     \ FSMC_DataSetupTime = 3
+  1 16 lshift or    \ FSMC_BusTurnAroundDuration = 2
 \                   \ FSMC_CLKDivision = 0x00
 \                   \ FSMC_DataLatency = 0x00
 \                   \ FSMC_AccessMode_A
