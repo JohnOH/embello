@@ -22,7 +22,7 @@ $40004400 constant USART2
   OMODE-AF-PP OMODE-FAST + PA2 io-mode!
   IMODE-FLOAT PA3 io-mode!
   17 bit RCC-APB1ENR bis!  \ set USART2EN
-  115200 baud 2/ USART2-BRR ! \ set baud rate at PCLK1=36MHz
+  115200 baud 2/ USART2-BRR ! \ set baud rate assuming PCLK1 = system-clock / 2
   %0010000000001100 USART2-CR1 ! ;
 
 : uart-key? ( -- f ) 1 5 lshift USART2-SR bit@ ;
