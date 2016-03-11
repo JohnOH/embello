@@ -85,9 +85,35 @@ $A000010C constant FSMC-BWTR2
   1 FSMC-BCR2 bis!  \ MBKEN:Memorybankenablebit
 ;
 
-: psram-init ( -- )
-  11 . psram-pins 22 . psram-fsmc 33 .
-;
+$64000000 constant PSRAM
+
+: psram-init ( -- )  \ set up FSMC access to 8 MB PSRAM in bank 2
+  psram-pins psram-fsmc ;
+
+\ see http://compgroups.net/comp.lang.forth/random-number-generator/1259025
+\ only last bit should be used, but for this purpose we can use all 32 bits
+
+123456789 variable seed
+
+: random ( -- u ) seed @ dup ror or seed @ rol xor dup seed ! ;
+
+: r 0 do random hex. loop ;
+
+: psram-test ( u -- )  \ test first N bytes of PSRAM, original data is lost
+  psram-init
+  $12345678 seed !
+  dup 0 do
+    random PSRAM i + !  \ fill it with random values
+  4 +loop
+  PSRAM $40 dump
+  $12345678 seed !
+  0 do
+    random PSRAM i + @  \ now read those values back and compare
+    <> if i . ." FAILED!" quit then
+  4 +loop ;
+
+: psram-full ( -- )  \ test all of PSRAM, then clear its contents
+  23 bit  dup psram-test  PSRAM swap 0 fill ;
 
 \ -----------------------------------------------------------------------------
 
