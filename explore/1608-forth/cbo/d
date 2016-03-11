@@ -61,22 +61,23 @@ $A000010C constant FSMC-BWTR2
 
 \ for 72 MHz, i.e. 13.89 ns per clock cycle
 \ assuming address setup > 70 ns and data setup > 20 ns + 1 cycle
+\ started with addr/data/turn as 5/2/1, but even 1/1/0 seems to work fine...
 
   0
-  5 0 lshift or     \ FSMC_AddressSetupTime = 6
+  1 0 lshift or     \ FSMC_AddressSetupTime = 6
 \                   \ FSMC_AddressHoldTime = 0
-  2 8 lshift or     \ FSMC_DataSetupTime = 3
-  1 16 lshift or    \ FSMC_BusTurnAroundDuration = 2
+  1 8 lshift or     \ FSMC_DataSetupTime = 3
+  0 16 lshift or    \ FSMC_BusTurnAroundDuration = 2
 \                   \ FSMC_CLKDivision = 0x00
 \                   \ FSMC_DataLatency = 0x00
 \                   \ FSMC_AccessMode_A
   FSMC-BTR2 !
 
   $0FF00000         \ keep reset value
-  5 0 lshift or     \ FSMC_AddressSetupTime = 6
+  1 0 lshift or     \ FSMC_AddressSetupTime = 6
 \                   \ FSMC_AddressHoldTime = 0
-  2 8 lshift or     \ FSMC_DataSetupTime = 3
-  1 16 lshift or    \ FSMC_BusTurnAroundDuration = 2
+  1 8 lshift or     \ FSMC_DataSetupTime = 3
+  0 16 lshift or    \ FSMC_BusTurnAroundDuration = 2
 \                   \ FSMC_CLKDivision = 0x00
 \                   \ FSMC_DataLatency = 0x00
 \                   \ FSMC_AccessMode_A
@@ -114,6 +115,14 @@ $64000000 constant PSRAM
 
 : psram-full ( -- )  \ test all of PSRAM, then clear its contents
   23 bit  dup psram-test  PSRAM swap 0 fill ;
+
+: psram-time ( -- )  \ measure read and write times for a full scan
+  psram-init
+  micros  23 bit 0 do                      4 +loop  micros swap - .
+  micros  23 bit 0 do  i             drop  4 +loop  micros swap - .
+  micros  23 bit 0 do    PSRAM i + @ drop  4 +loop  micros swap - .
+  micros  23 bit 0 do  i PSRAM i + !       4 +loop  micros swap - . ;
+\ sample output: 495471 641201 1486421 1369795
 
 \ -----------------------------------------------------------------------------
 
