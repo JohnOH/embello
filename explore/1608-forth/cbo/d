@@ -15,6 +15,77 @@ reset
 : uartry ( -- )  +uart uart. ;
 
 \ -----------------------------------------------------------------------------
+
+$A0000008 constant FSMC-BCR2
+$A000000C constant FSMC-BTR2
+$A000010C constant FSMC-BWTR2
+
+: psram-pins ( -- )
+  8 bit RCC-AHBENR bis!  \ enable FSMC clock
+
+  5 bit RCC-APB2ENR bis!  \ enable GPIOD
+  6 bit RCC-APB2ENR bis!  \ enable GPIOE
+  7 bit RCC-APB2ENR bis!  \ enable GPIOF
+  8 bit RCC-APB2ENR bis!  \ enable GPIOG
+
+  OMODE-AF-PP OMODE-FAST +
+  dup PE0  io-mode!  dup PE1  io-mode!  dup PE3  io-mode!  dup PE4  io-mode!
+  dup PE5  io-mode!  dup PE6  io-mode!  dup PE7  io-mode!  dup PE8  io-mode!
+  dup PE9  io-mode!  dup PE10 io-mode!  dup PE11 io-mode!  dup PE12 io-mode!
+  dup PE13 io-mode!  dup PE14 io-mode!  dup PE15 io-mode!  dup PF0  io-mode!
+  dup PF1  io-mode!  dup PF2  io-mode!  dup PF3  io-mode!  dup PF4  io-mode!
+  dup PF5  io-mode!  dup PF12 io-mode!  dup PF13 io-mode!  dup PF14 io-mode!
+  dup PF15 io-mode!  dup PG0  io-mode!  dup PG1  io-mode!  dup PG2  io-mode!
+  dup PG3  io-mode!  dup PG4  io-mode!  dup PG5  io-mode!  dup PG9  io-mode!
+  dup PD0  io-mode!  dup PD1  io-mode!  dup PD4  io-mode!  dup PD5  io-mode!
+  dup PD8  io-mode!  dup PD9  io-mode!  dup PD10 io-mode!  dup PD11 io-mode!
+  dup PD12 io-mode!  dup PD13 io-mode!  dup PD14 io-mode!  dup PD15 io-mode!
+  drop
+;
+
+: psram-fsmc ( -- )
+  $80               \ keep reset value
+\                   \ FSMC_DataAddressMux_Disable
+  %01 2 lshift or   \ FSMC_MemoryType_PSRAM
+  %01 4 lshift or   \ FSMC_MemoryDataWidth_16b
+\                   \ FSMC_BurstAccessMode_Disable
+\                   \ FSMC_WaitSignalPolarity_Low
+\                   \ FSMC_WrapMode_Disable
+\                   \ FSMC_WaitSignalActive_BeforeWaitState
+  1 12 lshift or    \ FSMC_WriteOperation_Enable
+\                   \ FSMC_WaitSignal_Disable
+\                   \ FSMC_AsynchronousWait_Disable
+\                   \ FSMC_ExtendedMode_Disable
+\                   \ FSMC_WriteBurst_Disable
+  FSMC-BCR2 !
+
+  0
+  10 0 lshift or    \ FSMC_AddressSetupTime = 10
+\                   \ FSMC_AddressHoldTime = 0
+  10 8 lshift or    \ FSMC_DataSetupTime = 10
+  1 16 lshift or    \ FSMC_BusTurnAroundDuration = 0x01
+\                   \ FSMC_CLKDivision = 0x00
+\                   \ FSMC_DataLatency = 0x00
+\                   \ FSMC_AccessMode_A
+  FSMC-BTR2 !
+
+  $0FF00000         \ keep reset value
+  10 0 lshift or    \ FSMC_AddressSetupTime = 10
+\                   \ FSMC_AddressHoldTime = 0
+  10 8 lshift or    \ FSMC_DataSetupTime = 10
+  1 16 lshift or    \ FSMC_BusTurnAroundDuration = 0x01
+\                   \ FSMC_CLKDivision = 0x00
+\                   \ FSMC_DataLatency = 0x00
+\                   \ FSMC_AccessMode_A
+  FSMC-BWTR2 !
+
+  1 FSMC-BCR2 bis!  \ MBKEN:Memorybankenablebit
+;
+
+: psram-init ( -- )
+  11 . psram-pins 22 . psram-fsmc 33 .
+;
+
 \ -----------------------------------------------------------------------------
 
 \ vim: set ft=forth :
