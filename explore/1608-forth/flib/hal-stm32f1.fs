@@ -53,7 +53,10 @@ $40022000 constant FLASH
 
 \ adjusted for STM32F103 @ 72 MHz (original STM32F100 by Igor de om1zz, 2015)
 
-12000000 variable clock-hz
+8000000 variable clock-hz  \ the system clock is 8 MHz after reset
+
+: baud ( u -- u )  \ calculate baud rate divider, based on current clock rate
+  clock-hz @ swap / ;
 
 : 72MHz ( -- )  \ set the main clock to 72 MHz, keep baud rate at 115200
   2 FLASH-ACR bis!                \ two flash mem wait states
@@ -66,8 +69,7 @@ $40022000 constant FLASH
             2 or  RCC-CFGR !      \ PLL is the system clock
   24 bit RCC-CR bis!              \ set PLLON
   begin 25 bit RCC-CR bit@ until  \ wait for PLLRDY
-  72000000 clock-hz !
-  $271 USART1-BRR ! \ set baud rate divider for 115200 Baud at PCLK2=72MHz
+  72000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
 ;
 
 0 variable ticks
@@ -89,12 +91,12 @@ $40022000 constant FLASH
 : millis ( -- u )  \ return elapsed milliseconds, this wraps after 49 days
   ticks @ ;
 
-: us ( n -- )  \ microsecond delay, maximum is about 2000s
+: us ( n -- )  \ microsecond delay using a busy loop, this won't switch tasks
   3 -  \ adjust for approximate overhead of this code itself
   micros +  begin dup micros - 0< until  drop ;
 
-: ms ( n -- )  \ millisecond delay, maximum is about 2000s
-  1000 * us ;
+: ms ( n -- )  \ millisecond delay, current limit is about 2000s
+  1000 * us ;  \ TODO need to change this to support multitasking
 
 \ : j0 micros 1000000 0 do 1 us loop micros swap - . ;
 \ : j1 micros 1000000 0 do 5 us loop micros swap - . ;
