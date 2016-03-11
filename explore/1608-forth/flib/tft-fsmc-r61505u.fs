@@ -52,7 +52,7 @@ $60020000 constant LCD-RAM
 \                   \ FSMC_BusTurnAroundDuration = 0x00
 \                   \ FSMC_CLKDivision = 0x00
 \                   \ FSMC_DataLatency = 0x00
-\                   \ FSMC_AccessMode = FSMC_AccessMode_A
+\                   \ FSMC_AccessMode_A
   FSMC-BWTR1 !
 
   1 FSMC-BCR1 bis!  \ MBKEN:Memorybankenablebit
