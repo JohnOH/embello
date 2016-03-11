@@ -113,15 +113,15 @@ $64000000 constant PSRAM
     <> if i . ." FAILED!" quit then
   4 +loop ;
 
-: psram-full ( -- )  \ test all of PSRAM, then clear its contents
+: psram-full ( -- )  \ test entire 8 MB PSRAM, then clear its contents
   23 bit  dup psram-test  PSRAM swap 0 fill ;
 
-: psram-time ( -- )  \ measure read and write times for a full scan
-  psram-init
-  micros  23 bit 0 do                      4 +loop  micros swap - .
-  micros  23 bit 0 do  i             drop  4 +loop  micros swap - .
-  micros  23 bit 0 do    PSRAM i + @ drop  4 +loop  micros swap - .
-  micros  23 bit 0 do  i PSRAM i + !       4 +loop  micros swap - . ;
+\ : psram-time ( -- )  \ measure read and write times for a full scan
+\   psram-init
+\   micros  23 bit 0 do                      4 +loop  micros swap - .
+\   micros  23 bit 0 do  i             drop  4 +loop  micros swap - .
+\   micros  23 bit 0 do    PSRAM i + @ drop  4 +loop  micros swap - .
+\   micros  23 bit 0 do  i PSRAM i + !       4 +loop  micros swap - . ;
 \ sample output: 495471 641201 1486421 1369795
 
 \ -----------------------------------------------------------------------------
