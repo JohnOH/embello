@@ -70,18 +70,13 @@ $40022000 constant FLASH
   $271 USART1-BRR ! \ set baud rate divider for 115200 Baud at PCLK2=72MHz
 ;
 
-: systick ( ticks -- )  \ enable systick interrupt
-  1- $E000E014 !  \ How many ticks between interrupts ?
-  7 $E000E010 !   \ Enable the systick interrupt.
-;
-
 0 variable ticks
 
 : ++ticks ( -- ) 1 ticks +! ;  \ for use as systick irq handler
 
-: systick-hz ( u -- )  \ enable systick counter at given frequency
+: systick-hz ( u -- )  \ enable systick interrupt at given frequency
   ['] ++ticks irq-systick !
-  clock-hz @ swap / systick ;
+  clock-hz @ swap /  1- $E000E014 !  7 $E000E010 ! ;
 
 : micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
 \ assumes systick is running at 1000 Hz, overhead is about 1.8 us @ 72 MHz
