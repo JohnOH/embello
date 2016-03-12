@@ -30,51 +30,46 @@ $70020000 constant NAND-ADDR
   psram-pins
 
   OMODE-AF-PP OMODE-FAST + PD7  io-mode!
-  OMODE-AF-OD OMODE-FAST + PG6  io-mode!  \ input?
+  IMODE-PULL PG6 io-mode!  PG6 ios!
 ;
 
 : nand-fsmc ( -- )
-            0
-      3 bit or  \ PTYP = NAND
-      1 bit or  \ PWAITEN = enabled
-  FSMC-PCR2 !
+              0
+  1 17 lshift or  \ ECCPS = 512 bytes
+        6 bit or  \ ECCEN = enable
+        3 bit or  \ PTYP = NAND
+        1 bit or  \ PWAITEN = enabled
+    FSMC-PCR2 !
                  0
-     3 24 lshift or  \ MEMHIZ = 4
-     1 16 lshift or  \ MEMHOLD = 1
-      2 8 lshift or  \ MEMWAIT = 2
-\     0 0 lshift or  \ MEMSET = 0
+     1 24 lshift or  \ MEMHIZ = 2
+     2 16 lshift or  \ MEMHOLD = 3
+      3 8 lshift or  \ MEMWAIT = 4
+      1 0 lshift or  \ MEMSET = 2
   dup FSMC-PMEM2 !
       FSMC-PATT2 !
 
   2 bit FSMC-PCR2 bis!  \ PBKEN = enabled
 ;
 
-: nand-init ( -- )
-  nand-pins nand-fsmc ;
+: nand-init ( -- u )
+  nand-pins nand-fsmc
+  $90 NAND-CMD c!  $00 NAND-ADDR c!
+  NAND c@ drop  NAND @ ;
 
-: nand-readid ( -- )
-  nand-init
-  $90 NAND-CMD c!
-  $00 NAND-ADDR c!
-  NAND c@ hex.
-  NAND @ hex. ;
+: nand-wait ( -- )  begin PG6 io@ until ;
+: nand-status ( -- f )  nand-wait  $90 NAND-CMD c!  NAND c@  1 and 0= ;
 
-: nand-status ( -- b )
-  $90 NAND-CMD c!  NAND c@ ;
-: nand-wait ( -- )
-  micros begin nand-status 6 bit and 0= until micros swap - . ;
+: nand-erase ( page -- f )
+  $60 NAND-CMD c!  NAND-ADDR h!  $D0 NAND-CMD c!  nand-status ;
 
-: nand-erase ( page -- )
-  $60 NAND-CMD c!  NAND-ADDR h!  $D0 NAND-CMD c!  nand-wait ;
-
-: nand-write ( addr -- )
+: nand-write ( seek -- f )
   $80 NAND-CMD c!  NAND-ADDR !
   100 0 do i NAND c! loop
-  $10 NAND-CMD c!  nand-wait ;
+  $10 NAND-CMD c!  nand-status ;
 
-: nand-read ( addr -- )
+: nand-read ( seek -- )
   $00 NAND-CMD c!  NAND-ADDR !  $30 NAND-CMD c!
-  30 us
+  nand-wait
   20 0 do NAND @ hex. loop ;
 
 \ -----------------------------------------------------------------------------
