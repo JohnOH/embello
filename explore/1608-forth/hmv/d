@@ -36,35 +36,5 @@ $E000ED00 constant SCB
 
 \ -----------------------------------------------------------------------------
 
-    DMA2 $1C + constant DMA2-CCR2
-    DMA2 $20 + constant DMA2-CNDTR2
-    DMA2 $24 + constant DMA2-CPAR2
-    DMA2 $28 + constant DMA2-CMAR2
-
-$FFFF0000 variable dma-fg
-
-: clear-half ( -- )  \ clear half the LCD screen, DMA xfer size is 2-byte only
-  1 DMA2-CCR2 bic!  \ disable dma channel 2
-  $F0 DMA2 4 + !  \ clear flags in IFCR
-
-    1 bit RCC-AHBENR bis!  \ DMA2EN clock enable
-   38400 DMA2-CNDTR2 !     \ 38400 x 16b = 76.8 KB, half the screen
-   dma-fg DMA2-CMAR2 !     \ read from 32-bit variable
-  LCD-RAM DMA2-CPAR2 !     \ write to LCD
-
-                0   \ register settings for CCR2 of DMA2:
-         14 bit or  \ MEM2MEM
-  %10 10 lshift or  \ MSIZE = 32-bits
-   %01 8 lshift or  \ PSIZE = 16 bits
-          4 bit or  \ DIR = from mem to peripheral
-          0 bit or  \ EN
-      DMA2-CCR2 !
-
-  begin $20 DMA2 bit@ until  \ wait for completion
-;
-
-: clear-dma ( -- )  \ clear screen via DMA
-  0 $20 tft!  0 $21 tft!  $22 LCD-REG h!  clear-half clear-half ;
-
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
