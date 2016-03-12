@@ -36,24 +36,15 @@ $60020000 constant LCD-RAM
   FSMC-BCR1 !
 
   0
-  10 0 lshift or    \ FSMC_AddressSetupTime = 10
+  3 0 lshift or     \ FSMC_AddressSetupTime = 4x HCLK
 \                   \ FSMC_AddressHoldTime = 0
-  10 8 lshift or    \ FSMC_DataSetupTime = 10
+  5 8 lshift or     \ FSMC_DataSetupTime = 6x HCLK
 \                   \ FSMC_BusTurnAroundDuration = 0x00
 \                   \ FSMC_CLKDivision = 0x00
 \                   \ FSMC_DataLatency = 0x00
 \                   \ FSMC_AccessMode_A
-  FSMC-BTR1 !
-
-  $0FF00000         \ keep reset value
-  3 0 lshift or     \ FSMC_AddressSetupTime = 3
-\                   \ FSMC_AddressHoldTime = 0
-  3 8 lshift or     \ FSMC_DataSetupTime = 3
-\                   \ FSMC_BusTurnAroundDuration = 0x00
-\                   \ FSMC_CLKDivision = 0x00
-\                   \ FSMC_DataLatency = 0x00
-\                   \ FSMC_AccessMode_A
-  FSMC-BWTR1 !
+  dup FSMC-BTR1 !
+      FSMC-BWTR1 !
 
   1 FSMC-BCR1 bis!  \ MBKEN:Memorybankenablebit
 ;

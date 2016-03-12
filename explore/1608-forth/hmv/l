@@ -67,9 +67,9 @@ $20008000 602 2constant adc-buffer  \ 301 2-byte ints in range 0..4095
   1000 systick-hz
   TFT-BL ioc!
   tft-init
-  ticks @ clear  ticks @ swap - .  \ ms to clear the screen
-  ticks @ border ticks @ swap - .  \ ms to draw the border
-  ticks @ grid   ticks @ swap - .  \ ms to draw the grid
+  micros clear  micros swap - .  \ us to clear the screen
+  micros border micros swap - .  \ us to draw the border
+  micros grid   micros swap - .  \ us to draw the grid
   TFT-BL ios!
 
   11 dac1-awg

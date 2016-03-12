@@ -64,10 +64,7 @@ $FFFF0000 variable dma-fg
 ;
 
 : clear-dma ( -- )  \ clear screen via DMA
-  0 $20 tft!  0 $21 tft!  $22 LCD-REG h!
-  clear-half
-\ 120 $20 tft!  0 $21 tft!  $22 LCD-REG h!
-  clear-half ;
+  0 $20 tft!  0 $21 tft!  $22 LCD-REG h!  clear-half clear-half ;
 
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
