@@ -16,62 +16,6 @@ reset
 
 \ -----------------------------------------------------------------------------
 
-$A0000060 constant FSMC-PCR2
-\ $A0000064 constant FSMC-SR2
-$A0000068 constant FSMC-PMEM2
-$A000006C constant FSMC-PATT2
-\ $A0000074 constant FSMC-ECCR2
-
-$70000000 constant NAND
-$70010000 constant NAND-CMD
-$70020000 constant NAND-ADDR
-
-: nand-pins ( -- )
-  psram-pins
-
-  OMODE-AF-PP OMODE-FAST + PD7  io-mode!
-  IMODE-PULL PG6 io-mode!  PG6 ios!
-;
-
-: nand-fsmc ( -- )
-              0
-  1 17 lshift or  \ ECCPS = 512 bytes
-        6 bit or  \ ECCEN = enable
-        3 bit or  \ PTYP = NAND
-        1 bit or  \ PWAITEN = enabled
-    FSMC-PCR2 !
-                 0
-     1 24 lshift or  \ MEMHIZ = 2
-     2 16 lshift or  \ MEMHOLD = 3
-      3 8 lshift or  \ MEMWAIT = 4
-      1 0 lshift or  \ MEMSET = 2
-  dup FSMC-PMEM2 !
-      FSMC-PATT2 !
-
-  2 bit FSMC-PCR2 bis!  \ PBKEN = enabled
-;
-
-: nand-init ( -- u )
-  nand-pins nand-fsmc
-  $90 NAND-CMD c!  $00 NAND-ADDR c!
-  NAND c@ drop  NAND @ ;
-
-: nand-wait ( -- )  begin PG6 io@ until ;
-: nand-status ( -- f )  nand-wait  $90 NAND-CMD c!  NAND c@  1 and 0= ;
-
-: nand-erase ( page -- f )
-  $60 NAND-CMD c!  NAND-ADDR h!  $D0 NAND-CMD c!  nand-status ;
-
-: nand-write ( seek -- f )
-  $80 NAND-CMD c!  NAND-ADDR !
-  100 0 do i NAND c! loop
-  $10 NAND-CMD c!  nand-status ;
-
-: nand-read ( seek -- )
-  $00 NAND-CMD c!  NAND-ADDR !  $30 NAND-CMD c!
-  nand-wait
-  20 0 do NAND @ hex. loop ;
-
 \ -----------------------------------------------------------------------------
 
 \ vim: set ft=forth :

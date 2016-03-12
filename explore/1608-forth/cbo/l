@@ -9,6 +9,9 @@ compiletoflash
 
 include ../mlib/multi.fs
 
+\ -----------------------------------------------------------------------------
+\ PSRAM on HY-STM32F1xxCore144 Core/Dev Board
+
 $A0000008 constant FSMC-BCR2
 $A000000C constant FSMC-BTR2
 $A000010C constant FSMC-BWTR2
@@ -116,6 +119,69 @@ $64000000 constant PSRAM
 \   micros  23 bit 0 do    PSRAM i + @ drop  4 +loop  micros swap - .
 \   micros  23 bit 0 do  i PSRAM i + !       4 +loop  micros swap - . ;
 \ sample output: 495471 641201 1486421 1369795
+
+\ -----------------------------------------------------------------------------
+\ NAND flash on HY-STM32F1xxCore144 Core/Dev Board
+
+$A0000060 constant FSMC-PCR2
+\ $A0000064 constant FSMC-SR2
+$A0000068 constant FSMC-PMEM2
+$A000006C constant FSMC-PATT2
+\ $A0000074 constant FSMC-ECCR2
+
+$70000000 constant NAND
+$70010000 constant NAND-CMD
+$70020000 constant NAND-ADR
+
+: nand-pins ( -- )
+  psram-pins  \ take advantage of existing PSRAM setup
+  OMODE-AF-PP OMODE-FAST + PD7  io-mode!
+  IMODE-PULL PG6 io-mode!  PG6 ios! ;
+
+: nand-fsmc ( -- )
+              0
+  1 17 lshift or  \ ECCPS = 512 bytes
+        6 bit or  \ ECCEN = enable
+        3 bit or  \ PTYP = NAND
+        1 bit or  \ PWAITEN = enabled
+    FSMC-PCR2 !
+                 0
+     1 24 lshift or  \ MEMHIZ = 2
+     2 16 lshift or  \ MEMHOLD = 3
+      3 8 lshift or  \ MEMWAIT = 4
+      1 0 lshift or  \ MEMSET = 2
+  dup FSMC-PMEM2 !
+      FSMC-PATT2 !
+
+  2 bit FSMC-PCR2 bis!  \ PBKEN = enabled
+;
+
+\ NAND flash pages are read/written per 512 bytes and erased per 256 pages
+\ the extra 12 bytes per block are not currently used
+
+: nand-init ( -- u )  \ init NAND flash access, return chip info: $409500F1
+  nand-pins nand-fsmc
+  $90 NAND-CMD c!  $00 NAND-ADR c!
+  NAND c@ drop  NAND @ ;
+
+: nand-wait ( -- )  begin PG6 io@ until ;
+: nand-status ( -- f )  nand-wait  $90 NAND-CMD c!  NAND c@  1 and 0= ;
+: nand-c/r ( page -- )  dup 3 and 9 lshift NAND-ADR h!  2 rshift NAND-ADR h! ;
+
+: nand-erase ( page -- f )  \ erase a block of 256 flash pages
+  $60 NAND-CMD c!  2 rshift NAND-ADR h!  $D0 NAND-CMD c!  nand-status ;
+
+: nand-write ( addr page -- f )  \ write one 512-byte flash page
+  $80 NAND-CMD c!  nand-c/r
+  512 0 do  dup i + c@  NAND c!  loop  drop
+  $10 NAND-CMD c!  nand-status ;
+
+: nand-read ( addr page -- )  \ read one 512-byte flash page
+  $00 NAND-CMD c!  nand-c/r  $30 NAND-CMD c!
+  nand-wait
+  512 0 do  NAND c@  over i + c!  loop  drop ;
+
+\ -----------------------------------------------------------------------------
 
 ( code-size ) here swap - .
 
