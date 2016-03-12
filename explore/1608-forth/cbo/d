@@ -39,13 +39,12 @@ $70020000 constant NAND-ADDR
       1 bit or  \ PWAITEN = enabled
   FSMC-PCR2 !
                  0
-     4 24 lshift or  \ MEMHIZ = 4
+     3 24 lshift or  \ MEMHIZ = 4
      1 16 lshift or  \ MEMHOLD = 1
       2 8 lshift or  \ MEMWAIT = 2
-      0 0 lshift or  \ MEMSET = 0
-  drop
-\ dup FSMC-PMEM2 !
-\     FSMC-PATT2 !
+\     0 0 lshift or  \ MEMSET = 0
+  dup FSMC-PMEM2 !
+      FSMC-PATT2 !
 
   2 bit FSMC-PCR2 bis!  \ PBKEN = enabled
 ;
@@ -63,7 +62,7 @@ $70020000 constant NAND-ADDR
 : nand-status ( -- b )
   $90 NAND-CMD c!  NAND c@ ;
 : nand-wait ( -- )
-  begin nand-status 6 bit and 0= until ;
+  micros begin nand-status 6 bit and 0= until micros swap - . ;
 
 : nand-erase ( page -- )
   $60 NAND-CMD c!  NAND-ADDR h!  $D0 NAND-CMD c!  nand-wait ;
@@ -75,7 +74,7 @@ $70020000 constant NAND-ADDR
 
 : nand-read ( addr -- )
   $00 NAND-CMD c!  NAND-ADDR !  $30 NAND-CMD c!
-  50 us
+  30 us
   20 0 do NAND @ hex. loop ;
 
 \ -----------------------------------------------------------------------------
