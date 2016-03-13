@@ -18,9 +18,8 @@ reset
 
 : sleep ( -- ) [ $BF30 h, ] inline ;  \ WFI Opcode, enters sleep mode
 
-$40007000 constant PWR
-      PWR $0 + constant PWR-CR
       PWR $4 + constant PWR-CSR
+
 $E000ED00 constant SCB
      SCB $14 + constant SCB-SCR
 
