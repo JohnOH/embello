@@ -17,12 +17,6 @@ $A000000C constant FSMC-BTR2
 
 : psram-pins ( -- )
   8 bit RCC-AHBENR bis!  \ enable FSMC clock
-
-  5 bit RCC-APB2ENR bis!  \ enable GPIOD
-  6 bit RCC-APB2ENR bis!  \ enable GPIOE
-  7 bit RCC-APB2ENR bis!  \ enable GPIOF
-  8 bit RCC-APB2ENR bis!  \ enable GPIOG
-
   OMODE-AF-PP OMODE-FAST + dup PD0 %1111111100110011 io-modes!
                            dup PE0 %1111111111111011 io-modes!
                            dup PF0 %1111000000111111 io-modes!

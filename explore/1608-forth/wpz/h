@@ -18,7 +18,7 @@ include ../flib/ring.fs
 include ../flib/uart2-stm32f1.fs
 include ../flib/uart2-irq-stm32f1.fs
 
-\ board definitions for Yellow Blue STM32F103RC
+\ board definitions for WaveShare Port STM32F103ZE
 
 \ add missing pin definitions for Z package with 144 i.s.o 48 pins
 2 0  io constant PC0                                4 0  io constant PE0
