@@ -5,7 +5,7 @@ compiletoflash
 
 4 constant io-ports  \ A..D
 
-include ../flib/hexdump.fs
+include ../mlib/hexdump.fs
 include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
 

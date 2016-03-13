@@ -3,7 +3,7 @@
 cr eraseflash
 compiletoflash
 
-include ../flib/hexdump.fs
+include ../mlib/hexdump.fs
 include ../flib/io-stm32f4.fs
 include ../flib/hal-stm32f4.fs
 \ include ../flib/adc-stm32f4.fs
