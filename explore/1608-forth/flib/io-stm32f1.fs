@@ -51,6 +51,13 @@ $40010800 constant GPIO-BASE
   $F over lshift not ( mode shift mask )
   r@ @ and -rot lshift or r> ! ;
 
+: io-modes! ( mode pin mask -- )  \ shorthand to config multiple pins of a port
+  16 0 do
+    i bit over and if
+      >r  2dup ( mode pin mode pin R: mask ) $F bic i or io-mode!  r>
+    then
+  loop 2drop drop ;
+
 : io. ( pin -- )  \ display readable GPIO registers associated with a pin
   cr
     ." PIN " dup io#  dup .  10 < if space then

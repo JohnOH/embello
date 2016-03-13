@@ -7,19 +7,12 @@ $A0000104 constant FSMC-BWTR1
 $60000000 constant LCD-REG
 $60020000 constant LCD-RAM
 
-: tft-pins ( -- )
+: tft-pins ( -- )  \ enable FSMC and set up pins needed to drive the TFT LCD
   8 bit RCC-AHBENR bis!  \ enable FSMC clock
+  OMODE-AF-PP OMODE-FAST + dup PD0 %1100111110110011 io-modes!
+                               PE0 %1111111110000000 io-modes! ;
 
-  OMODE-AF-PP OMODE-FAST +
-  dup PE7  io-mode!  dup PE8  io-mode!  dup PE9  io-mode!  dup PE10 io-mode!
-  dup PE11 io-mode!  dup PE12 io-mode!  dup PE13 io-mode!  dup PE14 io-mode!
-  dup PE15 io-mode!  dup PD0  io-mode!  dup PD1  io-mode!  dup PD4  io-mode!
-  dup PD5  io-mode!  dup PD7  io-mode!  dup PD8  io-mode!  dup PD9  io-mode!
-  dup PD10 io-mode!  dup PD11 io-mode!  dup PD14 io-mode!  dup PD15 io-mode!
-  drop
-;
-
-: tft-fsmc ( -- )
+: tft-fsmc ( -- )  \ configure the FSMC, SRAM bank 1
   $80               \ keep reset value
 \                   \ FSMC_DataAddressMux_Disable
 \                   \ FSMC_MemoryType_SRAM
