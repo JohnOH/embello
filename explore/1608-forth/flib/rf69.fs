@@ -72,7 +72,7 @@ decimal align
   ( u ) 6 lshift RF:FRF 2+ rf!
 ;
 
-: rf-group ( u -- ) RF:SYN2 rf@ ;  \ set the net group (1..250)
+: rf-group ( u -- ) RF:SYN2 rf! ;  \ set the net group (1..250)
 
 : rf-power ( n -- )  \ change TX power level (0..31)
   RF:PA rf@ $E0 and or RF:PA rf! ;
