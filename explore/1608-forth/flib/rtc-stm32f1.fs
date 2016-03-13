@@ -38,6 +38,6 @@ $40002800 constant RTC
        4 bit RTC-CRL hbic! ;
 
 : now ( -- u )  \ return current time in seconds
-\ use a spinlock to read consistent CNTL + CNTH values
+\ use a spinloop to read consistent CNTL + CNTH values
   0 0  begin  2drop  RTC-CNTL h@ RTC-CNTH h@  over RTC-CNTL h@ = until
   16 lshift or ;
