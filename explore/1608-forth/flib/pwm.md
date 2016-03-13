@@ -11,6 +11,7 @@ The following pins are supported for PWM setup:
     TIM4:   PB6  PB7  PB8  PB9
 
 Pins sharing a timer will run at the same repetition rate.
+Repetition rates which are a divisor of 7200 will be exact.
 
 ### API
 
@@ -19,8 +20,6 @@ Pins sharing a timer will run at the same repetition rate.
 : -pwm ( pin -- )  \ disable PWM, but leave timer running
 : pwm ( u pin -- )  \ set pwm rate, 0 = full off, 10000 = full on
 ```
-
-Repetition ratest which are a divisor of 7200 will be exact.
 
 ### Examples
 

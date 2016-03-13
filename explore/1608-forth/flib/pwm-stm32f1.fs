@@ -8,6 +8,7 @@
 \   TIM3:   PA6  PA7  PB0  PB1
 \   TIM4:   PB6  PB7  PB8  PB9
 \ Pins sharing a timer will run at the same repetition rate.
+\ Repetition rates which are a divisor of 7200 will be exact.
 
 : p2tim ( pin -- n ) \ convert pin to timer (1..4)
   case
