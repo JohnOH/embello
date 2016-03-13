@@ -2,7 +2,6 @@
 
 $A0000000 constant FSMC-BCR1
 $A0000004 constant FSMC-BTR1
-$A0000104 constant FSMC-BWTR1
 
 $60000000 constant LCD-REG
 $60020000 constant LCD-RAM
@@ -36,8 +35,7 @@ $60020000 constant LCD-RAM
 \                   \ FSMC_CLKDivision = 0x00
 \                   \ FSMC_DataLatency = 0x00
 \                   \ FSMC_AccessMode_A
-  dup FSMC-BTR1 !
-      FSMC-BWTR1 !
+  FSMC-BTR1 !
 
   1 FSMC-BCR1 bis!  \ MBKEN:Memorybankenablebit
 ;

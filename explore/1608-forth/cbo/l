@@ -14,7 +14,6 @@ include ../mlib/multi.fs
 
 $A0000008 constant FSMC-BCR2
 $A000000C constant FSMC-BTR2
-$A000010C constant FSMC-BWTR2
 
 : psram-pins ( -- )
   8 bit RCC-AHBENR bis!  \ enable FSMC clock
