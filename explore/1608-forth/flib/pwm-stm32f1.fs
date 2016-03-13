@@ -1,14 +1,15 @@
-\ pulse width modulation
+\ Pulse Width Modulation
 \ needs io-stm32f1.fs
 \ needs timer-stm32f1.fs
 
-\ the following pins are supported for PWM setup:
+\ The following pins are supported for PWM setup:
 \   TIM1:   PA8  PA9  PA10 PA11
 \   TIM2:   PA0  PA1  PA2  PA3
 \   TIM3:   PA6  PA7  PB0  PB1
 \   TIM4:   PB6  PB7  PB8  PB9
+\ Pins sharing a timer will run at the same repetition rate.
 
-: p2tim ( pin -- n )  \ convert pin to timer (1..4)
+: p2tim ( pin -- n ) \ convert pin to timer (1..4)
   case
     dup PA4 <                ?of 2 endof
     dup PB1 >                ?of 4 endof
@@ -16,7 +17,7 @@
     dup PB6 <                ?of 3 endof
   endcase ;
 
-: p2cmp ( pin -- n )  \ convert pin to output comp-reg# - 1 (0..3)
+: p2cmp ( pin -- n ) \ convert pin to output comp-reg# - 1 (0..3)
   dup
   case
     dup PA4 <                ?of 0 endof
@@ -35,9 +36,9 @@
 \ ;
 \ u
 
-: +pwm ( div pin -- )  \ set up PWM for a pin, with given 7200 Hz divider
+: +pwm ( hz pin -- )  \ set up PWM for a pin, using specified repetition rate
   >r  OMODE-AF-PP r@ io-mode!
-  1- 16 lshift 10000 or  r@ p2tim +timer
+  7200 swap / 1- 16 lshift 10000 or  r@ p2tim +timer
   $78 r@ p2cmp 1 and 8 * lshift ( $0078 or $7800)
   r@ p2tim timer-base $18 + r@ p2cmp 2 and 2* + bis!
   4 bit r> p2tim timer-base $20 + bis! ;

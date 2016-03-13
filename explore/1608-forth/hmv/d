@@ -12,7 +12,7 @@ reset
 
 : tftry tft-init clear TFT-BL ios! demo ;
 
-: pwmtry ( -- )  7200 LED2 +pwm 100 LED2 pwm ;
+: pwmtry ( -- )  1 LED2 +pwm 100 LED2 pwm ;
 
 \ -----------------------------------------------------------------------------
 
