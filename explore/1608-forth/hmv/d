@@ -71,4 +71,31 @@ $E000ED00 constant SCB
 : x ( cluster -- ) sd.buf hex. sd-c>s sdblk ;
 
 \ -----------------------------------------------------------------------------
+\ attach interrupt handler to PB2 (KEYB) for both edges
+
+$E000E100 constant NVIC-EN0R \ IRQ 0 to 31 Set Enable Register
+
+AFIO $8 + constant AFIO-EXTICR1
+
+$40010400 constant EXTI
+    EXTI $00 + constant EXTI-IMR
+    EXTI $08 + constant EXTI-RTSR
+    EXTI $0C + constant EXTI-FTSR
+    EXTI $14 + constant EXTI-PR
+
+: ext2-tick ( -- )
+  2 bit EXTI-PR !  \ clear interrupt
+  millis . ." PB2=" pb2 io@ .
+;
+
+: eintry ( -- )
+  ['] ext2-tick irq-exti2 !
+  8 bit NVIC-EN0R !  \ enable EXTI2 interrupt 8
+  2 bit dup EXTI-IMR bis!  \ select PB<2>
+        dup EXTI-RTSR bis!
+            EXTI-FTSR bis!
+  %0001 8 lshift AFIO-EXTICR1 bis!  \ select P<B>2
+;
+
+\ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
