@@ -17,15 +17,32 @@ include ../flib/ring.fs
 include ../flib/uart2-stm32f1.fs
 include ../flib/uart2-irq-stm32f1.fs
 
-\ board definitions for Hy-TinySTM103T
+\ board definitions for Olimexino-STM32
 
-PA4 variable ssel  \ can be changed at run time
-\ PA5 constant SCLK
-\ PA6 constant MISO
-\ PA7 constant MOSI
+\ add missing pin definitions for R package with 64 i.s.o 48 pins
+2 0  io constant PC0
+2 1  io constant PC1
+2 2  io constant PC2
+2 3  io constant PC3
+2 4  io constant PC4
+2 5  io constant PC5
+2 6  io constant PC6
+2 7  io constant PC7
+2 8  io constant PC8
+2 9  io constant PC9
+2 10 io constant PC10
+2 11 io constant PC11
+2 12 io constant PC12
 
-include ../flib/spi-stm32f1.fs
-\ include ../flib/spi-bb.fs
+3 2  io constant PD2
+
+PD2  variable ssel  \ can be changed at run time
+PB13 constant SCLK
+PB14 constant MISO
+PB15 constant MOSI
+
+\ include ../flib/spi-stm32f1.fs
+include ../flib/spi-bb.fs
 
 PB6 constant SCL
 PB7 constant SDA

@@ -1,7 +1,7 @@
 A collection of files for use with Mecrisp Stellaris Forth on STM32F103 boards:
 
 * **aia** - ARMinARM, Raspberry add-on w/ STM32F103RE
-* **cbo** - Core Board one board w/ STM32F103ZE and lots of RAM + flash
+* **cbo** - Haoyu Core Board One board w/ STM32F103ZE and lots of RAM + flash
 * **dad** - Dime-A-Dozen, for all those cheap eBay STM32F103C8 boards
 * **gd4** - GoldDragon 407 w/ STM32F407ZG and 3.2" LCD
 * **hmv** - Haoyu Hy-STM32MiniV board w/ STM32F103VC and 3.2" LCD
