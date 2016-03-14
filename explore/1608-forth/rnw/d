@@ -4,11 +4,7 @@
 reset
 
 : blink ( -- )  \ blink the on-board LED until a key is pressed
-  OMODE-PP LED io-mode!
-  begin
-    LED iox!
-    1000000 0 do loop
-  key? until ;
+  OMODE-PP LED io-mode!  begin  LED iox!  100 ms  key? until ;
 
 \ print out received packet info until a key is pressed
 \ format: #bytes b3..b0 b7..b4 rssi lna afc
