@@ -144,13 +144,13 @@ $70020000 constant NAND-ADR
 : nand-erase ( page -- f )  \ erase a block of 256 flash pages
   $60 NAND-CMD c!  2 rshift NAND-ADR h!  $D0 NAND-CMD c!  nand-status ;
 
-: nand-write ( addr page -- f )  \ write one 512-byte flash page
-  $80 NAND-CMD c!  nand-c/r
+: nand-write ( page addr -- f )  \ write one 512-byte flash page
+  $80 NAND-CMD c!  swap nand-c/r
   512 0 do  dup i + c@  NAND c!  loop  drop
   $10 NAND-CMD c!  nand-status ;
 
-: nand-read ( addr page -- )  \ read one 512-byte flash page
-  $00 NAND-CMD c!  nand-c/r  $30 NAND-CMD c!
+: nand-read ( page addr -- )  \ read one 512-byte flash page
+  $00 NAND-CMD c!  swap nand-c/r  $30 NAND-CMD c!
   nand-wait
   512 0 do  NAND c@  over i + c!  loop  drop ;
 
