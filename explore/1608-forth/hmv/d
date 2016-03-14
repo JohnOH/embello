@@ -86,7 +86,6 @@ $E000ED00 constant SCB
 
 : sd-wait ( -- )
   -1  50 0 do  $FF >spi> $FE = if drop i leave then  loop  . ;
-: s $FF >spi> h.2 space ;
 
 : sd-read ( page addr -- f )  \ read one 512-byte page from sdcard
   $51 rot 9 lshift sd-cmd sd-wait
@@ -95,14 +94,22 @@ $E000ED00 constant SCB
 
 $20008000 constant sdbuf  \ page aligned, for nicer dump
 
+: s $FF >spi> h.2 space ;
+
 : c ( char -- )
-  dup 32 < over 126 > or if drop [char] . then emit ;
+  dup $FF = if drop else
+    dup 32 < over 126 > or if drop [char] . then emit
+  then ;
 : e ( off1 off2 -- off1 )
   over + sdbuf + c@ c ;
 : l ( off -- )
   1 e 3 e 5 e 7 e 9 e
   14 e 16 e 18 e 20 e 22 e 24 e 28 e 30 e
-  drop ;
+  ."  #" sdbuf + c@ dup $1F and . $40 and . ;
+: f ( off -- )
+  dup sdbuf + 8 type [char] . emit dup 8 + sdbuf + 3 type
+  ."  at: " 26 + sdbuf + h@ .
+;
 
 : sdtry
   sd-init
@@ -120,14 +127,13 @@ $20008000 constant sdbuf  \ page aligned, for nicer dump
   sdbuf $2B + 11 type  [char] : emit  sdbuf $36 + 8 type  \ label & format
   * + + dup .
   sdbuf sd-read drop  \ read 1st block of FAT
-  sdbuf 512 dump
+  sdbuf 352 dump
   512 0 do
     i sdbuf + c@ dup 0<> swap $E5 <> and if
       i 11 + sdbuf + c@ $0F = if
-        cr ." LFN: " i l
+        cr ." LFN: "  i l
       else
-        cr ."      "
-        i sdbuf + 8 type [char] . emit i 8 + sdbuf + 3 type
+        cr ."      " i f
       then
     then
   32 +loop
