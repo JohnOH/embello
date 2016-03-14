@@ -1,4 +1,4 @@
-The "Core Board One" from Haoyu, with STM32F103ZE and lots of RAM and flash.
+The "Core Board One" from Haoyu, with STM32F103ZE and lots of RAM + flash.
 
 There's an LED on PF6.
 
