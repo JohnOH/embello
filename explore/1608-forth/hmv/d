@@ -35,7 +35,7 @@ $E000ED00 constant SCB
 
 \ -----------------------------------------------------------------------------
 
-: >slow> ( c -- c )  \ bit-banged SPI, 8 bits
+: sd>slow> ( c -- c )  \ bit-banged SPI, 8 bits, well under 400 KHz
   8 0 do
     dup $80 and MOSI io!
     2 us  SCLK ios!  2 us
@@ -45,22 +45,35 @@ $E000ED00 constant SCB
   loop
   $FF and ;
 
-: slow-cmd ( u -- )
+: sd-slow ( u -- )
   -spi 2 us +spi 2 us
-  dup 24 rshift dup $3F and [char] # emit . >slow> drop
-              0 >slow> drop
-              0 >slow> drop
-  dup 16 rshift >slow> drop
-   dup 8 rshift >slow> drop
-                >slow> drop
-            $FF >slow> drop
-            $FF >slow> . ;
+  dup 24 rshift dup $3F and [char] # emit . sd>slow> drop
+              0 sd>slow> drop
+              0 sd>slow> drop
+  dup 16 rshift sd>slow> drop
+   dup 8 rshift sd>slow> drop
+                sd>slow> drop
+            $FF sd>slow> drop
+            $FF sd>slow> . ;
+
+: sd-init ( -- )
+  spi-init
+  10 0 do $FF sd>slow> drop loop
+  +spi
+  $40000095 sd-slow  \ CMD0 go idle
+\ $41000000 sd-slow  \ CMD1 send op cond
+\ $50020000 sd-slow  \ CMD16 send blocklen 512
+\ $7B000000 sd-slow  \ CMD59 crc off
+\ $4801AA87 sd-slow  \ CMD8 send if cond 3.3v
+  $77000000 sd-slow  $69000000 sd-slow  \ ACMD41 send op cond
+  200 ms
+  $77000000 sd-slow  $69000000 sd-slow  \ ACMD41 send op cond
+;
 
 : sd-cmd ( cmd arg -- )
   swap dup $80 and if  $77 0 recurse  $7F and  then
-  -spi +spi
-  begin $FF >spi> $FF = until
-  [char] = emit dup $3F and .
+  -spi +spi  begin $FF >spi> $FF = until
+  dup $3F and .
                 >spi
   dup 24 rshift >spi
   dup 16 rshift >spi
@@ -73,24 +86,13 @@ $E000ED00 constant SCB
 : w begin $FF >spi> dup . $FE = until ;
 : s $FF >spi> h.2 space ;
 
-: sd-init ( -- )
-  spi-init
-  10 0 do $FF >slow> drop loop
-  +spi
-  $40000095 slow-cmd  \ CMD0 go idle
-\ $41000000 slow-cmd  \ CMD1 send op cond
-\ $50020000 slow-cmd  \ CMD16 send blocklen 512
-\ $7B000000 slow-cmd  \ CMD59 crc off
-\ $4801AA87 slow-cmd  \ CMD8 send if cond 3.3v
-  $77000000 slow-cmd  $69000000 slow-cmd  \ ACMD41 send op cond
-  200 ms
-  $77000000 slow-cmd  $69000000 slow-cmd  \ ACMD41 send op cond
-  cr
+: sdtry
+  sd-init cr
   $CD 0            sd-cmd w s s s s s s s s s s s s s s s s cr  \ ACMD13
   $49 0            sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD9
-  $50 4            sd-cmd s s s s s s s s s s s s s s s s s cr  \ CMD16
+  $50 4            sd-cmd                                   cr  \ CMD16
   $51 $1C6         sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD17
-  $50 $200         sd-cmd s s s s s s s s s s s s s s s s s cr  \ CMD16
+  $50 $200         sd-cmd                                   cr  \ CMD16
   $51 $83 9 lshift sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD17
 ;
 
