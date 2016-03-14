@@ -35,5 +35,61 @@ $E000ED00 constant SCB
 
 \ -----------------------------------------------------------------------------
 
+: >slow> ( c -- c )  \ bit-banged SPI, 8 bits
+  8 0 do
+    dup $80 and MOSI io!
+    2 us  SCLK ios!  2 us
+    shl
+    MISO io@ or
+    2 us  SCLK ioc!  2 us
+  loop
+  $FF and ;
+
+: slow-cmd ( u -- )
+  dup 24 rshift dup $3F and [char] # emit . >slow> drop
+              0 >slow> drop
+              0 >slow> drop
+  dup 16 rshift >slow> drop
+   dup 8 rshift >slow> drop
+                >slow> drop
+            $FF >slow> drop
+            $FF >slow> . ;
+
+: sd-cmd ( cmd arg -- )
+  swap dup $80 and if  $77 0 recurse  $7F and  then
+  -spi +spi
+  begin $FF >spi> $FF = until
+  [char] = emit dup $3F and .
+                >spi
+  dup 24 rshift >spi
+  dup 16 rshift >spi
+   dup 8 rshift >spi
+                >spi
+              0 >spi
+            $FF >spi
+            $FF >spi> . ;
+
+: w begin $FF >spi> $FE = until ;
+: s $FF >spi> h.2 space ;
+
+: sd-init ( -- )
+  spi-init
+  10 0 do $FF >slow> drop loop
+  +spi
+  $40000095 slow-cmd  \ CMD0 go idle
+\ $41000000 slow-cmd  \ CMD1 send op cond
+\ $50020000 slow-cmd  \ CMD16 send blocklen 512
+\ $7B000000 slow-cmd  \ CMD59 crc off
+\ $4801AA87 slow-cmd  \ CMD8 send if cond 3.3v
+  $77000000 slow-cmd  $69000000 slow-cmd  \ ACMD41 send op cond
+  200 ms
+  $77000000 slow-cmd  $69000000 slow-cmd  \ ACMD41 send op cond
+  cr
+  $CD 0   sd-cmd w s s s s s s s s s s s s s s s s cr  \ ACMD13
+  $49 0   sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD9
+  $51 0   sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD17
+  $51 512 sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD17
+;
+
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
