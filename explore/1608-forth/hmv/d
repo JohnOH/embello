@@ -46,6 +46,7 @@ $E000ED00 constant SCB
   $FF and ;
 
 : slow-cmd ( u -- )
+  -spi 2 us +spi 2 us
   dup 24 rshift dup $3F and [char] # emit . >slow> drop
               0 >slow> drop
               0 >slow> drop
@@ -69,7 +70,7 @@ $E000ED00 constant SCB
             $FF >spi
             $FF >spi> . ;
 
-: w begin $FF >spi> $FE = until ;
+: w begin $FF >spi> dup . $FE = until ;
 : s $FF >spi> h.2 space ;
 
 : sd-init ( -- )
@@ -85,10 +86,12 @@ $E000ED00 constant SCB
   200 ms
   $77000000 slow-cmd  $69000000 slow-cmd  \ ACMD41 send op cond
   cr
-  $CD 0   sd-cmd w s s s s s s s s s s s s s s s s cr  \ ACMD13
-  $49 0   sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD9
-  $51 0   sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD17
-  $51 512 sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD17
+  $CD 0            sd-cmd w s s s s s s s s s s s s s s s s cr  \ ACMD13
+  $49 0            sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD9
+  $50 4            sd-cmd s s s s s s s s s s s s s s s s s cr  \ CMD16
+  $51 $1C6         sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD17
+  $50 $200         sd-cmd s s s s s s s s s s s s s s s s s cr  \ CMD16
+  $51 $83 9 lshift sd-cmd w s s s s s s s s s s s s s s s s cr  \ CMD17
 ;
 
 \ -----------------------------------------------------------------------------
