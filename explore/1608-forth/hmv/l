@@ -9,6 +9,7 @@ compiletoflash
 
 include ../flib/tft-fsmc-r61505u.fs
 include ../mlib/graphics.fs
+include ../flib/sdcard.fs
 include ../mlib/multi.fs
 include ../mlib/sine.fs
 

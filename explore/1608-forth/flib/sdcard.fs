@@ -57,3 +57,30 @@
   $51 rot 9 lshift sd-cmd sd-wait
   512 0 do  $FF >spi> over i + c!  loop
   drop true ;  \ TODO return actual success flag
+
+512 buffer: sd.buf
+
+0 variable sd.fat
+0 variable sd.spc
+0 variable sd.root
+0 variable sd.data
+
+: sd-c>s ( cluster -- sect ) 2- sd.spc @ * sd.data @ + ;
+
+: sd-mount ( -- )
+                sd-init       \ initialise interface and card
+       0 sd.buf sd-read drop  \ read block #0
+  sd.buf $1C6 + @             \ get location of boot sector
+         dup 1+ sd.fat !      \ start sector of FAT area
+     dup sd.buf sd-read drop  \ read boot record
+   sd.buf $0D + c@            \ sectors per cluster
+                sd.spc !      \ depends on formatted disk size
+   sd.buf $0E + h@            \ reserved sectors
+   sd.buf $10 + c@            \ number of FAT copies
+   sd.buf $16 + h@            \ sectors per fat
+      * + + dup sd.root !     \ start sector of root directory
+   sd.buf $11 + h@            \ max root entries
+     4 rshift + sd.data !     \ start sector of data area
+
+\ sd.buf $2B + 11 type  [char] : emit  sd.buf $36 + 8 type  \ label & format
+;
