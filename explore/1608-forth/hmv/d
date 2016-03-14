@@ -85,16 +85,15 @@ $40010400 constant EXTI
 
 : ext2-tick ( -- )
   2 bit EXTI-PR !  \ clear interrupt
-  millis . ." PB2=" pb2 io@ .
-;
+  millis . ." PB2=" pb2 io@ . ;
 
 : eintry ( -- )
-  ['] ext2-tick irq-exti2 !
-  8 bit NVIC-EN0R !  \ enable EXTI2 interrupt 8
-  2 bit dup EXTI-IMR bis!  \ select PB<2>
-        dup EXTI-RTSR bis!
-            EXTI-FTSR bis!
+      ['] ext2-tick irq-exti2 !     \ install interrupt handler
+              8 bit NVIC-EN0R !     \ enable EXTI2 interrupt 8
   %0001 8 lshift AFIO-EXTICR1 bis!  \ select P<B>2
+               2 bit EXTI-IMR bis!  \ enable PB<2>
+              2 bit EXTI-RTSR bis!  \ trigger on PB<2> rising edge
+              2 bit EXTI-FTSR bis!  \ trigger on PB<2> falling edge
 ;
 
 \ -----------------------------------------------------------------------------
