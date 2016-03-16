@@ -1,0 +1,46 @@
+\ install hardware abstractions in flash
+
+\ cr eraseflash
+compiletoflash
+
+7 constant io-ports  \ A..G
+
+include ../mlib/hexdump.fs
+include ../flib/io-stm32f4.fs
+include ../flib/hal-stm32f4.fs
+\ include ../flib/adc-stm32f4.fs
+
+\ include ../flib/ring.fs
+\ include ../flib/uart2-stm32f4.fs
+\ include ../flib/uart2-irq-stm32f4.fs
+
+\ board definitions for Haoyu HY-STM32Core144, i.e. "Core Board Four"
+
+PA4 variable ssel  \ can be changed at run time
+PA5 constant SCLK
+PA6 constant MISO
+PA7 constant MOSI
+
+\ include ../flib/spi-stm32f4.fs
+include ../flib/spi-bb.fs
+
+PB6 constant SCL
+PB7 constant SDA
+
+include ../flib/i2c-bb.fs
+
+PF6 constant LED
+
+: init ( -- )  \ board initialisation
+\ -jtag  \ disable JTAG, we only need SWD
+  OMODE-PP LED io-mode!
+  168MHz
+  flash-kb . ." KB <cbf> " hwid hex. cr
+  1000 systick-hz
+;
+
+\ cornerstone <<<hal-cbf>>>
+compiletoram
+init
+
+\ vim: set ft=forth :
