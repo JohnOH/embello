@@ -1,6 +1,6 @@
 \ hardware SPI driver
 
-$40013000 constant SPI1  
+$40013000 constant SPI1
      SPI1 $0 + constant SPI1-CR1
      SPI1 $4 + constant SPI1-CR2
      SPI1 $8 + constant SPI1-SR
