@@ -72,7 +72,7 @@ $FC00 variable tft-fg
 
 : goxy ( x y -- )
   $2A >tft $100 >tft $102 + >tft $100 >tft $181 >tft
-  $2B >tft $100 >tft $102 + >tft $100 >tft $181 >tft
+  $2B >tft $100 >tft $101 + >tft $100 >tft $180 >tft
   $2C >tft
 ;
 
