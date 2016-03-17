@@ -30,7 +30,7 @@ hex
 
   001 h, 201 h, 011 h, 214 h, 028 h, 013 h, 020 h, 026 h, 101 h, 02A h,
   100 h, 100 h, 100 h, 17F h, 02B h, 100 h, 100 h, 100 h, 17F h, 036 h,
-  10A h, 03A h, 155 h, 278 h, 029 h, 0 h,
+  14A h, 03A h, 155 h, 278 h, 029 h, 0 h,
 \ 02A h, 100 h, 100 h, 100 h, 17F h,
 \ 02B h, 100 h, 100 h, 100 h, 17F h, 02C h, 0 h,
 decimal
@@ -71,8 +71,8 @@ $FC00 variable tft-fg
   2 + repeat drop ;
 
 : goxy ( x y -- )
-  $2A >tft $100 >tft $100 or >tft $100 >tft $17F >tft
-  $2B >tft $100 >tft $100 or >tft $100 >tft $17F >tft
+  $2A >tft $100 >tft $102 + >tft $100 >tft $181 >tft
+  $2B >tft $100 >tft $102 + >tft $100 >tft $181 >tft
   $2C >tft
 ;
 
