@@ -37,7 +37,9 @@ include ../flib/uart2-irq-stm32f1.fs
 
 3 2  io constant PD2
 
-PA4 variable ssel  \ can be changed at run time
+PA4  variable ssel   \ can be changed at run time
+PB12 variable ssel2  \ can be changed at run time
+
 \ PA5 constant SCLK
 \ PA6 constant MISO
 \ PA7 constant MOSI
@@ -51,9 +53,9 @@ PB7 constant SDA
 include ../flib/i2c-bb.fs
 
 PC6  constant TFT-RS  \ register select
-PB12 constant TFT-CS  \ chip select
-PB13 constant TFT-SC  \ serial clock
-PB15 constant TFT-DI  \ data into LCD
+\ PB12 constant TFT-CS  \ chip select
+\ PB13 constant TFT-SC  \ serial clock
+\ PB15 constant TFT-DI  \ data into LCD
 
 include ../flib/tft-ili9163.fs
 

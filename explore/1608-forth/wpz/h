@@ -55,7 +55,9 @@ include ../flib/uart2-irq-stm32f1.fs
 5 14 io constant PF14     6 14 io constant PG14
 5 15 io constant PF15     6 15 io constant PG15
 
-PA15 variable ssel  \ can be changed at run time
+PA4  variable ssel   \ can be changed at run time
+PB12 variable ssel2  \ can be changed at run time
+
 \ PA5 constant SCLK
 \ PA6 constant MISO
 \ PA7 constant MOSI

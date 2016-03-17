@@ -1,4 +1,4 @@
-\ tft driver for ILI9163 chip, uses own bit-bang implementation
+\ tft driver for ILI9163 chip, uses SPI2 hardware
 
 create tft:init
 hex
@@ -8,35 +8,18 @@ hex
 decimal
 
 : >tft ( u -- )
-  dup $100 and TFT-RS io!
-  TFT-CS ioc!
-  8 0 do
-    dup $80 and TFT-DI io!
-    TFT-SC ios!
-    shl
-    TFT-SC ioc!
-  loop
-  TFT-CS ios!  TFT-RS ios!  drop ;
+  dup $100 and TFT-RS io!  +spi2 >spi2 -spi2  TFT-RS ios! ;
 
 : h>tft ( u -- )
 \ assumes TFT-RS is already set
-  TFT-CS ioc!
-  16 0 do
-    dup $8000 and TFT-DI io!
-    TFT-SC ios!
-    shr
-    TFT-SC ioc!
-  loop
-  TFT-CS ios! drop ;
+  dup 8 rshift >spi2  >spi2 ;
 
 $0000 variable tft-bg
 $FC00 variable tft-fg
 
 : tft-init ( -- )
   OMODE-PP TFT-RS io-mode!  TFT-RS ios!
-  OMODE-PP TFT-CS io-mode!  TFT-CS ios!
-  OMODE-PP TFT-SC io-mode!  TFT-SC ioc!
-  OMODE-PP TFT-DI io-mode!
+  spi2-init
   tft:init begin
     dup h@  ?dup while
       dup $200 and if $FF and ms else >tft then
@@ -51,9 +34,9 @@ $FC00 variable tft-fg
 \ clear, putpixel, and display are used by the graphics.fs code
 
 : clear ( -- )  \ clear display memory
-  0 0 goxy  tft-bg @  16384 0 do  dup h>tft  loop  drop ;
+  0 0 goxy  tft-bg @  +spi2  16384 0 do  dup h>tft  loop  -spi2  drop ;
 
 : putpixel ( x y -- )  \ set a pixel in display memory
-  goxy  tft-fg @ h>tft ;
+  goxy  tft-fg @ +spi2 h>tft -spi2 ;
 
 : display ( -- ) ;  \ update tft from display memory (ignored)
