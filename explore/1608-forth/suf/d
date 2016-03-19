@@ -30,6 +30,7 @@ led ios!
 ;
 
 : ep-setup ( ep -- )
+  dup rxclear
   cr setup.
   $40 usb-pma@ case
     $0080 of 2 send-zero endof
@@ -37,22 +38,24 @@ led ios!
     $2021 of usb:line 8 send-data endof
     true ?of 0 send-zero endof
   endcase
-  dup rxclear ep-reset-rx# send-next
+  ep-reset-rx# send-next
 ;
 
 : ep-out ( ep -- )
-  ." :OUT " $100 usb-pma@ h.4 [char] ; emit
-  dup rxclear 3 rxstat!
+  dup rxclear
+  ." :OUT<" $100 usb-pma@ emit [char] > emit
+  3 rxstat!
 ;
 
 : ep-in ( ep -- )
+  dup txclear
   $40 usb-pma@ $0500 = if $42 usb-pma@ $80 or USB-DADDR h! then
   ." :IN "
-  dup txclear ep-reset-rx# send-next
+  ep-reset-rx# send-next
 ;
 
 : uctr ( istr -- )
-  dup h.4
+\ dup h.4
   dup $07 and swap $10 and if 
     dup ep-addr h@ $800 and if ep-setup else ep-out then
   else ep-in then ;

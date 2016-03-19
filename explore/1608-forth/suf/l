@@ -178,7 +178,7 @@ $40006000 constant USBMEM
   %1000000010000000 or
   or r> h! ;
 
-: txstat! ( u -- )  \ set stat_tx without toggling/setting any other fields
+: txstat! ( ep u -- )  \ set stat_tx without toggling/setting any other fields
   swap ep-addr >r
   4 lshift  r@ h@ tuck  xor
 \  R^rrseekT^ttnnnn
