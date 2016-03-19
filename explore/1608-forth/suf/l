@@ -154,13 +154,6 @@ decimal
 
 $40005C00 constant USB
      USB $00 + constant USB-EP0R
-     USB $04 + constant USB-EP1R
-     USB $08 + constant USB-EP2R
-     USB $0C + constant USB-EP3R
-     USB $10 + constant USB-EP4R
-     USB $14 + constant USB-EP5R
-     USB $18 + constant USB-EP6R
-     USB $1C + constant USB-EP7R
      USB $40 + constant USB-CNTR
      USB $44 + constant USB-ISTR
      USB $48 + constant USB-FNR
@@ -172,28 +165,57 @@ $40006000 constant USBMEM
 : usb-pma@ ( pos -- u ) usb-pma h@ ;
 : usb-pma! ( u pos -- ) usb-pma h! ;
 
-: rxstat! ( u -- )  \ set stat_rx without toggling/setting any other fields
-  12 lshift  USB-EP0R h@ tuck  xor
+: ep-addr ( ep -- addr ) cells USB-EP0R + ;
+: ep-reg ( ep n -- addr ) 2* swap 8 * + usb-pma ;
+
+: rxstat! ( ep u -- )  \ set stat_rx without toggling/setting any other fields
+  swap ep-addr >r
+  12 lshift  r@ h@ tuck  xor
 \  R^rrseekT^ttnnnn
 \  5432109876543210
   %0011000000000000 and swap
   %0000111100001111 and
   %1000000010000000 or
-  or USB-EP0R h! ;
+  or r> h! ;
 
 : txstat! ( u -- )  \ set stat_tx without toggling/setting any other fields
-  4 lshift  USB-EP0R h@ tuck  xor
+  swap ep-addr >r
+  4 lshift  r@ h@ tuck  xor
 \  R^rrseekT^ttnnnn
 \  5432109876543210
   %0000000000110000 and swap
   %0000111100001111 and
   %1000000010000000 or
-  or USB-EP0R h! ;
+  or r> h! ;
 
-: rxclear ( ep -- )
-  cells USB + dup h@ $7FFF and $8F8F and swap h! ;
-: txclear ( ep -- )
-  cells USB + dup h@ $FF7F and $8F8F and swap h! ;
+: rxclear ( ep -- ) ep-addr dup h@ $7FFF and $8F8F and swap h! ;
+: txclear ( ep -- ) ep-addr dup h@ $FF7F and $8F8F and swap h! ;
+
+0 0 2variable pending
+0 variable zero
+
+: send-data ( addr n -- ) ( $46 usb-pma@ min ) pending 2! ;
+: send-zero ( n -- ) zero swap send-data ;
+: send-next ( -- )
+  pending 2@ 64 min $46 usb-pma@ min
+  ." >" over h.2 ." #" dup .
+  >r ( addr R: num )
+  r@ even 0 ?do
+    dup i + h@ $80 i + usb-pma!
+  2 +loop drop
+  r@ $02 usb-pma! 0 3 txstat!
+  pending 2@ r> dup negate d+ pending 2! ;
+
+: send-desc ( -- )
+  $42 usb-pma@ case
+    $0100 of usb:dev     18 endof
+    $0200 of usb:conf    67 endof
+    $0300 of usb:langid  4  endof
+    $0301 of usb:vendor  40 endof
+    $0302 of usb:product 36 endof
+    $0303 of usb:serial  18 endof
+    true ?of 0           0  endof
+  endcase send-data ;
 
 : usb-init ( -- )
   usb:init  64 0 do
@@ -202,14 +224,10 @@ $40006000 constant USBMEM
   4 +loop  drop ;
 
 : usb. ( -- )  \ dump USB info
-  cr ." EP0R " USB-EP0R h@ h.4
-    ."  EP1R " USB-EP1R h@ h.4
-    ."  EP2R " USB-EP2R h@ h.4
-    ."  EP3R " USB-EP3R h@ h.4
-\ cr ." EP4R " USB-EP4R h@ h.4
-\   ."  EP5R " USB-EP5R h@ h.4
-\   ."  EP6R " USB-EP6R h@ h.4
-\   ."  EP7R " USB-EP7R h@ h.4
+  cr ." EP0R " 0 ep-addr h@ h.4
+    ."  EP1R " 1 ep-addr h@ h.4
+    ."  EP2R " 2 ep-addr h@ h.4
+    ."  EP3R " 3 ep-addr h@ h.4
   cr ." CNTR " USB-CNTR h@ h.4
     ."  ISTR " USB-ISTR h@ h.4
      ."  FNR " USB-FNR h@ h.4

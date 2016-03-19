@@ -15,81 +15,46 @@ led ios!
   PA0 ios!  \ usb-off HyTiny
 ;
 
-: ep-reset-rx# ( ep -- ) 8400 swap 8 * 6 + usb-pma! 3 rxstat! ;
+: ep-reset-rx# ( ep -- ) 8400 over 3 ep-reg h! 3 rxstat! ;
 
 : setup. ( -- )  \ dump received setup packet
   ." setup: " $48 $40 do i usb-pma@ h.4 space 2 +loop ;
 
 : ureset ( -- )
-  512 0 do  0 i usb-pma!  2 +loop
-  0 USB-BTABLE h!
-  usb-init
-  $3210 USB-EP0R h!
-  $0021 USB-EP1R h!
-  $0622 USB-EP2R h!
-  $3003 USB-EP3R h!
+  256 0 do  0 i 2* usb-pma! loop  0 USB-BTABLE h!  usb-init
+  $3210 0 ep-addr h!
+  $0021 1 ep-addr h!
+  $0622 2 ep-addr h!
+  $3003 3 ep-addr h!
   $80 USB-DADDR h!
 ;
 
-0 0 2variable pending
-0 variable zero
-0 variable next-addr
-
-: send-data pending 2! ;
-: send-zero ( n -- ) zero swap send-data ;
-: send-next ( -- )
-  pending 2@ 64 min $46 usb-pma@ min
-  ." >" over h.2 ." #" dup .
-  >r ( addr R: num )
-  r@ even 0 ?do
-    dup i + h@ $80 i + usb-pma!
-  2 +loop drop
-  r@ $02 usb-pma! 3 txstat!
-  pending 2@ r> dup negate d+ pending 2!
-;
-
-: send-desc ( -- )
-  $42 usb-pma@ case
-    $0100 of usb:dev     18 endof
-    $0200 of usb:conf    67 endof
-    $0300 of usb:langid  4  endof
-    $0301 of usb:vendor  40 endof
-    $0302 of usb:product 36 endof
-    $0303 of usb:serial  18 endof
-    true ?of 0           0  endof
-  endcase send-data ;
-
 : ep-setup ( ep -- )
-  rxclear \ 2 txstat! 2 rxstat!
   cr setup.
   $40 usb-pma@ case
     $0080 of 2 send-zero endof
-    $0500 of $42 usb-pma@ next-addr ! 0 send-zero endof
     $0680 of send-desc endof
-    $0900 of 0 send-zero endof
     $2021 of usb:line 8 send-data endof
     true ?of 0 send-zero endof
   endcase
-  0 ep-reset-rx# send-next
+  dup rxclear ep-reset-rx# send-next
 ;
 
 : ep-out ( ep -- )
-  rxclear
-  ." :OUT "
-  3 rxstat!
+  ." :OUT " $100 usb-pma@ h.4 [char] ; emit
+  dup rxclear 3 rxstat!
 ;
 
 : ep-in ( ep -- )
-  txclear \ 2 txstat!
-  next-addr @ ?dup if  $80 or USB-DADDR h!  0 next-addr !  then
+  $40 usb-pma@ $0500 = if $42 usb-pma@ $80 or USB-DADDR h! then
   ." :IN "
-  0 ep-reset-rx# send-next
+  dup txclear ep-reset-rx# send-next
 ;
 
 : uctr ( istr -- )
   dup h.4
   dup $07 and swap $10 and if 
-    USB-EP0R h@ $800 and if ep-setup else ep-out then
+    dup ep-addr h@ $800 and if ep-setup else ep-out then
   else ep-in then ;
 
 : ususp ( -- ) %1100 USB-CNTR hbis! ;
