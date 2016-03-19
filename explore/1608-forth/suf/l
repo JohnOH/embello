@@ -124,11 +124,6 @@ create usb:product
   char e h, char r h, char i h, char a h, char l h, bl     h, char P h,
   char o h, char r h, char t h,
 
-create usb:serial
-  18 c, 3 c,  \ USB_STRING_DESCRIPTOR_TYPE,
-  char 1 h, char 2 h, char 3 h, char 4 h, char 5 h, char 6 h, char 7 h,
-  char 8 h,
-
 create usb:line
   hex 00 c, C2 c, 01 c, 00 c, 01 c, 00 c, 08 c, 00 c, decimal
 
@@ -192,18 +187,26 @@ $40006000 constant USBMEM
 : rxclear ( ep -- ) ep-addr dup h@ $7FFF and $8F8F and swap h! ;
 : txclear ( ep -- ) ep-addr dup h@ $FF7F and $8F8F and swap h! ;
 
-0 0 2variable pending
+0 0 2variable usb-pend
+18 buffer: usb-serial
 
-: send-data ( addr n -- ) pending 2! ;
+: set-serial ( -- addr )  \ fill serial number in as UTF-16 descriptor
+  base @ hex
+  hwid 0 <# 8 0 do # loop #> ( base addr 8 )
+  0 do dup c@ i 1+ 2* usb-serial + h! 1+ loop
+  drop base !
+  usb-serial $0312 over h! ;
+
+: send-data ( addr n -- ) usb-pend 2! ;
 : send-next ( -- )
-  pending 2@ 64 min $46 usb-pma@ min
+  usb-pend 2@ 64 min $46 usb-pma@ min
   ." >" dup .
   >r ( addr R: num )
   r@ even 0 ?do
     dup i + h@ $80 i + usb-pma!
   2 +loop drop
   r@ $02 usb-pma! 0 3 txstat!
-  pending 2@ r> dup negate d+ pending 2! ;
+  usb-pend 2@ r> dup negate d+ usb-pend 2! ;
 
 : send-desc ( -- )
   $42 usb-pma@ case
@@ -212,7 +215,7 @@ $40006000 constant USBMEM
     $0300 of usb:langid  4  endof
     $0301 of usb:vendor  40 endof
     $0302 of usb:product 36 endof
-    $0303 of usb:serial  18 endof
+    $0303 of set-serial  18 endof
     true ?of 0           0  endof
   endcase send-data ;
 
