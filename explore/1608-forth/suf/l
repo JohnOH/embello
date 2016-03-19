@@ -193,13 +193,11 @@ $40006000 constant USBMEM
 : txclear ( ep -- ) ep-addr dup h@ $FF7F and $8F8F and swap h! ;
 
 0 0 2variable pending
-0 variable zero
 
-: send-data ( addr n -- ) ( $46 usb-pma@ min ) pending 2! ;
-: send-zero ( n -- ) zero swap send-data ;
+: send-data ( addr n -- ) pending 2! ;
 : send-next ( -- )
   pending 2@ 64 min $46 usb-pma@ min
-  ." >" over h.2 ." #" dup .
+  ." >" dup .
   >r ( addr R: num )
   r@ even 0 ?do
     dup i + h@ $80 i + usb-pma!

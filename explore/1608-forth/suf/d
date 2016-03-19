@@ -4,14 +4,16 @@
 reset
 led ios!
 
+0 variable zero
+
 : ep-setup ( ep -- )
   dup rxclear
   cr ." setup: " $48 $40 do i usb-pma@ h.4 space 2 +loop
   $40 usb-pma@ case
-    $0080 of 2 send-zero endof
+    $0080 of zero 2 send-data endof
     $0680 of send-desc endof
     $2021 of usb:line 7 send-data endof
-    true ?of 0 send-zero endof
+    true ?of 0 0 send-data endof
   endcase
   ep-reset-rx# send-next
 ;
@@ -33,7 +35,6 @@ led ios!
 : ep-in ( ep -- )
   dup txclear
   $40 usb-pma@ $0500 = if $42 usb-pma@ $80 or USB-DADDR h! then
-  ." :IN "
   send-next
 ;
 
