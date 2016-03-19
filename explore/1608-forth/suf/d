@@ -39,14 +39,12 @@ led ios!
   $80 USB-DADDR h!
 ;
 
-: send-zero 0 $02 usb-pma! 3 txstat! ;
-
 0 0 2variable pending
 0 variable zero
+0 variable next-addr
 
-
-: send-desc pending 2! ;
-: send-zeroes ( n -- ) zero swap send-desc ;
+: send-data pending 2! ;
+: send-zero ( n -- ) zero swap send-data ;
 : send-next ( -- )
   pending 2@ 64 min $46 usb-pma@ min
   ." >" over h.2 ." #" dup .
@@ -64,27 +62,27 @@ create usb:line
      $01 c, $00 c,
      $08 c, $00 c,
 
-: getdesc ( typidx -- addr count )
-  case
-    $0100 of usb:dev 18 send-desc endof
-    $0200 of usb:conf 67 send-desc endof
-    $0300 of usb:langid 4 send-desc endof
-    $0301 of usb:vendor 16 send-desc endof
-    $0302 of usb:product 40 send-desc endof
-    $0303 of usb:serial 18 send-desc endof
-             0 0 send-desc
-  endcase ;
+: send-str ( -- )
+  $42 usb-pma@ case
+    $0100 of usb:dev 18 endof
+    $0200 of usb:conf 67 endof
+    $0300 of usb:langid 4 endof
+    $0301 of usb:vendor 16 endof
+    $0302 of usb:product 40 endof
+    $0303 of usb:serial 18 endof
+    true ?of 0 0 endof
+  endcase send-data ;
 
 : ep0-setup
   cr setup.
   0 rxclear 2 txstat! 2 rxstat!
   $40 usb-pma@ case
-    $0080 of 2 send-zeroes endof
-    $0500 of 0 send-zeroes endof
-    $0680 of $42 usb-pma@ getdesc endof
-    $0900 of 0 send-zeroes endof
-    $2021 of usb:line 8 send-desc endof
-    $2221 of usb:line 8 send-desc endof
+    $0080 of 2 send-zero endof
+    $0500 of $42 usb-pma@ next-addr ! 0 send-zero endof
+    $0680 of send-str endof
+    $0900 of 0 send-zero endof
+    $2021 of usb:line 8 send-data endof
+    true ?of 0 send-zero endof
   endcase
   ep0-reset-rx# send-next
 ;
@@ -95,22 +93,21 @@ create usb:line
 : ep0-in
   0 txclear
   ." :EP0-IN "
-  $40 usb-pma@ $0500 = if
-    0 $40 usb-pma!
-    $42 usb-pma@ dup $80 or USB-DADDR h!
+  next-addr @ ?dup if
+    dup $80 or USB-DADDR h!
     ." ADDR=" h.2 space
     4 1 do i ep-set-address loop
+    0 next-addr !
   then
 \ 64 $46 usb-pma!
   ep0-reset-rx# send-next
 ;
 
 : ep0-out
-\ s" abc" send-desc
-  0 rxclear 3 txstat! 3 rxstat!
+\ s" abc" send-data
   ." :EP0-OUT "
-  cr
-\ usb.
+  USB-ISTR h@ 7 and rxclear
+  3 rxstat!
 ;
 
 : uctr ( istr -- )
@@ -133,5 +130,6 @@ create usb:line
   key? until ;
 
 : t +usb poll usb. usb.mem -usb ;
+: t2 save-to-buf +usb poll usb. usb.mem -usb restore-buf ;
 
 \ vim: set ft=forth :

@@ -131,18 +131,6 @@ create usb:serial
 create usb:str
   usb:langid , usb:vendor , usb:product , usb:serial ,
 
-: getdesc ( typidx -- addr count )
-  case
-    $0100 of usb:dev 18 endof
-    $0200 of usb:conf 67 endof
-    $0300 of usb:langid 4 endof
-    $0301 of usb:vendor 16 endof
-    $0302 of usb:product 40 endof
-    $0303 of usb:serial 18 endof
-    $0600 of 0 0 endof
-    0 0
-  endcase ;
-
 $40005C00 constant USB
      USB $00 + constant USB-EP0R
      USB $04 + constant USB-EP1R
@@ -182,13 +170,6 @@ $40006000 constant USBMEM
 : txclear ( ep -- )
   cells USB + dup h@ $FF7F and $8F8F and swap h! ;
 
-: send-desc ( addr count -- )  \ see definitions of usb:dev etc
-  dup >r 0 ?do
-    dup i + h@  i $80 + shl USBMEM + h!
-  2 +loop
-  drop r> USBMEM 4 + h!  \ COUNT0_TX
-  %11 txstat! 0 txclear ;
-
 create usb:init
 hex
   0080 h,  \ ADDR0_TX   control - rx: 64b @ +040/080, tx: 64b @ +080/100
@@ -214,17 +195,6 @@ decimal
     dup h@  i USBMEM + h!
     2+
   4 +loop  drop ;
-
-: istr. ( u -- u )
-  ." ISTR: "
-  dup $8000 and if ." ctr " then
-  dup $2000 and if ." err " then
-  dup $1000 and if ." wkup " then
-  dup $0800 and if ." susp " then
-  dup $0400 and if ." reset " then
-  dup $0200 and if ." sof " then
-  dup $0100 and if ." esof " then
-  dup $0010 and if ." dir " then ;
 
 : usb. ( -- )  \ dump USB info
   cr ." EP0R " USB-EP0R h@ h.4
