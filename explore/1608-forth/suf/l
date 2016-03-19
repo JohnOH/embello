@@ -188,6 +188,7 @@ $40006000 constant USBMEM
   %1000000010000000 or
   or r> h! ;
 
+: ep-reset-rx# ( ep -- ) 8400 over 3 ep-reg h! 3 rxstat! ;
 : rxclear ( ep -- ) ep-addr dup h@ $7FFF and $8F8F and swap h! ;
 : txclear ( ep -- ) ep-addr dup h@ $FF7F and $8F8F and swap h! ;
 
@@ -223,40 +224,25 @@ $40006000 constant USBMEM
     2+
   4 +loop  drop ;
 
-: usb. ( -- )  \ dump USB info
-  cr ." EP0R " 0 ep-addr h@ h.4
-    ."  EP1R " 1 ep-addr h@ h.4
-    ."  EP2R " 2 ep-addr h@ h.4
-    ."  EP3R " 3 ep-addr h@ h.4
-  cr ." CNTR " USB-CNTR h@ h.4
-    ."  ISTR " USB-ISTR h@ h.4
-     ."  FNR " USB-FNR h@ h.4
-   ."  DADDR " USB-DADDR h@ h.4
-  ."  BTABLE " USB-BTABLE h@ h.4 ;
+: +usb ( -- )  \ init USB hardware
+  OMODE-PP PA0 io-mode!  PA0 ios!  1 ms  PA0 ioc!
+  23 bit RCC-APB1ENR bis!  \ USBEN
+  $0001 USB-CNTR h! 10 us $0000 USB-CNTR h!  \ FRES
+;
 
-: usb.mem ( -- )  \ dump packet buffer memory
-  $150 0 do
-    i $0F and 0= if cr i h.4 space then
-    i $7 and 0= if space then
-    i shl USBMEM + h@ h.4 space
-  2 +loop ;
+: -usb ( -- )  \ deinit USB hardware
+  23 bit RCC-APB1ENR bic!  \ USBEN
+  PA0 ios!  \ usb-off HyTiny
+;
 
-5000 buffer: outbuf
-0 variable outpos
-
-: buf-emit? true ;
-: buf-emit outpos @ dup 5000 < if outbuf + c!  1 outpos +!  else drop then ;
-
-: save-to-buf
-  ['] buf-emit? hook-emit? !
-  ['] buf-emit hook-emit !
-  0 outpos ! ;
-: restore-buf
-  ['] serial-emit? hook-emit? !
-  ['] serial-emit hook-emit !
-  outbuf outpos @ type  0 outpos ! ;
-
-: test-buf save-to-buf ." abc" [char] : serial-emit restore-buf ;
+: usb-reset ( -- )
+  256 0 do  0 i 2* usb-pma! loop  0 USB-BTABLE h!  usb-init
+  $3210 0 ep-addr h!
+  $0021 1 ep-addr h!
+  $0622 2 ep-addr h!
+  $3003 3 ep-addr h!
+  $80 USB-DADDR h!
+;
 
 ( code-size ) here swap - .
 

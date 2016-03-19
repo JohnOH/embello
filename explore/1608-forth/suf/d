@@ -4,73 +4,86 @@
 reset
 led ios!
 
-: +usb ( -- )  \ init USB hardware
-  OMODE-PP PA0 io-mode!  PA0 ios!  1 ms  PA0 ioc!
-  23 bit RCC-APB1ENR bis!  \ USBEN
-  $0001 USB-CNTR h! 10 us $0000 USB-CNTR h!  \ FRES
-;
-
-: -usb ( -- )  \ deinit USB hardware
-  23 bit RCC-APB1ENR bic!  \ USBEN
-  PA0 ios!  \ usb-off HyTiny
-;
-
-: ep-reset-rx# ( ep -- ) 8400 over 3 ep-reg h! 3 rxstat! ;
-
-: setup. ( -- )  \ dump received setup packet
-  ." setup: " $48 $40 do i usb-pma@ h.4 space 2 +loop ;
-
-: ureset ( -- )
-  256 0 do  0 i 2* usb-pma! loop  0 USB-BTABLE h!  usb-init
-  $3210 0 ep-addr h!
-  $0021 1 ep-addr h!
-  $0622 2 ep-addr h!
-  $3003 3 ep-addr h!
-  $80 USB-DADDR h!
-;
-
 : ep-setup ( ep -- )
   dup rxclear
-  cr setup.
+  cr ." setup: " $48 $40 do i usb-pma@ h.4 space 2 +loop
   $40 usb-pma@ case
     $0080 of 2 send-zero endof
     $0680 of send-desc endof
-    $2021 of usb:line 8 send-data endof
+    $2021 of usb:line 7 send-data endof
     true ?of 0 send-zero endof
   endcase
   ep-reset-rx# send-next
 ;
 
+: usb-input ( c -- )
+  [char] < emit
+  dup bl < if h.2 else emit then
+  [char] > emit
+;
+
 : ep-out ( ep -- )
   dup rxclear
-  ." :OUT<" $100 usb-pma@ emit [char] > emit
-  3 rxstat!
+  dup 3 ep-reg h@ $3F and 0 ?do
+    i $100 + usb-pma c@ usb-input
+  loop
+  ep-reset-rx#
 ;
 
 : ep-in ( ep -- )
   dup txclear
   $40 usb-pma@ $0500 = if $42 usb-pma@ $80 or USB-DADDR h! then
   ." :IN "
-  ep-reset-rx# send-next
+  send-next
 ;
 
-: uctr ( istr -- )
-\ dup h.4
+: usb-ctr ( istr -- )
   dup $07 and swap $10 and if 
     dup ep-addr h@ $800 and if ep-setup else ep-out then
   else ep-in then ;
 
-: ususp ( -- ) %1100 USB-CNTR hbis! ;
-: uwkup ( -- ) %1000 USB-CNTR hbic! ;
+: usb. ( -- )  \ dump USB info
+  cr ." EP0R " 0 ep-addr h@ h.4
+    ."  EP1R " 1 ep-addr h@ h.4
+    ."  EP2R " 2 ep-addr h@ h.4
+    ."  EP3R " 3 ep-addr h@ h.4
+  cr ." CNTR " USB-CNTR h@ h.4
+    ."  ISTR " USB-ISTR h@ h.4
+     ."  FNR " USB-FNR h@ h.4
+   ."  DADDR " USB-DADDR h@ h.4
+  ."  BTABLE " USB-BTABLE h@ h.4 ;
+
+: usb.mem ( -- )  \ dump packet buffer memory
+  $150 0 do
+    i $0F and 0= if cr i h.4 space then
+    i $7 and 0= if space then
+    i shl USBMEM + h@ h.4 space
+  2 +loop ;
+
+5000 buffer: outbuf
+0 variable outpos
+
+: buf-emit? true ;
+: buf-emit outpos @ dup 5000 < if outbuf + c!  1 outpos +!  else drop then ;
+
+: save-to-buf
+  ['] buf-emit? hook-emit? !
+  ['] buf-emit hook-emit !
+  0 outpos ! ;
+: restore-buf
+  ['] serial-emit? hook-emit? !
+  ['] serial-emit hook-emit !
+  outbuf outpos @ type  0 outpos ! ;
+
+: test-buf save-to-buf ." abc" [char] : serial-emit restore-buf ;
 
 : poll
   begin
     USB-ISTR h@
-    dup $9C00 and if [char] ! emit then
-    dup $0400 and if [char] R emit ureset   $FBFF USB-ISTR h! then
-    dup $8000 and if [char] C emit dup uctr $7FFF USB-ISTR h! then
-    dup $0800 and if [char] S emit ususp    $F7FF USB-ISTR h! then
-    dup $1000 and if [char] W emit uwkup    $EFFF USB-ISTR h! then
+    dup $0400 and if usb-reset            $FBFF USB-ISTR h! then
+    dup $8000 and if dup usb-ctr          $7FFF USB-ISTR h! then
+    dup $0800 and if %1100 USB-CNTR hbis! $F7FF USB-ISTR h! then
+    dup $1000 and if %1000 USB-CNTR hbic! $EFFF USB-ISTR h! then
     drop
   key? until ;
 
