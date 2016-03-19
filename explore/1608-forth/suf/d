@@ -83,11 +83,10 @@ led ios!
 : poll
   begin
     USB-ISTR h@
-    dup $0400 and if usb-reset            $FBFF USB-ISTR h! then
     dup $8000 and if dup usb-ctr          $7FFF USB-ISTR h! then
+    dup $0400 and if usb-reset            $FBFF USB-ISTR h! then
     dup $0800 and if %1100 USB-CNTR hbis! $F7FF USB-ISTR h! then
-    dup $1000 and if %1000 USB-CNTR hbic! $EFFF USB-ISTR h! then
-    drop
+        $1000 and if %1000 USB-CNTR hbic! $EFFF USB-ISTR h! then
   key? until ;
 
 : t +usb poll usb. usb.mem -usb ;
