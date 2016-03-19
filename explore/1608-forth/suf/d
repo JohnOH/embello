@@ -4,33 +4,11 @@
 reset
 led ios!
 
-: usb-clear ( -- )
-  1024 0 do  0 i USBMEM + h!  4 +loop ;
-
-: usb-reset ( -- )
-  0 USB-BTABLE h!
-  0 USB-ISTR h!
-  $80 USB-DADDR h!
-  usb-init
-\  R^rrseekT^ttnnnn
-\  5432109876543210
-  %1011001010010000 USB-EP0R h!  \ ctrl rx-val tx-stall
-  %1000000010100001 USB-EP1R h!  \ bulk rx-dis tx-nak
-  %1000011010100010 USB-EP2R h!  \ intr rx-dis tx-nak
-  %1011000010000011 USB-EP3R h!  \ bulk rx-val tx-dis
-;
-
 : +usb ( -- )  \ init USB hardware
-  OMODE-PP PA0 io-mode!  PA0 ios!  \ usb-off HyTiny
-\ OMODE-AF-PP OMODE-FAST + PA11 io-mode!  \ hw_config.c:115
-\ OMODE-AF-PP OMODE-FAST + PA12 io-mode!
+  OMODE-PP PA0 io-mode!  PA0 ios!  1 ms  PA0 ioc!
   23 bit RCC-APB1ENR bis!  \ USBEN hw_config.c:162
-  $0001 USB-CNTR h!  \ usb_pwr.c:73
-  100 0 do loop
-  $0000 USB-CNTR h!  \ usb_pwr.c:77
-  usb-clear
-  usb-reset
-  PA0 ioc!  \ usb-on HyTiny
+  $0001 USB-CNTR h!  \ FRES
+  $0000 USB-CNTR h!
 ;
 
 : -usb ( -- )  \ deinit USB hardware
@@ -38,87 +16,122 @@ led ios!
   PA0 ios!  \ usb-off HyTiny
 ;
 
+: usb-pma ( pos -- addr ) dup 1 and negate swap 2* + USBMEM + ;
+: usb-pma@ ( pos -- u ) usb-pma h@ ;
+: usb-pma! ( u pos -- ) usb-pma h! ;
+
+\ : ep-reset-rx# ( ep -- ) 8400 swap 8 * 6 + usb-pma! ;
+: ep0-reset-rx# ( -- ) 8400 $06 usb-pma! 3 rxstat! ;
+
 : fnr. ( -- )  \ print last seen frame number
   [char] # emit USB-FNR h@ $3FF and h.4 space ;
 : setup. ( -- )  \ dump received setup packet
-  ." setup: " $90 $80 do i USBMEM + h@ h.4 space 4 +loop ;
+  ." setup: " $48 $40 do i usb-pma@ h.4 space 2 +loop ;
 
-' nop variable next-tx
-
-: gd2 0 0 send-desc ; \ ['] nop next-tx ! ;
-: gd1 usb:dev 18 send-desc ['] gd2 next-tx ! ;
-
-0 variable zero
-0 variable outData
-0 variable outLen
-
-: halt ( -- ) usb. ( usb.mem ) -usb cr restore-buf cr reset ;
-
-: out? ( -- f ) USB-ISTR h@ $10 and 0<> ;
-
-: wait-tx ( -- ) begin USB-EP0R h@ $80 until 0 txclear ;
-
-: got-in ( -- )
-  ." send#"
-  outData @  outLen @ 64 min
-\ USBMEM $8C + h@ ?dup if min then
-  dup . dup >r  send-desc
-  r@ outData +! r> negate outLen +!
-  0 rxclear ;
-
-: got-out ( -- )
-  0 0 send-desc
-  0 rxclear ;
-
-: got-setup ( -- )
-  USBMEM $80 + h@
-  case
-    $0500 of
-      ." sA "
-      0 0 send-desc
-      USBMEM $84 + h@ dup h.2 space $80 or USB-DADDR h!
-\     usb:dev outData ! 18 outLen !
-\     usb:dev 18 send-desc
-      0 txclear
-    endof
-    $0680 of
-      ." gD"
-      USBMEM $84 + h@ getdesc send-desc
-\     USBMEM $84 + h@ getdesc outLen ! outData !
-    endof
-    ." S?" halt
-  endcase ;
-
-: usb-poll ( -- )
-  USB-ISTR h@ $0400 and if  \ reset bit set
-    ." R " usb-reset
-    $FBFF USB-ISTR h!
-  else
-    USB-ISTR h@ $8000 and if  \ ctr bit set
-      cr fnr. istr.
-      USB-EP0R h@ $800 and if  \ setup bit set
-        setup.
-        got-setup
-        0 rxclear
-      else
-        out? if ." OUT " got-out else ." IN " got-in then
-      then
-      USB-ISTR h@ $8000 and if
-        ."  OOPS-CTR! " USB-EP0R h@ h.4 space
-      then
-    then
-  then
+: ureset ( -- )
+  512 0 do  0 i usb-pma!  2 +loop
+  0 USB-BTABLE h!
+  usb-init
+  $3210 USB-EP0R h!
+  $0021 USB-EP1R h!
+  $0622 USB-EP2R h!
+  $3003 USB-EP3R h!
+  $80 USB-DADDR h!
 ;
 
-: cls ( -- )  \ clear screen
-  27 emit ." [2J" 27 emit ." [;H" ;
+: send-zero 0 $02 usb-pma! 3 txstat! ;
 
-: try ( -- )
-  ." WAIT..." cr save-to-buf
-  +usb  cr
-  2000000 0 do i 50000 mod 0= if [char] . emit then  usb-poll loop
-  halt ;
+0 0 2variable pending
+0 variable zero
 
-try
+
+: send-desc pending 2! ;
+: send-zeroes ( n -- ) zero swap send-desc ;
+: send-next ( -- )
+  pending 2@ 64 min $46 usb-pma@ min
+  ." >" over h.2 ." #" dup .
+  >r ( addr R: num )
+  r@ 0 ?do
+    dup i + h@ $80 i + usb-pma!
+  2 +loop drop
+  r@ $02 usb-pma! 3 txstat!
+  pending 2@ r> dup negate d+ pending 2!
+;
+
+create usb:line
+     $00 c, $C2 c,
+     $01 c, $00 c,
+     $01 c, $00 c,
+     $08 c, $00 c,
+
+: getdesc ( typidx -- addr count )
+  case
+    $0100 of usb:dev 18 send-desc endof
+    $0200 of usb:conf 67 send-desc endof
+    $0300 of usb:langid 4 send-desc endof
+    $0301 of usb:vendor 16 send-desc endof
+    $0302 of usb:product 40 send-desc endof
+    $0303 of usb:serial 18 send-desc endof
+             0 0 send-desc
+  endcase ;
+
+: ep0-setup
+  cr setup.
+  0 rxclear 2 txstat! 2 rxstat!
+  $40 usb-pma@ case
+    $0080 of 2 send-zeroes endof
+    $0500 of 0 send-zeroes endof
+    $0680 of $42 usb-pma@ getdesc endof
+    $0900 of 0 send-zeroes endof
+    $2021 of usb:line 8 send-desc endof
+    $2221 of usb:line 8 send-desc endof
+  endcase
+  ep0-reset-rx# send-next
+;
+
+: ep-set-address ( ep -- )
+  dup cells USB-EP0R + tuck h@ $0F00 and $8080 or or swap h! ;
+
+: ep0-in
+  0 txclear
+  ." :EP0-IN "
+  $40 usb-pma@ $0500 = if
+    0 $40 usb-pma!
+    $42 usb-pma@ dup $80 or USB-DADDR h!
+    ." ADDR=" h.2 space
+    4 1 do i ep-set-address loop
+  then
+\ 64 $46 usb-pma!
+  ep0-reset-rx# send-next
+;
+
+: ep0-out
+\ s" abc" send-desc
+  0 rxclear 3 txstat! 3 rxstat!
+  ." :EP0-OUT "
+  cr
+\ usb.
+;
+
+: uctr ( istr -- )
+  dup h.4 $10 and if 
+    USB-EP0R h@ $800 and if ep0-setup else ep0-out then
+  else ep0-in then ;
+
+: ususp ( -- ) %1100 USB-CNTR hbis! ;
+: uwkup ( -- ) %1000 USB-CNTR hbic! ;
+
+: poll
+  begin
+    USB-ISTR h@
+    dup $9C00 and if [char] ! emit then
+    dup $0400 and if [char] R emit ureset   $FBFF USB-ISTR h! then
+    dup $8000 and if [char] C emit dup uctr $7FFF USB-ISTR h! then
+    dup $0800 and if [char] S emit ususp    $F7FF USB-ISTR h! then
+    dup $1000 and if [char] W emit uwkup    $EFFF USB-ISTR h! then
+    drop
+  key? until ;
+
+: t +usb poll usb. usb.mem -usb ;
 
 \ vim: set ft=forth :

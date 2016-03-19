@@ -135,7 +135,12 @@ create usb:str
   case
     $0100 of usb:dev 18 endof
     $0200 of usb:conf 67 endof
-    dup $FF and cells usb:str + @ dup c@
+    $0300 of usb:langid 4 endof
+    $0301 of usb:vendor 16 endof
+    $0302 of usb:product 40 endof
+    $0303 of usb:serial 18 endof
+    $0600 of 0 0 endof
+    0 0
   endcase ;
 
 $40005C00 constant USB
@@ -173,9 +178,9 @@ $40006000 constant USBMEM
   or USB-EP0R h! ;
 
 : rxclear ( ep -- )
-  4 * USB + dup h@ $7FFF and $8F8F and swap h! ;
+  cells USB + dup h@ $7FFF and $8F8F and swap h! ;
 : txclear ( ep -- )
-  4 * USB + dup h@ $FF7F and $8F8F and swap h! ;
+  cells USB + dup h@ $FF7F and $8F8F and swap h! ;
 
 : send-desc ( addr count -- )  \ see definitions of usb:dev etc
   dup >r 0 ?do
