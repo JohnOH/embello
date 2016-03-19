@@ -110,26 +110,47 @@ calign
 
 create usb:langid
   4 c, 3 c,  \ USB_STRING_DESCRIPTOR_TYPE,
-  $09 c,
-  $04 c, \ LangID = 0x0409: U.S. English
+  $0409 h, \ LangID = U.S. English
 
 create usb:vendor
-  16 c, 3 c,  \ USB_STRING_DESCRIPTOR_TYPE,
-  char J h, char e h, char e h, char L h, char a h, char b h, char s h,
+  40 c, 3 c,  \ USB_STRING_DESCRIPTOR_TYPE,
+  char M h, char e h, char c h, char r h, char i h, char s h, char p h,
+  bl     h, char ( h, char S h, char T h, char M h, char 3 h, char 2 h,
+  char F h, char 1 h, char 0 h, char x h, char ) h,
 
 create usb:product
-  40 c, 3 c,  \ USB_STRING_DESCRIPTOR_TYPE,
-  char V h, char i h, char r h, char t h, char u h, char a h, char l h,
-  bl     h, char S h, char e h, char r h, char i h, char a h, char l h,
-  bl     h, char P h, char o h, char r h, char t h,
+  36 c, 3 c,  \ USB_STRING_DESCRIPTOR_TYPE,
+  char F h, char o h, char r h, char t h, char h h, bl     h, char S h,
+  char e h, char r h, char i h, char a h, char l h, bl     h, char P h,
+  char o h, char r h, char t h,
 
 create usb:serial
   18 c, 3 c,  \ USB_STRING_DESCRIPTOR_TYPE,
   char 1 h, char 2 h, char 3 h, char 4 h, char 5 h, char 6 h, char 7 h,
   char 8 h,
 
-create usb:str
-  usb:langid , usb:vendor , usb:product , usb:serial ,
+create usb:line
+  hex 00 c, C2 c, 01 c, 00 c, 01 c, 00 c, 08 c, 00 c, decimal
+
+create usb:init
+hex
+  0080 h,  \ ADDR0_TX   control - rx: 64b @ +040/080, tx: 64b @ +080/100
+  0000 h,  \ COUNT0_TX
+  0040 h,  \ ADDR0_RX
+  8400 h,  \ COUNT0_RX
+  00C0 h,  \ ADDR1_TX   bulk - tx: 64b @ +0C0/180
+  0000 h,  \ COUNT1_TX
+  0000 h,  \ ADDR1_RX
+  0000 h,  \ COUNT1_RX
+  0140 h,  \ ADDR2_TX   interrupt - tx: 8b @ +140/280
+  0000 h,  \ COUNT2_TX
+  0000 h,  \ ADDR2_RX
+  0000 h,  \ COUNT2_RX
+  0000 h,  \ ADDR3_TX   bulk - rx: 64b @ +100/200
+  0000 h,  \ COUNT3_TX
+  0100 h,  \ ADDR3_RX
+  8400 h,  \ COUNT3_RX
+decimal
 
 $40005C00 constant USB
      USB $00 + constant USB-EP0R
@@ -146,6 +167,10 @@ $40005C00 constant USB
      USB $4C + constant USB-DADDR
      USB $50 + constant USB-BTABLE
 $40006000 constant USBMEM
+
+: usb-pma ( pos -- addr ) dup 1 and negate swap 2* + USBMEM + ;
+: usb-pma@ ( pos -- u ) usb-pma h@ ;
+: usb-pma! ( u pos -- ) usb-pma h! ;
 
 : rxstat! ( u -- )  \ set stat_rx without toggling/setting any other fields
   12 lshift  USB-EP0R h@ tuck  xor
@@ -169,26 +194,6 @@ $40006000 constant USBMEM
   cells USB + dup h@ $7FFF and $8F8F and swap h! ;
 : txclear ( ep -- )
   cells USB + dup h@ $FF7F and $8F8F and swap h! ;
-
-create usb:init
-hex
-  0080 h,  \ ADDR0_TX   control - rx: 64b @ +040/080, tx: 64b @ +080/100
-  0000 h,  \ COUNT0_TX
-  0040 h,  \ ADDR0_RX
-  8400 h,  \ COUNT0_RX
-  00C0 h,  \ ADDR1_TX   bulk - tx: 64b @ +0C0/180
-  0000 h,  \ COUNT1_TX
-  0000 h,  \ ADDR1_RX
-  0000 h,  \ COUNT1_RX
-  0140 h,  \ ADDR2_TX   interrupt - tx: 8b @ +140/280
-  0000 h,  \ COUNT2_TX
-  0000 h,  \ ADDR2_RX
-  0000 h,  \ COUNT2_RX
-  0000 h,  \ ADDR3_TX   bulk - rx: 64b @ +100/200
-  0000 h,  \ COUNT3_TX
-  0100 h,  \ ADDR3_RX
-  8400 h,  \ COUNT3_RX
-decimal
 
 : usb-init ( -- )
   usb:init  64 0 do
