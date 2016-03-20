@@ -8,19 +8,40 @@ compiletoflash
 ( code-start, see code-size below ) here
 
 include ../flib/rf69.fs
-\ include ../flib/oled.fs
-include ../flib/tft-ili9325.fs
+include ../flib/oled.fs
+\ include ../flib/tft-ili9325.fs
 include ../mlib/graphics.fs
 include ../mlib/multi.fs
+include ../flib/digits.fs
+
+: showdigit ( n x -- )
+  swap 256 * digits + 64 0 do
+    32 0 do
+      i $1F xor bit over bit@ if over i + j putpixel then
+    loop
+    4 +
+  loop 2drop ;
+
+: showdot ( x -- )
+  64 60 do
+    dup 4 + over 1+ do i j putpixel loop
+  loop drop ;
+
+: shownum ( u -- )
+  clear 28 showdot
+  10 /mod 10 /mod 10 /mod
+  -4 showdigit 32 showdigit 64 showdigit 96 showdigit
+  display ;
 
 3,33 2variable Vref  \ fixed-point Vref for 4095 reading
 
 : vmeter ( -- )  \ a simple voltmeter on PA4
-  +adc
+  +adc lcd-init
   begin cr
     PA4 adc ( dup . )             \ take a reading
     0 swap  4095,0 f/ Vref 2@ f*  \ convert to Volt
-    3 f.n ." V"                   \ display the result
+    2dup 3 f.n ." V"              \ display result on serial port
+    1000,0 f* shownum drop        \ and on the OLED display
     500 ms                        \ slow down
   key? until ;
 

@@ -55,7 +55,7 @@ hex
 decimal
 
 : show-logo ( -- )  \ show the JeeLabs logo
-  lcdmem 1024 0 fill
+  clear
   logo lcdmem  8 0 do
     32 +  2dup 64 move  64 96 d+
   loop

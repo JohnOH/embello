@@ -3,6 +3,9 @@
 
 reset
 
+: digtry ( -- )
+  lcd-init 1234 shownum ;
+
 : blink ( -- )  \ blink the on-board LED until a key is pressed
   OMODE-PP LED io-mode!  begin  LED iox!  100 ms  key? until ;
 
@@ -16,8 +19,8 @@ reset
     then
   key? until ;
 
-\ : tftry ( -- ) lcd-init show-logo  1000 ms  lcd-init demo ;
-: tftry ( -- ) tft-init demo ;
+: tftry ( -- ) lcd-init show-logo  1000 ms  lcd-init demo ;
+\ : tftry ( -- ) tft-init demo ;
 
 : rtctry ( -- )  +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 : adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
