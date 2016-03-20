@@ -35,10 +35,13 @@ include ../flib/digits.fs
 
 3,33 2variable Vref  \ fixed-point Vref for 4095 reading
 
+: vreading ( pin -- value )  \ take an averaged ADC reading
+  0 100 0 do over adc + loop 100 / nip ;
+
 : vmeter ( -- )  \ a simple voltmeter on PA4
   +adc lcd-init
   begin cr
-    PA4 adc ( dup . )             \ take a reading
+    PA4 vreading ( dup . )             \ take a reading
     0 swap  4095,0 f/ Vref 2@ f*  \ convert to Volt
     2dup 3 f.n ." V"              \ display result on serial port
     1000,0 f* shownum drop        \ and on the OLED display
