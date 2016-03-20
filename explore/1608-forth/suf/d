@@ -6,7 +6,14 @@ led ios!
 
 0 variable zero
 
-: ep-setup ( ep -- )
+128 4 + buffer: usb-in-ring
+64 4 + buffer: usb-out-ring
+
+: usb-init-rings ( -- )
+  usb-in-ring 128 init-ring
+  usb-out-ring 64 init-ring ;
+
+: ep-setup ( ep -- )  \ setup packets, sent by host to control this device
   dup rxclear
   cr ." setup: " $48 $40 do i usb-pma@ h.4 space 2 +loop
   $41 usb-pma c@ case
@@ -20,22 +27,26 @@ led ios!
   ep-reset-rx# send-next
 ;
 
-: usb-input ( c -- )
+: usb-recv ( c -- ) usb-in-ring dup ring? if >ring else 2drop then ;
+
+: usb-recv2 ( c -- )
+  dup usb-recv
   [char] < emit
   dup bl < if h.2 else emit then
-  [char] > emit
-;
+  [char] > emit ;
 
-: ep-out ( ep -- )
+: ep-out ( ep -- )  \ outgoing packets, sent by host, received by this device
   dup rxclear
-  dup 3 ep-reg h@ $3F and 0 ?do
-    i $100 + usb-pma c@ usb-input
-  loop
+  dup if  \ only pick up data for endpoint 3
+    dup 3 ep-reg h@ $3F and 0 ?do
+      i $100 + usb-pma c@ usb-recv
+    loop
+  then
   ep-reset-rx#
 ;
 
-: ep-in ( ep -- )
-  dup txclear
+: ep-in ( ep -- )  \ incoming polls, sent from this device, received by host
+  dup txclear [char] I emit .
   $41 usb-pma c@ $05 = if $42 usb-pma@ $80 or USB-DADDR h! then
   send-next
 ;
@@ -80,16 +91,42 @@ led ios!
 
 : test-buf save-to-buf ." abc" [char] : serial-emit restore-buf ;
 
-: poll
-  begin
-    USB-ISTR h@
-    dup $8000 and if dup usb-ctr          $7FFF USB-ISTR h! then
-    dup $0400 and if usb-reset            $FBFF USB-ISTR h! then
-    dup $0800 and if %1100 USB-CNTR hbis! $F7FF USB-ISTR h! then
-        $1000 and if %1000 USB-CNTR hbic! $EFFF USB-ISTR h! then
-  key? until ;
+: usb-poll
+  USB-ISTR h@
+  dup $8000 and if dup usb-ctr          $7FFF USB-ISTR h! then
+  dup $0400 and if usb-reset            $FBFF USB-ISTR h! then
+  dup $0800 and if %1100 USB-CNTR hbis! $F7FF USB-ISTR h! then
+      $1000 and if %1000 USB-CNTR hbic! $EFFF USB-ISTR h! then ;
 
-: t +usb poll usb. usb.mem -usb ;
-: t2 save-to-buf +usb poll usb. usb.mem -usb restore-buf ;
+: usb-key? ( -- f )  usb-poll usb-in-ring ring# 0<> ;
+: usb-key ( -- c )  begin usb-key? until  usb-in-ring ring> ;
+: usb-emit? ( -- f )  usb-poll usb-out-ring ring? ;
+: usb-emit ( c -- )  begin usb-emit? until  usb-out-ring >ring ;
+
+: myquit begin query interpret ." OK!" cr again ;
+
+: +usb-io ( -- )
+  usb-init-rings
+  $0D usb-in-ring >ring
+  ['] usb-key? hook-key? !
+  ['] usb-key hook-key !
+\ ['] usb-emit? hook-emit? !
+\ ['] usb-emit hook-emit !
+\ ['] myquit hook-quit !
+;
+
+: -usb-io ( -- )
+  ['] serial-key? hook-key? !
+  ['] serial-key hook-key !
+\ ['] serial-emit? hook-emit? !
+\ ['] serial-emit hook-emit !
+  usb-in-ring ring# .
+  usb-out-ring ring# .
+;
+
+: try ( -- ) +usb-io begin usb-poll serial-key? until -usb-io ;
+
+: t +usb try usb. usb.mem -usb ;
+: t2 save-to-buf +usb try usb. usb.mem -usb restore-buf ;
 
 \ vim: set ft=forth :

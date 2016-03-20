@@ -8,6 +8,7 @@ compiletoflash
 include ../mlib/hexdump.fs
 include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
+include ../flib/ring.fs
 
 \ board definitions for Hy-TinySTM103T
 
