@@ -30,7 +30,8 @@ led ios!
 : usb-recv ( c -- ) usb-in-ring dup ring? if >ring else 2drop then ;
 
 : usb-recv2 ( c -- )
-  dup usb-recv
+\ dup usb-recv
+  dup $C0 usb-pma! 1 1 1 ep-reg h! 1 3 txstat!  \ immediate echo
   [char] < emit
   dup bl < if h.2 else emit then
   [char] > emit ;
@@ -39,7 +40,7 @@ led ios!
   dup rxclear
   dup if  \ only pick up data for endpoint 3
     dup 3 ep-reg h@ $3F and 0 ?do
-      i $100 + usb-pma c@ usb-recv
+      i $100 + usb-pma c@ usb-recv2
     loop
   then
   ep-reset-rx#
