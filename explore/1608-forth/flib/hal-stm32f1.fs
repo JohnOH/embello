@@ -69,6 +69,7 @@ $40022000 constant FLASH
             2 or  RCC-CFGR !      \ PLL is the system clock
   24 bit RCC-CR bis!              \ set PLLON
   begin 25 bit RCC-CR bit@ until  \ wait for PLLRDY
+  0 bit RCC-CR bic!               \ clear HSION
   72000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
 ;
 
