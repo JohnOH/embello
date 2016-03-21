@@ -11,6 +11,7 @@ reset
 : pwmtry ( -- )  1 LED2 +pwm 100 LED2 pwm ;
 
 \ -----------------------------------------------------------------------------
+\ sleep mode tryout
 
 : sleep ( -- ) [ $BF30 h, ] inline ;  \ WFI Opcode, enters sleep mode
 
@@ -30,6 +31,7 @@ $E000ED00 constant SCB
   8 bit PWR-CSR bis! ;
 
 \ -----------------------------------------------------------------------------
+\ µSD card tryout
 
 : s $FF >spi> h.2 space ;
 : ss
