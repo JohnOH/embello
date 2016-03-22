@@ -157,12 +157,8 @@ $70020000 constant NAND-ADR
 \ -----------------------------------------------------------------------------
 
 ( code-size ) here swap - .
-
 cornerstone <<<lib-cbo>>>
-
 ( flash-end ) here hex.
-
 compiletoram
-
 include d
 \ vim: set ft=forth :

@@ -101,12 +101,8 @@ $20008000 602 2constant adc-buffer  \ 301 2-byte ints in range 0..4095
 \ -----------------------------------------------------------------------------
 
 ( code-size ) here swap - .
-
 cornerstone <<<lib-hmv>>>
-
 ( flash-end ) here hex.
-
 compiletoram
-
 include d
 \ vim: set ft=forth :
