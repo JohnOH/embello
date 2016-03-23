@@ -34,5 +34,91 @@ membuf 256 0 fill
 tft-init
 \ demo
 
+PA4 constant CE
+PC5 constant IRQ
+
+: +ce CE ios! ;
+: -ce CE ioc! ;
+
+: reg@ ( reg -- val ) +spi >spi $FF >spi> -spi ;
+: reg! ( val reg -- ) +spi $20 or >spi >spi -spi ;
+: tx-flush ( -- ) +spi $E1 >spi -spi ;
+: rx-flush ( -- ) +spi $E2 >spi -spi ;
+
+: reg@n ( addr n reg -- )
+  +spi $20 or >spi
+  0 do dup $FF >spi> over c! 1+ loop
+  drop -spi ;
+
+: reg!n ( addr n reg -- )
+  +spi $20 or >spi
+  0 do dup c@ >spi 1+ loop
+  drop -spi ;
+
+: rf. ( -- )
+  cr 4 spaces  base @ hex  16 0 do space i . loop  base !
+  32 0 do cr
+    i h.2 [char] : emit
+    16 0 do space i j + reg@ h.2 loop
+  16 +loop ;
+
+$123401 variable pipe0
+$567801 variable pipe1
+$567802 variable pipe2
+
+: rf24-init
+  OMODE-PP CE io-mode! +ce
+  spi-init
+\ a quick check that the radio is present
+  begin $AA $0F reg! $0F reg@ $AA = until
+  begin $55 $0F reg! $0F reg@ $55 = until
+\ configure all essential registers
+  $01 $03 reg!  \ 3-byte address
+  $13 $04 reg!  \ delay 500 us, max 3 retries
+  108 $05 reg!  \ channel 108
+  $08 $06 reg!  \ 2 MBps, -18 dBm, LNA off
+  pipe2 3 $0A reg!n  \ rx addr 0
+  pipe1 3 $0B reg!n  \ rx addr 1
+      2   $0C reg!   \ rx addr 2
+      3   $0D reg!   \ rx addr 3
+      4   $0E reg!   \ rx addr 4
+      5   $0F reg!   \ rx addr 5
+  pipe2 3 $10 reg!n  \ tx addr
+  4 $11 reg! \ TODO 4-byte payload
+  4 $12 reg! \ TODO 4-byte payload
+  4 $13 reg! \ TODO 4-byte payload
+  $3F $02 reg!  \ enable all data pipes
+;
+
+: rx %1111 $00 reg! ;
+: tx %1110 $00 reg! ;
+
+$11223344 variable data
+
+: >rf ( addr n -- )
+  +spi $A0 >spi
+  0 do dup c@ >spi 1+ loop drop
+\ 28 0 do 0 >spi loop
+  -spi +ce 10 us -ce ;
+
+: rftry
+  rf24-init rf.
+;
+
+: rxtry ( -- )
+  rf24-init rf. rx rx-flush
+  +ce begin
+    key? if -ce quit then
+  $07 reg@ $40 and until -ce
+  ."  RX:" $07 reg@ shr 7 and .
+  rf. $40 $07 reg! ;
+
+: txtry ( -- ) rf24-init tx tx-flush data 4 >rf
+  begin $07 reg@ $30 and until ." SENT! " $07 reg@ h.2
+  $30 $07 reg! rf. \ TODO use timeouts and return ack success
+;
+
+led1 ios!  led2 ios!
+
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
