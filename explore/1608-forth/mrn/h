@@ -17,7 +17,7 @@ include ../flib/ring.fs
 include ../flib/uart2-stm32f1.fs
 include ../flib/uart2-irq-stm32f1.fs
 
-\ board definitions for generic STM32F103 boards
+\ board definitions for STM32F103C8-based Multi-Receiver Node
 
 PA4  variable ssel   \ can be changed at run time
 PB12 variable ssel2  \ can be changed at run time
@@ -34,15 +34,17 @@ PB7 constant SDA
 
 include ../flib/i2c-bb.fs
 
+PC13 constant LED
+
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD
-\ OMODE-PP LED io-mode!
+  OMODE-PP LED io-mode!
   72MHz
-  flash-kb . ." KB <dad> " hwid hex. cr
+  flash-kb . ." KB <mun> " hwid hex. cr
   1000 systick-hz
 ;
 
-cornerstone <<<hal-dad>>>
+cornerstone <<<hal-mrn>>>
 compiletoram
 init
 

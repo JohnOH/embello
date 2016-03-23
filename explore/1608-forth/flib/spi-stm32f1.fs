@@ -22,13 +22,14 @@ $40013000 constant SPI1
 : >spi ( c -- ) >spi> drop ;  \ write byte to SPI
 
 : spi-init ( -- )  \ set up hardware SPI
-  12 bit RCC-APB2ENR bis!  \ set SPI1EN
-  %0000000001010100 SPI1-CR1 !  \ clk/8, i.e. 9 MHz, master
-  2 bit SPI1-CR2 bis!  \ SS output enable
   OMODE-PP ssel @ io-mode! -spi
   OMODE-AF-PP PA5 io-mode!
   IMODE-FLOAT PA6 io-mode!
-  OMODE-AF-PP PA7 io-mode! ;
+  OMODE-AF-PP PA7 io-mode!
+  12 bit RCC-APB2ENR bis!  \ set SPI1EN
+  %0000000001010100 SPI1-CR1 !  \ clk/8, i.e. 9 MHz, master
+  2 bit SPI1-CR2 bis!  \ SS output enable
+;
 
 $40003800 constant SPI2
      SPI2 $0 + constant SPI2-CR1
@@ -52,10 +53,11 @@ $40003800 constant SPI2
 : >spi2 ( c -- ) >spi2> drop ;  \ write byte to SPI
 
 : spi2-init ( -- )  \ set up hardware SPI
-  14 bit RCC-APB1ENR bis!  \ set SPI2EN
-  %0000000001001100 SPI2-CR1 !  \ clk/4, i.e. 9 MHz, master
-  2 bit SPI2-CR2 bis!  \ SS output enable
   OMODE-PP ssel2 @ io-mode! -spi2
   OMODE-AF-PP PB13 io-mode!
   IMODE-FLOAT PB14 io-mode!
-  OMODE-AF-PP PB15 io-mode! ;
+  OMODE-AF-PP PB15 io-mode!
+  14 bit RCC-APB1ENR bis!  \ set SPI2EN
+  %0000000001001100 SPI2-CR1 !  \ clk/4, i.e. 9 MHz, master
+  2 bit SPI2-CR2 bis!  \ SS output enable
+;
