@@ -46,7 +46,7 @@ PC5 constant IRQ
 : rx-flush ( -- ) +spi $E2 >spi -spi ;
 
 : reg@n ( addr n reg -- )
-  +spi $20 or >spi
+  +spi >spi
   0 do dup $FF >spi> over c! 1+ loop
   drop -spi ;
 
@@ -98,12 +98,18 @@ $11223344 variable data
 : >rf ( addr n -- )
   +spi $A0 >spi
   0 do dup c@ >spi 1+ loop drop
-\ 28 0 do 0 >spi loop
   -spi +ce 10 us -ce ;
+
+: rf> ( addr n -- )
+  +spi $61 >spi
+  0 do spi> over c! 1+ loop drop
+  -spi ;
 
 : rftry
   rf24-init rf.
 ;
+
+32 buffer: rxbuf
 
 : rxtry ( -- )
   rf24-init rf. rx rx-flush
@@ -111,11 +117,13 @@ $11223344 variable data
     key? if -ce quit then
   $07 reg@ $40 and until -ce
   ."  RX:" $07 reg@ shr 7 and .
+  rxbuf 32 2dup rf> dump
   rf. $40 $07 reg! ;
 
-: txtry ( -- ) rf24-init tx tx-flush data 4 >rf
+: txtry ( -- ) rf24-init micros tx tx-flush data 4 >rf
   begin $07 reg@ $30 and until ." SENT! " $07 reg@ h.2
-  $30 $07 reg! rf. \ TODO use timeouts and return ack success
+  $30 $07 reg! micros rf. \ TODO use timeouts and return ack success
+  swap - space . ." us"
 ;
 
 led1 ios!  led2 ios!
