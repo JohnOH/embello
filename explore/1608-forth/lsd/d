@@ -126,6 +126,21 @@ $11223344 variable data
   swap - space . ." us"
 ;
 
+128 buffer: channels
+
+: scan ( -- )
+  rf24-init  channels 128 0 fill  rx -ce
+  250 0 do
+    128 0 do
+      i $05 reg!  \ set channel
+      $00 reg@ 1 or $00 reg!  \ set PRX mode
+      +ce  130 us  $09 reg@ channels i + c+!  -ce
+    loop
+  loop
+  128 0 do
+    channels i + c@ ?dup if cr i . ." : " . then
+  loop cr ;
+
 led1 ios!  led2 ios!
 
 \ -----------------------------------------------------------------------------
