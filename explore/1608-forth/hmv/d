@@ -113,7 +113,7 @@ $40010400 constant EXTI
     tokyo
     cr ." here Amsterdam over" co
     cr ." has it arrived over" co
-    cr ." no. over and out" ;
+    cr ." no. over" ;
 
 \ amsterdam
 
