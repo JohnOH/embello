@@ -87,6 +87,7 @@ PA10 constant RF12-IRQ
 ' nop variable rf12.state
     0 variable rf12.len
     0 variable rf12.pos
+    0 variable rf12.crc
     70 buffer: rf12.rxbuf
 
 : showrx ( -- )
@@ -97,31 +98,27 @@ PA10 constant RF12-IRQ
     rf12-fifo> swap rf12.rxbuf + c!
     1 rf12.pos +!
   else
-    drop ['] nop rf12.state ! showrx rf12.go @ execute
+    drop showrx rf12.go @ execute
   then ;
 
 : rf12/len ( -- )
-  rf12-fifo> dup 1 > over 66 <= and if
+  rf12-fifo> dup 0 > over 25 < and if
     dup rf12.len !
       0 rf12.pos !
+  $FFFF rf12.crc !
     ['] rf12/recv rf12.state !
+\ else [char] ? emit rf12.go @ execute
   then drop ;
 
-: rf12/group ( -- )
-\ 0 >rf12> h.4 space
-  rf12-fifo> 5 = if
-    ." 5! " ['] rf12/len rf12.state !
-  then ;
-
 : rf12-go ( -- )
-  ['] rf12/group rf12.state !
+  ['] rf12/len rf12.state !
   $82DD >rf12  \ receiver on
 ;
 
 : rf12-recv ( -- )
   ['] rf12-go dup rf12.go ! execute
   begin
-\   RF12-IRQ io@ 0= if ( rf12.state @ execute ) rf12/group then
+\   RF12-IRQ io@ 0= if rf12.state @ execute then
 \   0 >rf12> ?dup if h.4 space then
     0 >rf12> if rf12.state @ execute then
   key? until ;
