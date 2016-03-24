@@ -6,6 +6,16 @@ reset
 : blink ( -- )  \ blink the on-board LED until a key is pressed
   OMODE-PP LED io-mode!  begin  LED iox!  100 ms  key? until ;
 
+\ print out received packet info until a key is pressed
+\ format: #bytes b3..b0 b7..b4 rssi lna afc
+: rftry ( -- )
+  42 8686 rf-init
+  begin
+    rf-recv  ?dup if
+      cr . rf.buf @ hex. rf.buf 4 + @ hex. rf.rssi @ . rf.lna @ . rf.afc @ .
+    then
+  key? until ;
+
 : rtctry ( -- )  +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 : adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
 : uartry ( -- )  +uart uart. ;

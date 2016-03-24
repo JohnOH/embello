@@ -45,4 +45,91 @@ reset
 \ 1000 30 PA1 freq-gen .
 
 \ -----------------------------------------------------------------------------
+\ rf12 trial
+
+PA10 constant RF12-IRQ
+
+: >rf12> ( u -- u )  \ 16-bit SPI using two 8-bit SPI exchanges
+  +spi dup 8 rshift >spi> 8 lshift swap >spi> or -spi ;
+: >rf12 ( u -- ) >rf12> drop ;
+: rf12-fifo> ( -- u) $B000 >rf12> $FF and ;
+
+: rf12-init
+  ." A "
+  IMODE-PULL RF12-IRQ io-mode!  RF12-IRQ ios!  \ IRQ pin is input w/ pull-up
+  ." B "
+  spi-init spi. 1 ms  \ FIXME init hangs without repeated calls, no idea why
+  spi-init spi. 1 ms
+  spi-init spi. 1 ms
+  ." C "
+  0 >rf12  $B800 >rf12
+  ." D "
+  begin 0 >rf12  RF12-IRQ io@ until
+  ." conn "
+         $8205 >rf12  \ sleep mode
+         $80E7 >rf12  \ 868 MHz, EL (ena TX), EF (ena RX FIFO), 12.0pF
+  1600 $A000 + >rf12  \ 96-3960 freq range of values within band
+         $C606 >rf12  \ approx 49.2 Kbps, i.e. 10000/29/(1+6) Kbps
+         $94A2 >rf12  \ VDI,FAST,134kHz,0dBm,-91dBm
+         $C2AC >rf12  \ AL,!ml,DIG,DQD4
+         $CA83 >rf12  \ FIFO8,2-SYNC,!ff,DR
+     5 $CE00 + >rf12  \ group 5, SYNC=2DXX；
+         $C483 >rf12  \ @PWR,NO RSTRIC,!st,!fi,OE,EN
+         $9850 >rf12  \ !mp,90kHz,MAX OUT
+         $CC77 >rf12  \ OB1，OB0, LPX,！ddy，DDIT，BW0
+         $E000 >rf12  \ NOT USE
+         $C800 >rf12  \ NOT USE
+         $C049 >rf12  \ 1.66MHz,3.1V
+  ." init "
+;
+
+' nop variable rf12.go
+' nop variable rf12.state
+    0 variable rf12.len
+    0 variable rf12.pos
+    70 buffer: rf12.rxbuf
+
+: showrx ( -- )
+  cr rf12.len @ dup ." #" . 0 ?do rf12.rxbuf i + c@ h.2 space loop ;
+
+: rf12/recv ( -- )
+  rf12.pos @ dup rf12.len @ < if
+    rf12-fifo> swap rf12.rxbuf + c!
+    1 rf12.pos +!
+  else
+    drop ['] nop rf12.state ! showrx rf12.go @ execute
+  then ;
+
+: rf12/len ( -- )
+  rf12-fifo> dup 1 > over 66 <= and if
+    dup rf12.len !
+      0 rf12.pos !
+    ['] rf12/recv rf12.state !
+  then drop ;
+
+: rf12/group ( -- )
+\ 0 >rf12> h.4 space
+  rf12-fifo> 5 = if
+    ." 5! " ['] rf12/len rf12.state !
+  then ;
+
+: rf12-go ( -- )
+  ['] rf12/group rf12.state !
+  $82DD >rf12  \ receiver on
+;
+
+: rf12-recv ( -- )
+  ['] rf12-go dup rf12.go ! execute
+  begin
+\   RF12-IRQ io@ 0= if ( rf12.state @ execute ) rf12/group then
+\   0 >rf12> ?dup if h.4 space then
+    0 >rf12> if rf12.state @ execute then
+  key? until ;
+
+: r rf12-init rf12-recv ;
+
+8Mhz  \ TODO slow down to 1 MHz, 9 MHz SPI is too fast for the RFM12B
+PA15 ssel !  \ for base board w/ HyTiny
+
+\ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
