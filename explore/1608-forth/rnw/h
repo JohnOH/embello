@@ -35,6 +35,7 @@ PB7 constant SDA
 include ../flib/i2c-bb.fs
 
 PA1 constant LED
+PA10 constant RF12-IRQ
 
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD

@@ -13,6 +13,8 @@ include ../flib/oled.fs
 include ../mlib/graphics.fs
 include ../mlib/multi.fs
 include ../flib/digits.fs
+include ../flib/crc.fs
+include ../flib/rf12.fs
 
 : showdigit ( n x -- )
   swap 256 * digits + 64 0 do
