@@ -42,7 +42,7 @@
     dup rf12>rx  6 + rf12.len !  \ err/band grp hdr len <data> crc1 crc2
     ['] rf12/recv
   else
-    ( cr ."  ? #" . ) rf12.reset @
+    drop rf12.reset @
   then rf12.state ! ;
 
 : rf12/hdr ( -- )
