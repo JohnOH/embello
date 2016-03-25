@@ -79,11 +79,14 @@ decimal
 3 4 lshift constant rf12-915MHz
 
 : showrx ( -- )
-  cr rf12.crc @ ?dup if ."  ? " h.4 else ." RF12" then space
-  rf12.len @ 2- 0 ?do
-    i 4 = if space then
-    rf12.rx i + c@ h.2
-  loop space ;
+  rf12.crc @ 0= if
+    ." RF12 "
+    rf12.len @ 2- 0 ?do
+      i 4 = if space then
+      rf12.rx i + c@ h.2
+    loop
+    cr
+  then ;
 
 : rf12>rx ( b -- )
   dup rf12.crc @ crc16 rf12.crc !
@@ -100,7 +103,7 @@ decimal
     dup rf12>rx  6 + rf12.len !  \ grp hdr len <data> crc1 crc2
     ['] rf12/recv
   else
-    cr ."  ? #" . rf12.reset @
+    ( cr ."  ? #" . ) rf12.reset @
   then rf12.state ! ;
 
 : rf12/hdr ( -- )
@@ -134,7 +137,7 @@ decimal
   IMODE-PULL RF12-IRQ io-mode!  RF12-IRQ ios!  \ IRQ pin is input w/ pull-up
   spi-init spi. 1 ms  \ FIXME init hangs without repeated calls, no idea why
   spi-init spi. 1 ms
-  spi-init spi. 1 ms
+  spi-init spi. 1 ms cr
 \ slow down, 9 MHz SPI is too fast for the RFM12B
 \ %0000000001010100 SPI1-CR1 !  \ clk/8, i.e. 9 MHz, master
   %0000000001100100 SPI1-CR1 !  \ clk/32, i.e. 2.25 MHz, master
