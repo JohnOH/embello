@@ -3,6 +3,12 @@
 
 reset
 
+: shownum ( u -- )
+  clear
+  10 /mod 10 /mod 10 /mod
+  -4 showdigit 28 showdigit 60 showdot 64 showdigit 96 showdigit
+  display ;
+
 : digtry ( -- )
   lcd-init 1234 shownum ;
 
@@ -55,6 +61,27 @@ reset
 : r12try 5 868 rf12-init rf12-recv ;
 
 PA15 ssel !  \ for base board w/ HyTiny
+
+\ -----------------------------------------------------------------------------
+
+2274 variable Voff
+34,32 2variable Vmul
+
+: vreading ( pin -- value )  \ take an averaged ADC reading
+  0  100 0 do over adc + loop  100 / nip ;
+
+: vmeter ( -- )  \ a simple voltmeter on PA3
+  +adc lcd-init
+  begin cr
+    0
+    PA3 vreading dup . Voff @ -   \ take a reading
+    4095,0 f/ Vmul 2@ f*          \ convert to Volt
+    2dup 3 f.n ." V"              \ display result on serial port
+    100,0 f* abs shownum drop     \ and on the OLED display
+    500 ms                        \ slow down
+  key? until ;
+
+vmeter
 
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :

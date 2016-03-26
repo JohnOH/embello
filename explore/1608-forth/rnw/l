@@ -29,27 +29,6 @@ include ../flib/rf12.fs
     dup 4 + over 1+ do i j putpixel loop
   loop drop ;
 
-: shownum ( u -- )
-  clear 28 showdot
-  10 /mod 10 /mod 10 /mod
-  -4 showdigit 32 showdigit 64 showdigit 96 showdigit
-  display ;
-
-3,33 2variable Vref  \ fixed-point Vref for 4095 reading
-
-: vreading ( pin -- value )  \ take an averaged ADC reading
-  0  100 0 do over adc + loop  100 / nip ;
-
-: vmeter ( -- )  \ a simple voltmeter on PA4
-  +adc lcd-init
-  begin cr
-    PA4 vreading                  \ take a reading
-    0 swap  4095,0 f/ Vref 2@ f*  \ convert to Volt
-    2dup 3 f.n ." V"              \ display result on serial port
-    1000,0 f* shownum drop        \ and on the OLED display
-    500 ms                        \ slow down
-  key? until ;
-
 ( code-size ) here swap - .
 cornerstone <<<lib-rnw>>>
 ( flash-end ) here hex.
