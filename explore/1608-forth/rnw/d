@@ -63,6 +63,7 @@ reset
 PA15 ssel !  \ for base board w/ HyTiny
 
 \ -----------------------------------------------------------------------------
+\ voltmeter with +/- 15V range
 
 2274 variable Voff
 34,32 2variable Vmul
@@ -81,7 +82,6 @@ PA15 ssel !  \ for base board w/ HyTiny
     500 ms                        \ slow down
   key? until ;
 
-vmeter
-
+\ vmeter
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
