@@ -248,6 +248,5 @@ $40006000 constant USBMEM
 ( code-size ) here swap - .
 cornerstone <<<lib-suf>>>
 ( flash-end ) here hex.
-compiletoram
 include d
 \ vim: set ft=forth :

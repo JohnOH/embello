@@ -1,5 +1,8 @@
 \ hardware SPI driver
 
+PA4  variable ssel   \ can be changed at run time
+PB12 variable ssel2  \ can be changed at run time
+
 $40013000 constant SPI1
      SPI1 $0 + constant SPI1-CR1
      SPI1 $4 + constant SPI1-CR2

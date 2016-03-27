@@ -12,6 +12,5 @@ include ../mlib/multi.fs
 ( code-size ) here swap - .
 cornerstone <<<lib-dad>>>
 ( flash-end ) here hex.
-compiletoram
 include d
 \ vim: set ft=forth :

@@ -13,10 +13,10 @@ include ../flib/pwm-stm32f1.fs
 include ../flib/adc-stm32f1.fs
 include ../flib/dac-stm32f1.fs
 include ../flib/rtc-stm32f1.fs
-
 include ../flib/ring.fs
 include ../flib/uart2-stm32f1.fs
 include ../flib/uart2-irq-stm32f1.fs
+include ../flib/spi-stm32f1.fs
 
 \ board definitions for Yellow Blue STM32F103RC
 
@@ -37,16 +37,6 @@ include ../flib/uart2-irq-stm32f1.fs
 
 3 2  io constant PD2
 
-PA4  variable ssel   \ can be changed at run time
-PB12 variable ssel2  \ can be changed at run time
-
-\ PA5 constant SCLK
-\ PA6 constant MISO
-\ PA7 constant MOSI
-
-include ../flib/spi-stm32f1.fs
-\ include ../flib/spi-bb.fs
-
 PB6 constant SCL
 PB7 constant SDA
 
@@ -63,7 +53,4 @@ PD2 constant LED
 ;
 
 cornerstone <<<hal-ybc>>>
-compiletoram
-init
-
 \ vim: set ft=forth :

@@ -12,7 +12,6 @@ include ../flib/timer-stm32f1.fs
 include ../flib/pwm-stm32f1.fs
 include ../flib/adc-stm32f1.fs
 include ../flib/rtc-stm32f1.fs
-
 include ../flib/ring.fs
 include ../flib/uart2-stm32f1.fs
 include ../flib/uart2-irq-stm32f1.fs
@@ -62,7 +61,4 @@ PA1 constant LED2
 ;
 
 cornerstone <<<hal-oxs>>>
-compiletoram
-init
-
 \ vim: set ft=forth :

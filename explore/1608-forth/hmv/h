@@ -13,7 +13,6 @@ include ../flib/pwm-stm32f1.fs
 include ../flib/adc-stm32f1.fs
 include ../flib/dac-stm32f1.fs
 include ../flib/rtc-stm32f1.fs
-
 include ../flib/ring.fs
 include ../flib/uart2-stm32f1.fs
 include ../flib/uart2-irq-stm32f1.fs
@@ -72,7 +71,4 @@ PB7 constant USB-EN
 ;
 
 cornerstone <<<hal-hmv>>>
-compiletoram
-init
-
 \ vim: set ft=forth :

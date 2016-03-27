@@ -9,18 +9,13 @@ include ../mlib/hexdump.fs
 include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
 include ../flib/ring.fs
+include ../flib/uart2-stm32f1.fs
+include ../flib/uart2-irq-stm32f1.fs
+include ../flib/spi-stm32f1.fs
 
 \ board definitions for Hy-TinySTM103T
 
 PA1 constant LED
-
-PA4 variable ssel  \ can be changed at run time
-PA5 constant SCLK
-PA6 constant MISO
-PA7 constant MOSI
-
-PB6 constant SCL
-PB7 constant SDA
 
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD
@@ -31,7 +26,4 @@ PB7 constant SDA
 ;
 
 cornerstone <<<hal-suf>>>
-compiletoram
-init
-
 \ vim: set ft=forth :

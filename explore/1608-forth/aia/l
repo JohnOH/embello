@@ -34,6 +34,5 @@ $20006000 constant wavetable  \ 4096 2-byte ints in range 0..4095
 ( code-size ) here swap - .
 cornerstone <<<lib-aia>>>
 ( flash-end ) here hex.
-compiletoram
 include d
 \ vim: set ft=forth :

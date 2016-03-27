@@ -9,10 +9,10 @@ include ../mlib/hexdump.fs
 include ../flib/io-stm32f4.fs
 include ../flib/hal-stm32f4.fs
 \ include ../flib/adc-stm32f4.fs
-
 \ include ../flib/ring.fs
 \ include ../flib/uart2-stm32f4.fs
 \ include ../flib/uart2-irq-stm32f4.fs
+\ include ../flib/spi-stm32f4.fs
 
 \ board definitions for Haoyu HY-STM32Core144, i.e. "Core Board Four"
 
@@ -21,7 +21,6 @@ PA5 constant SCLK
 PA6 constant MISO
 PA7 constant MOSI
 
-\ include ../flib/spi-stm32f4.fs
 include ../flib/spi-bb.fs
 
 PB6 constant SCL
@@ -40,7 +39,4 @@ PF6 constant LED
 ;
 
 \ cornerstone <<<hal-cbf>>>
-compiletoram
-init
-
 \ vim: set ft=forth :
