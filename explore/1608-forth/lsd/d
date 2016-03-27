@@ -74,9 +74,9 @@ $567802 variable pipe2
   begin $55 $0F reg! $0F reg@ $55 = until
 \ configure all essential registers
   $01 $03 reg!  \ 3-byte address
-  $13 $04 reg!  \ delay 500 us, max 3 retries
+  $12 $04 reg!  \ delay 500 us, max 2 retries
   108 $05 reg!  \ channel 108
-  $08 $06 reg!  \ 2 MBps, -18 dBm, LNA off
+  $0B $06 reg!  \ 2 MBps, -12 dBm, LNA on
   pipe2 3 $0A reg!n  \ rx addr 0
   pipe1 3 $0B reg!n  \ rx addr 1
       2   $0C reg!   \ rx addr 2
@@ -112,19 +112,26 @@ $11223344 variable data
 32 buffer: rxbuf
 
 : rxtry ( -- )
-  rf24-init rf. rx rx-flush
-  +ce begin
-    key? if -ce quit then
-  $07 reg@ $40 and until -ce
-  ."  RX:" $07 reg@ shr 7 and .
-  rxbuf 32 2dup rf> dump
-  rf. $40 $07 reg! ;
+  rf24-init  rf. space  rx
+  begin rx-flush
+    +ce begin
+      key? if -ce quit then
+    $07 reg@ $40 and until -ce
+\   ."  RX:" $07 reg@ shr 7 and .
+\   rxbuf 32 2dup rf> dump
+\   rf.
+    $40 $07 reg!
+  again ;
 
 : txtry ( -- ) rf24-init micros tx tx-flush data 4 >rf
-  begin $07 reg@ $30 and until ." SENT! " $07 reg@ h.2
-  $30 $07 reg! micros rf. \ TODO use timeouts and return ack success
+  begin $07 reg@ $30 and until \ ." SENT! " $07 reg@ h.2
+  $30 $07 reg! micros cr \ rf. \ TODO use timeouts and return ack success
   swap - space . ." us"
 ;
+
+: txflood begin txtry key? until ;
+
+\ see https://arduino-info.wikispaces.com/Nrf24L01-Poor+Man%27s+2.4+GHz+Scanner
 
 128 buffer: channels
 
