@@ -32,8 +32,8 @@ reset
 : adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
 : uartry ( -- )  +uart uart. ;
 : pwmtry ( -- )  1 LED +pwm 100 LED pwm ;
-
-: txtry ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
+: r12try 5 868 rf12-init 12345 . cr rf12-start begin rf12-poll key? until ;
+: t69try ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
 
 \ -----------------------------------------------------------------------------
 
@@ -49,17 +49,6 @@ reset
 ;
 
 \ 1000 30 PA1 freq-gen .
-
-\ -----------------------------------------------------------------------------
-
-: rf12-recv ( -- )
-  ['] rf12-go dup rf12.reset ! execute
-  begin
-\   RF12-IRQ io@ 0= if 0 >rf12 rf12.state @ execute then
-    0 >rf12> $8000 and if rf12.state @ execute then
-  key? until ;
-
-: r12try 5 868 rf12-init 12345 . cr rf12-recv ;
 
 \ -----------------------------------------------------------------------------
 \ voltmeter with +/- 15V range

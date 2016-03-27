@@ -91,3 +91,10 @@
     $C800 >rf12  \ NOT USE
     $C049 >rf12  \ 1.66MHz,3.1V
 ;
+
+: rf12-start ( -- )  \ start receiving data
+  ['] rf12-go dup rf12.reset ! execute ;
+
+: rf12-poll ( -- )  \ polled access to RFM12
+\   RF12-IRQ io@ 0= if 0 >rf12 rf12.state @ execute then
+    0 >rf12> $8000 and if rf12.state @ execute then ;
