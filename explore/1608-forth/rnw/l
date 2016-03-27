@@ -13,6 +13,14 @@ include ../flib/oled.fs
 include ../mlib/graphics.fs
 include ../mlib/multi.fs
 include ../flib/digits.fs
+
+: rf12-spi-init ( -- )  \ set up SPI for use with RF12 driver
+  PA15 ssel ! spi-init  \ for base board w/ HyTiny
+\ 9 MHz is too fast for the RFM12B, use clk/32, i.e. 2.25 MHz
+  %0000000001100100 SPI1-CR1 ! ;
+: >rf12> ( u -- u )  \ 16-bit SPI using two 8-bit SPI exchanges
+  +spi dup 8 rshift >spi> 8 lshift swap >spi> or -spi ;
+
 include ../flib/crc.fs
 include ../flib/rf12.fs
 

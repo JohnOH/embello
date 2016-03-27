@@ -1,4 +1,5 @@
-\ RF12 driver
+\ RF12 driver, receive-only for now
+\ needs rf12-spi-init and >rf12> words
 
 ' nop variable rf12.reset
 ' nop variable rf12.state
@@ -8,8 +9,6 @@
     0 variable rf12.crc
     72 buffer: rf12.rx
 
-: >rf12> ( u -- u )  \ 16-bit SPI using two 8-bit SPI exchanges
-  +spi dup 8 rshift >spi> 8 lshift swap >spi> or -spi ;
 : >rf12 ( u -- ) >rf12> drop ;
 : rf12-fifo> ( -- u) $B000 >rf12> $FF and ;
 
@@ -74,14 +73,9 @@
   swap dup rf12.grp !  ( band group )
 
   IMODE-PULL RF12-IRQ io-mode!  RF12-IRQ ios!  \ IRQ pin is input w/ pull-up
-  spi-init spi.  \ FIXME init hangs without repeated calls (?)
-  spi-init spi.
-  spi-init spi. cr
-\ slow down, 9 MHz SPI is too fast for the RFM12B
-  %0000000001100100 SPI1-CR1 !  \ clk/32, i.e. 2.25 MHz, master
-
+\ still guessing what it takes to ALWAYS get out of reset mode correctly...
+  rf12-spi-init rf12-spi-init
   0 >rf12  $B800 >rf12  begin 0 >rf12  RF12-IRQ io@ until
-
   rf12-sleep  1600 rf12-freq
 
   $CE00 + >rf12  \ group, SYNC=2DXX；

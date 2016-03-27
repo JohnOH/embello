@@ -51,6 +51,7 @@ reset
 \ 1000 30 PA1 freq-gen .
 
 \ -----------------------------------------------------------------------------
+
 : rf12-recv ( -- )
   ['] rf12-go dup rf12.reset ! execute
   begin
@@ -58,9 +59,7 @@ reset
     0 >rf12> $8000 and if rf12.state @ execute then
   key? until ;
 
-: r12try 5 868 rf12-init rf12-recv ;
-
-PA15 ssel !  \ for base board w/ HyTiny
+: r12try 5 868 rf12-init 12345 . cr rf12-recv ;
 
 \ -----------------------------------------------------------------------------
 \ voltmeter with +/- 15V range
