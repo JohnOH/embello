@@ -63,7 +63,7 @@ func check(err error) {
 }
 
 func serialInput() {
-	buf := make([]byte, 128)
+	buf := make([]byte, 100)
 	for {
 		n, err := conn.Read(buf)
 		check(err)
@@ -101,7 +101,9 @@ func serialExchange() {
 			prompt := " ok.\n"
 			if len(line) > 0 {
 				serialSend(line)
-				prefix, matched := expectEcho(line)
+				prefix, matched := expectEcho(line, func (s string) {
+					print(s)
+				})
 				print(prefix)
 				if matched && !including {
 					print(line)
@@ -110,7 +112,10 @@ func serialExchange() {
 			}
 			// now that the echo is done, send a CR and wait for the prompt
 			serialSend("\r")
-			prefix, matched := expectEcho(prompt)
+			prefix, matched := expectEcho(prompt, func (s string) {
+				print(line + s)
+				line = ""
+			})
 			if !matched {
 				prompt = ""
 			}
@@ -125,17 +130,21 @@ func serialExchange() {
 	}
 }
 
-func expectEcho(match string) (string, bool) {
+func expectEcho(match string, overflow func(string)) (string, bool) {
 	var collected []byte
 	for {
 		data := readWithTimeout()
+		if len(data) == 0 {
+			return string(collected), false
+		}
 		collected = append(collected, data...)
 		if bytes.HasSuffix(collected, []byte(match)) {
 			bytesBefore := len(collected) - len(match)
 			return string(collected[:bytesBefore]), true
 		}
-		if len(data) == 0 || bytes.IndexByte(collected, '\n') >= 0 {
-			return string(collected), false
+		if n := bytes.LastIndexByte(collected, '\n'); n >= 0 {
+			overflow(string(collected[:n+1]))
+			collected = collected[n+1:]
 		}
 	}
 }
