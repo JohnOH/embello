@@ -43,6 +43,18 @@ Launch as "`./folie -p /dev/ttyAMA0`" or whatever the device name is.
 
 See the [readline]() page for a complete list of all the supported shortcuts.
 
+### Firmware uploads
+
+When started with the `-u` option, you can also upload a firmware image into  
+an STM32F103 chip, using its built-in boot ROM protocol. For example:
+
+    folie -p <port> -u mecrisp-stellaris-stm32f103.bin
+
+To use this mode, the chip needs to be placed in "boot mode", i.e. reset with  
+the `BOOT0` pin tied high (this differs for each board, it's usually a jumper).
+
+When done: restore the jumper, press reset, and re-launch without `-u` flag.
+
 ### Known problem
 
 The last output line(s) can get overwritten when using history search.

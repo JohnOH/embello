@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -22,29 +23,51 @@ var (
 	progress   = make(chan bool, 1)
 	incLevel   = make(chan int)
 
-	port = flag.String("p", "", "serial port (required: /dev/tty*, COM*, etc)")
-	baud = flag.Int("b", 115200, "baud rate")
+	port   = flag.String("p", "", "serial port (required: /dev/tty*, COM*, etc)")
+	baud   = flag.Int("b", 115200, "baud rate")
+	upload = flag.String("u", "", "upload the specified firmware, then quit")
 )
 
 func main() {
 	flag.Parse()
-
 	var err error
+
+	println("Connecting to", *port)
+	if *port == "" {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	config := serial.Config{Name: *port, Baud: *baud}
+	if *upload != "" {
+		config.Parity = serial.ParityEven
+	}
+	conn, err = serial.OpenPort(&config)
+	check(err)
+	//defer conn.Close()
+
+	go serialInput() // feed the serIn channel
+
+	if *upload != "" {
+		f, err := os.Open(*upload)
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer f.Close()
+
+		data, err := ioutil.ReadAll(f)
+		check(err)
+
+		println("Uploading", len(data), "bytes")
+		uploadSTM32(data)
+		return
+	}
+
 	rlInstance, err = readline.NewEx(&readline.Config{
 		UniqueEditLine: true,
 	})
 	check(err)
 	defer rlInstance.Close()
 
-	if *port == "" {
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-	println("Connecting...", *port)
-	conn, err = serial.OpenPort(&serial.Config{Name: *port, Baud: *baud})
-	check(err)
-
-	go serialInput()
 	go serialExchange()
 
 	outBound <- ""
