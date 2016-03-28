@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -20,9 +21,14 @@ var (
 	outBound   = make(chan string)
 	progress   = make(chan bool)
 	incLevel   = make(chan int)
+
+	port = flag.String("p", "", "serial port (required: /dev/tty*, COM*, etc)")
+	baud = flag.Int("b", 115200, "baud rate")
 )
 
 func main() {
+	flag.Parse()
+
 	var err error
 	rlInstance, err = readline.NewEx(&readline.Config{
 		UniqueEditLine: true,
@@ -30,8 +36,11 @@ func main() {
 	check(err)
 	defer rlInstance.Close()
 
-	tty := "/dev/cu.SLAB_USBtoUART"
-	conn, err = serial.OpenPort(&serial.Config{Name: tty, Baud: 115200})
+	if *port == "" {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	conn, err = serial.OpenPort(&serial.Config{Name: *port, Baud: *baud})
 	check(err)
 
 	go serialInput()
@@ -75,7 +84,6 @@ func serialInput() {
 			close(serIn)
 			return
 		}
-		//println("\n{{" + string(buf[:n]) + "}}")
 		serIn <- buf[:n]
 	}
 }
@@ -105,8 +113,8 @@ func serialExchange() {
 			// everything else should be echoed in full, including the input
 			if len(line) > 0 {
 				serialSend(line)
-				prefix, matched := expectEcho(line, func (s string) {
-					print(s)
+				prefix, matched := expectEcho(line, func(s string) {
+					print(s) // called to flush pending serial input lines
 				})
 				print(prefix)
 				if matched && !including {
@@ -117,8 +125,8 @@ func serialExchange() {
 			// now that the echo is done, send a CR and wait for the prompt
 			serialSend("\r")
 			prompt := " ok.\n"
-			prefix, matched := expectEcho(prompt, func (s string) {
-				print(line + s)
+			prefix, matched := expectEcho(prompt, func(s string) {
+				print(line + s) // show original command first
 				line = ""
 			})
 			if !matched {
@@ -142,7 +150,6 @@ func expectEcho(match string, flusher func(string)) (string, bool) {
 		if len(data) == 0 {
 			return string(collected), false
 		}
-		//println("{{" + string(data) + "}}")
 		collected = append(collected, data...)
 		if bytes.HasSuffix(collected, []byte(match)) {
 			bytesBefore := len(collected) - len(match)
