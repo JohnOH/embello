@@ -1,14 +1,14 @@
 # Folie
 
-The **Fo**rth **Li**ne **E**valuator is a serial terminal interface for Mecrisp Forth:
+The **Fo**rth **Li**ne **E**valuator is a serial terminal interface for [Mecrisp Forth][MF]:
 
-* connects as terminal console to an embedded µC over serial
+* connects as terminal console to an attached microcontroller board over serial
 * line entry: each line is sent out over serial, and output displayed back
 * command history: uses [readline][RL] to edit and re-send previous commands
 * include files: each line of the form "`include <filename>`" is processed  
   as a request to send the contents of that file as if it had been typed in
 * nested includes: `include` lines found inside are also processed recursively
-* throttling: each line waits for the "ok." prompt before sending the next one
+* throttling: each line waits for an "`ok.`" prompt before sending the next one
 * the default baud rate is 115200, see `folie -help` for a list of options
 
 ### Installation
@@ -18,15 +18,18 @@ Alternately, get the [source code][SC] and run `make app` from `tools/folie/`.
 
 ### Windows
 
-Launch as "`folie -p COM3`", assuming the board is connected to COM3.
+Download, uncompress, and rename to "`folie.exe`".  
+Launch as "`folie -p COM3`", assuming the board is connected to COM3.  
 
 ### Mac OSX
 
-Launch as "`folie -p /dev/cu.SLAB_USBtoUART`" or whatever the device name is.
+Download, uncompress, rename to "`folie`", and do a "`chmod +x folie`".  
+Launch as "`./folie -p /dev/cu.SLAB_USBtoUART`" or whatever the device name is.
 
 ### Linux
 
-Launch as "`folie -p /dev/ttyAMA0`" or whatever the device name is.
+Download, uncompress, rename to "`folie`", and do a "`chmod +x folie`".  
+Launch as "`./folie -p /dev/ttyAMA0`" or whatever the device name is.
 
 ### Keyboard shortcuts
 
@@ -48,6 +51,7 @@ The last output line(s) can get overwritten when using history search.
 
 MIT, see also [chzyer/readline][LR] and [tarm/serial][LS] included in this app.
 
+  [MF]: http://mecrisp.sourceforge.net
   [RL]: http://gopkg.in/readline.v1
   [GH]: https://github.com/jeelabs/embello/releases
   [SC]: https://github.com/jeelabs/embello

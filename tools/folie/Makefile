@@ -13,7 +13,7 @@ builds:
 	@ echo "  MacOSX 64-bit"
 	@ GOOS=darwin GOARCH=amd64 go build -o $@/folie-darwin-amd64
 	@ echo "  Windows 64-bit"
-	@ GOOS=windows GOARCH=amd64 go build -o $@/folie-windows-amd64
+	@ GOOS=windows GOARCH=amd64 go build -o $@/folie-windows-amd64.exe
 	@ echo "  ARMv6 32-bit"
 	@ GOOS=linux GOARCH=arm GOARM=6 go build -o $@/folie-linux-arm
 	@ echo "  Linux 32-bit"

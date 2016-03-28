@@ -19,7 +19,7 @@ var (
 	conn       *serial.Port
 	serIn      = make(chan []byte)
 	outBound   = make(chan string)
-	progress   = make(chan bool)
+	progress   = make(chan bool, 1)
 	incLevel   = make(chan int)
 
 	port = flag.String("p", "", "serial port (required: /dev/tty*, COM*, etc)")
