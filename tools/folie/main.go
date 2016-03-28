@@ -44,12 +44,16 @@ func main() {
 		if err != nil { // io.EOF, readline.ErrInterrupt
 			break
 		}
-		if strings.HasPrefix(line, "include ") {
-			doInclude(line[8:])
-		} else {
-			outBound <- line
-			<-progress
-		}
+		parseAndSend(line)
+	}
+}
+
+func parseAndSend(line string) {
+	if strings.HasPrefix(line, "include ") {
+		doInclude(line[8:])
+	} else {
+		outBound <- line
+		<-progress
 	}
 }
 
@@ -63,14 +67,15 @@ func check(err error) {
 }
 
 func serialInput() {
-	buf := make([]byte, 100)
 	for {
+		buf := make([]byte, 100)
 		n, err := conn.Read(buf)
 		check(err)
 		if n == 0 {
 			close(serIn)
 			return
 		}
+		//println("\n{{" + string(buf[:n]) + "}}")
 		serIn <- buf[:n]
 	}
 }
@@ -94,11 +99,10 @@ func serialExchange() {
 			}
 			print(string(data))
 		case line := <-outBound:
+			including := includeDepth > 0
 			// the task here is to omit "normal" output for included lines,
 			// i.e. lines which only generate an echo, a space, and " ok.\n"
 			// everything else should be echoed in full, including the input
-			including := includeDepth > 0
-			prompt := " ok.\n"
 			if len(line) > 0 {
 				serialSend(line)
 				prefix, matched := expectEcho(line, func (s string) {
@@ -112,6 +116,7 @@ func serialExchange() {
 			}
 			// now that the echo is done, send a CR and wait for the prompt
 			serialSend("\r")
+			prompt := " ok.\n"
 			prefix, matched := expectEcho(prompt, func (s string) {
 				print(line + s)
 				line = ""
@@ -130,20 +135,21 @@ func serialExchange() {
 	}
 }
 
-func expectEcho(match string, overflow func(string)) (string, bool) {
+func expectEcho(match string, flusher func(string)) (string, bool) {
 	var collected []byte
 	for {
 		data := readWithTimeout()
 		if len(data) == 0 {
 			return string(collected), false
 		}
+		//println("{{" + string(data) + "}}")
 		collected = append(collected, data...)
 		if bytes.HasSuffix(collected, []byte(match)) {
 			bytesBefore := len(collected) - len(match)
 			return string(collected[:bytesBefore]), true
 		}
 		if n := bytes.LastIndexByte(collected, '\n'); n >= 0 {
-			overflow(string(collected[:n+1]))
+			flusher(string(collected[:n+1]))
 			collected = collected[n+1:]
 		}
 	}
@@ -180,7 +186,6 @@ func doInclude(fname string) {
 			continue // don't send empty or comment-only lines
 		}
 
-		outBound <- line
-		<-progress
+		parseAndSend(line)
 	}
 }
