@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/tarm/serial"
 	"gopkg.in/readline.v1"
@@ -19,34 +21,61 @@ func check(err error) {
 }
 
 func main() {
-	rl, err := readline.NewEx(&readline.Config{
+	var err error
+	rlInstance, err = readline.NewEx(&readline.Config{
 		UniqueEditLine: true,
 	})
 	check(err)
-	rlInstance = rl
 	defer rlInstance.Close()
 
 	tty := "/dev/cu.SLAB_USBtoUART"
-	serial, err := serial.OpenPort(&serial.Config{ Name: tty, Baud: 115200 })
-	check(err);
+	serial, err := serial.OpenPort(&serial.Config{Name: tty, Baud: 115200})
+	check(err)
+
+	serIn := make(chan []byte)
+	outBound := make(chan []byte)
 
 	go func() {
 		buf := make([]byte, 128)
 		for {
 			n, err := serial.Read(buf)
-			check(err);
-			print(string(buf[:n]))
-			//rlInstance.Refresh()
+			check(err)
+			if n == 0 {
+				break
+			}
+			serIn <- buf[:n]
+		}
+		close(serIn)
+		log.Print("serIn ends")
+	}()
+
+	go func() {
+		for {
+			select {
+			case data := <-serIn:
+				if len(data) == 0 {
+					return
+				}
+				print(string(data))
+			case data := <-outBound:
+				_, err := serial.Write(data)
+				check(err)
+			}
 		}
 	}()
 
-	serial.Write([]byte("\r"))
+	outBound <- []byte("\r")
 	for {
-		line, err := rl.Readline()
+		line, err := rlInstance.Readline()
 		if err != nil { // io.EOF, readline.ErrInterrupt
 			break
 		}
-		_, err = serial.Write([]byte(line + "\r"))
-		check(err);
+		if strings.HasPrefix(line, "include ") {
+			includeFile := line[8:]
+			fmt.Printf(">>> %s\n", includeFile)
+			fmt.Printf("<<< %s\n", includeFile)
+		} else {
+			outBound <- []byte(line + "\r")
+		}
 	}
 }
