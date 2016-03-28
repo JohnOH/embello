@@ -26,13 +26,20 @@ var (
 	port   = flag.String("p", "", "serial port (required: /dev/tty*, COM*, etc)")
 	baud   = flag.Int("b", 115200, "baud rate")
 	upload = flag.String("u", "", "upload the specified firmware, then quit")
+	expand = flag.String("e", "", "expand specified file to stdout, then quit")
 )
 
 func main() {
 	flag.Parse()
 	var err error
 
-	println("Connecting to", *port)
+	// expansion does not use the serial port, it just expands include lines
+	if *expand != "" {
+		expandFile(*expand)
+		return
+	}
+
+	fmt.Println("Connecting to", *port)
 	if *port == "" {
 		flag.PrintDefaults()
 		os.Exit(1)
@@ -57,7 +64,7 @@ func main() {
 		data, err := ioutil.ReadAll(f)
 		check(err)
 
-		println("Uploading", len(data), "bytes")
+		fmt.Println("Uploading", len(data), "bytes")
 		uploadSTM32(data)
 		return
 	}
@@ -129,7 +136,7 @@ func serialExchange() {
 			if len(data) == 0 {
 				return
 			}
-			print(string(data))
+			fmt.Print(string(data))
 		case line := <-outBound:
 			including := includeDepth > 0
 			// the task here is to omit "normal" output for included lines,
@@ -138,11 +145,11 @@ func serialExchange() {
 			if len(line) > 0 {
 				serialSend(line)
 				prefix, matched := expectEcho(line, func(s string) {
-					print(s) // called to flush pending serial input lines
+					fmt.Print(s) // called to flush pending serial input lines
 				})
-				print(prefix)
+				fmt.Print(prefix)
 				if matched && !including {
-					print(line)
+					fmt.Print(line)
 					line = ""
 				}
 			}
@@ -150,14 +157,14 @@ func serialExchange() {
 			serialSend("\r")
 			prompt := " ok.\n"
 			prefix, matched := expectEcho(prompt, func(s string) {
-				print(line + s) // show original command first
+				fmt.Print(line + s) // show original command first
 				line = ""
 			})
 			if !matched {
 				prompt = ""
 			}
 			if !including || prefix != " " || !matched {
-				print(line + prefix + prompt)
+				fmt.Print(line + prefix + prompt)
 			}
 			// signal to sender that this request has been processed
 			progress <- matched
@@ -196,9 +203,9 @@ func doInclude(fname string) {
 	defer func() { incLevel <- -1 }()
 
 	lineNum := 0
-	fmt.Printf("\t>>> include %s\n", fname)
+	fmt.Printf("\\\t>>> include %s\n", fname)
 	defer func() {
-		fmt.Printf("\t<<<<<<<<<<< %s (%d lines)\n", fname, lineNum)
+		fmt.Printf("\\\t<<<<<<<<<<< %s (%d lines)\n", fname, lineNum)
 	}()
 
 	f, err := os.Open(fname)
@@ -214,9 +221,26 @@ func doInclude(fname string) {
 
 		s := strings.TrimLeft(line, " ")
 		if s == "" || strings.HasPrefix(s, "\\ ") {
-			continue // don't send empty or comment-only lines
+			if len(*expand) == 0 {
+				continue // don't send empty or comment-only lines
+			}
 		}
 
 		parseAndSend(line)
 	}
+}
+
+func expandFile(fname string) {
+	go func() {
+		for line := range outBound {
+			fmt.Println(line)
+			progress <- true
+		}
+	}()
+
+	go func() {
+		for range incLevel {}
+	}()
+
+	doInclude(fname)
 }
