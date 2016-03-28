@@ -2,7 +2,7 @@
 
 The **Fo**rth **Li**ne **E**valuator is a serial terminal interface for Mecrisp Forth:
 
-* connects to an embedded µC over serial
+* connects as terminal console to an embedded µC over serial
 * line entry: each line is sent out over serial, and output displayed back
 * command history: uses [readline][RL] to edit and re-send previous commands
 * include files: each line of the form "`include <filename>`" is processed  
