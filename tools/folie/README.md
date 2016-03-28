@@ -14,7 +14,7 @@ The **Fo**rth **Li**ne **E**valuator is a serial terminal interface for Mecrisp 
 ### Installation
 
 The latest binaries can be found in the release area on [GitHub][GH].  
-Alternately, get the [source code][SC] and run `make` from `tools/folie/`.
+Alternately, get the [source code][SC] and run `make app` from `tools/folie/`.
 
 ### Windows
 
@@ -35,7 +35,7 @@ Launch as "`folie -p /dev/ttyAMA0`" or whatever the device name is.
 * `ctrl-e` - go to end of line
 * `up-arrow`, `ctrl-p` - previous command in history
 * `down-arrow`, `ctrl-n` - next command in history
-* `ctrl-r`, `ctrl-s` - backward / forward history search
+* `ctrl-r` / `ctrl-s` - backward / forward history search
 * `ctrl-c`, `ctrl-d` - exit Folie
 
 See the [readline]() page for a complete list of all the supported shortcuts.
