@@ -98,24 +98,27 @@ func serialExchange() {
 			// i.e. lines which only generate an echo, a space, and " ok.\n"
 			// everything else should be echoed in full, including the input
 			including := includeDepth > 0
+			prompt := " ok.\n"
 			if len(line) > 0 {
 				serialSend(line)
-				prefix, _ := expectEcho(line)
+				prefix, matched := expectEcho(line)
 				print(prefix)
-				if !including {
+				if matched && !including {
 					print(line)
+					line = ""
 				}
 			}
+			// now that the echo is done, send a CR and wait for the prompt
 			serialSend("\r")
-			prefix, _ := expectEcho(" ok.\n")
-			if including && prefix != " " {
-				print(line)
+			prefix, matched := expectEcho(prompt)
+			if !matched {
+				prompt = ""
 			}
-			print(prefix)
-			if !including || prefix != " " {
-				print(" ok.\n")
+			if !including || prefix != " " || !matched {
+				print(line + prefix + prompt)
 			}
-			progress <- true
+			// signal to sender that this request has been processed
+			progress <- matched
 		case n := <-incLevel:
 			includeDepth += n
 		}
