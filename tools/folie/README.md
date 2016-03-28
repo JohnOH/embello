@@ -9,6 +9,7 @@ The **Fo**rth **Li**ne **E**valuator is a serial terminal interface for [Mecrisp
   as a request to send the contents of that file as if it had been typed in
 * nested includes: `include` lines found inside are also processed recursively
 * throttling: each line waits for an "`ok.`" prompt before sending the next one
+* firmware uploads: allows erasing an STM32F1 chip and uploading new firmware
 * the default baud rate is 115200, see `folie -help` for a list of options
 
 ### Installation
@@ -45,13 +46,14 @@ See the [readline]() page for a complete list of all the supported shortcuts.
 
 ### Firmware uploads
 
-When started with the `-u` option, you can also upload a firmware image into  
-an STM32F103 chip, using its built-in boot ROM protocol. For example:
+When started with the `-u` option, Folie will try to upload a firmware image  
+into an STM32F103 chip, using its built-in boot ROM protocol. For example:
 
     folie -p <port> -u mecrisp-stellaris-stm32f103.bin
 
 To use this mode, the chip needs to be placed in "boot mode", i.e. reset with  
-the `BOOT0` pin tied high (this differs for each board, it's usually a jumper).
+the `BOOT0` pin tied high (this differs for each board, it's often a jumper).  
+Note that the chip's flash contents will be _completely_ erased and replaced!
 
 When done: restore the jumper, press reset, and re-launch without `-u` flag.
 
