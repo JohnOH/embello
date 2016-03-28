@@ -22,7 +22,7 @@ builds:
 	@ echo; ls -l builds/*; echo
 
 clean:
-	rm -f msend builds
+	rm -rf msend builds
 
 .PHONY: test msend builds clean
 
