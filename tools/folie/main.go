@@ -203,9 +203,9 @@ func doInclude(fname string) {
 	defer func() { incLevel <- -1 }()
 
 	lineNum := 0
-	fmt.Printf("\\\t>>> include %s\n", fname)
+	fmt.Printf("\\       >>> include %s\n", fname)
 	defer func() {
-		fmt.Printf("\\\t<<<<<<<<<<< %s (%d lines)\n", fname, lineNum)
+		fmt.Printf("\\       <<<<<<<<<<< %s (%d lines)\n", fname, lineNum)
 	}()
 
 	f, err := os.Open(fname)
@@ -230,7 +230,7 @@ func doInclude(fname string) {
 	}
 }
 
-func expandFile(fname string) {
+func expandFile(names string) {
 	go func() {
 		for line := range outBound {
 			fmt.Println(line)
@@ -242,5 +242,7 @@ func expandFile(fname string) {
 		for range incLevel {}
 	}()
 
-	doInclude(fname)
+	for _, fname := range strings.Split(names, ",") {
+		doInclude(fname)
+	}
 }
