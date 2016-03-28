@@ -30,18 +30,19 @@ Launch as "`folie -p /dev/ttyAMA0`" or whatever the device name is.
 
 ### Keyboard shortcuts
 
-* `up-arrow`, `ctrl-p` - previous command in history
-* `down-arrow`, `ctrl-n` - next command in history
+* `return` - send command to remote µC
 * `ctrl-a` - go to start of line
 * `ctrl-e` - go to end of line
-* `return` - send command
+* `up-arrow`, `ctrl-p` - previous command in history
+* `down-arrow`, `ctrl-n` - next command in history
+* `ctrl-r`, `ctrl-s` - backward / forward history search
 * `ctrl-c`, `ctrl-d` - exit Folie
 
 See the [readline]() page for a complete list of all the supported shortcuts.
 
 ### Known problem
 
-The last lines can get messed up when using the up/down arrow keys.
+The last output line(s) can get overwritten when using history search.
 
 ### License
 
