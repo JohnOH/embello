@@ -40,6 +40,7 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
+	println("Connecting...", *port)
 	conn, err = serial.OpenPort(&serial.Config{Name: *port, Baud: *baud})
 	check(err)
 
