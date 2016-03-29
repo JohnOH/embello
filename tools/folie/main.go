@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/tarm/serial"
-	"github.com/chzyer/readline"
+	"gopkg.in/readline.v1"
 )
 
 var (
@@ -70,22 +70,15 @@ func main() {
 
 	go serialExchange()
 
-	done := make(chan struct{})
-
-	go func() {
-		outBound <- ""
-		<-progress
-		for {
-			line, err := rlInstance.Readline()
-			if err != nil { // io.EOF, readline.ErrInterrupt
-				close(done)
-				break
-			}
-			parseAndSend(line)
+	outBound <- ""
+	<-progress
+	for {
+		line, err := rlInstance.Readline()
+		if err != nil { // io.EOF, readline.ErrInterrupt
+			break
 		}
-	}()
-
-	<-done  // waits forever
+		parseAndSend(line)
+	}
 }
 
 func parseAndSend(line string) {
