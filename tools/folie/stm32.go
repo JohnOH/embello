@@ -48,9 +48,9 @@ func uploadSTM32(fname string, data []byte) {
 	massErase()
 	fmt.Println("OK")
 
-    fmt.Print("   Uploading: ");
+	fmt.Print("   Uploading: ")
 	writeFlash(data)
-    fmt.Println(" OK")
+	fmt.Println(" OK")
 }
 
 func getReply() uint8 {
@@ -139,24 +139,24 @@ func massErase() {
 }
 
 func writeFlash(data []byte) {
-	for len(data) % 256 != 0 {
+	for len(data)%256 != 0 {
 		data = append(data, 0xFF)
 	}
 	for offset := 0; offset < len(data); offset += 256 {
 		fmt.Print("+")
-        sendCmd(WRITE_CMD)
-        addr := 0x08000000 + offset
-        sendByte(uint8(addr >> 24))
-        sendByte(uint8(addr >> 16))
-        sendByte(uint8(addr >> 8))
-        sendByte(uint8(addr))
-        sendByte(checkSum)
-        wantAck()
-        sendByte(256-1)
-        for i := 0; i < 256; i++ {
-            sendByte(data[offset+i])
+		sendCmd(WRITE_CMD)
+		addr := 0x08000000 + offset
+		sendByte(uint8(addr >> 24))
+		sendByte(uint8(addr >> 16))
+		sendByte(uint8(addr >> 8))
+		sendByte(uint8(addr))
+		sendByte(checkSum)
+		wantAck()
+		sendByte(256 - 1)
+		for i := 0; i < 256; i++ {
+			sendByte(data[offset+i])
 		}
-        sendByte(checkSum)
-        wantAck()
-    }
+		sendByte(checkSum)
+		wantAck()
+	}
 }

@@ -65,8 +65,12 @@ func main() {
 		data, err := ioutil.ReadAll(f)
 		check(err)
 
-		if bytes.HasPrefix(data, []byte{':'}) {
-			data = hexToBin(data)
+		// convert to binary if first bytes look like they are ihex format
+		if len(data) > 11 && data[0] == ':' {
+			_, err = hex.DecodeString(string(data[1:11]))
+			if err == nil {
+				data = hexToBin(data)
+			}
 		}
 
 		uploadSTM32(*upload, data)
@@ -243,7 +247,8 @@ func expandFile(names string) {
 	}()
 
 	go func() {
-		for range incLevel {}
+		for range incLevel {
+		}
 	}()
 
 	for _, fname := range strings.Split(names, ",") {
