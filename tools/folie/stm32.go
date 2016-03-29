@@ -57,7 +57,9 @@ func getReply() uint8 {
 		return 0
 	}
 	b := pending[0]
-	//fmt.Printf("<%2x", b)
+	if (*verbose) {
+		fmt.Printf("<%2x", b)
+	}
 	pending = pending[1:]
 	return b
 }
@@ -87,7 +89,9 @@ func wantAck() {
 }
 
 func sendByte(b uint8) {
-	//fmt.Printf(">%2x", b)
+	if *verbose {
+		fmt.Printf(">%2x", b)
+	}
 	conn.Write([]byte{b})
 	checkSum ^= b
 }

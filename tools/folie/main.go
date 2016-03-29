@@ -25,10 +25,11 @@ var (
 	progress   = make(chan bool, 1)
 	incLevel   = make(chan int)
 
-	port   = flag.String("p", "", "serial port (required: /dev/tty* or COM*)")
-	baud   = flag.Int("b", 115200, "baud rate")
-	upload = flag.String("u", "", "upload the specified firmware, then quit")
-	expand = flag.String("e", "", "expand specified file to stdout, then quit")
+	port    = flag.String("p", "", "serial port (required: /dev/tty* or COM*)")
+	baud    = flag.Int("b", 115200, "baud rate")
+	upload  = flag.String("u", "", "upload the specified firmware, then quit")
+	expand  = flag.String("e", "", "expand specified file to stdout, then quit")
+	verbose = flag.Bool("v", false, "verbose output, for debugging only")
 )
 
 func main() {
