@@ -25,7 +25,7 @@ var (
 	progress   = make(chan bool, 1)
 	incLevel   = make(chan int)
 
-	port   = flag.String("p", "", "serial port (required: /dev/tty*, COM*, etc)")
+	port   = flag.String("p", "", "serial port (required: /dev/tty* or COM*)")
 	baud   = flag.Int("b", 115200, "baud rate")
 	upload = flag.String("u", "", "upload the specified firmware, then quit")
 	expand = flag.String("e", "", "expand specified file to stdout, then quit")
@@ -37,7 +37,7 @@ func main() {
 
 	// expansion does not use the serial port, it just expands include lines
 	if *expand != "" {
-		expandFile(*expand)
+		expandFile()
 		return
 	}
 
@@ -56,31 +56,9 @@ func main() {
 
 	go serialInput() // feed the serIn channel
 
+	// firmware upload uses serial in a different way, needs to quit when done
 	if *upload != "" {
-		f, err := os.Open(*upload)
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer f.Close()
-
-		data, err := ioutil.ReadAll(f)
-		check(err)
-
-		// convert to binary if first bytes look like they are in hex format
-		tag := ""
-		if len(data) > 11 && data[0] == ':' {
-			_, err = hex.DecodeString(string(data[1:11]))
-			if err == nil {
-				data = hexToBin(data)
-				tag = " (converted from Intel HEX)"
-			}
-		}
-
-		fmt.Printf("        File: %s\n", *upload)
-		fmt.Printf("       Count: %d bytes%s\n", len(data), tag)
-		fmt.Printf("    Checksum: %08x hex\n", crc32.ChecksumIEEE(data))
-
-		uploadSTM32(data)
+		firmwareUpload()
 		return
 	}
 
@@ -245,7 +223,7 @@ func doInclude(fname string) {
 	}
 }
 
-func expandFile(names string) {
+func expandFile() {
 	go func() {
 		for line := range outBound {
 			fmt.Println(line)
@@ -258,7 +236,7 @@ func expandFile(names string) {
 		}
 	}()
 
-	for _, fname := range strings.Split(names, ",") {
+	for _, fname := range strings.Split(*expand, ",") {
 		doInclude(fname)
 	}
 }
@@ -289,4 +267,31 @@ func hexToBin(data []byte) []byte {
 		bin = append(bin, bytes[4:4+length]...)
 	}
 	return bin
+}
+
+func firmwareUpload() {
+	f, err := os.Open(*upload)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer f.Close()
+
+	data, err := ioutil.ReadAll(f)
+	check(err)
+
+	// convert to binary if first bytes look like they are in hex format
+	tag := ""
+	if len(data) > 11 && data[0] == ':' {
+		_, err = hex.DecodeString(string(data[1:11]))
+		if err == nil {
+			data = hexToBin(data)
+			tag = " (converted from Intel HEX)"
+		}
+	}
+
+	fmt.Printf("        File: %s\n", *upload)
+	fmt.Printf("       Count: %d bytes%s\n", len(data), tag)
+	fmt.Printf("    Checksum: %08x hex\n", crc32.ChecksumIEEE(data))
+
+	uploadSTM32(data)
 }
