@@ -31,6 +31,7 @@ var (
 	expand  = flag.String("e", "", "expand specified file to stdout, then quit")
 	verbose = flag.Bool("v", false, "verbose output, for debugging only")
 	capture = flag.String("c", "", "a file where captured output is appended")
+	timeout = flag.Duration("t", 500 * time.Millisecond, "serial echo timeout")
 )
 
 func main() {
@@ -43,8 +44,7 @@ func main() {
 		return
 	}
 
-	fmt.Println("Connecting to", *port)
-	if *port == "" {
+	if *port == "" || flag.NArg() > 0 {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
@@ -55,6 +55,7 @@ func main() {
 	conn, err = serial.OpenPort(&config)
 	check(err)
 	//defer conn.Close()
+	fmt.Println("Connected to:", *port)
 
 	go serialInput() // feed the serIn channel
 
@@ -72,8 +73,10 @@ func main() {
 
 	go serialExchange()
 
-	outBound <- ""
-	<-progress
+	// don't interfere with whatever is running, so don't send a return here:
+	//outBound <- ""
+	//<-progress
+
 	for {
 		line, err := rlInstance.Readline()
 		if err != nil { // io.EOF, readline.ErrInterrupt
@@ -108,6 +111,7 @@ func serialInput() {
 		opts := os.O_WRONLY | os.O_APPEND | os.O_CREATE
 		f, err = os.OpenFile(*capture, opts, 0666)
 		check(err)
+		defer f.Close()
 	}
 	for {
 		buf := make([]byte, 100)
@@ -128,7 +132,7 @@ func readWithTimeout() []byte {
 	select {
 	case data := <-serIn:
 		return data
-	case <-time.After(500 * time.Millisecond):
+	case <-time.After(*timeout):
 		return nil
 	}
 }
@@ -137,11 +141,13 @@ func serialExchange() {
 	depth := 0
 	for {
 		select {
+
 		case data := <-serIn:
 			if len(data) == 0 {
 				return
 			}
 			fmt.Print(string(data))
+
 		case line := <-outBound:
 			immediate := depth == 0
 			// the task here is to omit "normal" output for included lines,
@@ -173,6 +179,7 @@ func serialExchange() {
 			}
 			// signal to sender that this request has been processed
 			progress <- matched
+
 		case n := <-incLevel:
 			depth += n
 		}
