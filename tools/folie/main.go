@@ -30,6 +30,7 @@ var (
 	upload  = flag.String("u", "", "upload the specified firmware, then quit")
 	expand  = flag.String("e", "", "expand specified file to stdout, then quit")
 	verbose = flag.Bool("v", false, "verbose output, for debugging only")
+	capture = flag.String("c", "", "a file where captured output is appended")
 )
 
 func main() {
@@ -101,6 +102,13 @@ func check(err error) {
 }
 
 func serialInput() {
+	var f *os.File
+	if *capture != "" {
+		var err error
+		opts := os.O_WRONLY | os.O_APPEND | os.O_CREATE
+		f, err = os.OpenFile(*capture, opts, 0666)
+		check(err)
+	}
 	for {
 		buf := make([]byte, 100)
 		n, err := conn.Read(buf)
@@ -108,6 +116,9 @@ func serialInput() {
 		if n == 0 {
 			close(serIn)
 			return
+		}
+		if f != nil {
+			f.Write(buf[:n])
 		}
 		serIn <- buf[:n]
 	}
