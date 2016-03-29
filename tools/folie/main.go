@@ -155,7 +155,7 @@ func serialExchange() {
 			// everything else should be echoed in full, including the input
 			if len(line) > 0 {
 				serialSend(line)
-				prefix, matched := expectEcho(line, immediate, func(s string) {
+				prefix, matched := expectEcho(line, false, func(s string) {
 					fmt.Print(s) // called to flush pending serial input lines
 				})
 				fmt.Print(prefix)
