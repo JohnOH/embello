@@ -70,15 +70,22 @@ func main() {
 
 	go serialExchange()
 
-	outBound <- ""
-	<-progress
-	for {
-		line, err := rlInstance.Readline()
-		if err != nil { // io.EOF, readline.ErrInterrupt
-			break
+	done := make(chan struct{})
+
+	go func() {
+		outBound <- ""
+		<-progress
+		for {
+			line, err := rlInstance.Readline()
+			if err != nil { // io.EOF, readline.ErrInterrupt
+				close(done)
+				break
+			}
+			parseAndSend(line)
 		}
-		parseAndSend(line)
-	}
+	}()
+
+	<-done  // waits forever
 }
 
 func parseAndSend(line string) {
