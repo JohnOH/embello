@@ -22,6 +22,8 @@ Alternately, get the [source code][SC] and run `make app` from `tools/folie/`.
 Download, uncompress, and rename to "`folie.exe`".  
 Launch as "`folie -p COM3`", assuming the board is connected to COM3.  
 
+_Warning: the Prolific PL2303 USB serial adapters may not work... (TODO)_
+
 ### Mac OSX
 
 Download, uncompress, rename to "`folie`", and do a "`chmod +x folie`".  
@@ -57,9 +59,10 @@ Note that the chip's flash contents will be _completely_ erased and replaced!
 
 When done: restore the jumper, press reset, and re-launch without `-u` flag.
 
-### Known problem
+### Known problems
 
-The last output line(s) can get overwritten when using history search.
+The last output line(s) can get overwritten when using history search.  
+Under Windows, Prolific PL2303 chips are causing deadlocks - no idea why.
 
 ### License
 
