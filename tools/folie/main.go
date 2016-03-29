@@ -88,7 +88,9 @@ func main() {
 
 func parseAndSend(line string) {
 	if strings.HasPrefix(line, "include ") {
-		doInclude(line[8:])
+		for _, fname := range strings.Split(line[8:], " ") {
+			doInclude(fname)
+		}
 	} else {
 		outBound <- line
 		<-progress
@@ -211,6 +213,10 @@ func serialSend(data string) {
 }
 
 func doInclude(fname string) {
+	if fname == "" {
+		return  // silently ignore empty files
+	}
+
 	incLevel <- +1
 	defer func() { incLevel <- -1 }()
 
