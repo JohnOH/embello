@@ -123,7 +123,7 @@ func readWithTimeout() []byte {
 }
 
 func serialExchange() {
-	includeDepth := 0
+	depth := 0
 	for {
 		select {
 		case data := <-serIn:
@@ -132,17 +132,16 @@ func serialExchange() {
 			}
 			fmt.Print(string(data))
 		case line := <-outBound:
-			including := includeDepth > 0
 			// the task here is to omit "normal" output for included lines,
 			// i.e. lines which only generate an echo, a space, and " ok.\n"
 			// everything else should be echoed in full, including the input
 			if len(line) > 0 {
 				serialSend(line)
-				prefix, matched := expectEcho(line, func(s string) {
+				prefix, matched := expectEcho(line, depth, func(s string) {
 					fmt.Print(s) // called to flush pending serial input lines
 				})
 				fmt.Print(prefix)
-				if matched && !including {
+				if matched && depth == 0 {
 					fmt.Print(line)
 					line = ""
 				}
@@ -150,25 +149,25 @@ func serialExchange() {
 			// now that the echo is done, send a CR and wait for the prompt
 			serialSend("\r")
 			prompt := " ok.\n"
-			prefix, matched := expectEcho(prompt, func(s string) {
+			prefix, matched := expectEcho(prompt, depth, func(s string) {
 				fmt.Print(line + s) // show original command first
 				line = ""
 			})
 			if !matched {
 				prompt = ""
 			}
-			if !including || prefix != " " || !matched {
+			if depth == 0 || prefix != " " || !matched {
 				fmt.Print(line + prefix + prompt)
 			}
 			// signal to sender that this request has been processed
 			progress <- matched
 		case n := <-incLevel:
-			includeDepth += n
+			depth += n
 		}
 	}
 }
 
-func expectEcho(match string, flusher func(string)) (string, bool) {
+func expectEcho(match string, depth int, flusher func(string)) (string, bool) {
 	var collected []byte
 	for {
 		data := readWithTimeout()
@@ -179,6 +178,9 @@ func expectEcho(match string, flusher func(string)) (string, bool) {
 		if bytes.HasSuffix(collected, []byte(match)) {
 			bytesBefore := len(collected) - len(match)
 			return string(collected[:bytesBefore]), true
+		}
+		if depth == 0 {
+			return string(collected), false
 		}
 		if n := bytes.LastIndexByte(collected, '\n'); n >= 0 {
 			flusher(string(collected[:n+1]))

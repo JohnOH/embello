@@ -14,6 +14,7 @@ const (
 	WRITE_CMD  = 0x31
 	ERASE_CMD  = 0x43
 	EXTERA_CMD = 0x44
+	WRUNP_CMD  = 0x73
 	RDUNP_CMD  = 0x92
 )
 
@@ -40,6 +41,15 @@ func uploadSTM32(data []byte) {
 	connectToTarget()
 	fmt.Println(" OK")
 
+	//fmt.Print(" WR-unprotect: ")
+	//sendCmd(WRUNP_CMD)
+	//wantAck()
+	//fmt.Println("OK")
+
+	//fmt.Print("      Resume: ")
+	//connectToTarget()
+	//fmt.Println(" OK")
+
 	fmt.Print("  Mass erase: ")
 	massErase()
 	fmt.Println("OK")
@@ -58,7 +68,7 @@ func getReply() uint8 {
 	}
 	b := pending[0]
 	if (*verbose) {
-		fmt.Printf("<%2x", b)
+		fmt.Printf("<%02x", b)
 	}
 	pending = pending[1:]
 	return b
@@ -66,14 +76,17 @@ func getReply() uint8 {
 
 func connectToTarget() {
 	for {
-		time.Sleep(time.Second)
 		conn.Flush()
 		fmt.Print(".") // auto-baud greeting
-		conn.Write([]byte{0x7F})
+		sendByte(0x7F)
 		r := getReply()
 		if r == ACK || r == NAK {
+			if r == ACK {
+				fmt.Print("+")
+			}
 			break
 		}
+		time.Sleep(time.Second)
 	}
 	// got a valid reply
 }
@@ -81,8 +94,7 @@ func connectToTarget() {
 func wantAck() {
 	r := getReply()
 	if r != ACK {
-		fmt.Println()
-		fmt.Println("failed:", r)
+		fmt.Printf("\nFailed: %02x\n", r)
 		os.Exit(1)
 	}
 	checkSum = 0
@@ -90,13 +102,16 @@ func wantAck() {
 
 func sendByte(b uint8) {
 	if *verbose {
-		fmt.Printf(">%2x", b)
+		fmt.Printf(">%02x", b)
 	}
 	conn.Write([]byte{b})
 	checkSum ^= b
 }
 
 func sendCmd(cmd uint8) {
+	//getReply()  // get rid of pending data
+	conn.Flush()
+	pending = nil
 	sendByte(cmd)
 	sendByte(^cmd)
 	wantAck()
@@ -158,5 +173,6 @@ func writeFlash(data []byte) {
 		}
 		sendByte(checkSum)
 		wantAck()
+		*verbose = false  // verbose mode off after one write, to reduce output
 	}
 }
