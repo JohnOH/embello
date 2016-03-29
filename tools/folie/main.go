@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/tarm/serial"
-	"gopkg.in/readline.v1"
+	"github.com/chzyer/readline"
 )
 
 var (
