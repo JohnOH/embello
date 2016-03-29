@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"hash/crc32"
 	"os"
 	"time"
 )
@@ -20,29 +21,34 @@ const (
 var (
 	checkSum uint8
 	pending  []byte
+	extended bool
 )
 
-func uploadSTM32(data []byte) {
+func uploadSTM32(fname string, data []byte) {
+	fmt.Printf("        File: %s\n", fname)
+	fmt.Printf("       Count: %d bytes\n", len(data))
+	fmt.Printf("    Checksum: %08x hex\n", crc32.ChecksumIEEE(data))
+	fmt.Print(" Synchronise: ")
 	connectToTarget()
-	fmt.Println("OK")
+	fmt.Println(" OK")
 
-	fmt.Printf("Boot version: %02x\n", getBootVersion())
-	fmt.Printf("Chip type: %04x\n", getChipType())
+	fmt.Printf(" Boot loader: %02x hex\n", getBootVersion())
+	fmt.Printf("   Chip type: %04x hex\n", getChipType())
 
-	fmt.Print("Unprotect: ")
+	fmt.Print("   Unprotect: ")
 	sendCmd(RDUNP_CMD)
 	wantAck()
 	fmt.Println("OK")
 
-	fmt.Print("Resuming: ")
+	fmt.Print("      Resume: ")
 	connectToTarget()
-	fmt.Println("OK")
+	fmt.Println(" OK")
 
-	fmt.Print("Mass erase: ")
+	fmt.Print("  Mass erase: ")
 	massErase()
 	fmt.Println("OK")
 
-    fmt.Print("Writing: ");
+    fmt.Print("   Uploading: ");
 	writeFlash(data)
     fmt.Println(" OK")
 }
@@ -55,6 +61,7 @@ func getReply() uint8 {
 		return 0
 	}
 	b := pending[0]
+	//fmt.Printf("<%2x", b)
 	pending = pending[1:]
 	return b
 }
@@ -62,7 +69,7 @@ func getReply() uint8 {
 func connectToTarget() {
 	for {
 		conn.Flush()
-		fmt.Print("?") // auto-baud greeting
+		fmt.Print(".") // auto-baud greeting
 		conn.Write([]byte{0x7F})
 		r := getReply()
 		if r == ACK || r == NAK {
@@ -70,7 +77,7 @@ func connectToTarget() {
 		}
 		time.Sleep(time.Second)
 	}
-	fmt.Print("! ") // got a valid reply
+	// got a valid reply
 }
 
 func wantAck() {
@@ -84,6 +91,7 @@ func wantAck() {
 }
 
 func sendByte(b uint8) {
+	//fmt.Printf(">%2x", b)
 	conn.Write([]byte{b})
 	checkSum ^= b
 }
@@ -99,7 +107,9 @@ func getBootVersion() uint8 {
 	n := getReply()
 	rev := getReply()
 	for i := 0; i < int(n); i++ {
-		getReply()
+		if getReply() == EXTERA_CMD {
+			extended = true
+		}
 	}
 	wantAck()
 	return rev
@@ -115,18 +125,17 @@ func getChipType() uint16 {
 }
 
 func massErase() {
-	if true {
-		sendCmd(ERASE_CMD)
-		sendByte(0xFF)
-		sendByte(0x00)
-		wantAck()
-	} else {
+	if extended {
 		sendCmd(EXTERA_CMD)
 		sendByte(0xFF)
 		sendByte(0xFF)
 		sendByte(0xFF)
-		wantAck()
+	} else {
+		sendCmd(ERASE_CMD)
+		sendByte(0xFF)
+		sendByte(0x00)
 	}
+	wantAck()
 }
 
 func writeFlash(data []byte) {

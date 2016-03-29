@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -64,8 +65,11 @@ func main() {
 		data, err := ioutil.ReadAll(f)
 		check(err)
 
-		fmt.Println("Uploading", len(data), "bytes")
-		uploadSTM32(data)
+		if bytes.HasPrefix(data, []byte{':'}) {
+			data = hexToBin(data)
+		}
+
+		uploadSTM32(*upload, data)
 		return
 	}
 
@@ -245,4 +249,32 @@ func expandFile(names string) {
 	for _, fname := range strings.Split(names, ",") {
 		doInclude(fname)
 	}
+}
+
+func hexToBin(data []byte) []byte {
+	var bin []byte
+	for _, line := range strings.Split(string(data), "\n") {
+		if strings.HasSuffix(line, "\r") {
+			line = line[:len(line)-1]
+		}
+		if len(line) == 0 {
+			continue
+		}
+		if line[0] != ':' || len(line) < 11 {
+			fmt.Println("Not ihex format:", line)
+			os.Exit(1)
+		}
+		bytes, err := hex.DecodeString(line[1:])
+		check(err)
+		if bytes[3] != 0x00 {
+			continue
+		}
+		offset := (int(bytes[1]) << 8) + int(bytes[2])
+		length := bytes[0]
+		for offset < len(bin) {
+			bin = append(bin, 0xFF)
+		}
+		bin = append(bin, bytes[4:4+length]...)
+	}
+	return bin
 }
