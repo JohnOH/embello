@@ -64,6 +64,7 @@ func getReply() uint8 {
 
 func connectToTarget() {
 	for {
+		time.Sleep(time.Second)
 		conn.Flush()
 		fmt.Print(".") // auto-baud greeting
 		conn.Write([]byte{0x7F})
@@ -71,7 +72,6 @@ func connectToTarget() {
 		if r == ACK || r == NAK {
 			break
 		}
-		time.Sleep(time.Second)
 	}
 	// got a valid reply
 }
