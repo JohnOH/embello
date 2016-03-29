@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"hash/crc32"
 	"os"
 	"time"
 )
@@ -24,10 +23,7 @@ var (
 	extended bool
 )
 
-func uploadSTM32(fname string, data []byte) {
-	fmt.Printf("        File: %s\n", fname)
-	fmt.Printf("       Count: %d bytes\n", len(data))
-	fmt.Printf("    Checksum: %08x hex\n", crc32.ChecksumIEEE(data))
+func uploadSTM32(data []byte) {
 	fmt.Print(" Synchronise: ")
 	connectToTarget()
 	fmt.Println(" OK")

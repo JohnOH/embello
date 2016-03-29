@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"hash/crc32"
 	"io/ioutil"
 	"log"
 	"os"
@@ -65,15 +66,21 @@ func main() {
 		data, err := ioutil.ReadAll(f)
 		check(err)
 
-		// convert to binary if first bytes look like they are ihex format
+		// convert to binary if first bytes look like they are in hex format
+		tag := ""
 		if len(data) > 11 && data[0] == ':' {
 			_, err = hex.DecodeString(string(data[1:11]))
 			if err == nil {
 				data = hexToBin(data)
+				tag = " (converted from Intel HEX)"
 			}
 		}
 
-		uploadSTM32(*upload, data)
+		fmt.Printf("        File: %s\n", *upload)
+		fmt.Printf("       Count: %d bytes%s\n", len(data), tag)
+		fmt.Printf("    Checksum: %08x hex\n", crc32.ChecksumIEEE(data))
+
+		uploadSTM32(data)
 		return
 	}
 
