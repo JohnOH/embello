@@ -74,7 +74,7 @@ func main() {
 	go serialExchange()
 
 	conn.Flush()
-	readWithTimeout()  // get rid of partial pending data
+	readWithTimeout() // get rid of partial pending data
 	for {
 		line, err := rlInstance.Readline()
 		if err != nil { // io.EOF, readline.ErrInterrupt

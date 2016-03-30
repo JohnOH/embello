@@ -18,6 +18,19 @@ const (
 	RDUNP_CMD  = 0x92
 )
 
+var deviceMap = map[uint16]string{
+	0x410: "STM32F1, performance, medium-density",
+	0x411: "STM32F2",
+	0x412: "STM32F1, performance, low-density",
+	0x413: "STM32F4",
+	0x414: "STM32F1, performance, high-density",
+	0x416: "STM32L1, performance, medium-density",
+	0x418: "STM32F1, connectivity",
+	0x420: "STM32F1, value, medium-density",
+	0x428: "STM32F1, value, high-density",
+	0x430: "STM32F1, performance, XL-density",
+}
+
 var (
 	checkSum uint8
 	pending  []byte
@@ -30,7 +43,13 @@ func uploadSTM32(data []byte) {
 	fmt.Println(" OK")
 
 	fmt.Printf(" Boot loader: %02x hex\n", getBootVersion())
-	fmt.Printf("   Chip type: %04x hex\n", getChipType())
+
+	chip := getChipType()
+	desc := ""
+	if s, ok := deviceMap[chip]; ok {
+		desc = " - " + s
+	}
+	fmt.Printf("   Chip type: %04x hex%s\n", chip, desc)
 
 	fmt.Print("   Unprotect: ")
 	sendCmd(RDUNP_CMD)
