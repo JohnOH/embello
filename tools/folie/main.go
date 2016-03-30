@@ -287,7 +287,7 @@ func hexToBin(data []byte) []byte {
 		}
 		offset := (int(bytes[1]) << 8) + int(bytes[2])
 		length := bytes[0]
-		for offset < len(bin) {
+		for offset > len(bin) {
 			bin = append(bin, 0xFF)
 		}
 		bin = append(bin, bytes[4:4+length]...)
