@@ -67,7 +67,7 @@ func getReply() uint8 {
 		return 0
 	}
 	b := pending[0]
-	if (*verbose) {
+	if *verbose {
 		fmt.Printf("<%02x", b)
 	}
 	pending = pending[1:]
@@ -173,6 +173,6 @@ func writeFlash(data []byte) {
 		}
 		sendByte(checkSum)
 		wantAck()
-		*verbose = false  // verbose mode off after one write, to reduce output
+		*verbose = false // verbose mode off after one write, to reduce output
 	}
 }

@@ -31,7 +31,7 @@ var (
 	expand  = flag.String("e", "", "expand specified file to stdout, then quit")
 	verbose = flag.Bool("v", false, "verbose output, for debugging only")
 	capture = flag.String("c", "", "a file where captured output is appended")
-	timeout = flag.Duration("t", 500 * time.Millisecond, "serial echo timeout")
+	timeout = flag.Duration("t", 500*time.Millisecond, "serial echo timeout")
 )
 
 func main() {
@@ -72,10 +72,6 @@ func main() {
 	defer rlInstance.Close()
 
 	go serialExchange()
-
-	// don't interfere with whatever is running, so don't send a return here:
-	//outBound <- ""
-	//<-progress
 
 	for {
 		line, err := rlInstance.Readline()
@@ -214,7 +210,7 @@ func serialSend(data string) {
 
 func doInclude(fname string) {
 	if fname == "" {
-		return  // silently ignore empty files
+		return // silently ignore empty files
 	}
 
 	incLevel <- +1
