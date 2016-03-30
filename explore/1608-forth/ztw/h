@@ -30,9 +30,9 @@ PC13 constant LED
   -jtag  \ disable JTAG, we only need SWD
   OMODE-PP LED io-mode!
   72MHz
-  flash-kb . ." KB <mrn> " hwid hex. cr
+  flash-kb . ." KB <ztw> " hwid hex. cr
   1000 systick-hz
 ;
 
-cornerstone <<<hal-mrn>>>
+cornerstone <<<hal-ztw>>>
 \ vim: set ft=forth :

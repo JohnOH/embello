@@ -149,7 +149,7 @@ decimal align
   42 variable rf69.group
 8686 variable rf69.freq
 
-: rf69-go ( -- )  \ init RFM69 and report incoming packets until key press
+: rf69-listen ( -- )  \ init RFM69 and report incoming packets until key press
   rf69.group @ rf69.freq @ rf-init cr
   begin
     rf-recv ?dup if
@@ -172,4 +172,8 @@ decimal align
     loop
   $10 +loop ;
 
+: rf69-txtest ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
+
+\ rf69.
 \ rf69-listen
+\ 12345 rf69-txtest
