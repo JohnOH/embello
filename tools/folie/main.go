@@ -73,6 +73,8 @@ func main() {
 
 	go serialExchange()
 
+	conn.Flush()
+	readWithTimeout()  // get rid of partial pending data
 	for {
 		line, err := rlInstance.Readline()
 		if err != nil { // io.EOF, readline.ErrInterrupt
@@ -112,7 +114,7 @@ func serialInput() {
 		defer f.Close()
 	}
 	for {
-		buf := make([]byte, 100)
+		buf := make([]byte, 600)
 		n, err := conn.Read(buf)
 		check(err)
 		if n == 0 {
