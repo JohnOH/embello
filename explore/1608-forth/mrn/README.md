@@ -1,4 +1,4 @@
-The "Multi-Receiver Node" is based on this dime-a-dozen board from eBay:
+The "Multi-Receiver Node" is based on this dime-a-dozen STM32F103C8 board:
 
 <http://www.aliexpress.com/item/1pcs-STM32F103C8T6-ARM-STM32-Minimum-System-Development-Board-Module-For-arduino/32583160323.html>
 

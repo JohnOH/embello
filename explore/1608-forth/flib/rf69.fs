@@ -125,6 +125,7 @@ decimal align
   begin RF:IRQ2 rf@ RF:IRQ2_SENT and until
   RF:M_STDBY rf!mode ;
 
+\ TODO get rid of this, superseded by rf69-listen
 : rfdemo ( -- )  \ display incoming packets in RF12demo format
   42 8686 rf-init
   cr
@@ -134,6 +135,7 @@ decimal align
     then
   key? until ;
 
+\ TODO get rid of this, superseded by rf69-listen
 : rfdemox ( -- )  \ display incoming packets in RF12demo HEX format
   42 8686 rf-init  cr
   begin
@@ -142,7 +144,25 @@ decimal align
     then
   key? until ;
 
-: rf. ( -- )  \ print out all the RF69 registers
+\ new code starts here, this is the intended public API for the RF69 driver
+
+  42 variable rf69.group
+8686 variable rf69.freq
+
+: rf69-go ( -- )  \ init RFM69 and report incoming packets until key press
+  rf69.group @ rf69.freq @ rf-init cr
+  begin
+    rf-recv ?dup if
+      9 emit ." RF69 " rf69.freq @ h.4 rf69.group @ h.2
+      rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4
+      dup 0 do
+        rf.buf i + c@ h.2
+        i 1 = if 2- h.2 space then
+      loop  cr
+    then
+  key? until ;
+
+: rf69. ( -- )  \ print out all the RF69 registers
   cr 4 spaces  base @ hex  16 0 do space i . loop  base !
   $60 $00 do
     cr
@@ -152,5 +172,4 @@ decimal align
     loop
   $10 +loop ;
 
-\ 42 8686 rf-init rf-recv .
-\ rfdemo(x)
+\ rf69-listen
