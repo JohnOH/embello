@@ -81,6 +81,9 @@ func main() {
 			break
 		}
 		parseAndSend(line)
+		if strings.HasPrefix(line, "include ") {
+			fmt.Println("\\ done.")
+		}
 	}
 }
 
