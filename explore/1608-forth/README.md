@@ -12,7 +12,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32F103 boards:
 * **rnw** - RF Node Watcher w/ HyTiny STM32F103TB, RFM69, and 128x64 OLED
 * **wpz** - WaveShare Port103Z w/ STM32F103ZE
 * **ybc** - Yellow Blue STM32F103VC board
-* **ybc** - Zero To Wireless demo w/ STM32F103C8 "Blue Pill" and RFM69CW
+* **ztw** - Zero To Wireless demo w/ STM32F103C8 "Blue Pill" and RFM69CW
 
 These files implement a range of hardware drivers and other generic functions:
 
