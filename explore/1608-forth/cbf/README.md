@@ -1,4 +1,4 @@
-The "Core Board Four" from Haoyu, with STM32F407ZE and lots of RAM + flash.
+The "Core Board Four" from Haoyu, with STM32F407ZG and lots of RAM + flash.
 
 There's an LED on PF6.
 
