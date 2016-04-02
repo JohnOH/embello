@@ -23,8 +23,10 @@ reset
 
 \ -----------------------------------------------------------------------------
 
+PA2 constant HEATER-SENSE
+PA3 constant POWER-SENSE
 PA8 constant TEMP-POWER
-PB0 constant TEMP-ADC
+PB0 constant TEMP-SENSE
 PB3 constant HEATER
 PB4 constant BLACK-BTN
 PB5 constant WHITE-BTN
@@ -45,7 +47,7 @@ PB5 constant WHITE-BTN
 2600 variable high-temp 1500 variable high-pt100  \ high temp calibration
 
 : read-pt100 ( -- u )  \ read out PT100 sensor
-  TEMP-POWER ios!  1 ms  TEMP-ADC vreading  TEMP-POWER ioc! ;
+  TEMP-POWER ios!  1 ms  TEMP-SENSE vreading  TEMP-POWER ioc! ;
 
 : temp ( -- u )  \ read PT100 sensor temperature
   read-pt100
@@ -56,15 +58,33 @@ PB5 constant WHITE-BTN
   high-pt100 @ low-pt100 @ - /
   low-temp @ + ;
 
+: sense-to-volt ( pin -- u )  \ read and convert ADC value to Volt (rounded)
+  vreading  24 *  140 +  280 / ;
+\ power & heater are divided as 100kΩ/10kΩ, so 12V = 140 and 24V = 280 on ADC
+: power-volt ( -- u ) POWER-SENSE sense-to-volt ;
+: heater-volt ( -- u ) HEATER-SENSE sense-to-volt ;
+
+: power-present? ( -- f ) power-volt 1 >= ;
+: power-ok? ( -- f )  \ true if the power supply is between 11 and 25 Volt
+  power-volt dup 11 >= swap 25 <= and ;
+
+: heater-ok? ( -- f ) \ true if the heater is present
+  \ simple to detect if power is present, else we *could* briefly set the power
+  \ sense pin high, and use that to check that the heater sense pin rises a bit
+  \ TODO needs to deal with both cases: pwm now on and now off
+  false ;
+
 : heater-off ( -- ) 0 HEATER pwm ;
+: black? ( -- f ) BLACK-BTN io@ 0= ;
+: white? ( -- f ) WHITE-BTN io@ 0= ;
 
 : setup ( -- )
   lcd-init splash
-  +adc
+  100 HEATER +pwm  heater-off
    omode-pp TEMP-POWER io-mode!  TEMP-POWER ioc!
   imode-PULL BLACK-BTN io-mode!   BLACK-BTN ios!
   imode-PULL WHITE-BTN io-mode!   WHITE-BTN ios!
-  100 HEATER +pwm  heater-off
+  +adc
 ;
 
 setup
