@@ -40,12 +40,12 @@
 : +pwm ( hz pin -- )  \ set up PWM for a pin, using specified repetition rate
   >r  OMODE-AF-PP r@ io-mode!
   7200 swap / 1- 16 lshift 10000 or  r@ p2tim +timer
-  $78 r@ p2cmp 1 and 8 * lshift ( $0078 or $7800)
+  $78 r@ p2cmp 1 and 8 * lshift ( $0078 or $7800 )
   r@ p2tim timer-base $18 + r@ p2cmp 2 and 2* + bis!
-  4 bit r> p2tim timer-base $20 + bis! ;
+  r@ p2cmp 4 * bit r> p2tim timer-base $20 + bis! ;
 
 : -pwm ( pin -- )  \ disable PWM, but leave timer running
-  p2tim timer-base $20 + 4 bit swap bic! ;
+  dup p2cmp 4 * bit swap p2tim timer-base $20 + bic! ;
 
 : pwm ( u pin -- )  \ set pwm rate, 0 = full off, 10000 = full on
   dup p2cmp cells swap p2tim timer-base + $34 + !  \ save to CCR1..4
