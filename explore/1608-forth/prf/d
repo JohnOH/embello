@@ -17,7 +17,6 @@ reset
   key? until ;
 
 : lcdtry ( -- ) lcd-init show-logo  1000 ms  lcd-init demo ;
-: rtctry ( -- ) +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 : pwmtry ( -- ) 1 LED +pwm 100 LED pwm ;
 : t69try ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
 
@@ -33,11 +32,13 @@ PB5 constant WHITE-BTN
 
 : splash ( -- )
   clear
-  64 32 58 28 ellipse display
-  64 32 60 30 ellipse display
-  s" Pico Reflow" 22 20 drawstring display
-  s" Controller" 26 30 drawstring display
-  s" v0.1" 50 45 drawstring display
+  64 32 58 28 ellipse
+  64 32 60 30 ellipse
+  s" Pico Reflow" 21 20 drawstring
+  s" Controller" 25 30 drawstring
+  s" v0.1" 48 47 drawstring
+  20 42 108 42 line
+  display
 ;
 
 : vreading ( pin -- value )  \ take an averaged ADC reading
@@ -58,21 +59,24 @@ PB5 constant WHITE-BTN
   high-pt100 @ low-pt100 @ - /
   low-temp @ + ;
 
+\ power and heater dividers are 100kΩ/10kΩ, so 12V = 1350 and 24V = 2700 on ADC
 : sense-to-volt ( pin -- u )  \ read and convert ADC value to Volt (rounded)
-  vreading  24 *  140 +  280 / ;
-\ power & heater are divided as 100kΩ/10kΩ, so 12V = 140 and 24V = 280 on ADC
+  ( dup adc drop 1 ms ) vreading  24 *  1350 +  2700 / ;
 : power-volt ( -- u ) POWER-SENSE sense-to-volt ;
 : heater-volt ( -- u ) HEATER-SENSE sense-to-volt ;
 
-: power-present? ( -- f ) power-volt 1 >= ;
+: power? ( -- f )  \ true if the heater's power supply is present
+  power-volt 6 > ;
 : power-ok? ( -- f )  \ true if the power supply is between 11 and 25 Volt
   power-volt dup 11 >= swap 25 <= and ;
 
-: heater-ok? ( -- f ) \ true if the heater is present
-  \ simple to detect if power is present, else we *could* briefly set the power
-  \ sense pin high, and use that to check that the heater sense pin rises a bit
-  \ TODO needs to deal with both cases: pwm now on and now off
-  false ;
+: heater? ( -- f ) \ true if the heater has been detected
+  \ easy to detect if power is present, else power will be around 3.7V from
+  \ being back-fed through the 7805 and zener - this can still detect a heater
+  \ deal with both cases: pwm currently on or off
+  heater-volt power-volt
+  \ connected if within 1V of either the power voltage or ground
+  over - 1 <=  swap 1 <= or ;
 
 : heater-off ( -- ) 0 HEATER pwm ;
 : black? ( -- f ) BLACK-BTN io@ 0= ;
@@ -81,10 +85,13 @@ PB5 constant WHITE-BTN
 : setup ( -- )
   lcd-init splash
   100 HEATER +pwm  heater-off
-   omode-pp TEMP-POWER io-mode!  TEMP-POWER ioc!
-  imode-PULL BLACK-BTN io-mode!   BLACK-BTN ios!
-  imode-PULL WHITE-BTN io-mode!   WHITE-BTN ios!
   +adc
+  imode-adc HEATER-SENSE io-mode!  HEATER-SENSE ioc!
+   imode-adc POWER-SENSE io-mode!   POWER-SENSE ioc!
+    imode-adc TEMP-SENSE io-mode!    TEMP-SENSE ioc!
+     omode-pp TEMP-POWER io-mode!    TEMP-POWER ioc!
+    imode-PULL BLACK-BTN io-mode!     BLACK-BTN ios!
+    imode-PULL WHITE-BTN io-mode!     WHITE-BTN ios!
 ;
 
 setup
