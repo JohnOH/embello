@@ -21,12 +21,34 @@ reset
 : t69try ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
 
 \ -----------------------------------------------------------------------------
+\ sleep mode tryout
+
+: sleep ( -- ) [ $BF30 h, ] inline ;  \ WFI Opcode, enters sleep mode
+
+$40007000 constant PWR
+      PWR $0 + constant PWR-CR
+      PWR $4 + constant PWR-CSR
+
+$E000ED00 constant SCB
+     SCB $14 + constant SCB-SCR
+
+: standby ( -- )  \ go into low-power standby mode
+  2 bit PWR-CR bis!  \ CWUF
+  1 bit PWR-CR bis!  \ PDDS
+  2 bit SCB-SCR bis!  \ SLEEPDEEP
+  sleep ;
+
+\ TODO not working, not even with OMODE-AF-OD PA0 io-mode!
+: ena-wup ( -- )  \ enable wakeup pin
+  8 bit PWR-CSR bis! ;
+
+\ -----------------------------------------------------------------------------
 
 PA2 constant HEATER-SENSE
 PA3 constant POWER-SENSE
 PA8 constant TEMP-POWER
 PB0 constant TEMP-SENSE
-PB3 constant HEATER
+PB1 constant HEATER
 PB4 constant BLACK-BTN
 PB5 constant WHITE-BTN
 
@@ -78,13 +100,15 @@ PB5 constant WHITE-BTN
   \ connected if within 1V of either the power voltage or ground
   over - 1 <=  swap 1 <= or ;
 
-: heater-off ( -- ) 0 HEATER pwm ;
+: heat! ( n -- )  \ heater control: 0 = off, 10 = 80%
+  -10 + 800 * heater pwm ;
+
 : black? ( -- f ) BLACK-BTN io@ 0= ;
 : white? ( -- f ) WHITE-BTN io@ 0= ;
 
 : setup ( -- )
   lcd-init splash
-  100 HEATER +pwm  heater-off
+  100 HEATER +pwm  0 heat!
   +adc
   imode-adc HEATER-SENSE io-mode!  HEATER-SENSE ioc!
    imode-adc POWER-SENSE io-mode!   POWER-SENSE ioc!
