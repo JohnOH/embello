@@ -94,6 +94,20 @@ PB5 constant WHITE-BTN
     imode-PULL WHITE-BTN io-mode!     WHITE-BTN ios!
 ;
 
+: m ( -- )  \ show all readings in a loop until a key is pressed
+  begin
+    cr
+     ." T: " temp .
+    ."  P: " power-volt .
+     ." P? " power? 1 and .
+    ." ok? " power-ok? 1 and .
+    ."  H: " heater-volt .
+     ." H? " heater? 1 and .
+    ."  B: " black? 1 and .
+     ." W: " white? 1 and .
+    500 ms
+  key? until ;
+
 setup
 
 \ -----------------------------------------------------------------------------
