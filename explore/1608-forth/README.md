@@ -9,6 +9,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32F103 boards:
 * **lsd** - Little Shark Display board w/ STM32F107RC and 1.44" LCD
 * **mrn** - Multi Receiver Node w/ STM32F103C8 and some wireless modules
 * **oxs** - Olimexino-STM32 board w/ STM32F103RB, CAN, µSD, and LiPo charger
+* **prc** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
 * **rnw** - RF Node Watcher w/ HyTiny STM32F103TB, RFM69, and 128x64 OLED
 * **wpz** - WaveShare Port103Z w/ STM32F103ZE
 * **ybc** - Yellow Blue STM32F103VC board
