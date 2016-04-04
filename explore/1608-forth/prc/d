@@ -44,7 +44,9 @@ $E000ED00 constant SCB
 
 \ -----------------------------------------------------------------------------
 
-\ compiletoflash  : init ( -- ) init main ;
+main
 
+\ enter this line manually once main works and has a verified escape hatch:
+\ compiletoflash  : init ( -- ) init main ;
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
