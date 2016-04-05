@@ -16,6 +16,7 @@ include ../mlib/multi.fs
 \ -----------------------------------------------------------------------------
 \ Pico Reflow Controller, startup code
 
+PA1 constant FAN-PWM
 PA2 constant HEATER-SENSE
 PA3 constant POWER-SENSE
 PA8 constant TEMP-POWER
@@ -37,9 +38,10 @@ PB5 constant WHITE-BTN
 ;
 
 : vreading ( pin -- value )  \ take an averaged ADC reading
+  dup adc drop  \ drop first reading to give the adc mux more time to settle
   0  100 0 do over adc + loop  100 / nip ;
 
- 200 variable low-temp   680 variable low-pt100   \ low temp calibration
+ 230 variable low-temp   680 variable low-pt100   \ low temp calibration
 2600 variable high-temp 1200 variable high-pt100  \ high temp calibration
 
 : read-pt100 ( -- u )  \ read out PT100 sensor
@@ -56,14 +58,14 @@ PB5 constant WHITE-BTN
 
 \ power and heater dividers are 100kΩ/10kΩ, so 12V = 1350 and 24V = 2700 on ADC
 : sense-to-volt ( pin -- u )  \ read and convert ADC value to Volt (rounded)
-  ( dup adc drop 1 ms ) vreading  24 *  1400 +  2800 / ;
+  ( dup adc drop 1 ms ) vreading  24 *  140 +  280 / ;
 : power-volt ( -- u ) POWER-SENSE sense-to-volt ;
 : heater-volt ( -- u ) HEATER-SENSE sense-to-volt ;
 
 : power? ( -- f )  \ true if the heater's power supply is present
-  power-volt 7 > ;
+  power-volt 70 > ;
 : power-ok? ( -- f )  \ true if the power supply is between 11 and 27 Volt
-  power-volt dup 11 >= swap 27 <= and ;
+  power-volt dup 110 >= swap 270 <= and ;
 
 : heater? ( -- f ) \ true if the heater has been detected
   \ easy to detect if power is present, else power will be around 3.7V from
@@ -71,23 +73,16 @@ PB5 constant WHITE-BTN
   \ deal with both cases: pwm currently on or off
   heater-volt power-volt
   \ connected if within 1V of either the power voltage or ground
-  over - 1 <=  swap 1 <= or ;
+  over - 10 <=  swap 10 <= or ;
 
-: heat! ( n -- )  \ heater control: 0 = off, 10 = 80%
-  -10 + 800 * HEATER-PWM pwm ;
+: heat! ( n -- )  \ heater control: 0 = off, 100 = max (may be less than full)
+  -100 + 80 * HEATER-PWM pwm ;
+
+: fan! ( n -- )  \ fan control: 0 = off, 100 = max
+  100 * FAN-PWM pwm ;
 
 : black? ( -- f ) BLACK-BTN io@ 0= ;
 : white? ( -- f ) WHITE-BTN io@ 0= ;
-
-: meas ( -- )  \ measure and show all readings
-   ." T: " temp .
-  ." ok? " power-ok? 1 and . cr
-   ." P: " power-volt .
-   ." P? " power? 1 and . cr
-   ." H: " heater-volt .
-   ." H? " heater? 1 and . cr
-   ." B: " black? 1 and .
-   ." W: " white? 1 and . cr ;
 
 : lcd-emit ( c -- )
   dup $0A = if drop
@@ -99,6 +94,19 @@ PB5 constant WHITE-BTN
     ascii>bitpattern drawcharacterbitmap
   then ;
 
+: lcd-cr ( -- )  \ only emit a newline when output is going to the LCD
+  ['] lcd-emit hook-emit @ = if cr then ;
+
+: meas ( -- )  \ measure and show all readings
+   ." T: " temp .
+  ." ok? " power-ok? 1 and . lcd-cr
+   ." P: " power-volt .
+   ." P? " power? 1 and . lcd-cr
+   ." H: " heater-volt .
+   ." H? " heater? 1 and . lcd-cr
+   ." B: " black? 1 and .
+   ." W: " white? 1 and . lcd-cr ;
+
 : lcd-meas
   clear  0 font-x !  0 font-y !
   ['] lcd-emit hook-emit !
@@ -107,6 +115,8 @@ PB5 constant WHITE-BTN
   display ;
 
 : config-pins ( -- )
+  +adc  10 HEATER-PWM +pwm  0 heat!  1000 FAN-PWM +pwm  100 fan!
+
   imode-adc HEATER-SENSE io-mode!  HEATER-SENSE ioc!
    imode-adc POWER-SENSE io-mode!   POWER-SENSE ioc!
     imode-adc TEMP-SENSE io-mode!    TEMP-SENSE ioc!
@@ -116,14 +126,14 @@ PB5 constant WHITE-BTN
     imode-PULL WHITE-BTN io-mode!     WHITE-BTN ios! ;
 
 : main ( -- )
-  +adc  10 HEATER-PWM +pwm  0 heat!  config-pins
+  config-pins
 
   black? if exit then       \ if black pressed on init, bail out
   lcd-init splash 3000 ms   \ else: splash screen, then start report loops
   key? if exit then         \ if key pressed on init, bail out
 
   begin                     \ start OLED-based reporting
-    black? 10 and heat!     \ now black button enables heater
+    black? 100 and heat!    \ now black button controls the heater
     lcd-meas  100 ms
   white? until              \ stop the loop when white is pressed
   clear display  0 heat!    \ also turn off the heat, just in case
