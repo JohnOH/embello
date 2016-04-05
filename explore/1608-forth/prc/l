@@ -76,10 +76,11 @@ PB5 constant WHITE-BTN
   over - 10 <=  swap 10 <= or ;
 
 : heat! ( n -- )  \ heater control: 0 = off, 100 = max (may be less than full)
-  -100 + 80 * HEATER-PWM pwm ;
+  80 * ( 0..8000 )  HEATER-PWM pwm ;
 
 : fan! ( n -- )  \ fan control: 0 = off, 100 = max
-  100 * FAN-PWM pwm ;
+  ?dup if  100 swap - ( 0..100 )  80 * ( 0..8000)  else 10000 then
+  FAN-PWM pwm ;
 
 : black? ( -- f ) BLACK-BTN io@ 0= ;
 : white? ( -- f ) WHITE-BTN io@ 0= ;
@@ -126,11 +127,11 @@ PB5 constant WHITE-BTN
     imode-PULL WHITE-BTN io-mode!     WHITE-BTN ios! ;
 
 : main ( -- )
-  config-pins
-
   black? if exit then       \ if black pressed on init, bail out
+  config-pins
   lcd-init splash 3000 ms   \ else: splash screen, then start report loops
   key? if exit then         \ if key pressed on init, bail out
+  0 fan!                    \ turn fan off for now
 
   begin                     \ start OLED-based reporting
     black? 100 and heat!    \ now black button controls the heater
