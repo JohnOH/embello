@@ -20,7 +20,8 @@ PA2 constant HEATER-SENSE
 PA3 constant POWER-SENSE
 PA8 constant TEMP-POWER
 PB0 constant TEMP-SENSE
-PB1 constant HEATER
+PB1 constant HEATER-PWM
+PB2 constant BUZZER-OUT
 PB4 constant BLACK-BTN
 PB5 constant WHITE-BTN
 
@@ -73,7 +74,7 @@ PB5 constant WHITE-BTN
   over - 1 <=  swap 1 <= or ;
 
 : heat! ( n -- )  \ heater control: 0 = off, 10 = 80%
-  -10 + 800 * heater pwm ;
+  -10 + 800 * HEATER-PWM pwm ;
 
 : black? ( -- f ) BLACK-BTN io@ 0= ;
 : white? ( -- f ) WHITE-BTN io@ 0= ;
@@ -110,11 +111,12 @@ PB5 constant WHITE-BTN
    imode-adc POWER-SENSE io-mode!   POWER-SENSE ioc!
     imode-adc TEMP-SENSE io-mode!    TEMP-SENSE ioc!
      omode-pp TEMP-POWER io-mode!    TEMP-POWER ioc!
+     omode-pp BUZZER-OUT io-mode!    BUZZER-OUT ioc!
     imode-PULL BLACK-BTN io-mode!     BLACK-BTN ios!
     imode-PULL WHITE-BTN io-mode!     WHITE-BTN ios! ;
 
 : main ( -- )
-  +adc  100 HEATER +pwm  0 heat!  config-pins
+  +adc  100 HEATER-PWM +pwm  0 heat!  config-pins
 
   black? if exit then       \ if black pressed on init, bail out
   lcd-init splash 3000 ms   \ else: splash screen, then start report loops
@@ -122,7 +124,7 @@ PB5 constant WHITE-BTN
 
   begin                     \ start OLED-based reporting
     black? 10 and heat!     \ now black button enables heater
-    lcd-meas  100 ms
+    lcd-meas  500 ms
   white? until              \ stop the loop when white is pressed
   clear display  0 heat!    \ also turn off the heat, just in case
 
