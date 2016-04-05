@@ -40,7 +40,7 @@ PB5 constant WHITE-BTN
   0  100 0 do over adc + loop  100 / nip ;
 
  200 variable low-temp   680 variable low-pt100   \ low temp calibration
-2600 variable high-temp 1500 variable high-pt100  \ high temp calibration
+2600 variable high-temp 1200 variable high-pt100  \ high temp calibration
 
 : read-pt100 ( -- u )  \ read out PT100 sensor
   TEMP-POWER ios!  1 ms  TEMP-SENSE vreading  TEMP-POWER ioc! ;
@@ -56,14 +56,14 @@ PB5 constant WHITE-BTN
 
 \ power and heater dividers are 100kΩ/10kΩ, so 12V = 1350 and 24V = 2700 on ADC
 : sense-to-volt ( pin -- u )  \ read and convert ADC value to Volt (rounded)
-  ( dup adc drop 1 ms ) vreading  24 *  1350 +  2700 / ;
+  ( dup adc drop 1 ms ) vreading  24 *  1400 +  2800 / ;
 : power-volt ( -- u ) POWER-SENSE sense-to-volt ;
 : heater-volt ( -- u ) HEATER-SENSE sense-to-volt ;
 
 : power? ( -- f )  \ true if the heater's power supply is present
-  power-volt 6 > ;
-: power-ok? ( -- f )  \ true if the power supply is between 11 and 25 Volt
-  power-volt dup 11 >= swap 25 <= and ;
+  power-volt 7 > ;
+: power-ok? ( -- f )  \ true if the power supply is between 11 and 27 Volt
+  power-volt dup 11 >= swap 27 <= and ;
 
 : heater? ( -- f ) \ true if the heater has been detected
   \ easy to detect if power is present, else power will be around 3.7V from
@@ -116,7 +116,7 @@ PB5 constant WHITE-BTN
     imode-PULL WHITE-BTN io-mode!     WHITE-BTN ios! ;
 
 : main ( -- )
-  +adc  100 HEATER-PWM +pwm  0 heat!  config-pins
+  +adc  10 HEATER-PWM +pwm  0 heat!  config-pins
 
   black? if exit then       \ if black pressed on init, bail out
   lcd-init splash 3000 ms   \ else: splash screen, then start report loops
@@ -124,7 +124,7 @@ PB5 constant WHITE-BTN
 
   begin                     \ start OLED-based reporting
     black? 10 and heat!     \ now black button enables heater
-    lcd-meas  500 ms
+    lcd-meas  100 ms
   white? until              \ stop the loop when white is pressed
   clear display  0 heat!    \ also turn off the heat, just in case
 
