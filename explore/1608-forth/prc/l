@@ -57,8 +57,8 @@ PB5 constant WHITE-BTN
   low-temp @ + ;
 
 \ power and heater dividers are 100kΩ/10kΩ, so 12V = 1350 and 24V = 2700 on ADC
-: sense-to-volt ( pin -- u )  \ read and convert ADC value to Volt (rounded)
-  ( dup adc drop 1 ms ) vreading  24 *  140 +  280 / ;
+: sense-to-volt ( pin -- u )  \ read and convert ADC value to tenths of Volts
+  vreading  24 *  130 +  260 / ;
 : power-volt ( -- u ) POWER-SENSE sense-to-volt ;
 : heater-volt ( -- u ) HEATER-SENSE sense-to-volt ;
 
@@ -70,17 +70,30 @@ PB5 constant WHITE-BTN
 : heater? ( -- f ) \ true if the heater has been detected
   \ easy to detect if power is present, else power will be around 3.7V from
   \ being back-fed through the 7805 and zener - this can still detect a heater
-  \ deal with both cases: pwm currently on or off
+  \ we need deal with both cases: pwm currently on or off
   heater-volt power-volt
   \ connected if within 1V of either the power voltage or ground
   over - 10 <=  swap 10 <= or ;
 
-: heat! ( n -- )  \ heater control: 0 = off, 100 = max (may be less than full)
-  80 * ( 0..8000 )  HEATER-PWM pwm ;
+: heat! ( n -- )  \ heater control: 0 = off, 100 = max (80% of continuous on)
+  ?dup if
+    ( 1..100 )  100 swap - ( 99..0 )  80 * ( 7920..0 )  2000 + ( 9920..2000 )
+    10 HEATER-PWM +pwm  HEATER-PWM pwm
+  else
+    \ setting PWM to 0 is not enough, it leaves a 10 µs on-glitch
+    HEATER-PWM -pwm  HEATER-PWM ioc!  \ make sure it's completely off
+  then ;
 
-: fan! ( n -- )  \ fan control: 0 = off, 100 = max
-  ?dup if  100 swap - ( 0..100 )  80 * ( 0..8000)  else 10000 then
-  FAN-PWM pwm ;
+: fan! ( n -- )  \ fan control: 0 = off, 1 = min (i.e. 20%), 100 = max
+  \ fan will sustain a very low speed, but it needs 100% during 100ms to start
+  ?dup if
+    ( 1..100)  100 swap - ( 99..0 )  80 * ( 7920..0 )
+    1000 FAN-PWM +pwm  FAN-PWM pwm
+  else
+    \ setting PWM to 0 is not enough, it leaves a 100 ns on-glitch
+    FAN-PWM -pwm  FAN-PWM ioc!  \ make sure it's completely off
+  then
+  ;
 
 : black? ( -- f ) BLACK-BTN io@ 0= ;
 : white? ( -- f ) WHITE-BTN io@ 0= ;
@@ -100,13 +113,13 @@ PB5 constant WHITE-BTN
 
 : meas ( -- )  \ measure and show all readings
    ." T: " temp .
-  ." ok? " power-ok? 1 and . lcd-cr
-   ." P: " power-volt .
-   ." P? " power? 1 and . lcd-cr
-   ." H: " heater-volt .
-   ." H? " heater? 1 and . lcd-cr
-   ." B: " black? 1 and .
-   ." W: " white? 1 and . lcd-cr ;
+  ." ok? " power-ok?   1 and . lcd-cr
+   ." P: " power-volt        .
+   ." P? " power?      1 and . lcd-cr
+   ." H: " heater-volt       .
+   ." H? " heater?     1 and . lcd-cr
+   ." B: " black?      1 and .
+   ." W: " white?      1 and . lcd-cr ;
 
 : lcd-meas
   clear  0 font-x !  0 font-y !
@@ -116,7 +129,7 @@ PB5 constant WHITE-BTN
   display ;
 
 : config-pins ( -- )
-  +adc  10 HEATER-PWM +pwm  0 heat!  1000 FAN-PWM +pwm  100 fan!
+  +adc  0 heat!  100 fan!  \ initialise with safest setting
 
   imode-adc HEATER-SENSE io-mode!  HEATER-SENSE ioc!
    imode-adc POWER-SENSE io-mode!   POWER-SENSE ioc!

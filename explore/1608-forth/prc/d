@@ -16,31 +16,7 @@ reset
     then
   key? until ;
 
-: lcdtry ( -- ) lcd-init show-logo  1000 ms  lcd-init demo ;
-: pwmtry ( -- ) 1 LED +pwm 100 LED pwm ;
 : t69try ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
-
-\ -----------------------------------------------------------------------------
-\ sleep mode tryout
-
-: sleep ( -- ) [ $BF30 h, ] inline ;  \ WFI Opcode, enters sleep mode
-
-$40007000 constant PWR
-      PWR $0 + constant PWR-CR
-      PWR $4 + constant PWR-CSR
-
-$E000ED00 constant SCB
-     SCB $14 + constant SCB-SCR
-
-: standby ( -- )  \ go into low-power standby mode
-  2 bit PWR-CR bis!  \ CWUF
-  1 bit PWR-CR bis!  \ PDDS
-  2 bit SCB-SCR bis!  \ SLEEPDEEP
-  sleep ;
-
-\ TODO not working, not even with OMODE-AF-OD PA0 io-mode!
-: ena-wup ( -- )  \ enable wakeup pin
-  8 bit PWR-CSR bis! ;
 
 \ -----------------------------------------------------------------------------
 
