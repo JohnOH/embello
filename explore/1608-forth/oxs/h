@@ -15,8 +15,9 @@ include ../flib/rtc-stm32f1.fs
 include ../flib/ring.fs
 include ../flib/uart2-stm32f1.fs
 include ../flib/uart2-irq-stm32f1.fs
+include ../flib/spi-stm32f1.fs
 
-\ board definitions for Olimexino-STM32
+\ board definitions for Olimexino-STM32 w/ STM32F103RB
 
 \ add missing pin definitions for R package with 64 i.s.o 48 pins
 2 0  io constant PC0
@@ -34,14 +35,6 @@ include ../flib/uart2-irq-stm32f1.fs
 2 12 io constant PC12
 
 3 2  io constant PD2
-
-PD2  variable ssel  \ can be changed at run time
-PB13 constant SCLK
-PB14 constant MISO
-PB15 constant MOSI
-
-\ include ../flib/spi-stm32f1.fs
-include ../flib/spi-bb.fs
 
 PB6 constant SCL
 PB7 constant SDA
