@@ -87,7 +87,7 @@ PB5 constant WHITE-BTN
 : fan! ( n -- )  \ fan control: 0 = off, 1 = min (i.e. 20%), 100 = max
   \ fan will sustain a very low speed, but it needs 100% during 100ms to start
   ?dup if
-    ( 1..100)  100 swap - ( 99..0 )  80 * ( 7920..0 )
+    ( 1..100 )  100 swap - ( 99..0 )  80 * ( 7920..0 )
     1000 FAN-PWM +pwm  FAN-PWM pwm
   else
     \ setting PWM to 0 is not enough, it leaves a 100 ns on-glitch
