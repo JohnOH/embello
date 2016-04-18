@@ -2,11 +2,6 @@ This is the "Energy Monitor" node for central house monitoring at JeeLabs.
 
 Based on an [Olimexino-STM32][O] with STM32F103RB, LiPo backup, and µSD card.
 
-+5V tied between R1 & D5 with extra pin to shield (to power via FTDI on shield)
-
-BOOT0 = button = PC9
-USB power detect = PC11
-
 Arduino headers:
 
     A0      PC0     extint, reserved, pulse1
@@ -35,12 +30,14 @@ Arduino headers:
     D14     PB8     CAN RX
 
 µSD/MMC card connections
+
     CS      PD2     MMC CS
     SCLK    PB13    SPI2 SCLK
     DO      PB14    SPI2 MISO2
     DI      PB15    SPI2 MOSI2
 
 UEXT connector
+
     1   3.3V    -       -
     2   GND     -       -
     3   PA9     TXD1    FTDI
@@ -53,6 +50,7 @@ UEXT connector
     10  PB5     UEXT CS
 
 Extension connector
+
     1   PC15    32 KHz xtal
     2   PB9     CAN tx
     3   PD2     MMC CS
@@ -69,3 +67,10 @@ Extension connector
     14  PC7
     15  PC8
     16  GND     -
+
++5V tied between R1 & D5 with extra pin to shield (to power via FTDI on shield)
+
+BOOT0 = button = PC9  
+USB power detect = PC11
+
+   [O]: https://www.olimex.com/Products/Duino/STM32/OLIMEXINO-STM32/

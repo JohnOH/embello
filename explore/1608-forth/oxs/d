@@ -23,6 +23,30 @@ reset
 : t69try ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
 
 \ -----------------------------------------------------------------------------
-\ -----------------------------------------------------------------------------
 
+eint multitask
+
+0 variable seconds
+task: timetask
+
+: time& ( -- )
+  timetask background
+    begin
+      key? if boot-task wake then
+      1 seconds +!
+      seconds @ . cr
+      stop
+    again
+;
+
+time& ( lowpower& ) tasks
+
+: tick ( -- )
+  ++ticks
+  millis 1000 mod 0= if timetask wake then ;
+
+' tick irq-systick !
+
+\ stop \ Idle the boot task
+\ -----------------------------------------------------------------------------
 \ vim: set ft=forth :

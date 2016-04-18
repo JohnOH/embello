@@ -162,19 +162,19 @@ boot-task variable up \ User Pointer
   drop true
 ;
 
-\ : sleep ( -- ) [ $BF30 h, ] inline ; \ WFI Opcode, enters sleep mode
+: sleep ( -- ) [ $BF30 h, ] inline ; \ WFI Opcode, enters sleep mode
 
-\ task: lowpower-task
+task: lowpower-task
 
-\ : lowpower& ( -- )
-\   lowpower-task activate
-\     begin
-\       eint? if \ Only enter sleep mode if interrupts have been enabled
-\         dint up-alone? if ."  Sleep " sleep then eint
-\       then
-\       pause
-\     again
-\ ;
+: lowpower& ( -- )
+  lowpower-task activate
+    begin
+      eint? if \ Only enter sleep mode if interrupts have been enabled
+        dint up-alone? if ( ."  Sleep " ) sleep then eint
+      then
+      pause
+    again
+;
 
 \ --------------------------------------------------
 \  Examples
