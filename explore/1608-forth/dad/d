@@ -7,8 +7,6 @@ reset
 : adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
 : uartry ( -- )  +uart uart. ;
 
-\ -----------------------------------------------------------------------------
-\ sleep mode tryout
 
 : sleep ( -- ) [ $BF30 h, ] inline ;  \ WFI Opcode, enters sleep mode
 
