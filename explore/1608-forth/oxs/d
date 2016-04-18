@@ -66,10 +66,24 @@ task: timetask
 \ stop \ Idle the boot task
 \ -----------------------------------------------------------------------------
 
+PC0 constant PULSE1
+PC1 constant PULSE2
+PC2 constant PULSE3
+
 : main ( -- )
   lcd-init show-logo
   +adc
   +uart-irq ( uart. )
+
+  imode-pull PULSE1 io-mode!  PULSE1 ios!
+  imode-pull PULSE2 io-mode!  PULSE2 ios!
+  imode-pull PULSE3 io-mode!  PULSE3 ios!
+
+  begin
+    PULSE1 io@  PULSE2 io@ xor  PULSE3 io@ xor
+    LED2 io!
+  key? until
+  LED2 ioc!
 ;
 
 main
