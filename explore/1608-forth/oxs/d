@@ -66,14 +66,22 @@ task: timetask
 \ stop \ Idle the boot task
 \ -----------------------------------------------------------------------------
 
+PB0 constant VBAT-IN
+PB1 constant VBAT-GND
+
 PC0 constant PULSE1
 PC1 constant PULSE2
 PC2 constant PULSE3
+
+: vbat ( -- mvolt )
+  VBAT-IN adc 3300 * 4 * 4095 / ;
 
 : main ( -- )
   lcd-init show-logo
   +adc
   +uart-irq ( uart. )
+
+  omode-pp VBAT-GND io-mode!  VBAT-GND ioc!
 
   imode-pull PULSE1 io-mode!  PULSE1 ios!
   imode-pull PULSE2 io-mode!  PULSE2 ios!
@@ -82,8 +90,10 @@ PC2 constant PULSE3
   begin
     PULSE1 io@  PULSE2 io@ xor  PULSE3 io@ xor
     LED2 io!
-  key? until
+  key? until key drop
   LED2 ioc!
+
+  begin 500 ms  vbat . cr  key? until
 ;
 
 main
