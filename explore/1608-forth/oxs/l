@@ -9,6 +9,8 @@ compiletoflash
 
 \ include ../flib/sdcard.fs
 include ../flib/rf69.fs
+include ../flib/oled.fs
+include ../mlib/graphics.fs
 include ../mlib/multi.fs
 
 ( code-size ) here swap - .

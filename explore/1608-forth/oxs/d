@@ -16,7 +16,7 @@ reset
     then
   key? until ;
 
-: rtctry ( -- )  +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+: lcdtry ( -- ) lcd-init show-logo  1000 ms  lcd-init demo ;
 : adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
 : uartry ( -- )  +uart uart. ;
 : pwmtry ( -- )  1 LED2 +pwm 9900 LED2 pwm ;  \ inverted logic
