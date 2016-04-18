@@ -16,11 +16,13 @@ reset
     then
   key? until ;
 
-: lcdtry ( -- ) lcd-init show-logo  1000 ms  lcd-init demo ;
+: lcdtry ( -- ) lcd-init show-logo ;
 : adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
 : uartry ( -- )  +uart uart. ;
 : pwmtry ( -- )  1 LED2 +pwm 9900 LED2 pwm ;  \ inverted logic
 : t69try ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
+
+\ -----------------------------------------------------------------------------
 
 \ -----------------------------------------------------------------------------
 
@@ -45,7 +47,7 @@ time& ( lowpower& ) tasks
   ++ticks
   millis 1000 mod 0= if timetask wake then ;
 
-' tick irq-systick !
+\ ' tick irq-systick !
 
 \ stop \ Idle the boot task
 \ -----------------------------------------------------------------------------
