@@ -2,31 +2,31 @@ This is the "Energy Monitor" node for central house monitoring at JeeLabs.
 
 Based on an [Olimexino-STM32][O] with STM32F103RB, LiPo backup, and µSD card.
 
-+5V tapped off D5 with extra pin to shield (for powering from FTDI on shield)
++5V tied between R1 & D5 with extra pin to shield (to power via FTDI on shield)
 
 BOOT0 = button = PC9
 USB power detect = PC11
 
 Arduino headers:
 
-    A0      PC0     analog, reserved
-    A1      PC1     analog, reserved
-    A2      PC2     analog, reserved
-    A3      PC3     analog, reserved
-    A4      PC4
-    A5      PC5
+    A0      PC0     extint, reserved, pulse1
+    A1      PC1     extint, reserved, pulse2
+    A2      PC2     extint, reserved, pulse3
+    A3      PC3     analog, reserved, CT1
+    A4      PC4     analog, reserved, CT2
+    A5      PC5     analog, reserved, CT3
 
     D0      PA3     RX2
     D1      PA2     TX2
-    D2      PA0
+    D2      PA0     analog, reserved, Vin
     D3      PA1     yellow LED
     D4      PB5     (UEXT CS)
-    D5      PB6     SCL1
-    D6      PA8
+    D5      PB6     SCL1 - oled, compass, etc
+    D6      PA8     RF69 IRQ
     D7      PA9     FTDI RX1
 
     D8      PA10    FTDI TX1
-    D9      PB7     SDA1
+    D9      PB7     SDA1 - oled, compass, etc
     D10     PA4     RF69 SSEL
     D11     PA7     RF69 MOSI
     D12     PA6     RF69 MISO
@@ -45,8 +45,8 @@ UEXT connector
     2   GND     -       -
     3   PA9     TXD1    FTDI
     4   PA10    RXD1    FTDI
-    5   PB10    SCL2
-    6   PB11    SDA2
+    5   PB10    SCL2 - 2nd compass
+    6   PB11    SDA2 - 2nd compass
     7   PA6     MISO1   RF69
     8   PA7     MOSI1   RF69
     9   PA5     SCLK1   RF69
@@ -59,12 +59,12 @@ Extension connector
     4   PC10    TX3
     5   PB0     VBAT/4 ?
     6   PB1     ?
-    7   PB10    SCL2 / TX3
-    8   PB11    SDA2 / RX3
+    7   PB10    SCL2 - 2nd compass
+    8   PB11    SDA2 - 2nd compass
     9   PB12    SPI2 SSEL
-    10  PB13    SPI2 SCLK
-    11  PB14    SPI2 MISO
-    12  PB15    SPI2 MOSI
+    10  PB13    SPI2 SCLK µSD
+    11  PB14    SPI2 MISO µSD
+    12  PB15    SPI2 MOSI µSD
     13  PC6
     14  PC7
     15  PC8
