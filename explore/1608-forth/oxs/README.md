@@ -4,18 +4,18 @@ Based on an [Olimexino-STM32][O] with STM32F103RB, LiPo backup, and µSD card.
 
 Arduino headers:
 
-    A0      PC0     extint, reserved, pulse1
-    A1      PC1     extint, reserved, pulse2
-    A2      PC2     extint, reserved, pulse3
-    A3      PC3     analog, reserved, CT1
-    A4      PC4     analog, reserved, CT2
-    A5      PC5     analog, reserved, CT3
+    A0      PC0     extint, pulse1
+    A1      PC1     extint, pulse2
+    A2      PC2     extint, pulse3
+    A3      PC3     analog, CT1
+    A4      PC4     analog, CT2
+    A5      PC5     analog, CT3
 
     D0      PA3     RX2
     D1      PA2     TX2
     D2      PA0     analog, reserved, Vin
     D3      PA1     yellow LED
-    D4      PB5     (UEXT CS)
+    D4      PB5     UEXT CS, could be used for DCF77
     D5      PB6     SCL1 - oled, compass, etc
     D6      PA8     RF69 IRQ
     D7      PA9     FTDI RX1

@@ -13,6 +13,28 @@ include ../flib/oled.fs
 include ../mlib/graphics.fs
 include ../mlib/multi.fs
 
+PB0 constant VBAT-IN
+PB1 constant VBAT-GND
+PB5 constant DCF77-IN
+
+PC0 constant PULSE1
+PC1 constant PULSE2
+PC2 constant PULSE3
+
+: vbat ( -- mvolt )
+  VBAT-IN adc 3300 * 4 * 4095 / ;
+
+: config-pins ( -- )
+  +adc
+  +uart-irq ( uart. )
+
+  omode-pp   VBAT-GND io-mode!  VBAT-GND ioc!
+  imode-pull DCF77-IN io-mode!  DCF77-IN ioc!
+  imode-pull PULSE1   io-mode!  PULSE1 ioc!
+  imode-pull PULSE2   io-mode!  PULSE2 ioc!
+  imode-pull PULSE3   io-mode!  PULSE3 ioc!
+;
+
 ( code-size ) here swap - .
 cornerstone <<<lib-oxs>>>
 ( flash-end ) here hex.

@@ -40,7 +40,7 @@ $E000ED00 constant SCB
 
 \ -----------------------------------------------------------------------------
 
-eint multitask
+eint \ multitask
 
 0 variable seconds
 task: timetask
@@ -65,38 +65,69 @@ task: timetask
 
 \ stop \ Idle the boot task
 \ -----------------------------------------------------------------------------
+\ DCF77 decoding
 
-PB0 constant VBAT-IN
-PB1 constant VBAT-GND
+              40 constant dcf-cycles
+dcf-cycles 100 * constant dcf-size
+         dcf-size buffer: dcf-bins
 
-PC0 constant PULSE1
-PC1 constant PULSE2
-PC2 constant PULSE3
+: ms-wait ( -- )
+  millis  begin  millis over <> until  drop ;
 
-: vbat ( -- mvolt )
-  VBAT-IN adc 3300 * 4 * 4095 / ;
+: dcf-clear ( -- ) dcf-bins dcf-size 0 fill ;
+
+: dcf-probe ( -- )
+  dcf-size 0 do
+    10 0 do  ms-wait  DCF77-IN io@  dcf-bins j + c+!  loop
+  loop ;
+
+: dcf-dump1 ( n -- )
+  case
+    0 of [char] - emit endof
+    10 of [char] X emit endof
+    dup [char] 0 + emit
+  endcase ;
+
+: dcf-dump100 ( addr -- ) 100 0 do  dup c@  dcf-dump1  1+  loop  drop ;
+
+: dcf-dump ( -- )
+  dcf-bins  dcf-cycles 0 do
+    cr i u.2 space  dup dcf-dump100  100 +
+  loop  drop ;
+
+: dcf-scope ( -- ) ." Capturing... " dcf-clear dcf-probe dcf-dump ;
+
+: +expo! ( 0/1 addr -- ) tuck  c@  127 * 7 rshift  swap 2* +  swap c! ;
+
+: dcf-tick
+  ++ticks
+  DCF77-IN io@
+  millis 1000 u/mod drop 10 /  dcf-bins +
+  +expo! ;
+
+: dcf. ( -- ) dcf-bins dcf-size dump ;
+: dcf.t ( -- ) 100 0 do i dcf-bins + c@ h.2 space loop ;
+
+: dcf-init
+  dcf-clear
+  ['] dcf-tick irq-systick !
+;
+
+\ -----------------------------------------------------------------------------
 
 : main ( -- )
   lcd-init show-logo
-  +adc
-  +uart-irq ( uart. )
-
-  omode-pp VBAT-GND io-mode!  VBAT-GND ioc!
-
-  imode-pull PULSE1 io-mode!  PULSE1 ios!
-  imode-pull PULSE2 io-mode!  PULSE2 ios!
-  imode-pull PULSE3 io-mode!  PULSE3 ios!
-
+  config-pins
   begin
-    PULSE1 io@  PULSE2 io@ xor  PULSE3 io@ xor
-    LED2 io!
+    PULSE1 io@  PULSE2 io@ xor  PULSE3 io@ xor  LED2 io!
   key? until key drop
-  LED2 ioc!
+  clear display
 
-  begin 500 ms  vbat . cr  key? until
+  begin 1000 ms  vbat .  key? until
 ;
 
-main
+\ main
+config-pins
 
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
