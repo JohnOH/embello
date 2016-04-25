@@ -3,11 +3,11 @@
 \ needs io.fs
 
 : chipid ( -- u1 u2 u3 3 )  \ unique chip ID as N values on the stack
-  $1FFF7A10 @ $1FFF7A14 @ $1FFF7A18 @ 3 ;
+  $1FF0F420 @ $1FF0F424 @ $1FF0F428 @ 3 ;
 : hwid ( -- u )  \ a "fairly unique" hardware ID as single 32-bit int
   chipid 1- 0 do xor loop ;
 : flash-kb ( -- u )  \ return size of flash memory in KB
-  $1FFF7A22 h@ ;
+  $1FF0F422 h@ ;
 
 : io.all ( -- )  \ display all the readable GPIO registers
   io-ports 0 do i 0 io io. loop ;

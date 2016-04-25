@@ -1,6 +1,6 @@
 \ install hardware abstractions in flash
 
-cr eraseflash
+cr  ' nop irq-systick !  eraseflash
 compiletoflash
 
 8 constant io-ports  \ A..H
@@ -11,8 +11,13 @@ include ../flib/hal-stm32f7.fs
 
 include clock.fs
 
+PC13 constant LED
+
 : initx ( -- )  \ board initialisation
+  OMODE-PP LED io-mode!
   216Mhz
+  flash-kb . ." KB <kb7> " hwid hex. cr
+  1000 systick-hz
 ;
 
 reset

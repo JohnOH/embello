@@ -273,4 +273,5 @@ USART_BRR USART1_BASE + constant USART1_BRR
    PPRE/2 apb2-prescaler!                \ 108 MHz APB2
    PPRE/4 apb1-prescaler!                \ 54 MHz APB1
    pll-wait-stable clk-source-pll
+   216000000 clock-hz !
    115200 usart1-baud-update! ;
