@@ -115,6 +115,30 @@ $40023C00 constant FLASH
   ['] ++ticks irq-systick !
   clock-hz @ swap / systick ;
 
+: micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
+\ assumes systick is running at 1000 Hz, overhead is about 1.8 us @ 72 MHz
+\ get current ticks and systick, spinloops if ticks changed while we looked
+  0 dup  begin 2drop  ticks @ $E000E018 @  over ticks @ = until
+  $E000E014 @ 1+ swap -  \ convert down-counter to remaining
+  clock-hz @ 1000000 / ( ticks systicks mhz )
+  / swap 1000 * + ;
+
+: millis ( -- u )  \ return elapsed milliseconds, this wraps after 49 days
+  ticks @ ;
+
+: us ( n -- )  \ microsecond delay using a busy loop, this won't switch tasks
+  3 -  \ adjust for approximate overhead of this code itself
+  micros +  begin dup micros - 0< until  drop ;
+
+: ms ( n -- )  \ millisecond delay, current limit is about 2000s
+  1000 * us ;  \ TODO need to change this to support multitasking
+
+\ : j0 micros 1000000 0 do 1 us loop micros swap - . ;
+\ : j1 micros 1000000 0 do 5 us loop micros swap - . ;
+\ : j2 micros 1000000 0 do 10 us loop micros swap - . ;
+\ : j3 micros 1000000 0 do 20 us loop micros swap - . ;
+\ : jn j0 j1 j2 j3 ;  \ sample results: 1034304 3012052 8021389 18018023
+
 : list ( -- )  \ list all words in dictionary, short form
   cr dictionarystart begin
     dup 6 + ctype space
