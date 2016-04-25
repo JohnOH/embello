@@ -127,17 +127,20 @@ $40023C00 constant FLASH
   ticks @ ;
 
 : us ( n -- )  \ microsecond delay using a busy loop, this won't switch tasks
-  3 -  \ adjust for approximate overhead of this code itself
+  1-  \ adjust for approximate overhead of this code itself
   micros +  begin dup micros - 0< until  drop ;
 
 : ms ( n -- )  \ millisecond delay, current limit is about 2000s
   1000 * us ;  \ TODO need to change this to support multitasking
 
-\ : j0 micros 1000000 0 do 1 us loop micros swap - . ;
-\ : j1 micros 1000000 0 do 5 us loop micros swap - . ;
-\ : j2 micros 1000000 0 do 10 us loop micros swap - . ;
-\ : j3 micros 1000000 0 do 20 us loop micros swap - . ;
-\ : jn j0 j1 j2 j3 ;  \ sample results: 1034304 3012052 8021389 18018023
+\ : j0 micros 1000000 0 do       loop micros swap - . ;
+\ : j1 micros 1000000 0 do  nop  loop micros swap - . ;
+\ : j2 micros 1000000 0 do  1 us loop micros swap - . ;
+\ : j3 micros 1000000 0 do  5 us loop micros swap - . ;
+\ : j4 micros 1000000 0 do 10 us loop micros swap - . ;
+\ : j5 micros 1000000 0 do 20 us loop micros swap - . ;
+\ : jn j0 j1 j2 j3 j4 j5 ;
+\ sample results: 6947 46311 1071805 5050519 10033445 20000023
 
 : list ( -- )  \ list all words in dictionary, short form
   cr dictionarystart begin
