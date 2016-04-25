@@ -1,13 +1,6 @@
 \ I/O pin primitives
 
 $40020000 constant GPIO-BASE
-      $00 constant GPIO.CRL   \ reset $44444444 port Conf Register Low
-      $04 constant GPIO.CRH   \ reset $44444444 port Conf Register High
-      $08 constant GPIO.IDR   \ RO              Input Data Register
-      $0C constant GPIO.ODR   \ reset 0         Output Data Register
-      $10 constant GPIO.BSRR  \ reset 0         port Bit Set/Reset Reg
-      $14 constant GPIO.BRR   \ reset 0         port Bit Reset Register
-
       $00 constant GPIO.MODER   \ Reset 0 Port Mode Register
                                 \   00=Input  01=Output  10=Alternate  11=Analog
       $04 constant GPIO.OTYPER  \ Reset 0 Port Output type register
@@ -37,10 +30,10 @@ $40020000 constant GPIO-BASE
   $F00 and 2 lshift GPIO-BASE +  1-foldable ;
 : io@ ( pin -- u )  \ get pin value (0 or 1)
   dup io-base GPIO.IDR + @ swap io# rshift 1 and ;
-: ioc! ( pin -- )  \ clear pin to low
-  dup io-mask swap io-base GPIO.BRR + ! ;
 : ios! ( pin -- )  \ set pin to high
   dup io-mask swap io-base GPIO.BSRR + ! ;
+: ioc! ( pin -- )  \ clear pin to low
+  16 + ios! ;
 : io! ( f pin -- )  \ set pin value
   \ use upper 16 bits in BSRR to reset with same operation
   swap 0= $10 and + ios! ;
@@ -60,7 +53,7 @@ $40020000 constant GPIO-BASE
   %10 constant OMODE-FAST   \ add to OMODE-* for 50 MHz iso 10 MHz drive
 
 : io-mode! ( mode pin -- )  \ set the CNF and MODE bits for a pin
-  dup io-base GPIO.CRL + over 8 and shr + >r ( R: crl/crh )
+  dup io-base GPIO.MODER + over 8 and shr + >r ( R: crl/crh )
   io# 7 and 4 * ( mode shift )
   $F over lshift not ( mode shift mask )
   r@ @ and -rot lshift or r> ! ;
