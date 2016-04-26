@@ -71,7 +71,7 @@ $40023C00 constant FLASH
 \ ------------------------------------------------------------------------------
 \ adjusted for STM32F407 @ 168 MHz (original STM32F407 by Igor de om1zz, 2015)
 
-8000000 variable clock-hz  \ 8 MHz crystal, HSI is 16 MHz
+16000000 variable clock-hz  \ HSI is 16 MHz, 8 MHz crystal
 
 : 168MHz ( -- )  \ set the main clock to 168 MHz, keep baud rate at 115200
   $103 Flash-ACR !   \ 3 Flash Waitstates for 120 MHz with more than 2.7 V Vcc
