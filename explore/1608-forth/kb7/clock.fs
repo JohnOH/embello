@@ -61,11 +61,6 @@ $D constant HPRE/128
 $E constant HPRE/256
 $F constant HPRE/512
 
-$0 constant PLLSAI-DIVR/2
-$1 constant PLLSAI-DIVR/4
-$2 constant PLLSAI-DIVR/8
-$3 constant PLLSAI-DIVR/16
-
 : rcc-gpio-clk-on ( n -- ) 1 swap lshift RCC_AHB1ENR bis! ;
 : rcc-gpio-clk-off ( n -- ) 1 swap lshift RCC_AHB1ENR bic! ;
 : rcc-ltdc-clk-on ( -- ) 26 bit RCC_APB2ENR bis! ;
