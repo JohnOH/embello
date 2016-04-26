@@ -13,7 +13,7 @@ include clock.fs
 
 PC13 constant LED
 
-: initx ( -- )  \ board initialisation
+: init ( -- )  \ board initialisation
   OMODE-PP LED io-mode!
   216Mhz
   flash-kb . ." KB <kb7> " hwid hex. cr
