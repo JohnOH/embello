@@ -12,10 +12,10 @@ Arduino headers:
     A5      PC5     analog, CT3
 
     D0      PA3     RX2
-    D1      PA2     TX2
-    D2      PA0     analog, reserved, Vin
+    D1      PA2     TX2, opt 1-wire sensor
+    D2      PA0     analog, Vin
     D3      PA1     yellow LED
-    D4      PB5     UEXT CS, could be used for DCF77
+    D4      PB5     UEXT CS, reused for DCF77
     D5      PB6     SCL1 - oled, compass, etc
     D6      PA8     RF69 IRQ
     D7      PA9     FTDI RX1

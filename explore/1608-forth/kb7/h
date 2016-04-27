@@ -20,5 +20,5 @@ PC13 constant LED
   1000 systick-hz
 ;
 
-reset
+cornerstone <<<hal-kb7>>>
 \ vim: set ft=forth :

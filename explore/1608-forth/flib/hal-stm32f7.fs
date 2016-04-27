@@ -8,6 +8,9 @@
   chipid 1- 0 do xor loop ;
 : flash-kb ( -- u )  \ return size of flash memory in KB
   $1FF0F422 h@ ;
+: flash-pagesize ( addr - u )  \ return size of flash page at given address
+  drop 32768  \ this is only correct for the first 4..5 sectors!
+;
 
 : io.all ( -- )  \ display all the readable GPIO registers
   io-ports 0 do i 0 io io. loop ;
@@ -147,6 +150,11 @@ $40023C00 constant FLASH
     dup 6 + ctype space
   dictionarynext until drop ;
 
-\ : cornerstone ( "name" -- )  \ define a flash memory cornerstone
-\   <builds begin here $3FF and while 0 h, repeat
-\   does>   begin dup  $3FF and while 2+   repeat  cr eraseflashfrom ;
+: eraseflashfrom ( addr -- )  \ "polyfill" to emulate missing core word
+  15 rshift 7 and 5 swap ?do i eraseflashsector loop
+  ." Finished. Reset !" cr reset ;
+
+: cornerstone ( "name" -- )  \ define a flash memory cornerstone
+  <builds begin here dup flash-pagesize 1- and while 0 h, repeat
+  does>   begin dup  dup flash-pagesize 1- and while 2+   repeat  cr
+  eraseflashfrom ;
