@@ -95,7 +95,7 @@ func getReply() uint8 {
 
 func connectToTarget() {
 	for {
-		conn.Flush()
+		//conn.Flush()
 		fmt.Print(".") // auto-baud greeting
 		sendByte(0x7F)
 		r := getReply()
@@ -129,7 +129,7 @@ func sendByte(b uint8) {
 
 func sendCmd(cmd uint8) {
 	//getReply()  // get rid of pending data
-	conn.Flush()
+	//conn.Flush()
 	pending = nil
 	sendByte(cmd)
 	sendByte(^cmd)

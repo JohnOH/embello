@@ -8,10 +8,13 @@ import (
 	"fmt"
 	"hash/crc32"
 	"io/ioutil"
+	"io"
+	"net"
 	"log"
 	"os"
 	"strings"
 	"time"
+	"strconv"
 
 	"github.com/tarm/serial"
 	"gopkg.in/readline.v1"
@@ -19,7 +22,7 @@ import (
 
 var (
 	rlInstance *readline.Instance
-	conn       *serial.Port
+	conn       io.ReadWriter
 	serIn      = make(chan []byte)
 	outBound   = make(chan string)
 	progress   = make(chan bool, 1)
@@ -48,11 +51,7 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	config := serial.Config{Name: *port, Baud: *baud}
-	if *upload != "" {
-		config.Parity = serial.ParityEven
-	}
-	conn, err = serial.OpenPort(&config)
+	conn, err = connect(*port)
 	check(err)
 	//defer conn.Close()
 	fmt.Println("Connected to:", *port)
@@ -73,7 +72,7 @@ func main() {
 
 	go serialExchange()
 
-	conn.Flush()
+	//conn.Flush()
 	readWithTimeout() // get rid of partial pending data
 	for {
 		line, err := rlInstance.Readline()
@@ -85,6 +84,28 @@ func main() {
 			fmt.Println("\\ done.")
 		}
 	}
+}
+
+// isNetPort returns true if the argument is of the form "...:<N>"
+func isNetPort(s string) bool {
+	if n := strings.Index(s, ":"); n > 0 {
+		p, e := strconv.Atoi(s[n+1:])
+		return e == nil && p > 0
+	}
+	return false
+}
+
+// connect to either a net port for telnet use, or to a serial device
+func connect(name string) (io.ReadWriter, error) {
+	if isNetPort(name) {
+		return net.Dial("tcp", name)
+	}
+
+	config := serial.Config{Name: *port, Baud: *baud}
+	if *upload != "" {
+		config.Parity = serial.ParityEven
+	}
+	return serial.OpenPort(&config)
 }
 
 func parseAndSend(line string) {
