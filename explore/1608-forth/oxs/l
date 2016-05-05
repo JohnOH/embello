@@ -20,6 +20,9 @@ PB5 constant DCF77-IN
 PC0 constant PULSE1
 PC1 constant PULSE2
 PC2 constant PULSE3
+PC3 constant CT1
+PC4 constant CT2
+PC5 constant CT3
 
 : vbat ( -- mvolt )
   VBAT-IN adc 3300 * 4 * 4095 / ;
@@ -33,6 +36,9 @@ PC2 constant PULSE3
   imode-pull PULSE1   io-mode!  PULSE1 ioc!
   imode-pull PULSE2   io-mode!  PULSE2 ioc!
   imode-pull PULSE3   io-mode!  PULSE3 ioc!
+  imode-adc  CT1      io-mode!
+  imode-adc  CT2      io-mode!
+  imode-adc  CT3      io-mode!
 ;
 
 ( code-size ) here swap - .

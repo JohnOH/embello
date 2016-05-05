@@ -75,7 +75,7 @@ $64000000 constant PSRAM
   dup 0 do
     random PSRAM i + !  \ fill it with random values
   4 +loop
-  PSRAM $40 dump
+  PSRAM $10 dump
   $12345678 seed !
   0 do
     random PSRAM i + @  \ now read those values back and compare
