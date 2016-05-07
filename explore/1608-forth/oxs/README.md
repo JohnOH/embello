@@ -55,8 +55,8 @@ Extension connector
     2   PB9     CAN tx
     3   PD2     MMC CS
     4   PC10    TX3
-    5   PB0     VBAT/4 ?
-    6   PB1     ?
+    5   PB0     VBAT/4
+    6   PB1     VBAT div low side
     7   PB10    SCL2 - 2nd compass
     8   PB11    SDA2 - 2nd compass
     9   PB12    SPI2 SSEL
@@ -70,7 +70,7 @@ Extension connector
 
 +5V tied between R1 & D5 with extra pin to shield (to power via FTDI on shield)
 
-BOOT0 = button = PC9  
+BOOT0 = button = PC9
 USB power detect = PC11
 
    [O]: https://www.olimex.com/Products/Duino/STM32/OLIMEXINO-STM32/
