@@ -32,16 +32,16 @@ config-pins
     DMA1 $00 + constant DMA1-ISR
     DMA1 $04 + constant DMA1-IFCR
 
-                             4 constant #adcs
-                           800 constant #samples
-                             2 constant #buffers
-#adcs #samples * #buffers * 2* constant #abytes
-                            40 constant #arate-us
-                #arate-us 72 * constant #arate-clk
-                        #abytes buffer: adata
+                               4 constant #adcs
+                             800 constant #asamples
+                               2 constant #abuffers
+#adcs #asamples * #abuffers * 2* constant #abytes
+                              40 constant arate-us
+                   arate-us 72 * constant arate-clk
+                          #abytes buffer: adata
 
-: quad-adc ( -- )
-  adata #abytes VAC-IN #arate-clk adc1-dma
+: quad-adc ( -- )  \ configure ADC and DMA for quad-channel continuous sampling
+  adata #abytes VAC-IN arate-clk adc1-dma
                               \ set up the ADC scan channels:
   VAC-IN adc#                 \ channel 0
   CT1    adc#  5 lshift or    \ channel 1
@@ -52,7 +52,7 @@ config-pins
          8 bit ADC1-CR1 bis!  \ enable SCAN mode
 ;
 
-: check-dma-rate ( -- )
+: check-dma-rate ( -- )  \ report DMA-done cycle times until key hit
   micros begin
     begin DMA1-ISR @ until
     micros dup rot - .
