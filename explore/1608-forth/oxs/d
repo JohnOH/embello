@@ -26,17 +26,22 @@ config-pins
 \ -----------------------------------------------------------------------------
 \ quad-ADC sampling via DMA
 
+    ADC1 $04 + constant ADC1-CR1
+    ADC1 $2C + constant ADC1-SQR1
+
+    DMA1 $00 + constant DMA1-ISR
+    DMA1 $04 + constant DMA1-IFCR
+
                              4 constant #adcs
                            800 constant #samples
                              2 constant #buffers
 #adcs #samples * #buffers * 2* constant #abytes
+                            40 constant #arate-us
+                #arate-us 72 * constant #arate-clk
                         #abytes buffer: adata
 
-    ADC1 $04 + constant ADC1-CR1
-    ADC1 $2C + constant ADC1-SQR1
-
 : quad-adc ( -- )
-  adata #abytes VAC-IN 2880 adc1-dma
+  adata #abytes VAC-IN #arate-clk adc1-dma
                               \ set up the ADC scan channels:
   VAC-IN adc#                 \ channel 0
   CT1    adc#  5 lshift or    \ channel 1
@@ -47,14 +52,12 @@ config-pins
          8 bit ADC1-CR1 bis!  \ enable SCAN mode
 ;
 
-    DMA1 $00 + constant DMA1-ISR
-    DMA1 $04 + constant DMA1-IFCR
-
-: a micros begin
-      begin DMA1-ISR @ until
-      micros dup rot - .
-      DMA1-ISR @ dup . DMA1-IFCR !
-    key? until drop ;
+: check-dma-rate ( -- )
+  micros begin
+    begin DMA1-ISR @ until
+    micros dup rot - .
+    DMA1-ISR @ dup . DMA1-IFCR !
+  key? until drop ;
 
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :

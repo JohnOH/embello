@@ -20,7 +20,16 @@ reset
 
 \ -----------------------------------------------------------------------------
 
-main
+: periodic-ms ( handler var ms -- )  \ execute handler every ms milliseconds
+  over @ +  millis -  0< if  2drop  else  millis swap ! execute  then ;
+
+\ a quick test of periodic-ms
+: beep 123 . ;
+0 variable beep-last
+: beep-poll ['] beep beep-last 1000 periodic-ms ;
+: t begin beep-poll key? until ;
+
+\ main
 
 \ enter this line manually once main works and has a verified escape hatch:
 \ compiletoflash  : init ( -- ) init main ;
