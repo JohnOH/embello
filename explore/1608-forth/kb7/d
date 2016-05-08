@@ -41,16 +41,16 @@ data variable x
     then
     nip dup
   loop
-  2drop ;
+  2drop 6 - ;
 
 : a micros conv-max micros rot - . ;
 : b micros rconv-max micros rot - . ;
 
 a .
 b .
-348 2* x +!  b 348 + .
 
-data x !
+348 2* x +!  b 348 + .  data x !
+
 \ 4 x +!  \ workaround for F746, maybe a bug in create or h, ?
 
 : c ( -- n1 n2 n3 )
