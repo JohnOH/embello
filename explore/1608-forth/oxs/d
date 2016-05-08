@@ -21,115 +21,40 @@ reset
 : pwmtry ( -- )  1 LED2 +pwm 9900 LED2 pwm ;  \ inverted logic
 : t69try ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
 
-\ -----------------------------------------------------------------------------
-
-      PWR $4 + constant PWR-CSR
-
-$E000ED00 constant SCB
-     SCB $14 + constant SCB-SCR
-
-: standby ( -- )  \ go into low-power standby mode
-  2 bit PWR-CR bis!  \ CWUF
-  1 bit PWR-CR bis!  \ PDDS
-  2 bit SCB-SCR bis!  \ SLEEPDEEP
-  sleep ;
-
-\ TODO not working, not even with OMODE-AF-OD PA0 io-mode!
-: ena-wup ( -- )  \ enable wakeup pin
-  8 bit PWR-CSR bis! ;
-
-\ -----------------------------------------------------------------------------
-
-eint \ multitask
-
-0 variable seconds
-task: timetask
-
-: time& ( -- )
-  timetask background
-    begin
-      key? if boot-task wake then
-      1 seconds +!
-      seconds @ . cr
-      stop
-    again
-;
-
-\ time& ( lowpower& ) tasks
-
-: tick ( -- )
-  ++ticks
-  millis 1000 mod 0= if timetask wake then ;
-
-\ ' tick irq-systick !
-
-\ stop \ Idle the boot task
-\ -----------------------------------------------------------------------------
-\ DCF77 decoding
-
-              40 constant dcf-cycles
-dcf-cycles 100 * constant dcf-size
-         dcf-size buffer: dcf-bins
-
-: ms-wait ( -- )
-  millis  begin  millis over <> until  drop ;
-
-: dcf-clear ( -- ) dcf-bins dcf-size 0 fill ;
-
-: dcf-probe ( -- )
-  dcf-size 0 do
-    10 0 do  ms-wait  DCF77-IN io@  dcf-bins j + c+!  loop
-  loop ;
-
-: dcf-dump1 ( n -- )
-  case
-    0 of [char] - emit endof
-    10 of [char] X emit endof
-    dup [char] 0 + emit
-  endcase ;
-
-: dcf-dump100 ( addr -- ) 100 0 do  dup c@  dcf-dump1  1+  loop  drop ;
-
-: dcf-dump ( -- )
-  dcf-bins  dcf-cycles 0 do
-    cr i u.2 space  dup dcf-dump100  100 +
-  loop  drop ;
-
-: dcf-scope ( -- ) ." Capturing... " dcf-clear dcf-probe dcf-dump ;
-
-: +expo! ( 0/1 addr -- ) tuck  c@  127 * 7 rshift  swap 2* +  swap c! ;
-
-: dcf-tick
-  ++ticks
-  DCF77-IN io@
-  millis 1000 u/mod drop 10 /  dcf-bins +
-  +expo! ;
-
-: dcf. ( -- ) dcf-bins dcf-size dump ;
-: dcf.t ( -- ) 100 0 do i dcf-bins + c@ h.2 space loop ;
-
-: dcf-init
-  dcf-clear
-  ['] dcf-tick irq-systick !
-;
-
-\ -----------------------------------------------------------------------------
-
-true constant has-lcd
-
-: main ( -- )
-  has-lcd if lcd-init show-logo then
-  config-pins
-  begin
-    PULSE1 io@  PULSE2 io@ xor  PULSE3 io@ xor  LED2 io!
-  key? until key drop
-  has-lcd if clear display then
-
-  begin 1000 ms  vbat .  key? until
-;
-
-\ main
 config-pins
+
+\ -----------------------------------------------------------------------------
+\ quad-ADC sampling via DMA
+
+                             4 constant #adcs
+                           800 constant #samples
+                             2 constant #buffers
+#adcs #samples * #buffers * 2* constant #abytes
+                        #abytes buffer: adata
+
+    ADC1 $04 + constant ADC1-CR1
+    ADC1 $2C + constant ADC1-SQR1
+
+: quad-adc ( -- )
+  adata #abytes VAC-IN 2880 adc1-dma
+                              \ set up the ADC scan channels:
+  VAC-IN adc#                 \ channel 0
+  CT1    adc#  5 lshift or    \ channel 1
+  CT2    adc# 10 lshift or    \ channel 2
+  CT3    adc# 15 lshift or    \ channel 3
+              ADC1-SQR3 !
+  3 20 lshift ADC1-SQR1 !     \ four scan channels
+         8 bit ADC1-CR1 bis!  \ enable SCAN mode
+;
+
+    DMA1 $00 + constant DMA1-ISR
+    DMA1 $04 + constant DMA1-IFCR
+
+: a micros begin
+      begin DMA1-ISR @ until
+      micros dup rot - .
+      DMA1-ISR @ dup . DMA1-IFCR !
+    key? until drop ;
 
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :

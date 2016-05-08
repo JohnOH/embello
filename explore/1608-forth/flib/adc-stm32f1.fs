@@ -17,13 +17,17 @@ $40020000 constant DMA1
   1 ADC1-CR2 bis!  \ set ADON to enable ADC
 ;
 
-: adc ( pin - u )  \ read ADC value
+: adc# ( pin -- n )  \ convert pin number to adc index
+\ nasty way to map the pins (a "c," table offset lookup might be simpler)
+\   PA0..7 => 0..7, PB0..1 => 8..9, PC0..5 => 10..15
+  dup io# swap  io-port ?dup if shl + 6 + then ;
+
+: adc ( pin -- u )  \ read ADC value
   IMODE-ADC over io-mode!
 \ nasty way to map the pins (a "c," table offset lookup might be simpler)
 \   PA0..7 => 0..7, PB0..1 => 8..9, PC0..5 => 10..15
-  dup io# swap  io-port ?dup if shl + 6 + then
-    ADC1-SQR3 !
-  1 ADC1-CR2 bis!  \ set ADON to start ADC
+  adc# ADC1-SQR3 !
+      1 ADC1-CR2 bis!  \ set ADON to start ADC
   begin 1 bit ADC1-SR bit@ until  \ wait until EOC set
   ADC1-DR @ ;
 
