@@ -40,9 +40,9 @@ $40020000 constant DMA1
   ADC1-DR @ ;
 
 : adc1-dma ( addr count pin rate -- )  \ continuous DMA-based conversion
-  3 +timer
+  3 +timer        \ set the ADC trigger rate using timer 3
   +adc  adc drop  \ perform one conversion to set up the ADC
-  2dup 0 fill  \ clear sampling buffer
+  2dup 0 fill     \ clear sampling buffer
 
     0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
       2/ DMA1-CNDTR1 !     \ 2-byte entries
