@@ -2,11 +2,16 @@
 
 $40012400 constant ADC1
     ADC1 $00 + constant ADC1-SR
+    ADC1 $04 + constant ADC1-CR1
     ADC1 $08 + constant ADC1-CR2
+    ADC1 $2C + constant ADC1-SQR1
+    ADC1 $30 + constant ADC1-SQR2
     ADC1 $34 + constant ADC1-SQR3
     ADC1 $4C + constant ADC1-DR
 
 $40020000 constant DMA1
+    DMA1 $00 + constant DMA1-ISR
+    DMA1 $04 + constant DMA1-IFCR
     DMA1 $08 + constant DMA1-CCR1
     DMA1 $0C + constant DMA1-CNDTR1
     DMA1 $10 + constant DMA1-CPAR1
@@ -16,6 +21,9 @@ $40020000 constant DMA1
   9 bit RCC-APB2ENR bis!  \ set ADC1EN
   1 ADC1-CR2 bis!  \ set ADON to enable ADC
 ;
+
+: adc-calib ( -- )  \ perform an ADC calibration cycle
+  2 bit ADC1-CR2 bis!  begin 2 bit ADC1-CR2 bit@ 0= until ;
 
 : adc# ( pin -- n )  \ convert pin number to adc index
 \ nasty way to map the pins (a "c," table offset lookup might be simpler)

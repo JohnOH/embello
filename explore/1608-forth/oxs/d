@@ -26,12 +26,6 @@ config-pins
 \ -----------------------------------------------------------------------------
 \ quad-ADC sampling via DMA
 
-    ADC1 $04 + constant ADC1-CR1
-    ADC1 $2C + constant ADC1-SQR1
-
-    DMA1 $00 + constant DMA1-ISR
-    DMA1 $04 + constant DMA1-IFCR
-
                                4 constant #adcs
                              800 constant #asamples
                                2 constant #abuffers
@@ -41,13 +35,13 @@ config-pins
                           #abytes buffer: adata
 
 : quad-adc ( -- )  \ configure ADC and DMA for quad-channel continuous sampling
+  +adc  6 us  adc-calib 
   adata #abytes VAC-IN arate-clk adc1-dma
-                              \ set up the ADC scan channels:
   VAC-IN adc#                 \ channel 0
   CT1    adc#  5 lshift or    \ channel 1
   CT2    adc# 10 lshift or    \ channel 2
   CT3    adc# 15 lshift or    \ channel 3
-              ADC1-SQR3 !
+              ADC1-SQR3 !     \ set up the ADC scan channels
   3 20 lshift ADC1-SQR1 !     \ four scan channels
          8 bit ADC1-CR1 bis!  \ enable SCAN mode
 ;
