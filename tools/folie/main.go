@@ -52,10 +52,11 @@ func main() {
 	if *exe && flag.NArg() > 0 {
 		conn, err = launch(flag.Args())
 		*port = "(" + strings.Join(flag.Args(), " ") + ")"
-	} else if *port == "" || flag.NArg() > 0 {
+	} else if *port != "" && flag.NArg() == 0 {
+		conn, err = connect(*port)
+	} else {
 		flag.PrintDefaults()
 		os.Exit(1)
-		conn, err = connect(*port)
 	}
 	check(err)
 	//defer conn.Close()
