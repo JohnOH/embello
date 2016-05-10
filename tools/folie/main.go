@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +30,7 @@ var (
 	incLevel   = make(chan int)
 
 	port    = flag.String("p", "", "serial port (required: /dev/tty* or COM*)")
+	exe     = flag.Bool("x", false, "executable (consumes all remaining args)")
 	baud    = flag.Int("b", 115200, "baud rate")
 	upload  = flag.String("u", "", "upload the specified firmware, then quit")
 	expand  = flag.String("e", "", "expand specified file to stdout, then quit")
@@ -47,11 +49,14 @@ func main() {
 		return
 	}
 
-	if *port == "" || flag.NArg() > 0 {
+	if *exe && flag.NArg() > 0 {
+		conn, err = launch(flag.Args())
+		*port = "(" + strings.Join(flag.Args(), " ") + ")"
+	} else if *port == "" || flag.NArg() > 0 {
 		flag.PrintDefaults()
 		os.Exit(1)
+		conn, err = connect(*port)
 	}
-	conn, err = connect(*port)
 	check(err)
 	//defer conn.Close()
 	fmt.Println("Connected to:", *port)
@@ -106,6 +111,34 @@ func connect(name string) (io.ReadWriter, error) {
 		config.Parity = serial.ParityEven
 	}
 	return serial.OpenPort(&config)
+}
+
+// launch an executable and talk to it via pipes
+func launch(args []string) (io.ReadWriter, error) {
+	cmd := exec.Command(args[0], args[1:]...)
+	var cmdio exePipe
+	var err error
+	cmdio.to, err = cmd.StdinPipe()
+	if err == nil {
+		cmdio.from, err = cmd.StdoutPipe()
+		if err == nil {
+			err = cmd.Start()
+		}
+	}
+	return &cmdio, err
+}
+
+type exePipe struct {
+	from io.Reader
+	to   io.Writer
+}
+
+func (e *exePipe) Read(p []byte) (n int, err error) {
+	return e.from.Read(p)
+}
+
+func (e *exePipe) Write(p []byte) (n int, err error) {
+	return e.to.Write(p)
 }
 
 func parseAndSend(line string) {
