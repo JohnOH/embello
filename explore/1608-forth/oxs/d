@@ -22,55 +22,22 @@ reset
 : t69try ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
 
 config-pins
-
-\ -----------------------------------------------------------------------------
-\ quad-ADC sampling via DMA
-
-                               4 constant #adcs
-                             800 constant #asamples
-                               2 constant #abuffers
-#adcs #asamples * #abuffers * 2* constant #abytes
-                              40 constant arate-us
-                   arate-us 72 * constant arate-clk
-                          #abytes buffer: adata
-
-: quad-adc ( -- )  \ configure ADC and DMA for quad-channel continuous sampling
-  +adc  6 us  adc-calib 
-  adata #abytes VAC-IN arate-clk adc1-dma
-  VAC-IN adc#                 \ channel 0
-  CT1    adc#  5 lshift or    \ channel 1
-  CT2    adc# 10 lshift or    \ channel 2
-  CT3    adc# 15 lshift or    \ channel 3
-              ADC1-SQR3 !     \ set up the ADC scan channels
-  3 20 lshift ADC1-SQR1 !     \ four scan channels
-         8 bit ADC1-CR1 bis!  \ enable SCAN mode
-;
-
-: check-dma-rate ( -- )  \ report DMA-done cycle times until key hit
-  micros begin
-    begin DMA1-ISR @ until
-    micros dup rot - .
-    DMA1-ISR @ dup . DMA1-IFCR !
-  key? until drop ;
+quad-adc
+count-pulses
 
 \ -----------------------------------------------------------------------------
 
     800 constant #capt
 #capt 2* buffer: capt
 
-: sample1 ( chan -- )
+: asample ( chan -- )
   DMA1-ISR @ dup . DMA1-IFCR !
   begin DMA1-ISR @ until
   #capt 0 do i 4 * over + 2* adata + h@ i 2* capt + h! loop
   #capt 0 do i 2* capt + h@ . loop drop ;
 
-    ADC1 $0C + constant ADC1-SMPR1
-    ADC1 $10 + constant ADC1-SMPR2
-
-quad-adc
-\ %000000011011011011011011011011 ADC1-SMPR1 !
-\ %011011011011011011011011011011 ADC1-SMPR2 !
-0 sample1
+\ sync and then dump 800 samples of channel 0, 1, 2, or 3
+\ 0 asample
 
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
