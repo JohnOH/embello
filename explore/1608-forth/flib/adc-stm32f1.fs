@@ -59,6 +59,7 @@ $40020000 constant DMA1
       DMA1-CCR1 !
 
                  0   \ ADC1 triggers on timer 3 and feeds DMA1:
+          23 bit or  \ TSVREFE
           20 bit or  \ EXTTRIG
   %100 17 lshift or  \ timer 3 TRGO event
            8 bit or  \ DMA

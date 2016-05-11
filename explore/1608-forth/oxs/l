@@ -17,12 +17,12 @@ PA0 constant VAC-IN
 PB0 constant VBAT-IN
 PB1 constant VBAT-GND
 PB5 constant DCF77-IN
-PC0 constant PULSE1
-PC1 constant PULSE2
-PC2 constant PULSE3
-PC3 constant CT1
-PC4 constant CT2
-PC5 constant CT3
+PC0 constant CT1
+PC1 constant CT2
+PC2 constant CT3
+PC3 constant PULSE1
+PC4 constant PULSE2
+PC5 constant PULSE3
 
 : vbat ( -- mvolt )
   VBAT-IN adc 3300 * 4 * 4095 / ;

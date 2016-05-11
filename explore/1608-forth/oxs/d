@@ -54,4 +54,23 @@ config-pins
   key? until drop ;
 
 \ -----------------------------------------------------------------------------
+
+    800 constant #capt
+#capt 2* buffer: capt
+
+: sample1 ( chan -- )
+  DMA1-ISR @ dup . DMA1-IFCR !
+  begin DMA1-ISR @ until
+  #capt 0 do i 4 * over + 2* adata + h@ i 2* capt + h! loop
+  #capt 0 do i 2* capt + h@ . loop drop ;
+
+    ADC1 $0C + constant ADC1-SMPR1
+    ADC1 $10 + constant ADC1-SMPR2
+
+quad-adc
+\ %000000011011011011011011011011 ADC1-SMPR1 !
+\ %011011011011011011011011011011 ADC1-SMPR2 !
+0 sample1
+
+\ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
