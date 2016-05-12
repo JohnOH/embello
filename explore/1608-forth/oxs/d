@@ -27,21 +27,20 @@ count-pulses
 
 \ -----------------------------------------------------------------------------
 
-0 0 2variable counts1
-0 0 2variable counts2
-0 0 2variable counts3
+0 0 2variable counts1  \ previous pulses1 state
+0 0 2variable counts2  \ previous pulses2 state
+0 0 2variable counts3  \ previous pulses3 state
 
-2000 constant pulses-per-kwh
-3600000 1000 pulses-per-kwh u*/ constant pulse-factor
+                       2000 constant pulses/kwh
+                3600 1000 * constant ms/hour
+ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
 
 : pulse-to-watt ( count ms -- watt )
   dup if pulse-factor -rot u*/ else nip then  \ avoid divide by zero
 ;
 
-: safe-2@ ( addr -- n1 n2 ) dint 2@ eint ;
-
-: pulse-diff ( a1 a2 -- u1 u2 )
-  >r safe-2@
+: pulse-diff ( pa ca -- count ms )
+  >r  dint 2@ eint  \ lock out interrupts during fetch
   over r@ @ = if
     rdrop 2drop 0 0
   else
