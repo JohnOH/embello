@@ -145,8 +145,12 @@ $40010400 constant EXTI
   2dup or while
     over $7F and hold
   repeat 2drop ;
-: u#v ( u -- ) 0 d#v ;  \ add one 32-bit unsigned value to output
 : v> ( d -- caddr len ) #> ;  \ finish, then return buffer and length
+
+\ the following variants can be used to truncate and add smaller values
+: u#v ( u -- ) 0 d#v ;  \ add one 32-bit uint to output, max 5 bytes
+: u14#v ( u -- ) $3FFF and u#v ;  \ add one 14-bit uint to output, max 2 bytes
+: u7#v ( u -- ) $7F and u#v ;  \ add one 7-bit uint to output, always 1 byte
 
 \ -----------------------------------------------------------------------------
 
