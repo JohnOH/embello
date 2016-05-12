@@ -132,6 +132,23 @@ $40010400 constant EXTI
 ;
 
 \ -----------------------------------------------------------------------------
+\ variable-int encoding, turns 64-bit ints into 1..10 bytes
+
+: drshift ( ud|d n -- ud|d )  \ double right shift n bits
+  0 do dshr loop ;
+
+: <v ( - d ) 0 0 <# ;  \ prepare variable output
+: d#v ( d -- )  \ add one 64-bit value to output
+  over $80 or hold
+  begin
+    7 drshift
+  2dup or while
+    over $7F and hold
+  repeat 2drop ;
+: u#v ( u -- ) 0 d#v ;  \ add one 32-bit unsigned value to output
+: v> ( d -- caddr len ) #> ;  \ finish, then return buffer and length
+
+\ -----------------------------------------------------------------------------
 
 ( code-size ) here swap - .
 cornerstone <<<lib-oxs>>>
