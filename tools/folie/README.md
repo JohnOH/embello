@@ -3,11 +3,12 @@
 The **Fo**rth **Li**ne **E**valuator is a serial terminal interface for [Mecrisp Forth][MF]:
 
 * connects as terminal console to an attached microcontroller board over serial
-* line entry: each line is sent out over serial, and output displayed back
+* can also connect to a telnet socket or to ssh, launched as a subprocess
+* line entry: each line is sent out after a return, and output displayed back
 * command history: uses [readline][RL] to edit and re-send previous commands
 * include files: each line of the form "`include <filename>`" is processed  
   as a request to send the contents of that file as if it had been typed in
-* nested includes: `include` lines found inside are also processed recursively
+* nested includes: `include` lines found inside are processed recursively
 * throttling: each line waits for an "`ok.`" prompt before sending the next one
 * firmware uploads: allows erasing an STM32F1 chip and uploading new firmware
 * the default baud rate is 115200, see `folie -help` for a list of options
@@ -46,6 +47,19 @@ Launch as "`./folie -p /dev/ttyAMA0`" or whatever the device name is.
 
 See the [readline]() page for a complete list of all the supported shortcuts.
 
+### Connecting to a telnet socket
+
+This mode can be used in combination with an [ESP-Link][EL] WiFi to serial  
+bridge, by replacing the serial device name with "`<dns-or-ip>:23`".
+
+### Connecting via SSH
+
+To run Folie as front-end for a Linux-based version of Mecrisp, use the  
+following incantation: "`folie -x ssh <hostname> <path/to/mecrisp>`".
+
+On Linux, this same `-x` option can also be used to launch Mecrisp locally,  
+using: "`folie -x <path/to/mecrisp>`".
+
 ### Firmware uploads
 
 When started with the `-u` option, Folie will try to upload a firmware image  
@@ -74,3 +88,4 @@ MIT, see also [chzyer/readline][LR] and [tarm/serial][LS] included in this app.
   [SC]: https://github.com/jeelabs/embello
   [LR]: https://github.com/chzyer/readline/blob/v1.2/LICENSE
   [LS]: https://github.com/tarm/serial/blob/master/LICENSE
+  [EL]: https://github.com/jeelabs/esp-link
