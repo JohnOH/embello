@@ -27,6 +27,41 @@ count-pulses
 
 \ -----------------------------------------------------------------------------
 
+0 0 2variable counts1
+0 0 2variable counts2
+0 0 2variable counts3
+
+2000 constant pulses-per-kwh
+3600000 1000 pulses-per-kwh u*/ constant pulse-factor
+
+: pulse-to-watt ( count ms -- watt )
+  dup if pulse-factor -rot u*/ else nip then  \ avoid divide by zero
+;
+
+: safe-2@ ( addr -- n1 n2 ) dint 2@ eint ;
+
+: pulse-diff ( a1 a2 -- u1 u2 )
+  >r safe-2@
+  over r@ @ = if
+    rdrop 2drop 0 0
+  else
+    \ TODO horrible stack juggling, need to simplify
+    2dup r@ 2@ rot swap - -rot - 2swap r> 2!
+  then ;
+
+: x ( -- )
+  pulses1 counts1 pulse-diff pulse-to-watt
+  ." P1: " dup if counts1 @ . then .
+  pulses2 counts2 pulse-diff pulse-to-watt
+  ." P2: " dup if counts2 @ . then .
+  pulses3 counts3 pulse-diff pulse-to-watt
+  ." P3: " dup if counts3 @ . then .
+;
+
+: y ( -- ) begin cr 10000 ms x key? until ;
+
+\ -----------------------------------------------------------------------------
+
     800 constant #capt
 #capt 2* buffer: capt
 
