@@ -24,7 +24,6 @@ reset
 config-pins
 quad-adc
 count-pulses
-6 8686 rf-init
 
 \ -----------------------------------------------------------------------------
 
@@ -69,7 +68,7 @@ ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
   v> dup 4 > if 0 rf-send else 2drop then
 ;
 
-: y ( -- ) begin 5000 ms x2 key? until ;
+: y ( -- ) 6 8686 rf-init  begin 5000 ms x2 key? until ;
 
 \ -----------------------------------------------------------------------------
 

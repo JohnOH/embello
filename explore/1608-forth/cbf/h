@@ -34,7 +34,7 @@ PF6 constant LED
 \ -jtag  \ disable JTAG, we only need SWD
   OMODE-PP LED io-mode!
   168MHz
-  flash-kb . ." KB <cbf> " hwid hex. cr
+  flash-kb . ." KB <cbf> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 

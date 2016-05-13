@@ -67,7 +67,7 @@ PF6 constant LED
   %111000000 RCC-APB2ENR bis!  \ enable ports E..G
   OMODE-PP LED io-mode!
   72MHz
-  flash-kb . ." KB <cbo> " hwid hex. cr
+  flash-kb . ." KB <cbo> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 

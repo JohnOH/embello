@@ -49,7 +49,7 @@ PA1 constant LED2
   OMODE-PP LED1 io-mode!
   OMODE-PP LED2 io-mode!
   72MHz
-  flash-kb . ." KB <oxs> " hwid hex. cr
+  flash-kb . ." KB <oxs> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 

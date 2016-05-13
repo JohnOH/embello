@@ -73,7 +73,7 @@ PA7 constant LED4
   OMODE-PP LED3 io-mode!
   OMODE-PP LED4 io-mode!
   72MHz
-  flash-kb . ." KB <wpz> " hwid hex. cr
+  flash-kb . ." KB <wpz> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 

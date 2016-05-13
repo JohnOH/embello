@@ -48,7 +48,7 @@ PD2 constant LED
   -jtag  \ disable JTAG, we only need SWD
   OMODE-PP LED io-mode!
   72MHz
-  flash-kb . ." KB <ybc> " hwid hex. cr
+  flash-kb . ." KB <ybc> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 

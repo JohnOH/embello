@@ -16,7 +16,7 @@ PC13 constant LED
 : init ( -- )  \ board initialisation
   OMODE-PP LED io-mode!
   216Mhz
-  flash-kb . ." KB <kb7> " hwid hex. cr
+  flash-kb . ." KB <kb7> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 

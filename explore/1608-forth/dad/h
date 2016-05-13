@@ -27,7 +27,7 @@ include ../flib/i2c-bb.fs
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD
   72MHz
-  flash-kb . ." KB <dad> " hwid hex. cr
+  flash-kb . ." KB <dad> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 
