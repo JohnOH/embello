@@ -9,7 +9,7 @@ reset
 \ print out received packet info until a key is pressed
 \ format: #bytes b3..b0 b7..b4 rssi lna afc
 : r69try ( -- )
-  42 8686 rf-init
+\ 42 8686 rf-init
   begin
     rf-recv  ?dup if
       cr . rf.buf @ hex. rf.buf 4 + @ hex. rf.rssi @ . rf.lna @ . rf.afc @ .
@@ -19,11 +19,12 @@ reset
 : adctry ( -- )  +adc  begin  PA0 adc .  key? until ;
 : uartry ( -- )  +uart uart. ;
 : pwmtry ( -- )  1 LED2 +pwm 9900 LED2 pwm ;  \ inverted logic
-: t69try ( n - ) 15 rf-power  0 <# #s #> 0 rf-send ;
+: t69try ( n - ) 30 rf-power  0 <# #s #> 0 rf-send ;
 
 config-pins
 quad-adc
 count-pulses
+6 8686 rf-init
 
 \ -----------------------------------------------------------------------------
 
@@ -48,7 +49,8 @@ ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
     2dup r@ 2@ rot swap - -rot - 2swap r> 2!
   then ;
 
-: x ( -- )
+: x1 ( -- )
+  cr
   pulses1 counts1 pulse-diff pulse-to-watt
   ." P1: " dup if counts1 @ . then .
   pulses2 counts2 pulse-diff pulse-to-watt
@@ -57,7 +59,17 @@ ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
   ." P3: " dup if counts3 @ . then .
 ;
 
-: y ( -- ) begin cr 10000 ms x key? until ;
+: x2 ( -- )
+  \ FIXME yuck, all items end up getting inserted in reversed order
+  <v
+  pulses3 counts3 pulse-diff pulse-to-watt dup u14#v if counts3 @ u14#v then
+  pulses2 counts2 pulse-diff pulse-to-watt dup u14#v if counts2 @ u14#v then
+  pulses1 counts1 pulse-diff pulse-to-watt dup u14#v if counts1 @ u14#v then
+  1 u#v
+  v> 0 rf-send
+;
+
+: y ( -- ) begin 10000 ms x2 key? until ;
 
 \ -----------------------------------------------------------------------------
 
