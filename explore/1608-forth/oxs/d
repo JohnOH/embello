@@ -52,19 +52,19 @@ ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
 : x1 ( -- )
   cr
   pulses1 counts1 pulse-diff pulse-to-watt
-  ." P1: " dup if counts1 @ . then .
+  ." P1: " dup . if counts1 @ . then
   pulses2 counts2 pulse-diff pulse-to-watt
-  ." P2: " dup if counts2 @ . then .
+  ." P2: " dup . if counts2 @ . then
   pulses3 counts3 pulse-diff pulse-to-watt
-  ." P3: " dup if counts3 @ . then .
+  ." P3: " dup . if counts3 @ . then
 ;
 
 : x2 ( -- )
   \ FIXME yuck, all items end up getting inserted in reversed order
   <v
-  pulses3 counts3 pulse-diff pulse-to-watt dup u14#v if counts3 @ u14#v then
-  pulses2 counts2 pulse-diff pulse-to-watt dup u14#v if counts2 @ u14#v then
-  pulses1 counts1 pulse-diff pulse-to-watt dup u14#v if counts1 @ u14#v then
+  pulses3 counts3 pulse-diff pulse-to-watt dup if counts3 @ u14#v then u14#v
+  pulses2 counts2 pulse-diff pulse-to-watt dup if counts2 @ u14#v then u14#v
+  pulses1 counts1 pulse-diff pulse-to-watt dup if counts1 @ u14#v then u14#v
   1 u#v
   v> 0 rf-send
 ;
