@@ -69,7 +69,7 @@ ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
   v> 0 rf-send
 ;
 
-: y ( -- ) begin 10000 ms x2 key? until ;
+: y ( -- ) begin 5000 ms x2 key? until ;
 
 \ -----------------------------------------------------------------------------
 
