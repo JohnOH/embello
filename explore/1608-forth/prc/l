@@ -131,13 +131,13 @@ PB5 constant WHITE-BTN
 : config-pins ( -- )
   +adc  0 heat!  100 fan!  \ initialise with safest setting
 
-  imode-adc HEATER-SENSE io-mode!  HEATER-SENSE ioc!
-   imode-adc POWER-SENSE io-mode!   POWER-SENSE ioc!
-    imode-adc TEMP-SENSE io-mode!    TEMP-SENSE ioc!
-     omode-pp TEMP-POWER io-mode!    TEMP-POWER ioc!
-     omode-pp BUZZER-OUT io-mode!    BUZZER-OUT ioc!
-    imode-PULL BLACK-BTN io-mode!     BLACK-BTN ios!
-    imode-PULL WHITE-BTN io-mode!     WHITE-BTN ios! ;
+  imode-adc  HEATER-SENSE io-mode!  HEATER-SENSE ioc!
+  imode-adc  POWER-SENSE  io-mode!  POWER-SENSE  ioc!
+  imode-adc  TEMP-SENSE   io-mode!  TEMP-SENSE   ioc!
+  omode-pp   TEMP-POWER   io-mode!  TEMP-POWER   ioc!
+  omode-pp   BUZZER-OUT   io-mode!  BUZZER-OUT   ioc!
+  imode-PULL BLACK-BTN    io-mode!  BLACK-BTN    ios!
+  imode-PULL WHITE-BTN    io-mode!  WHITE-BTN    ios! ;
 
 : main ( -- )
   black? if exit then       \ if black pressed on init, bail out
