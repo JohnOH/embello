@@ -88,4 +88,45 @@ ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
 \ 0 acapture
 
 \ -----------------------------------------------------------------------------
+\ P1 serial port scanner and decoder
+
+      0 variable p1.type
+      0 variable p1.value
+10 cells buffer: p1.data
+
+: p1clear p1.data 10 cells 0 fill ;
+: p1dump cr 10 0 do i cells p1.data + @ . loop ;
+: p1save ( pos -- ) p1.value @ swap cells p1.data + ! ;
+
+: p1select ( type -- )
+  case
+      181 of 0 p1save endof
+      182 of 1 p1save endof
+      281 of 2 p1save endof
+      282 of 3 p1save endof
+    96140 of 4 p1save endof
+      170 of 5 p1save endof
+      270 of 6 p1save endof
+     2410 of 7 p1save endof
+     2420 of 8 p1save endof
+     2440 of 9 p1save endof
+  endcase ;
+
+: p1char ( c -- )
+  case
+    [char] / of p1clear endof
+    [char] : of 0 p1.type ! 0 p1.value ! endof
+    [char] ( of p1.type @ 0= if p1.value @ p1.type ! then 0 p1.value ! endof
+    [char] ) of p1.type @ p1select endof
+    [char] ! of p1dump endof
+             dup digit if p1.value @ 10 * + p1.value ! then
+  endcase
+;
+
+: p1test
+  begin
+    uart-irq-key? if uart-irq-key p1char then
+  key? until ;
+
+\ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
