@@ -157,5 +157,18 @@ $40010400 constant EXTI
 ( code-size ) here swap - .
 cornerstone <<<lib-oxs>>>
 ( flash-end ) here hex.
-include d
+\ include d
+
+compiletoflash
+
+: initx ( -- )
+  init  1000 ms  key? if <<<lib-oxs>>> then  \ safety escape hatch
+  +uart-irq
+  ['] uart-emit?    hook-emit? !
+  ['] uart-emit     hook-emit  !
+  ['] uart-irq-key? hook-key?  !
+  ['] uart-irq-key  hook-key   !
+  cr init
+;
+
 \ vim: set ft=forth :
