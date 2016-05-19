@@ -102,10 +102,10 @@ p1# cells buffer: p1.buf
 : p1select ( type -- )  \ these values are for a Landys & Gyr E350 meter:
   case
       181 of 0 p1save endof  \ cumulative electricity consumption, normal
-      182 of 1 p1save endof  \ cumulative electricity consumption, low
+      182 of 1 p1save endof  \ cumulative electricity consumption, low tariff
       281 of 2 p1save endof  \ cumulative electricity production normal
-      282 of 3 p1save endof  \ cumulative electricity production low
-    96140 of 4 p1save endof  \ tariff
+      282 of 3 p1save endof  \ cumulative electricity production low tariff
+    96140 of 4 p1save endof  \ actual tariff
       170 of 5 p1save endof  \ actual consumption
       270 of 6 p1save endof  \ actual production
      2420 of 7 p1save endof  \ cumulative gas consumption
