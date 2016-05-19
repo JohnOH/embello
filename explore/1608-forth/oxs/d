@@ -90,26 +90,25 @@ ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
 \ -----------------------------------------------------------------------------
 \ P1 serial port scanner and decoder
 
-      0 variable p1.type
-      0 variable p1.value
-10 cells buffer: p1.data
+       8 constant p1#
+p1# cells buffer: p1.buf
+       0 variable p1.type
+       0 variable p1.value
 
-: p1clear p1.data 10 cells 0 fill ;
-: p1dump cr 10 0 do i cells p1.data + @ . loop ;
-: p1save ( pos -- ) p1.value @ swap cells p1.data + ! ;
+: p1clear p1.buf p1# cells 0 fill ;
+: p1save ( pos -- ) cells p1.buf +  p1.value @ swap ! ;
+: p1dump cr p1# 0 do i cells p1.buf + @ . loop ;
 
-: p1select ( type -- )
+: p1select ( type -- )  \ these values are for a Landys & Gyr E350 meter:
   case
-      181 of 0 p1save endof
-      182 of 1 p1save endof
-      281 of 2 p1save endof
-      282 of 3 p1save endof
-    96140 of 4 p1save endof
-      170 of 5 p1save endof
-      270 of 6 p1save endof
-     2410 of 7 p1save endof
-     2420 of 8 p1save endof
-     2440 of 9 p1save endof
+      181 of 0 p1save endof  \ cumulative electricity consumption, normal
+      182 of 1 p1save endof  \ cumulative electricity consumption, low
+      281 of 2 p1save endof  \ cumulative electricity production normal
+      282 of 3 p1save endof  \ cumulative electricity production low
+    96140 of 4 p1save endof  \ tariff
+      170 of 5 p1save endof  \ actual consumption
+      270 of 6 p1save endof  \ actual production
+     2420 of 7 p1save endof  \ cumulative gas consumption
   endcase ;
 
 : p1char ( c -- )
