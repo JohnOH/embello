@@ -28,10 +28,8 @@ PC5 constant PULSE3
 : vbat ( -- mvolt )
   VBAT-IN adc 3300 * 4 * 4095 / ;
 
-: config-pins ( -- )
-  +adc
-  +uart-irq ( uart. )
-
+: config-pins
+  +adc  +uart-irq
   omode-pp   VBAT-GND io-mode!  VBAT-GND ioc!
   imode-pull DCF77-IN io-mode!  DCF77-IN ioc!
   imode-pull PULSE1   io-mode!  PULSE1 ioc!
@@ -41,8 +39,7 @@ PC5 constant PULSE3
   imode-adc  VBAT-IN  io-mode!
   imode-adc  CT1      io-mode!
   imode-adc  CT2      io-mode!
-  imode-adc  CT3      io-mode!
-;
+  imode-adc  CT3      io-mode! ;
 
 \ -----------------------------------------------------------------------------
 \ variable-int encoding, turns 64-bit ints into 1..10 bytes
@@ -59,11 +56,19 @@ PC5 constant PULSE3
     over $7F and hold
   repeat 2drop ;
 : v> ( d -- caddr len ) #> ;  \ finish, then return buffer and length
-
-\ the following variants can be used to truncate and add smaller values
 : u#v ( u -- ) 0 d#v ;  \ add one 32-bit uint to output, max 5 bytes
-: u14#v ( u -- ) $3FFF and u#v ;  \ add one 14-bit uint to output, max 2 bytes
-: u7#v ( u -- ) $7F and u#v ;  \ add one 7-bit uint to output, always 1 byte
+
+20 cells buffer: pkt.buf
+      0 variable pkt.ptr
+
+: >pkt ( v -- ) pkt.ptr @ ! 4 pkt.ptr +! ;
+: u14>pkt ( v -- ) $3FFF and >pkt ;
+
+: <pkt ( format -- ) pkt.buf pkt.ptr ! >pkt ;
+: pkt>rf
+  <v
+    pkt.ptr @  begin  4 - dup @ u#v  dup pkt.buf u<= until  drop
+  v> 0 rf-send ;
 
 \ -----------------------------------------------------------------------------
 \ set up quad-ADC sampling via DMA
@@ -172,34 +177,27 @@ ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
   dup if pulse-factor -rot u*/ else nip then  \ avoid divide by zero
 ;
 
-: pulse-diff ( pa ca -- count ms )
+: pulse-diff ( pa ca -- count watt )
   >r  dint 2@ eint  \ lock out interrupts during fetch
   over r@ @ = if
     rdrop 2drop 0 0
   else
     \ TODO horrible stack juggling, need to simplify
     2dup r@ 2@ rot swap - -rot - 2swap r> 2!
-  then ;
+  then
+  pulse-to-watt ;
 
-: pulses. ( -- )
-  cr
-  pulses1 counts1 pulse-diff pulse-to-watt
-  ." P1: " dup . if counts1 @ . then
-  pulses2 counts2 pulse-diff pulse-to-watt
-  ." P2: " dup . if counts2 @ . then
-  pulses3 counts3 pulse-diff pulse-to-watt
-  ." P3: " dup . if counts3 @ . then
-;
+: pulses. ( -- ) cr
+  pulses1 counts1 pulse-diff  ." P1: " dup . if counts1 @ . then
+  pulses2 counts2 pulse-diff  ." P2: " dup . if counts2 @ . then
+  pulses3 counts3 pulse-diff  ." P3: " dup . if counts3 @ . then ;
 
-: pulses.rf ( -- )
-  \ FIXME yuck, all items end up getting inserted in reversed order
-  <v
-  pulses3 counts3 pulse-diff pulse-to-watt dup if counts3 @ u14#v then u14#v
-  pulses2 counts2 pulse-diff pulse-to-watt dup if counts2 @ u14#v then u14#v
-  pulses1 counts1 pulse-diff pulse-to-watt dup if counts1 @ u14#v then u14#v
-  1 u#v
-  v> dup 4 > if 0 rf-send else 2drop then
-;
+: pulses.rf
+  1 <pkt
+  pulses1 counts1 pulse-diff dup >pkt if counts1 @ u14>pkt then
+  pulses2 counts2 pulse-diff dup >pkt if counts2 @ u14>pkt then
+  pulses3 counts3 pulse-diff dup >pkt if counts3 @ u14>pkt then
+  pkt>rf ;
 
 \ -----------------------------------------------------------------------------
 \ P1 serial port scanner and decoder
@@ -211,7 +209,13 @@ p1# cells buffer: p1.buf
 
 : p1clear p1.buf p1# cells 0 fill ;
 : p1save ( pos -- ) cells p1.buf +  p1.value @ swap ! ;
+
 : p1. cr p1# 0 do i cells p1.buf + @ . loop ;
+
+: p1.rf
+  2 <pkt
+  p1# 0 do i cells p1.buf + @ >pkt loop
+  pkt>rf ;
 
 : p1select ( type -- )  \ these values are for a Landys & Gyr E350 meter:
   case
