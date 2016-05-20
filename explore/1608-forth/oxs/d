@@ -27,58 +27,13 @@ count-pulses
 
 \ -----------------------------------------------------------------------------
 
-0 0 2variable counts1  \ previous pulses1 state
-0 0 2variable counts2  \ previous pulses2 state
-0 0 2variable counts3  \ previous pulses3 state
+: puloop 6 8686 rf-init  begin 5000 ms pulses.rf key? until ;
 
-                       2000 constant pulses/kwh
-                3600 1000 * constant ms/hour
-ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
-
-: pulse-to-watt ( count ms -- watt )
-  dup if pulse-factor -rot u*/ else nip then  \ avoid divide by zero
-;
-
-: pulse-diff ( pa ca -- count ms )
-  >r  dint 2@ eint  \ lock out interrupts during fetch
-  over r@ @ = if
-    rdrop 2drop 0 0
-  else
-    \ TODO horrible stack juggling, need to simplify
-    2dup r@ 2@ rot swap - -rot - 2swap r> 2!
-  then ;
-
-: x1 ( -- )
-  cr
-  pulses1 counts1 pulse-diff pulse-to-watt
-  ." P1: " dup . if counts1 @ . then
-  pulses2 counts2 pulse-diff pulse-to-watt
-  ." P2: " dup . if counts2 @ . then
-  pulses3 counts3 pulse-diff pulse-to-watt
-  ." P3: " dup . if counts3 @ . then
-;
-
-: x2 ( -- )
-  \ FIXME yuck, all items end up getting inserted in reversed order
-  <v
-  pulses3 counts3 pulse-diff pulse-to-watt dup if counts3 @ u14#v then u14#v
-  pulses2 counts2 pulse-diff pulse-to-watt dup if counts2 @ u14#v then u14#v
-  pulses1 counts1 pulse-diff pulse-to-watt dup if counts1 @ u14#v then u14#v
-  1 u#v
-  v> dup 4 > if 0 rf-send else 2drop then
-;
-
-: y ( -- ) 6 8686 rf-init  begin 5000 ms x2 key? until ;
-
+\ puloop
 \ -----------------------------------------------------------------------------
 
     800 constant #capt
 #capt 2* buffer: capt
-
-: dma-sync ( -- )  \ synchronise to the ADC half-transfer flag in the DMA unit
-  DMA1-ISR @ DMA1-IFCR !
-  begin DMA1-ISR @ 2 bit and until  \ wait for half-transfer on channel 0
-;
 
 : acapture ( chan -- )  \ sync, copy, and print samples from a separate buffer
   dma-sync
@@ -86,46 +41,15 @@ ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
   #capt 0 do i 2* capt + h@ . loop drop ;
 
 \ 0 acapture
-
 \ -----------------------------------------------------------------------------
-\ P1 serial port scanner and decoder
-
-       8 constant p1#
-p1# cells buffer: p1.buf
-       0 variable p1.type
-       0 variable p1.value
-
-: p1clear p1.buf p1# cells 0 fill ;
-: p1save ( pos -- ) cells p1.buf +  p1.value @ swap ! ;
-: p1dump cr p1# 0 do i cells p1.buf + @ . loop ;
-
-: p1select ( type -- )  \ these values are for a Landys & Gyr E350 meter:
-  case
-      181 of 0 p1save endof  \ cumulative electricity consumption, normal
-      182 of 1 p1save endof  \ cumulative electricity consumption, low tariff
-      281 of 2 p1save endof  \ cumulative electricity production normal
-      282 of 3 p1save endof  \ cumulative electricity production low tariff
-    96140 of 4 p1save endof  \ actual tariff
-      170 of 5 p1save endof  \ actual consumption
-      270 of 6 p1save endof  \ actual production
-     2420 of 7 p1save endof  \ cumulative gas consumption
-  endcase ;
-
-: p1char ( c -- )
-  case
-    [char] / of p1clear endof
-    [char] : of 0 p1.type ! 0 p1.value ! endof
-    [char] ( of p1.type @ 0= if p1.value @ p1.type ! then 0 p1.value ! endof
-    [char] ) of p1.type @ p1select endof
-    [char] ! of p1dump endof
-             dup digit if p1.value @ 10 * + p1.value ! then
-  endcase
-;
 
 : p1test
   begin
-    uart-irq-key? if uart-irq-key p1char then
+    uart-irq-key? if
+      uart-irq-key p1char if p1. then
+    then
   key? until ;
 
+\ p1test
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :
