@@ -179,4 +179,16 @@ adata variable ptr
 : d dma-sync micros >r c micros r> - . . . . ;
 
 \ -----------------------------------------------------------------------------
+
+: initx ( -- )
+  init  1000 ms  key? if <<<lib-oxs>>> then  \ safety escape hatch
+  +uart-irq
+  ['] uart-emit?    hook-emit? !
+  ['] uart-emit     hook-emit  !
+  ['] uart-irq-key? hook-key?  !
+  ['] uart-irq-key  hook-key   !
+  cr init
+;
+
+\ -----------------------------------------------------------------------------
 \ vim: set ft=forth :

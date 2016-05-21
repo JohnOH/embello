@@ -12,11 +12,7 @@ reset
 config-pins
 quad-adc
 count-pulses
-
-\ -----------------------------------------------------------------------------
-
-: puloop 6 8686 rf-init  begin 5000 ms pulses.rf key? until ;
-\ puloop
+p1-clear
 
 \ -----------------------------------------------------------------------------
 
@@ -31,13 +27,32 @@ count-pulses
 \ 0 acapture
 \ -----------------------------------------------------------------------------
 
-: p1test
+: ticker: ( ms -- ) \ name - creates a new ticker with specified period
+  millis 2variable ;
+
+\ TODO return number of firings, usually 0 or 1, but more if we missed some
+\ TODO also reset ticker in this case, so it'll resume with its normal period
+
+: elapsed? ( ticker -- f )  \ return if the ticker has fired sicne last time
+  millis over 2@ + - 0 > if dup 2@ + swap ! true else drop false then ;
+
+5000 ticker: 5s
+
+: test5s begin 5s elapsed? if millis . then key? until ;
+
+\ -----------------------------------------------------------------------------
+
+: go
+  6 8686 rf-init
+  millis 5s !  \ TODO needed until the above todo's are resolved
   begin
+    \ periodically report pulse counters
+    5s elapsed? if pulses.rf then
+    \ report each P1 packet once complete
     uart-irq-key? if
-      uart-irq-key p1char if p1. then
+      uart-irq-key p1-next if p1.rf then
     then
   key? until ;
 
-\ p1test
 \ -----------------------------------------------------------------------------
 \ vim: set ft=forth :

@@ -207,8 +207,8 @@ p1# cells buffer: p1.buf
        0 variable p1.type
        0 variable p1.value
 
-: p1clear p1.buf p1# cells 0 fill ;
-: p1save ( pos -- ) cells p1.buf +  p1.value @ swap ! ;
+: p1-clear p1.buf p1# cells 0 fill ;
+: p1-save ( pos -- ) cells p1.buf +  p1.value @ swap ! ;
 
 : p1. cr p1# 0 do i cells p1.buf + @ . loop ;
 
@@ -217,25 +217,25 @@ p1# cells buffer: p1.buf
   p1# 0 do i cells p1.buf + @ >pkt loop
   pkt>rf ;
 
-: p1select ( type -- )  \ these values are for a Landys & Gyr E350 meter:
+: p1-select ( type -- )  \ these values are for a Landys & Gyr E350 meter:
   case
-      181 of 0 p1save endof  \ cumulative electricity consumption, normal
-      182 of 1 p1save endof  \ cumulative electricity consumption, low tariff
-      281 of 2 p1save endof  \ cumulative electricity production normal
-      282 of 3 p1save endof  \ cumulative electricity production low tariff
-    96140 of 4 p1save endof  \ actual tariff
-      170 of 5 p1save endof  \ actual consumption
-      270 of 6 p1save endof  \ actual production
-     2420 of 7 p1save endof  \ cumulative gas consumption
+      181 of 0 p1-save endof  \ cumulative electricity consumption, normal
+      182 of 1 p1-save endof  \ cumulative electricity consumption, low tariff
+      281 of 2 p1-save endof  \ cumulative electricity production normal
+      282 of 3 p1-save endof  \ cumulative electricity production low tariff
+    96140 of 4 p1-save endof  \ actual tariff
+      170 of 5 p1-save endof  \ actual consumption
+      270 of 6 p1-save endof  \ actual production
+     2420 of 7 p1-save endof  \ cumulative gas consumption
   endcase ;
 
-: p1char ( c -- f )
+: p1-next ( c -- f )
   $7F and  \ strip out even parity bit
   case
-    [char] / of p1clear endof
+    [char] / of p1-clear endof
     [char] : of 0 p1.type ! 0 p1.value ! endof
     [char] ( of p1.type @ 0= if p1.value @ p1.type ! then 0 p1.value ! endof
-    [char] ) of p1.type @ p1select endof
+    [char] ) of p1.type @ p1-select endof
     [char] ! of true exit endof
              dup digit if p1.value @ 10 * + p1.value ! then
   endcase
@@ -246,18 +246,5 @@ p1# cells buffer: p1.buf
 ( code-size ) here swap - .
 cornerstone <<<lib-oxs>>>
 ( flash-end ) here hex.
-\ include d
-
-compiletoflash
-
-: initx ( -- )
-  init  1000 ms  key? if <<<lib-oxs>>> then  \ safety escape hatch
-  +uart-irq
-  ['] uart-emit?    hook-emit? !
-  ['] uart-emit     hook-emit  !
-  ['] uart-irq-key? hook-key?  !
-  ['] uart-irq-key  hook-key   !
-  cr init
-;
 
 \ vim: set ft=forth :
