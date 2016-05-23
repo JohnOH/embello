@@ -336,7 +336,10 @@ $40006000 constant USBMEM
   ['] usb-emit hook-emit !
 ;
 
+: init ( -- ) init 2000 ms key? 0= if usb-io then ;  \ safety escape hatch
+
 ( code-size ) here swap - .
 cornerstone <<<lib-suf>>>
 ( flash-end ) here hex.
+
 \ vim: set ft=forth :
