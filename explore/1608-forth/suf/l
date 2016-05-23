@@ -7,11 +7,6 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-false variable debug
-: +d true debug ! ;
-: -d false debug ! ;
-: d? debug @ ;
-
 create usb:dev
   18 c,  \ bLength
   $01 c, \ USB_DEVICE_DESCRIPTOR_TYPE
@@ -205,7 +200,7 @@ $40006000 constant USBMEM
 : send-data ( addr n -- ) usb-pend 2! ;
 : send-next ( -- )
   usb-pend 2@ 64 min $46 usb-pma@ min
-  d? if ." >" dup . then
+\ d? if ." >" dup . then
   >r ( addr R: num )
   r@ even 0 ?do
     dup i + h@ $80 i + usb-pma!
