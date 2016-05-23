@@ -75,6 +75,18 @@ led ios!
 
 : usb-recv ( c -- ) usb-in-ring dup ring? if >ring else 2drop then ;
 
+0 variable tx.pend
+
+: usb-fill ( -- )
+  tx.pend @ 0= if
+    usb-out-ring ring#
+    ?dup if 64 min
+      dup tx.pend !
+      dup 0 do usb-out-ring ring> $C0 i + usb-pma!  loop
+      1 1 ep-reg h! 1 3 txstat!
+    then
+  then ;
+
 : usb-recv2 ( c -- )
   dup usb-recv
 \ dup $C0 usb-pma! 1 1 1 ep-reg h! 1 3 txstat!  \ immediate echo
@@ -91,9 +103,14 @@ led ios!
 ;
 
 : ep-in ( ep -- )  \ incoming polls, sent from this device to host
-  d? if dup txclear [char] I emit . else txclear then
-  $41 usb-pma c@ $05 = if $42 usb-pma@ $80 or USB-DADDR h! then
-  send-next
+  d? if [char] I emit dup . then
+  dup if
+    0 tx.pend ! usb-fill
+  else
+    $41 usb-pma c@ $05 = if $42 usb-pma@ $80 or USB-DADDR h! then
+    send-next
+  then
+  txclear
 ;
 
 : usb-ctr ( istr -- )
@@ -111,7 +128,7 @@ led ios!
 : usb-key? ( -- f )  usb-poll usb-in-ring ring# 0<> ;
 : usb-key ( -- c )  begin usb-key? until  usb-in-ring ring> ;
 : usb-emit? ( -- f )  usb-poll usb-out-ring ring? ;
-: usb-emit ( c -- )  begin usb-emit? until  usb-out-ring >ring ;
+: usb-emit ( c -- )  begin usb-emit? until  usb-out-ring >ring usb-fill ;
 
 : myquit begin query interpret ." OK!" cr again ;
 
@@ -141,5 +158,8 @@ led ios!
 : t cr +usb try ( usb. usb.mem ) -usb cr cr ;
 : t2 save-to-buf +usb try d? if usb. usb.mem then -usb restore-buf ;
 : t3 cr +usb +usb-io ;
+
+: u1 ( n -- )  \ fill out-bound ring buffer with some test bytes
+  0 do [char] x usb-emit loop [char] / usb-emit usb-out-ring ring# . ;
 
 \ vim: set ft=forth :
