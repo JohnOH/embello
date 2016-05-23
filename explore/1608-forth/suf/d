@@ -84,7 +84,7 @@ led ios!
   dup rxclear
   dup if  \ only pick up data for endpoint 3
     dup 3 ep-reg h@ $3F and 0 ?do
-      i $100 + usb-pma c@ usb-recv2
+      i $100 + usb-pma c@ usb-recv
     loop
   then
   ep-reset-rx#
@@ -140,5 +140,6 @@ led ios!
 
 : t cr +usb try ( usb. usb.mem ) -usb cr cr ;
 : t2 save-to-buf +usb try d? if usb. usb.mem then -usb restore-buf ;
+: t3 cr +usb +usb-io ;
 
 \ vim: set ft=forth :
