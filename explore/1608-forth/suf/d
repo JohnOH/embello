@@ -78,9 +78,7 @@ led ios!
 : usb-recv2 ( c -- )
   dup usb-recv
 \ dup $C0 usb-pma! 1 1 1 ep-reg h! 1 3 txstat!  \ immediate echo
-  [char] < emit
-  dup bl < if h.2 else emit then
-  [char] > emit ;
+  [char] < emit  dup bl < if h.2 else emit then ;
 
 : ep-out ( ep -- )  \ outgoing packets, sent from host to this device
   dup rxclear
@@ -93,7 +91,7 @@ led ios!
 ;
 
 : ep-in ( ep -- )  \ incoming polls, sent from this device to host
-  d? drop true if dup txclear [char] I emit . else txclear then
+  d? if dup txclear [char] I emit . else txclear then
   $41 usb-pma c@ $05 = if $42 usb-pma@ $80 or USB-DADDR h! then
   send-next
 ;
@@ -132,7 +130,7 @@ led ios!
   ['] serial-key hook-key !
   ['] serial-emit? hook-emit? !
   ['] serial-emit hook-emit !
-  d? drop true if usb-in-ring ring# . usb-out-ring ring# . then
+  d? if usb-in-ring ring# . usb-out-ring ring# . then
 ;
 
 ( code-size ) here swap - .
