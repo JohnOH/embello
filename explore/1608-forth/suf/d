@@ -4,10 +4,56 @@
 reset
 led ios!
 
+\ -----------------------------------------------------------------------------
+\ in-memory output buffering
+
+5000 buffer: outbuf
+0 variable outpos
+
+: buf-emit? true ;
+: buf-emit outpos @ dup 5000 < if outbuf + c!  1 outpos +!  else drop then ;
+
+: save-to-buf
+  ['] buf-emit? hook-emit? !
+  ['] buf-emit hook-emit !
+  0 outpos ! ;
+: restore-buf
+  ['] serial-emit? hook-emit? !
+  ['] serial-emit hook-emit !
+  outbuf outpos @ type  0 outpos ! ;
+
+: test-buf save-to-buf ." abc" [char] : serial-emit restore-buf ;
+
+\ -----------------------------------------------------------------------------
+\ status and info dumps
+
+: usb. ( -- )  \ dump USB info
+  cr ." EP0R " 0 ep-addr h@ h.4
+    ."  EP1R " 1 ep-addr h@ h.4
+    ."  EP2R " 2 ep-addr h@ h.4
+    ."  EP3R " 3 ep-addr h@ h.4
+  cr ." CNTR " USB-CNTR h@ h.4
+    ."  ISTR " USB-ISTR h@ h.4
+     ."  FNR " USB-FNR h@ h.4
+   ."  DADDR " USB-DADDR h@ h.4
+  ."  BTABLE " USB-BTABLE h@ h.4 ;
+
+: usb.mem ( -- )  \ dump packet buffer memory
+  $150 0 do
+    i $0F and 0= if cr i h.4 space then
+    i $7 and 0= if space then
+    i shl USBMEM + h@ h.4 space
+  2 +loop ;
+
+\ -----------------------------------------------------------------------------
+
 0 variable zero
 
 128 4 + buffer: usb-in-ring
-64 4 + buffer: usb-out-ring
+ 64 4 + buffer: usb-out-ring
+
+\ -----------------------------------------------------------------------------
+( code-start, see code-size below ) here
 
 : usb-init-rings ( -- )
   usb-in-ring 128 init-ring
@@ -15,7 +61,7 @@ led ios!
 
 : ep-setup ( ep -- )  \ setup packets, sent from host to config this device
   dup rxclear
-  cr ." setup: " $48 $40 do i usb-pma@ h.4 space 2 +loop
+  d? if cr ." setup: " $48 $40 do i usb-pma@ h.4 space 2 +loop then
   $41 usb-pma c@ case
     $00 of zero 2 send-data endof
     $06 of send-desc endof
@@ -47,8 +93,7 @@ led ios!
 ;
 
 : ep-in ( ep -- )  \ incoming polls, sent from this device to host
-  dup txclear [char] I emit .
-\ txclear
+  d? drop true if dup txclear [char] I emit . else txclear then
   $41 usb-pma c@ $05 = if $42 usb-pma@ $80 or USB-DADDR h! then
   send-next
 ;
@@ -57,41 +102,6 @@ led ios!
   dup $07 and swap $10 and if 
     dup ep-addr h@ $800 and if ep-setup else ep-out then
   else ep-in then ;
-
-: usb. ( -- )  \ dump USB info
-  cr ." EP0R " 0 ep-addr h@ h.4
-    ."  EP1R " 1 ep-addr h@ h.4
-    ."  EP2R " 2 ep-addr h@ h.4
-    ."  EP3R " 3 ep-addr h@ h.4
-  cr ." CNTR " USB-CNTR h@ h.4
-    ."  ISTR " USB-ISTR h@ h.4
-     ."  FNR " USB-FNR h@ h.4
-   ."  DADDR " USB-DADDR h@ h.4
-  ."  BTABLE " USB-BTABLE h@ h.4 ;
-
-: usb.mem ( -- )  \ dump packet buffer memory
-  $150 0 do
-    i $0F and 0= if cr i h.4 space then
-    i $7 and 0= if space then
-    i shl USBMEM + h@ h.4 space
-  2 +loop ;
-
-5000 buffer: outbuf
-0 variable outpos
-
-: buf-emit? true ;
-: buf-emit outpos @ dup 5000 < if outbuf + c!  1 outpos +!  else drop then ;
-
-: save-to-buf
-  ['] buf-emit? hook-emit? !
-  ['] buf-emit hook-emit !
-  0 outpos ! ;
-: restore-buf
-  ['] serial-emit? hook-emit? !
-  ['] serial-emit hook-emit !
-  outbuf outpos @ type  0 outpos ! ;
-
-: test-buf save-to-buf ." abc" [char] : serial-emit restore-buf ;
 
 : usb-poll
   USB-ISTR h@
@@ -120,15 +130,17 @@ led ios!
 : -usb-io ( -- )
   ['] serial-key? hook-key? !
   ['] serial-key hook-key !
-\ ['] serial-emit? hook-emit? !
-\ ['] serial-emit hook-emit !
-  usb-in-ring ring# .
-  usb-out-ring ring# .
+  ['] serial-emit? hook-emit? !
+  ['] serial-emit hook-emit !
+  d? drop true if usb-in-ring ring# . usb-out-ring ring# . then
 ;
+
+( code-size ) here swap - .
+\ -----------------------------------------------------------------------------
 
 : try ( -- ) +usb-io begin usb-poll serial-key? until -usb-io ;
 
-: t +usb try usb. ( usb.mem ) -usb ;
-: t2 save-to-buf +usb try usb. usb.mem -usb restore-buf ;
+: t cr +usb try ( usb. usb.mem ) -usb cr cr ;
+: t2 save-to-buf +usb try d? if usb. usb.mem then -usb restore-buf ;
 
 \ vim: set ft=forth :
