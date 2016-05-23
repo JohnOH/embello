@@ -163,6 +163,7 @@ led ios!
 : t cr +usb try ( usb. usb.mem ) -usb cr cr ;
 : t2 save-to-buf +usb try d? if usb. usb.mem then -usb restore-buf ;
 : t3 cr +usb +usb-io ;
+: t4 ['] usb-emit? hook-emit? ! ['] usb-emit hook-emit ! ;
 
 : u1 ( n -- )  \ fill out-bound ring buffer with some test bytes
   0 do [char] x usb-emit loop [char] / usb-emit usb-out-ring ring# . ;
