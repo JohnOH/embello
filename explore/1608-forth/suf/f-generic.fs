@@ -1,4 +1,4 @@
-\ USB console for LCTech boards
+\ USB console for generic F103 boards
 \ self-contained, does not use the h, l, or d include files
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
