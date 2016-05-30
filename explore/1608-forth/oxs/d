@@ -33,7 +33,7 @@ p1-clear
 \ TODO return number of firings, usually 0 or 1, but more if we missed some
 \ TODO also reset ticker in this case, so it'll resume with its normal period
 
-: elapsed? ( ticker -- f )  \ return if the ticker has fired sicne last time
+: elapsed? ( ticker -- f )  \ true if the ticker has fired since the last time
   millis over 2@ + - 0 > if dup 2@ + swap ! true else drop false then ;
 
 5000 ticker: 5s

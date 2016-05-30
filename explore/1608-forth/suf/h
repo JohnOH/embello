@@ -10,13 +10,8 @@ include ../flib/io-stm32f1.fs
 include ../flib/hal-stm32f1.fs
 include ../flib/ring.fs
 
-\ board definitions for Hy-TinySTM103T
-
-PA1 constant LED
-
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD
-  OMODE-PP LED io-mode!
   72MHz
   flash-kb . ." KB <suf> " hwid hex. ." ok." cr
   1000 systick-hz
