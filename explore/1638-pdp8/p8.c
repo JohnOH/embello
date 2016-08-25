@@ -5,13 +5,11 @@
 #include <stdlib.h>
 #include <termios.h>
 #include <sys/ioctl.h>
-
 #ifdef macosx
 #include <sys/filio.h>
 #endif
 
 #define MEMSIZE 4096
-
 typedef unsigned short Word;
 Word pc, mem [MEMSIZE];
 
@@ -67,7 +65,6 @@ int loader (FILE* fp) {
 
 void cleanup () {
     tcsetattr(0, TCSANOW, &tiosOrig);
-
     printf(" PC %04o\n", mask(pc - 1));
     // dump page 0, then exit
     for (int i = 0; i < 0200; i += 010) {
@@ -212,15 +209,15 @@ int main (int argc, const char* argv[]) {
                     if (ir & 01) // IAC
                         ac = lmask(ac + 1);
                     switch (ir & 016) {
-                        case 010: case 012: // RAR, RTR
+                        case 012: // RTR
+                            ac = lmask((ac >> 1) | (ac << 12)); // fall through
+                        case 010: // RAR
                             ac = lmask((ac >> 1) | (ac << 12));
-                            if (ir & 02) // RTR
-                                ac = lmask((ac >> 1) | (ac << 12));
                             break;
-                        case 04: case 06: // RAL, RTL
+                        case 06: // RTL
+                            ac = lmask((ac >> 12) | (ac << 1)); // fall through
+                        case 04: // RAL
                             ac = lmask((ac >> 12) | (ac << 1));
-                            if (ir & 02) // RTL
-                                ac = lmask((ac >> 12) | (ac << 1));
                             break;
                         case 02: // BSW
                             ac = (ac & 010000) | ((ac >> 6) & 077)
