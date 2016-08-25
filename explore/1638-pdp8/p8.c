@@ -5,7 +5,10 @@
 #include <stdlib.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+
+#ifdef macosx
 #include <sys/filio.h>
+#endif
 
 #define MEMSIZE 4096
 
