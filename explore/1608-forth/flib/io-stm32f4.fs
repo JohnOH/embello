@@ -69,6 +69,6 @@ $40020000 constant GPIO-BASE
       ."  PUPD " dup @ hex. 4 +
   cr 14 spaces
        ."  IDR " dup @ h.4  4 +
-       ."  ODR " dup @ h.4  8 +
+       ."  ODR " dup @ h.4  12 +
     ."    AFRL " dup @ hex. 4 +
        ." AFRH " dup @ hex. drop ;
