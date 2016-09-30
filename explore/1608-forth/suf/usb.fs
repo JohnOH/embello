@@ -176,7 +176,7 @@ $40006000 constant USBMEM
   %1000000010000000 or
   or r> h! ;
 
-: ep-reset-rx# ( ep -- ) 8400 over 3 ep-reg h! 3 rxstat! ;
+: ep-reset-rx# ( ep -- ) $8400 over 3 ep-reg h! 3 rxstat! ;
 : rxclear ( ep -- ) ep-addr dup h@ $7FFF and $8F8F and swap h! ;
 : txclear ( ep -- ) ep-addr dup h@ $FF7F and $8F8F and swap h! ;
 

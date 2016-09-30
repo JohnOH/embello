@@ -2,7 +2,7 @@
 \ needs l
 
 reset
-led ios!
+\ led ios!
 
 false variable debug
 : +d true debug ! ;
