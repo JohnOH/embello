@@ -193,7 +193,6 @@ $40006000 constant USBMEM
 : send-data ( addr n -- ) usb-pend 2! ;
 : send-next ( -- )
   usb-pend 2@ 64 min $46 usb-pma@ min
-\ d? if ." >" dup . then
   >r ( addr R: num )
   r@ even 0 ?do
     dup i + h@ $80 i + usb-pma!
@@ -221,12 +220,7 @@ $40006000 constant USBMEM
 : +usb ( -- )  \ init USB hardware
   usb-pulse  \ board-specific way to briefly pull USB-DP down
   23 bit RCC-APB1ENR bis!  \ USBEN
-  $0001 USB-CNTR h! 10 us $0000 USB-CNTR h!  \ FRES
-;
-
-: -usb ( -- )  \ deinit USB hardware
-  23 bit RCC-APB1ENR bic!  \ USBEN
-  PA0 ios!  \ usb-off HyTiny
+  $0001 USB-CNTR h! ( 10 us ) $0000 USB-CNTR h!  \ FRES
 ;
 
 : usb-reset ( -- )
@@ -235,8 +229,7 @@ $40006000 constant USBMEM
   $0021 1 ep-addr h!
   $0622 2 ep-addr h!
   $3003 3 ep-addr h!
-  $80 USB-DADDR h!
-;
+  $80 USB-DADDR h! ;
 
 0 variable zero
 
@@ -249,7 +242,6 @@ $40006000 constant USBMEM
 
 : ep-setup ( ep -- )  \ setup packets, sent from host to config this device
   dup rxclear
-\ d? if cr ." setup: " $48 $40 do i usb-pma@ h.4 space 2 +loop then
   $41 usb-pma c@ case
     $00 of zero 2 send-data endof
     $06 of send-desc endof
@@ -258,8 +250,7 @@ $40006000 constant USBMEM
 \   $23 is break?
     true ?of 0 0 send-data endof
   endcase
-  ep-reset-rx# send-next
-;
+  ep-reset-rx# send-next ;
 
 : usb-recv ( c -- ) usb-in-ring dup ring? if >ring else 2drop then ;
 
@@ -287,19 +278,16 @@ $40006000 constant USBMEM
       i $100 + usb-pma c@ usb-recv
     loop
   then
-  ep-reset-rx#
-;
+  ep-reset-rx# ;
 
 : ep-in ( ep -- )  \ incoming polls, sent from this device to host
-\ d? if [char] I emit dup . then
   dup if
     0 tx.pend ! usb-fill
   else
     $41 usb-pma c@ $05 = if $42 usb-pma@ $80 or USB-DADDR h! then
     send-next
   then
-  txclear
-;
+  txclear ;
 
 : usb-ctr ( istr -- )
   dup $07 and swap $10 and if 
@@ -319,14 +307,13 @@ $40006000 constant USBMEM
 : usb-emit ( c -- )  begin usb-emit? until  usb-out-ring >ring usb-fill ;
 
 : usb-io ( -- )
-  ." switching to USB console..." cr
+\ ." switching to USB console..." cr
   +usb
   usb-init-rings
   ['] usb-key? hook-key? !
   ['] usb-key hook-key !
-  1000000 0 do usb-poll loop
+  10000 0 do usb-poll loop
   ['] usb-emit? hook-emit? !
-  ['] usb-emit hook-emit !
-;
+  ['] usb-emit hook-emit !  ;
 
 \ : init ( -- ) init 2000 ms key? 0= if usb-io then ;  \ safety escape hatch

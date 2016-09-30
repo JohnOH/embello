@@ -1,29 +1,34 @@
-\ USB console for Olimexino-STM32 boards
+\ USB console for Olimexino-STM32 and other Leaflabs Maple-like boards
 \ self-contained, does not use the h, l, or d include files
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
 compiletoflash
 
-4 constant io-ports  \ A..D
+: bit ( u -- u )  \ turn a bit position into a single-bit mask
+  1 swap lshift  1-foldable ;
 
-include ../mlib/hexdump.fs
-include ../flib/io-stm32f1.fs
-include ../flib/hal-stm32f1.fs
+include hal-stm32f1.fs
 include ../flib/ring.fs
 
-: init ( -- )  \ board initialisation
-  -jtag  \ disable JTAG, we only need SWD
-  72MHz
-  flash-kb . ." KB <suf> " hwid hex. ." ok." cr
-  1000 systick-hz ;
-
 \ board-specific way to briefly pull USB-DP down
-2 12 io constant PC12
-: usb-pulse OMODE-PP PC12 io-mode!  PC12 ios!  1 ms  PC12 ioc! ;
+: usb-pulse ( -- )  \ toggle PC12, first up, then down (due to inverted logic)
+  %1111 16 lshift $40011004 bic!  \ PC12: output, push-pull, 2 MHz
+  %0010 16 lshift $40011004 bis!  \ ... this affects CRH iso CRL
+  12 bit $4001100C bis!  \ set PC12 high
+  1000 0 do loop         \ approx 1ms delay
+  12 bit $4001100C bic!  \ set PC12 low
+;
 
 include usb.fs
 
-: init ( -- ) init 2000 ms key? 0= if usb-io then ;  \ safety escape hatch
+: init ( -- )  \ switch to USB as console
+  72MHz  \ this is required for USB use
+  10000000 0 do loop  \ approx 1s delay
+  key? 0= if usb-io then ;  \ safety escape hatch
 
+here hex.
 cornerstone eraseflash
+
+compiletoram
+include ../mlib/hexdump.fs
 hexdump

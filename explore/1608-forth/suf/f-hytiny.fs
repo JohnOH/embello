@@ -4,25 +4,30 @@
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
 compiletoflash
 
-4 constant io-ports  \ A..D
+: bit ( u -- u )  \ turn a bit position into a single-bit mask
+  1 swap lshift  1-foldable ;
 
-include ../mlib/hexdump.fs
-include ../flib/io-stm32f1.fs
-include ../flib/hal-stm32f1.fs
+include hal-stm32f1.fs
 include ../flib/ring.fs
 
-: init ( -- )  \ board initialisation
-  -jtag  \ disable JTAG, we only need SWD
-  72MHz
-  flash-kb . ." KB <suf> " hwid hex. ." ok." cr
-  1000 systick-hz ;
-
 \ board-specific way to briefly pull USB-DP down
-: usb-pulse OMODE-PP PA0 io-mode!  PA0 ios!  1 ms  PA0 ioc! ;
+: usb-pulse ( -- )  \ toggle PA0, first up, then down (due to inverted logic)
+  %1111 $40010800 bic! %0010 $40010800 bis!  \ PA0: output, push-pull, 2 MHz
+  1 $4001080C bis!  \ set PA0 high
+  1000 0 do loop    \ approx 1ms delay
+  1 $4001080C bic!  \ set PA0 low
+;
 
 include usb.fs
 
-: init ( -- ) init 2000 ms key? 0= if usb-io then ;  \ safety escape hatch
+: init ( -- )  \ switch to USB as console
+  72MHz  \ this is required for USB use
+  10000000 0 do loop  \ approx 1s delay
+  key? 0= if usb-io then ;  \ safety escape hatch
 
+here hex.
 cornerstone eraseflash
+
+compiletoram
+include ../mlib/hexdump.fs
 hexdump
