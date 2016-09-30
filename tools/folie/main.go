@@ -264,8 +264,22 @@ func expectEcho(match string, immed bool, flusher func(string)) (string, bool) {
 }
 
 func serialSend(data string) {
-	_, err := conn.Write([]byte(data))
-	check(err)
+	for len(data) > 0 {
+		t := data
+		// send in chunks under 64 bytes to simplify USB-serial use
+		if len(t) > 60 {
+			t = t[:60]
+		}
+		data = data[len(t):]
+
+		_, err := conn.Write([]byte(t))
+		check(err)
+
+		// when chunked, add a very brief delay to force separate sends
+		if len(data) > 0 {
+			time.Sleep(2 * time.Millisecond)
+		}
+	}
 }
 
 func doInclude(fname string) {
