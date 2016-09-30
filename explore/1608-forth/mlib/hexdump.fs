@@ -7,16 +7,18 @@
 : h.4 ( u -- ) base @ hex swap  u.4  base ! ;
 : h.2 ( u -- ) base @ hex swap  u.2  base ! ;
 
+$FF variable hex.empty  \ needs to be variable, some flash is zero when empty
+
 : hexdump ( -- ) \ dumps entire flash as Intel hex
   cr
 \ STM32F103x8: Complete: $FFFF $0000
 \ STM32F103xB: 128 KB would need a somewhat different hex file format
   $FFFF $0000  \ Complete image with Dictionary
   do
-    \ Check if it would be $FFFF only:
+    \ Check if this line is entirely empty:
     0                 \ Not worthy to print
     i #16 + i do      \ Scan data
-      i c@ $FF <> or  \ Set flag if there is a non-$FF byte
+      i c@ hex.empty @ <> or  \ Set flag if there is a non-empty byte
     loop
 
     if
