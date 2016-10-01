@@ -1,25 +1,18 @@
 \ load development code
 \ needs l
 
-reset
+\ reset
 \ led ios!
 
-false variable debug
-: +d true debug ! ;
-: -d false debug ! ;
-: d? debug @ ;
-
-\ -----------------------------------------------------------------------------
+\ needed for "h.4"
+include ../mlib/hexdump.fs
 
 : -usb-io ( -- )
-  ['] serial-key? hook-key? !
-  ['] serial-key hook-key !
+  ['] serial-key?  hook-key?  !
+  ['] serial-key   hook-key   !
   ['] serial-emit? hook-emit? !
-  ['] serial-emit hook-emit !
-\ d? if usb-in-ring ring# . usb-out-ring ring# . then
-;
+  ['] serial-emit  hook-emit  ! ;
 
-\ -----------------------------------------------------------------------------
 \ in-memory output buffering
 
 5000 buffer: outbuf
@@ -39,7 +32,6 @@ false variable debug
 
 : test-buf save-to-buf ." abc" [char] : serial-emit restore-buf ;
 
-\ -----------------------------------------------------------------------------
 \ status and info dumps
 
 : usb. ( -- )  \ dump USB info
@@ -62,7 +54,7 @@ false variable debug
 
 \ : try ( -- ) +usb-io begin usb-poll serial-key? until -usb-io ;
 \ : t cr +usb try ( usb. usb.mem ) -usb cr cr ;
-\ : t2 save-to-buf +usb try d? if usb. usb.mem then -usb restore-buf ;
+\ : t2 save-to-buf +usb try usb. usb.mem -usb restore-buf ;
 
 \ : u1 ( n -- )  \ fill out-bound ring buffer with some test bytes
 \   0 do [char] x usb-emit loop [char] / usb-emit usb-out-ring ring# . ;
