@@ -14,7 +14,7 @@ include ../flib/ring.fs
 : usb-pulse ( -- )  \ toggle PA0, first up, then down (due to inverted logic)
   %1111 $40010800 bic! %0010 $40010800 bis!  \ PA0: output, push-pull, 2 MHz
   1 $4001080C bis!  \ set PA0 high
-  1000 0 do loop    \ approx 1ms delay
+  1200 0 do loop    \ approx 100 us delay
   1 $4001080C bic!  \ set PA0 low
 ;
 

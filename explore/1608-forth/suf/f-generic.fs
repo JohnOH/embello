@@ -15,7 +15,7 @@ include ../flib/ring.fs
   %1111 16 lshift $40010804 bic!  \ PA12: output, push-pull, 2 MHz
   %0010 16 lshift $40010804 bis!  \ ... this affects CRH iso CRL
   12 bit $4001080C bic!  \ set PA12 low
-  1000 0 do loop         \ approx 1ms delay
+  1200 0 do loop         \ approx 100 us delay
   12 bit $4001080C bis!  \ set PA12 high
 ;
 
