@@ -21,8 +21,8 @@ include ../flib/ring.fs
 include usb.fs
 
 : init ( -- )  \ switch to USB as console
+  1000000 0 do loop  \ approx 1s delay
   72MHz  \ this is required for USB use
-  10000000 0 do loop  \ approx 1s delay
   key? 0= if usb-io then ;  \ safety escape hatch
 
 here hex.
