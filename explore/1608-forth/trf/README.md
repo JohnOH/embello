@@ -37,19 +37,17 @@ Connected to: /dev/cu.usbmodem32212431
 \       >>> include ../flib/io-stm32f1.fs
 : bit ( u -- u )  \ turn a bit position into a single-bit mask Redefine bit.  ok.
 \       <<<<<<<<<<< ../flib/io-stm32f1.fs (69 lines)
+\       >>> include ../flib/pins48.fs
+\       <<<<<<<<<<< ../flib/pins48.fs (18 lines)
 \       >>> include ../flib/spi-stm32f1.fs
 \       <<<<<<<<<<< ../flib/spi-stm32f1.fs (68 lines)
 \       >>> include ../flib/rf69.fs
 \       <<<<<<<<<<< ../flib/rf69.fs (183 lines)
-\       >>> include ../mlib/multi.fs
-\       <<<<<<<<<<< ../mlib/multi.fs (206 lines)
 rf69-listen
-RF69 21EE068A030052C00107 8101B737A88080
-\       <<<<<<<<<<< app.fs (32 lines)
-\ done.
-RF69 21EE068603005AC00104 81808080
-RF69 21EE0687030060C00107 8101B837A98080
-RF69 21EE068703005CC00104 81808080
-RF69 21EE0687030068C00107 8101B837AA8080
-RF69 21EE068803006CC00104 81808080
+\       <<<<<<<<<<< app.fs (14 lines)\ done.
+RF69 21EE0689030058C00104 81808080
+RF69 21EE068803005AC00107 8101B73DA38080
+RF69 21EE0689030056C00104 81808080
+RF69 21EE068A030068C00107 8101B73DA48080
+RF69 21EE068A03005EC00104 81808080
 ```
