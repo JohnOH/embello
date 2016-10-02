@@ -44,7 +44,8 @@ Connected to: /dev/cu.usbmodem32212431
 \       >>> include ../flib/rf69.fs
 \       <<<<<<<<<<< ../flib/rf69.fs (183 lines)
 rf69-listen
-\       <<<<<<<<<<< app.fs (14 lines)\ done.
+\       <<<<<<<<<<< app.fs (14 lines)
+\ done.
 RF69 21EE0689030058C00104 81808080
 RF69 21EE068803005AC00107 8101B73DA38080
 RF69 21EE0689030056C00104 81808080
