@@ -12,7 +12,8 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32F103 boards:
 * **oxs** - Olimexino-STM32 board w/ STM32F103RB, CAN, µSD, and LiPo charger
 * **prc** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
 * **rnw** - RF Node Watcher w/ HyTiny STM32F103TB, RFM69, and 128x64 OLED
-* **suf** - Serial USB driver for Forth
+* **suf** - Serial USB driver for Forth, routes console I/O over USB
+* **trf** - Tiny RF node, a bridge from RFM69 to USB serial
 * **wpz** - WaveShare Port103Z w/ STM32F103ZE
 * **ybc** - Yellow Blue STM32F103VC board
 * **ztw** - Zero To Wireless demo w/ STM32F103C8 "Blue Pill" and RFM69CW
