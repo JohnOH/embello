@@ -1,5 +1,4 @@
 \ USB console for Olimexino-STM32 and other Leaflabs Maple-like boards
-\ self-contained, does not use the h, l, or d include files
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
 compiletoflash
@@ -9,26 +8,18 @@ compiletoflash
 
 include hal-stm32f1.fs
 include ../flib/ring.fs
+include usb.fs
 
-\ board-specific way to briefly pull USB-DP down
-: usb-pulse ( -- )  \ toggle PC12, first up, then down (due to inverted logic)
+: init ( -- )
+  1000000 0 do loop  \ approx 1s delay
+  72MHz  \ this is required for USB use
+  key? if key if exit then then  \ safety escape hatch
+  \ board-specific way to enable USB
   %1111 16 lshift $40011004 bic!  \ PC12: output, push-pull, 2 MHz
   %0010 16 lshift $40011004 bis!  \ ... this affects CRH iso CRL
   12 bit $4001100C bis!  \ set PC12 high
-  1200 0 do loop         \ approx 100 us delay
-  12 bit $4001100C bic!  \ set PC12 low
+  usb-io  \ switch to USB as console
 ;
-
-include usb.fs
-
-: init ( -- )  \ switch to USB as console
-  1000000 0 do loop  \ approx 1s delay
-  72MHz  \ this is required for USB use
-  key? 0= if usb-io then ;  \ safety escape hatch
 
 here hex.
 cornerstone eraseflash
-
-compiletoram
-include ../mlib/hexdump.fs
-hexdump

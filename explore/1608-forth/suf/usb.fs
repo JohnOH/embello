@@ -211,20 +211,12 @@ $40006000 constant USBMEM
     true ?of 0           0  endof
   endcase send-data ;
 
-: usb-init ( -- )
+: usb-reset ( -- )
+  256 0 do  0 i 2* usb-pma! loop  0 USB-BTABLE h!
   usb:init  64 0 do
     dup h@  i USBMEM + h!
     2+
-  4 +loop  drop ;
-
-: +usb ( -- )  \ init USB hardware
-  usb-pulse  \ board-specific way to briefly pull USB-DP down
-  23 bit RCC-APB1ENR bis!  \ USBEN
-  $0001 USB-CNTR h! ( 10 us ) $0000 USB-CNTR h!  \ FRES
-;
-
-: usb-reset ( -- )
-  256 0 do  0 i 2* usb-pma! loop  0 USB-BTABLE h!  usb-init
+  4 +loop  drop
   $3210 0 ep-addr h!
   $0021 1 ep-addr h!
   $0622 2 ep-addr h!
@@ -233,12 +225,8 @@ $40006000 constant USBMEM
 
 0 variable zero
 
-128 4 + buffer: usb-in-ring
- 64 4 + buffer: usb-out-ring
-
-: usb-init-rings ( -- )
-  usb-in-ring 128 init-ring
-  usb-out-ring 64 init-ring ;
+128 4 + buffer: usb-in-ring   \ RX ring buffer, ample room for one packet
+ 64 4 + buffer: usb-out-ring  \ TX ring buffer, for outbound bytes
 
 : ep-setup ( ep -- )  \ setup packets, sent from host to config this device
   dup rxclear
@@ -261,7 +249,7 @@ $40006000 constant USBMEM
     1- dup usb-pma@ rot 8 lshift or swap
   then usb-pma! ;
 
-: usb-fill ( -- )
+: usb-fill ( -- )  \ fill the USB outbound buffer from the TX ring buffer
   tx.pend @ 0= if
     usb-out-ring ring#
     ?dup if 64 min
@@ -306,13 +294,14 @@ $40006000 constant USBMEM
 : usb-emit? ( -- f )  usb-poll usb-out-ring ring? ;
 : usb-emit ( c -- )  begin usb-emit? until  usb-out-ring >ring usb-fill ;
 
-: usb-io ( -- )
-\ ." switching to USB console..." cr
-  +usb
-  usb-init-rings
+: usb-io ( -- )  \ start up USB and switch console I/O to it
+  23 bit RCC-APB1ENR bis!  \ USBEN
+  $0001 USB-CNTR h! ( 10 us ) $0000 USB-CNTR h!  \ FRES
+  usb-in-ring 128 init-ring
+  usb-out-ring 64 init-ring
   ['] usb-key? hook-key? !
   ['] usb-key hook-key !
-  10000 0 do usb-poll loop
+  1000000 0 do usb-poll loop
   ['] usb-emit? hook-emit? !
   ['] usb-emit hook-emit !  ;
 
