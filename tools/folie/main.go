@@ -174,11 +174,15 @@ func serialInput() {
 	for {
 		buf := make([]byte, 600)
 		n, err := conn.Read(buf)
-		check(err)
 		if n == 0 {
-			close(serIn)
-			return
+			fmt.Print(" [disconnected] ")
+			time.Sleep(2 * time.Second)
+			conn, err = connect(*port)
+			check(err)
+			fmt.Println("[reconnected]")
+			continue
 		}
+		check(err)
 		if f != nil {
 			f.Write(buf[:n])
 		}
