@@ -1,4 +1,4 @@
-The "Tiny RF" node combines an STM32F103 board from [eBay][SB] with an RFM69.  
+The "Tiny RF" node combines an STM32F103 board (like [this one][SB]) with an RFM69.  
 It uses the "suf" USB-serial driver to connect to a host.
 
   [SB]: http://www.ebay.com/itm/311156408508
@@ -6,6 +6,8 @@ It uses the "suf" USB-serial driver to connect to a host.
 ![](image1.jpg)
 
 ![](image2.jpg)
+
+![](image3.jpg)
 
 ### Pin allocation
 
