@@ -14,7 +14,7 @@ include usb.fs
   \ board-specific way to enable USB
   %1111 16 lshift $40011004 bic!  \ PC12: output, push-pull, 2 MHz
   %0010 16 lshift $40011004 bis!  \ ... this affects CRH iso CRL
-  12 bit $4001100C bis!  \ set PC12 high
+  12 bit $4001100C bic!  \ set PC12 low
   usb-io  \ switch to USB as console
 ;
 
