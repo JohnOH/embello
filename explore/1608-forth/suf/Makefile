@@ -1,5 +1,13 @@
-all:
-	srec_cat -Output usb-generic.bin -Binary usb-generic.hex -Intel
-	srec_cat -Output usb-hytiny.bin -Binary usb-hytiny.hex -Intel
-	srec_cat -Output usb-maplemini.bin -Binary usb-maplemini.hex -Intel
-	srec_cat -Output usb-olimexino.bin -Binary usb-olimexino.hex -Intel
+# build the .bin file corresponding to each .hex file
+# the list is constructed from all the "f-*.fs" source files
+
+SRCS = $(wildcard f-*.fs)
+BINS = $(SRCS:f-%.fs=usb-%.bin)
+
+all: $(BINS)
+
+%.bin: %.hex
+	srec_cat -Output $@ -Binary $< -Intel
+
+clean:
+	rm -f $(BINS)
