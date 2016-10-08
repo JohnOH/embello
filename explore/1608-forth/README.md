@@ -1,6 +1,7 @@
 A collection of files for use with Mecrisp Stellaris Forth on STM32F103 boards:
 
 * **aia** - ARMinARM, Raspberry add-on w/ STM32F103RE
+* **bme** - BME280 sensor exploration using the Olimexino-STM32
 * **cbf** - Haoyu Core Board Four board w/ STM32F407ZG and lots of RAM + flash
 * **cbo** - Haoyu Core Board One board w/ STM32F103ZE and lots of RAM + flash
 * **dad** - Dime-A-Dozen, for all those cheap eBay STM32F103C8 boards
@@ -16,6 +17,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32F103 boards:
 * **trf** - Tiny RF node, a bridge from RFM69 to USB serial
 * **wpz** - WaveShare Port103Z w/ STM32F103ZE
 * **ybc** - Yellow Blue STM32F103VC board
+* **zeb** - STM32F103ZE "Basic" board w/ µSD and two 2x32-pin headers
 * **ztw** - Zero To Wireless demo w/ STM32F103C8 "Blue Pill" and RFM69CW
 
 These files implement a range of hardware drivers and other generic functions:

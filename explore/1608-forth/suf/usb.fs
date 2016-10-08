@@ -260,12 +260,13 @@ $40006000 constant USBMEM
   then ;
 
 : ep-out ( ep -- )  \ outgoing packets, sent from host to this device
-  dup rxclear
+\ dup 2 rxstat!  \ set RX state to NAK
   dup if  \ only pick up data for endpoint 3
     dup 3 ep-reg h@ $3F and 0 ?do
       i $100 + usb-pma c@ usb-recv
     loop
   then
+  dup rxclear
   ep-reset-rx# ;
 
 : ep-in ( ep -- )  \ incoming polls, sent from this device to host
@@ -284,7 +285,7 @@ $40006000 constant USBMEM
 
 : usb-poll
   USB-ISTR h@
-  dup $8000 and if dup usb-ctr          $7FFF USB-ISTR h! then
+  dup $8000 and if dup usb-ctr                            then
   dup $0400 and if usb-reset            $FBFF USB-ISTR h! then
   dup $0800 and if %1100 USB-CNTR hbis! $F7FF USB-ISTR h! then
       $1000 and if %1000 USB-CNTR hbic! $EFFF USB-ISTR h! then ;
