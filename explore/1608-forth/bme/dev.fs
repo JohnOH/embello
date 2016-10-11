@@ -32,32 +32,50 @@ PA1 constant LED2
   $F5 >i2c drop %10100000 >i2c drop
   i2c-stop ;
 
-32 buffer: bme.params  \ calibration data
- 8 buffer: bme.values  \ last reading
+32 buffer: params  \ calibration data
+ 8 buffer: values  \ last reading
+0 variable tfine   \ used for p & h compensation
 
 : bme-rd ( reg -- )
   $76 i2c-tx drop
   >i2c drop i2c-stop
   $76 i2c-rx drop ;
 
-: bme-1b ( addr nak -- addr+1 ) i2c> over c! 1+ ;
+: bme-i2c+ ( addr nak -- addr+1 ) i2c> over c! 1+ ;
 
 : bme-calib ( -- )
-  bme.params
-  $88 bme-rd  23 0 do 0 bme-1b loop  1 bme-1b  i2c-stop
-  $A1 bme-rd                         1 bme-1b  i2c-stop
-  $E1 bme-rd   6 0 do 0 bme-1b loop  1 bme-1b  i2c-stop
+  params
+  $88 bme-rd  23 0 do 0 bme-i2c+ loop  1 bme-i2c+  i2c-stop
+  $A1 bme-rd                           1 bme-i2c+  i2c-stop
+  $E1 bme-rd   6 0 do 0 bme-i2c+ loop  1 bme-i2c+  i2c-stop
   drop ;
 
+: bme-u16 ( off -- val ) params + dup c@ swap 1+ c@ 8 lshift or ;
+: bme-s16 ( off -- val ) bme-u16 16 lshift 16 arshift ;
+: bme-u20be ( off -- val )
+  values + dup c@ 12 lshift swap 1+
+           dup c@  4 lshift swap 1+
+               c@  4 rshift  or or ;
+
 : bme-data ( -- )
-  bme.values
-  $F7 bme-rd  7 0 do 0 bme-1b loop  1 bme-1b  i2c-stop
+  values
+  $F7 bme-rd  7 0 do 0 bme-i2c+ loop  1 bme-i2c+  i2c-stop
   drop ;
+
+: bme-hpt ( -- rawh rawp rawt )
+  values 6 + dup c@ 8 lshift swap 1+ c@ or  0 bme-u20be  3 bme-u20be ;
+
+: tcalc ( rawt -- t100 )
+  3 rshift dup shr swap
+  ( T1: ) 0 bme-u16 shl - ( T2: ) 2 bme-s16 * 11 arshift
+  swap ( T1: ) 0 bme-u16 - dup * 12 arshift ( T3: ) 4 bme-s16 * 14 arshift +
+  dup tfine !  5 * 128 + 8 arshift ;
 
 : go
   init-board  bme-init  bme-calib
-  bme.params 32 dump
+  params 32 dump
   begin
-    bme-data  bme.values 2@ cr hex. hex.
+    bme-data bme-hpt
+    cr tcalc . hex. hex.
     1000 ms
   key? until ;
