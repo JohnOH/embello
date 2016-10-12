@@ -71,11 +71,30 @@ PA1 constant LED2
   swap ( T1: ) 0 bme-u16 - dup * 12 arshift ( T3: ) 4 bme-s16 * 14 arshift +
   dup tfine !  5 * 128 + 8 arshift ;
 
+: hcalc ( rawh -- h100 )
+  tfine @ 76800 - >r
+  14 lshift
+  ( H4: ) $13B
+  20 lshift -
+  ( H5: ) $000
+  r@ * - 16384 + 15 arshift
+  ( H6: ) $1E
+  r@ * 10 arshift
+  ( H3: ) $00
+  r> * 11 arshift 32768 + * 10 arshift 2097152 +
+  ( H2: ) $16B
+  * 8192 + 14 arshift *
+  dup 15 arshift dup * 7 arshift
+  ( H1: ) $4B
+  * 4 arshift -  0 max  419430400 min  12 arshift
+  100 * 512 + 10 arshift  \ convert 1/1024's to 1/100's, w/ rounding
+;
+
 : go
   init-board  bme-init  bme-calib
   params 32 dump
   begin
     bme-data bme-hpt
-    cr tcalc . hex. hex.
+    cr tcalc . hex. hcalc .
     1000 ms
   key? until ;
