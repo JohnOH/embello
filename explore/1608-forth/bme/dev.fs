@@ -50,7 +50,8 @@ PA1 constant LED2
   $E1 bme-rd   6 0 do 0 bme-i2c+ loop  1 bme-i2c+  i2c-stop
   drop ;
 
-: bme-u16 ( off -- val ) params + dup c@ swap 1+ c@ 8 lshift or ;
+: bme-u8 ( off -- val ) params + c@ ;
+: bme-u16 ( off -- val ) dup bme-u8 swap 1+ bme-u8 8 lshift or ;
 : bme-s16 ( off -- val ) bme-u16 16 lshift 16 arshift ;
 : bme-u20be ( off -- val )
   values + dup c@ 12 lshift swap 1+
@@ -74,18 +75,18 @@ PA1 constant LED2
 : hcalc ( rawh -- h100 )
   tfine @ 76800 - >r
   14 lshift
-  ( H4: ) $13B
+  ( H4: ) 28 bme-u8 24 lshift 20 arshift 29 bme-u8 $F and or
   20 lshift -
-  ( H5: ) $000
+  ( H5: ) 29 bme-s16 4 arshift
   r@ * - 16384 + 15 arshift
-  ( H6: ) $1E
+  ( H6: ) 31 bme-u8 24 lshift 24 arshift
   r@ * 10 arshift
-  ( H3: ) $00
+  ( H3: ) 27 bme-u8
   r> * 11 arshift 32768 + * 10 arshift 2097152 +
-  ( H2: ) $16B
+  ( H2: ) 25 bme-s16
   * 8192 + 14 arshift *
   dup 15 arshift dup * 7 arshift
-  ( H1: ) $4B
+  ( H1: ) 24 bme-u8
   * 4 arshift -  0 max  419430400 min  12 arshift
   100 * 512 + 10 arshift  \ convert 1/1024's to 1/100's, w/ rounding
 ;
