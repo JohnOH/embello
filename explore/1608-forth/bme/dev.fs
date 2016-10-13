@@ -72,6 +72,25 @@ PA1 constant LED2
   swap ( T1: ) 0 bme-u16 - dup * 12 arshift ( T3: ) 4 bme-s16 * 14 arshift +
   dup tfine !  5 * 128 + 8 arshift ;
 
+: *>> ( n1 n2 u -- n ) >r * r> arshift ;  \ (n1 * n2) >> u
+: ^2>> ( n1 u -- n ) >r dup * r> arshift ;  \ (n1 * n1) >> u
+
+: pcalc ( rawp -- p1 )
+  tfine @ 2/ 64000 -                                  ( rawp var1 )
+  dup 2 arshift 11 ^2>> ( P6: ) 16 bme-s16 *          ( rawp var1 var2 )
+  over ( P5: ) 14 bme-s16 shl * +                     ( rawp var1 var2 )
+  2 arshift ( P4: ) 12 bme-s16 16 lshift + swap       ( rawp var2 var1 )
+  ( P3: ) 10 bme-s16 over 2 arshift 13 ^2>> 3 *>>     ( rawp var2 var1 x )
+  swap ( P2: ) 8 bme-s16 * 2/ + 18 arshift            ( rawp var2 var1 )
+  32768 + ( P1: ) 6 bme-u16 15 *>>                    ( rawp var2 var1 )
+  dup if                                              ( rawp var2 var1 )
+    rot 1048576 swap - rot 12 arshift - 3125 *        ( var2 var1 p )
+    dup 0< if swap shl else shl swap then u/mod nip   ( p )
+    ( P9: ) 22 bme-s16 over 3 arshift 13 ^2>> 12 *>>  ( p var1 )
+    over 2 arshift ( P8: ) 20 bme-s16 13 *>>          ( p var1 var2 )
+    ( P7: ) 18 bme-s16 + + 4 arshift +                ( p )
+  else nip nip then ;
+
 : hcalc ( rawh -- h100 )
   tfine @ 76800 - >r
   14 lshift
@@ -96,6 +115,6 @@ PA1 constant LED2
   params 32 dump
   begin
     bme-data bme-hpt
-    cr tcalc . hex. hcalc .
+    cr tcalc . pcalc . hcalc .
     1000 ms
   key? until ;
