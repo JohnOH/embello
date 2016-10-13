@@ -1,4 +1,4 @@
-\ Try reading out the BME280 sensor.
+\ Read out the BME280 sensor.
 
 \ define some missing constants
 4 constant io-ports  \ A..D
@@ -15,14 +15,6 @@ PB6 constant SCL
 PB7 constant SDA
 
 include ../flib/i2c-bb.fs
-
-PA5 constant LED1
-PA1 constant LED2
-
-: init-board ( -- )
-  OMODE-PP LED1 io-mode!
-  OMODE-PP LED2 io-mode!
-;
 
 : bme-init ( -- )
   +i2c
@@ -66,14 +58,14 @@ PA1 constant LED2
 : bme-hpt ( -- rawh rawp rawt )
   values 6 + dup c@ 8 lshift swap 1+ c@ or  0 bme-u20be  3 bme-u20be ;
 
-: tcalc ( rawt -- t100 )
-  3 rshift dup shr swap
-  ( T1: ) 0 bme-u16 shl - ( T2: ) 2 bme-s16 * 11 arshift
-  swap ( T1: ) 0 bme-u16 - dup * 12 arshift ( T3: ) 4 bme-s16 * 14 arshift +
-  dup tfine !  5 * 128 + 8 arshift ;
-
 : *>> ( n1 n2 u -- n ) >r * r> arshift ;  \ (n1 * n2) >> u
 : ^2>> ( n1 u -- n ) >r dup * r> arshift ;  \ (n1 * n1) >> u
+
+: tcalc ( rawt -- t100 )
+  3 rshift dup shr swap
+  ( T1: ) 0 bme-u16 shl - ( T2: ) 2 bme-s16 11 *>>
+  swap ( T1: ) 0 bme-u16 - 12 ^2>> ( T3: ) 4 bme-s16 14 *>> +
+  dup tfine !  5 * 128 + 8 arshift ;
 
 : pcalc ( rawp -- p1 )
   tfine @ 2/ 64000 -                                  ( rawp var1 )
@@ -81,7 +73,7 @@ PA1 constant LED2
   over ( P5: ) 14 bme-s16 shl * +                     ( rawp var1 var2 )
   2 arshift ( P4: ) 12 bme-s16 16 lshift + swap       ( rawp var2 var1 )
   ( P3: ) 10 bme-s16 over 2 arshift 13 ^2>> 3 *>>     ( rawp var2 var1 x )
-  swap ( P2: ) 8 bme-s16 * 2/ + 18 arshift            ( rawp var2 var1 )
+  swap ( P2: ) 8 bme-s16 1 *>> + 18 arshift           ( rawp var2 var1 )
   32768 + ( P1: ) 6 bme-u16 15 *>>                    ( rawp var2 var1 )
   dup if                                              ( rawp var2 var1 )
     rot 1048576 swap - rot 12 arshift - 3125 *        ( var2 var1 p )
@@ -99,19 +91,19 @@ PA1 constant LED2
   ( H5: ) 29 bme-s16 4 arshift
   r@ * - 16384 + 15 arshift
   ( H6: ) 31 bme-u8 24 lshift 24 arshift
-  r@ * 10 arshift
+  r@ 10 *>>
   ( H3: ) 27 bme-u8
-  r> * 11 arshift 32768 + * 10 arshift 2097152 +
+  r> 11 *>> 32768 + 10 *>> 2097152 +
   ( H2: ) 25 bme-s16
   * 8192 + 14 arshift *
-  dup 15 arshift dup * 7 arshift
+  dup 15 arshift 7 ^2>>
   ( H1: ) 24 bme-u8
-  * 4 arshift -  0 max  419430400 min  12 arshift
+  4 *>> -  0 max  419430400 min  12 arshift
   100 * 512 + 10 arshift  \ convert 1/1024's to 1/100's, w/ rounding
 ;
 
 : go
-  init-board  bme-init  bme-calib
+  bme-init  bme-calib
   params 32 dump
   begin
     bme-data bme-hpt
