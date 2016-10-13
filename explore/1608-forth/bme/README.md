@@ -6,3 +6,5 @@ Only I2C is used here, see `../oxs` sibling folder for other pinouts:
     D9      PB7     SDA1
 
    [O]: https://www.olimex.com/Products/Duino/STM32/OLIMEXINO-STM32/
+
+![](image.jpg)
