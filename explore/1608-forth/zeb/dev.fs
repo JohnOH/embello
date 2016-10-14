@@ -12,6 +12,11 @@ include ../flib/io-stm32f1.fs
 include ../flib/pins144.fs
 include ../flib/spi-stm32f1.fs
 
+PB6 constant SCL
+PB7 constant SDA
+
+include ../flib/i2c-bb.fs
+
 PC0 constant LED1
 PD3 constant LED2
 
