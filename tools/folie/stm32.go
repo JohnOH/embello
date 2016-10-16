@@ -11,6 +11,7 @@ const (
 	NAK        = 0x1F
 	GET_CMD    = 0x00
 	GETID_CMD  = 0x02
+	GO_CMD     = 0x21
 	WRITE_CMD  = 0x31
 	ERASE_CMD  = 0x43
 	EXTERA_CMD = 0x44
@@ -76,6 +77,11 @@ func uploadSTM32(data []byte) {
 	fmt.Print("   Uploading: ")
 	writeFlash(data)
 	fmt.Println(" OK")
+
+	// this won't work if the uploaded coded expects to run in low-mem
+	//fmt.Print("       Start: ")
+	//sendGoCmd()
+	//fmt.Println(" OK")
 }
 
 func getReply() uint8 {
@@ -194,4 +200,15 @@ func writeFlash(data []byte) {
 		wantAck()
 		*verbose = false // verbose mode off after one write, to reduce output
 	}
+}
+
+func sendGoCmd() {
+	sendCmd(GO_CMD)
+	addr := 0x08000000
+	sendByte(uint8(addr >> 24))
+	sendByte(uint8(addr >> 16))
+	sendByte(uint8(addr >> 8))
+	sendByte(uint8(addr))
+	sendByte(checkSum)
+	wantAck()
 }
