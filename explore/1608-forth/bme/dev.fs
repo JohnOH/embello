@@ -9,12 +9,12 @@ include ../flib/io-stm32f1.fs
 include ../flib/pins64.fs
 include ../flib/spi-stm32f1.fs
 
-: ms 0 do 12000 0 do loop loop ;  \ assumes 72 MHz clock
-
 PB6 constant SCL
 PB7 constant SDA
-
 include ../flib/i2c-bb.fs
+\ include ../flib/i2c-stm32f1.fs
+
+: ms 0 do 12000 0 do loop loop ;  \ assumes 72 MHz clock
 
 : bme-init ( -- )
   +i2c
