@@ -7,8 +7,8 @@
 ;
 
 : i2c-half ( -- )  \ half-cycle timing delay for I2C
-\ 10 0 do loop ; \ approx 250 KHz?
-  inline ; \ no half-cycle delay, max speed
+  10 0 do loop ; \ approx 250 KHz?
+\ inline ; \ no half-cycle delay, max speed
 
 : i2c-start ( -- )  \ with SCL high, change SDA from 1 to 0
   1 SDA io! i2c-half SCL ios! i2c-half 0 SDA io! i2c-half SCL ioc! ;
