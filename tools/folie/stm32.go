@@ -26,10 +26,14 @@ var deviceMap = map[uint16]string{
 	0x413: "STM32F4",
 	0x414: "STM32F1, performance, high-density",
 	0x416: "STM32L1, performance, medium-density",
+	0x417: "STM32L0, low-power, category 3",
 	0x418: "STM32F1, connectivity",
 	0x420: "STM32F1, value, medium-density",
+	0x425: "STM32L0, low-power, category 2",
 	0x428: "STM32F1, value, high-density",
 	0x430: "STM32F1, performance, XL-density",
+	0x447: "STM32L0, low-power, category 5",
+	0x457: "STM32L0, low-power, category 0",
 }
 
 var (
@@ -71,7 +75,7 @@ func uploadSTM32(data []byte) {
 	//fmt.Println(" OK")
 
 	fmt.Print("  Mass erase: ")
-	massErase()
+	massErase(len(data))
 	fmt.Println("OK")
 
 	fmt.Print("   Uploading: ")
@@ -133,6 +137,16 @@ func sendByte(b uint8) {
 	checkSum ^= b
 }
 
+func send2bytes(v int) {
+	sendByte(uint8(v>>8))
+	sendByte(uint8(v))
+}
+
+func send4bytes(v int) {
+	send2bytes(v>>16)
+	send2bytes(v)
+}
+
 func sendCmd(cmd uint8) {
 	//getReply()  // get rid of pending data
 	//conn.Flush()
@@ -164,17 +178,22 @@ func getChipType() uint16 {
 	return chipType
 }
 
-func massErase() {
+func massErase(size int) {
 	if extended {
 		sendCmd(EXTERA_CMD)
-		sendByte(0xFF)
-		sendByte(0xFF)
-		sendByte(0xFF)
+		// for some reason, a "full" mass erase gets rejected with a NAK
+		//send2bytes(0xFFFF)
+		// ... so erase a list of segments instead, 1 more than needed
+		n := (size+127)/128 + 1 // really? always 128 bytes per segment?
+		send2bytes(n-1)
+		for i := 0; i < n; i++ {
+			send2bytes(i)
+		}
 	} else {
 		sendCmd(ERASE_CMD)
 		sendByte(0xFF)
-		sendByte(0x00)
 	}
+	sendByte(checkSum)
 	wantAck()
 }
 
@@ -185,11 +204,7 @@ func writeFlash(data []byte) {
 	for offset := 0; offset < len(data); offset += 256 {
 		fmt.Print("+")
 		sendCmd(WRITE_CMD)
-		addr := 0x08000000 + offset
-		sendByte(uint8(addr >> 24))
-		sendByte(uint8(addr >> 16))
-		sendByte(uint8(addr >> 8))
-		sendByte(uint8(addr))
+		send4bytes(0x08000000 + offset)
 		sendByte(checkSum)
 		wantAck()
 		sendByte(256 - 1)
@@ -204,11 +219,7 @@ func writeFlash(data []byte) {
 
 func sendGoCmd() {
 	sendCmd(GO_CMD)
-	addr := 0x08000000
-	sendByte(uint8(addr >> 24))
-	sendByte(uint8(addr >> 16))
-	sendByte(uint8(addr >> 8))
-	sendByte(uint8(addr))
+	send4bytes(0x08000000)
 	sendByte(checkSum)
 	wantAck()
 }
