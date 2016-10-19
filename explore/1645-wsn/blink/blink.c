@@ -11,7 +11,7 @@ int main (void) {
     rcc_periph_clock_enable(RCC_GPIOC);
 
     gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
-                    GPIO_CNF_OUTPUT_PUSHPULL, GPIO0);
+                    GPIO_CNF_OUTPUT_PUSHPULL, GPIO1);
     gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ,
                     GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
 
@@ -19,7 +19,7 @@ int main (void) {
         for (int i = 0; i < 1000000; ++i)
             __asm("");
 
-        gpio_toggle(GPIOA, GPIO0);
+        gpio_toggle(GPIOA, GPIO1);
         gpio_toggle(GPIOC, GPIO13);
     }
 
