@@ -129,6 +129,18 @@ func wantAck() {
 	checkSum = 0
 }
 
+func wantSlowAck() {
+	r := getReply()
+	for r == 0 {
+		r = getReply()
+	}
+	if r != ACK {
+		fmt.Printf("\nFailed: %02x\n", r)
+		os.Exit(1)
+	}
+	checkSum = 0
+}
+
 func sendByte(b uint8) {
 	if *verbose {
 		fmt.Printf(">%02x", b)
@@ -185,6 +197,7 @@ func massErase(size int) {
 		//send2bytes(0xFFFF)
 		// ... so erase a list of segments instead, 1 more than needed
 		n := (size+127)/128 + 1 // really? always 128 bytes per segment?
+		n = 200
 		send2bytes(n-1)
 		for i := 0; i < n; i++ {
 			send2bytes(i)
@@ -194,7 +207,7 @@ func massErase(size int) {
 		sendByte(0xFF)
 	}
 	sendByte(checkSum)
-	wantAck()
+	wantSlowAck()
 }
 
 func writeFlash(data []byte) {
