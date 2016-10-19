@@ -1,10 +1,12 @@
 // Simple LED blink demo.
+//
+// See also https://github.com/libopencm3/libopencm3-examples/blob/master/
+//                      examples/stm32/f1/stm32-h103/miniblink/miniblink.c
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 
-int main(void)
-{
+int main (void) {
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_GPIOC);
 
