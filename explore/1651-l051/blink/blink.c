@@ -1,7 +1,7 @@
 // Simple LED blink demo.
 //
 // See also https://github.com/libopencm3/libopencm3-examples/blob/master/
-//                      examples/stm32/f1/stm32-h103/miniblink/miniblink.c
+//                      examples/stm32/l0/stm32l0538-disco/miniblink/miniblink.c
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
