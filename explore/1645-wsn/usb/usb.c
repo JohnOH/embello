@@ -210,6 +210,12 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
     char buf[64];
     int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
 
+    for (int i = 0; i < len; ++i) {
+        char c = buf[i];
+        if (('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z'))
+            buf[i] = c ^ 0x20; // flip lowercase and uppercase
+    }
+
     if (len) {
         usbd_ep_write_packet(usbd_dev, 0x82, buf, len);
         buf[len] = 0;
