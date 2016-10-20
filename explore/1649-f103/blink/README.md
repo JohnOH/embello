@@ -1,1 +1,1 @@
-Simple LED blink demo.
+Simple LED blink demo (STM32F103).

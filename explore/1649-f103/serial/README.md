@@ -1,1 +1,1 @@
-Control an LED over the serial port.
+Control an LED over the serial port (STM32F103).
