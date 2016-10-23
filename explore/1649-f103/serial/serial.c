@@ -22,7 +22,6 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/systick.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -31,11 +30,9 @@ int _write(int file, const char *ptr, int len);
 static void clock_setup (void) {
     rcc_clock_setup_in_hse_8mhz_out_72mhz();
 
-    /* Enable clocks for GPIO port A/B/C/D (for GPIO_USART1_TX) and USART1. */
+    /* Enable clocks for GPIO port A/C for LED and USART1. */
     rcc_periph_clock_enable(RCC_GPIOA);
-    rcc_periph_clock_enable(RCC_GPIOB);
     rcc_periph_clock_enable(RCC_GPIOC);
-    rcc_periph_clock_enable(RCC_GPIOD);
     rcc_periph_clock_enable(RCC_AFIO);
     rcc_periph_clock_enable(RCC_USART1);
 }
