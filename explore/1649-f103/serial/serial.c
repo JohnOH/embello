@@ -21,7 +21,6 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
-#include <libopencm3/cm3/nvic.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -38,9 +37,6 @@ static void clock_setup (void) {
 }
 
 static void usart_setup (void) {
-    /* Enable the USART1 interrupt. */
-    nvic_enable_irq(NVIC_USART1_IRQ);
-
     /* Setup GPIO pin GPIO_USART1_RE_TX on GPIO port B for transmit. */
     gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
               GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_USART1_TX);
@@ -57,9 +53,6 @@ static void usart_setup (void) {
     usart_set_flow_control(USART1, USART_FLOWCONTROL_NONE);
     usart_set_mode(USART1, USART_MODE_TX_RX);
 
-    /* Enable USART1 Receive interrupt. */
-    USART_CR1(USART1) |= USART_CR1_RXNEIE;
-
     /* Finally enable the USART. */
     usart_enable(USART1);
 }
@@ -71,31 +64,18 @@ static void leds_setup (void) {
               GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
 }
 
-static void txSend (char ch) {
-    while ((USART_SR(USART1) & USART_SR_TXE) == 0)
-        ;
-    usart_send(USART1, ch);
-}
-
-void usart1_isr (void) {
-    if (USART_SR(USART1) & USART_SR_RXNE) {
-        char c = usart_recv(USART1);
-        txSend(c);
-        if (c == '\r' || 1) {
-            gpio_toggle(GPIOA, GPIO1);
-            gpio_toggle(GPIOC, GPIO13);
-        }
-    }
-}
-
 int _write (int file, const char *ptr, int len) {
     if (file == 1) {
         for (int i = 0; i < len; ++i)
-            txSend(ptr[i]);
+            usart_send_blocking(USART1, ptr[i]);
         return len;
     }
     errno = EIO;
     return -1;
+}
+
+static int serial_getc (void) {
+    return USART_SR(USART1) & USART_SR_RXNE ? usart_recv(USART1) : -1;
 }
 
 int main (void) {
@@ -109,8 +89,12 @@ int main (void) {
     while (true) {
         _write(1, msg, sizeof msg - 1);
 
-        for (int i = 0; i < 10000000; ++i)
-            __asm("");
+        for (int i = 0; i < 1000000; ++i) {
+            if (serial_getc() == '\r') {
+                gpio_toggle(GPIOA, GPIO1);
+                gpio_toggle(GPIOC, GPIO13);
+            }
+        }
     }
 
     return 0;
