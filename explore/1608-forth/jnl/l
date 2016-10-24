@@ -2,7 +2,7 @@
 \ needs h
 \ includes d
 
-( cornerstone ) <<<hal-jnl>>>
+\ ( cornerstone ) <<<hal-jnl>>>
 compiletoflash
 
 ( code-start, see code-size below ) here
