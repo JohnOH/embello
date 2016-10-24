@@ -1,0 +1,58 @@
+\ load development code
+\ needs l
+
+reset
+
+: blink ( -- )  \ blink the on-board LED until a key is pressed
+  OMODE-PP LED1 io-mode!  begin  LED1 iox!  100 ms  key? until ;
+
+: adctry ( -- )  +adc  begin  PA0 adc .  key? until ;
+: pwmtry ( -- )  1 LED2 +pwm 9900 LED2 pwm ;  \ inverted logic
+
+config-pins
+quad-adc
+count-pulses
+p1-clear
+
+\ -----------------------------------------------------------------------------
+
+    800 constant #capt
+#capt 2* buffer: capt
+
+: acapture ( chan -- )  \ sync, copy, and print samples from a separate buffer
+  dma-sync
+  #capt 0 do i 4 * over + 2* adata + h@ i 2* capt + h! loop
+  #capt 0 do i 2* capt + h@ . loop drop ;
+
+\ 0 acapture
+\ -----------------------------------------------------------------------------
+
+: ticker: ( ms -- ) \ name - creates a new ticker with specified period
+  millis 2variable ;
+
+\ TODO return number of firings, usually 0 or 1, but more if we missed some
+\ TODO also reset ticker in this case, so it'll resume with its normal period
+
+: elapsed? ( ticker -- f )  \ true if the ticker has fired since the last time
+  millis over 2@ + - 0 > if dup 2@ + swap ! true else drop false then ;
+
+5000 ticker: 5s
+
+: test5s begin 5s elapsed? if millis . then key? until ;
+
+\ -----------------------------------------------------------------------------
+
+: go
+  6 8686 rf-init
+  millis 5s !  \ TODO needed until the above todo's are resolved
+  begin
+    \ periodically report pulse counters
+    5s elapsed? if pulses.rf then
+    \ report each P1 packet once complete
+    uart-irq-key? if
+      uart-irq-key p1-next if p1.rf then
+    then
+  key? until ;
+
+\ -----------------------------------------------------------------------------
+\ vim: set ft=forth :

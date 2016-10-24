@@ -1,0 +1,50 @@
+\ load development code
+\ needs l
+
+reset
+
+\ -----------------------------------------------------------------------------
+
+1000 variable kp
+2000 variable ki
+3000 variable kd
+50 variable setpoint
+0 variable iterm
+0 variable lastin
+
+: pid-limit ( u -- u ) 0 max 100 min ;
+
+: k@* ( u addr -- u ) @ 1000 u*/ ;
+
+: pid ( in -- out )
+  setpoint @ over - ( in err )
+  dup ki k@*  iterm @ +  pid-limit  iterm ! ( in err )
+  kp k@*  iterm @ +  over lastin @ -  kd k@* +  pid-limit ( in out )
+  swap lastin ! ;
+
+10 pid .
+10 pid .
+20 pid .
+30 pid .
+40 pid .
+50 pid .
+60 pid .
+60 pid .
+60 pid .
+50 pid .
+50 pid .
+50 pid .
+50 pid .
+50 pid .
+51 pid .
+51 pid .
+51 pid .
+51 pid .
+51 pid .
+50 pid .
+50 pid .
+50 pid .
+50 pid .
+
+\ -----------------------------------------------------------------------------
+\ vim: set ft=forth :

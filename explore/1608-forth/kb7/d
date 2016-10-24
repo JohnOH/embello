@@ -1,0 +1,70 @@
+\ load development code
+
+\ compiletoflash
+\ create data
+\ include data
+
+reset
+
+\ -----------------------------------------------------------------------------
+\ convolution experiments to locate the segment locations
+
+data variable x
+\ 4 x +!  \ workaround for F746, maybe a bug in create or h, ?
+
+760 constant limit
+
+\ : x@i ( i -- u ) 0 max 2+ 2* data + h@ ;
+: x@i ( i -- u ) 0 max 2* x @ + h@ ;
+
+: conv-max ( -- i )  \ convolve with -1 -1 -1 1 1 1 1, return first peak index
+  0 0 x@i dup ( result conv-last conv-curr )
+  limit 1 do
+    i 7 - x@i +
+    i 4 - x@i 2* -
+    i     x@i +
+    2dup > if
+      dup 4100 > if drop i -rot leave then
+    then
+    nip dup
+  loop
+  2drop ;
+
+: rconv-max ( -- i )  \ convolve with 1 1 1 1 -1 -1 -1, return first peak index
+  0 0 x@i dup ( result conv-last conv-curr )
+  limit 1 do
+    i 7 - x@i -
+    i 3 - x@i 2* +
+    i     x@i -
+    2dup > if
+      dup 4100 > if drop i -rot leave then
+    then
+    nip dup
+  loop
+  2drop 6 - ;
+
+: a micros conv-max micros rot - . ;
+: b micros rconv-max micros rot - . ;
+
+a .
+b .
+
+348 2* x +!  b 348 + .  data x !
+
+\ 4 x +!  \ workaround for F746, maybe a bug in create or h, ?
+
+: c ( -- n1 n2 n3 )
+  conv-max rconv-max
+  2dup > if
+    dup 2* x +! rconv-max over +
+  else
+    swap
+    dup 2* x +! conv-max over +
+  then ;
+
+: d micros >r c micros r> - . . . . ;
+
+d
+
+\ -----------------------------------------------------------------------------
+\ vim: set ft=forth :

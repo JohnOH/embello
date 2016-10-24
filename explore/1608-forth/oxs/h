@@ -1,0 +1,57 @@
+\ install hardware abstractions in flash
+
+cr eraseflash
+compiletoflash
+
+4 constant io-ports  \ A..D
+
+include ../mlib/hexdump.fs
+include ../flib/io-stm32f1.fs
+include ../flib/hal-stm32f1.fs
+include ../flib/timer-stm32f1.fs
+include ../flib/pwm-stm32f1.fs
+include ../flib/adc-stm32f1.fs
+include ../flib/rtc-stm32f1.fs
+include ../flib/ring.fs
+include ../flib/uart2-stm32f1.fs
+include ../flib/uart2-irq-stm32f1.fs
+include ../flib/spi-stm32f1.fs
+
+\ board definitions for Olimexino-STM32 w/ STM32F103RB
+
+\ add missing pin definitions for R package with 64 i.s.o 48 pins
+2 0  io constant PC0
+2 1  io constant PC1
+2 2  io constant PC2
+2 3  io constant PC3
+2 4  io constant PC4
+2 5  io constant PC5
+2 6  io constant PC6
+2 7  io constant PC7
+2 8  io constant PC8
+2 9  io constant PC9
+2 10 io constant PC10
+2 11 io constant PC11
+2 12 io constant PC12
+
+3 2  io constant PD2
+
+PB6 constant SCL
+PB7 constant SDA
+
+include ../flib/i2c-bb.fs
+
+PA5 constant LED1
+PA1 constant LED2
+
+: init ( -- )  \ board initialisation
+  -jtag  \ disable JTAG, we only need SWD
+  OMODE-PP LED1 io-mode!
+  OMODE-PP LED2 io-mode!
+  72MHz
+  flash-kb . ." KB <oxs> " hwid hex. ." ok." cr
+  1000 systick-hz
+;
+
+cornerstone <<<hal-oxs>>>
+\ vim: set ft=forth :

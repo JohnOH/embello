@@ -1,0 +1,18 @@
+\ load development code
+\ needs l
+
+reset
+
+: blink ( -- )  \ blink the on-board LED until a key is pressed
+  OMODE-PP LED io-mode!  begin  LED iox!  100 ms  key? until ;
+
+: rtctry ( -- )  +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+: adctry ( -- )  +adc  begin  PB0 adc .  key? until ;
+: uartry ( -- )  +uart uart. ;
+: pwmtry ( -- )  1 LED +pwm 100 LED pwm ;
+
+\ -----------------------------------------------------------------------------
+\ -----------------------------------------------------------------------------
+
+\ 10 %pwm
+\ vim: set ft=forth :

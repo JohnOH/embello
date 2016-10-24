@@ -1,0 +1,37 @@
+\ install hardware abstractions in flash
+
+cr eraseflash
+compiletoflash
+
+4 constant io-ports  \ A..D
+
+include ../mlib/hexdump.fs
+include ../flib/io-stm32f1.fs
+include ../flib/hal-stm32f1.fs
+include ../flib/timer-stm32f1.fs
+include ../flib/pwm-stm32f1.fs
+include ../flib/adc-stm32f1.fs
+include ../flib/ring.fs
+include ../flib/uart2-stm32f1.fs
+include ../flib/uart2-irq-stm32f1.fs
+include ../flib/spi-stm32f1.fs
+
+\ board definitions for Hy-TinySTM103T
+
+PB6 constant SCL
+PB7 constant SDA
+
+include ../flib/i2c-bb.fs
+
+PA1 constant LED
+
+: init ( -- )  \ board initialisation
+  -jtag  \ disable JTAG, we only need SWD
+  OMODE-PP LED io-mode!
+  72MHz
+  flash-kb . ." KB <rnw> " hwid hex. ." ok." cr
+  1000 systick-hz
+;
+
+cornerstone <<<hal-rnw>>>
+\ vim: set ft=forth :

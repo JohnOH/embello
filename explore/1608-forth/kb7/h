@@ -1,0 +1,24 @@
+\ install hardware abstractions in flash
+
+cr  ' nop irq-systick !  eraseflash
+compiletoflash
+
+8 constant io-ports  \ A..H
+
+include ../mlib/hexdump.fs
+include ../flib/io-stm32f4.fs
+include ../flib/hal-stm32f7.fs
+
+include clock.fs
+
+PC13 constant LED
+
+: init ( -- )  \ board initialisation
+  OMODE-PP LED io-mode!
+  216Mhz
+  flash-kb . ." KB <kb7> " hwid hex. ." ok." cr
+  1000 systick-hz
+;
+
+cornerstone <<<hal-kb7>>>
+\ vim: set ft=forth :
