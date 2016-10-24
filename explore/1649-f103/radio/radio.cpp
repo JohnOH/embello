@@ -1,4 +1,4 @@
-// Main application logic.
+// SImple RF69 demo application.
 
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
@@ -15,7 +15,13 @@ RF69<SpiDev> rf;
 
 uint8_t rxBuf[64];
 uint8_t txBuf[62];
-uint16_t cnt = 0;
+uint16_t txCnt = 0;
+
+const int rf_freq = 8686;
+const int rf_group = 6;
+const int rf_nodeid = 62;
+
+const bool verbose = true;
 
 void setup () {
     // LED on HyTiny F103 is PA1, LED on BluePill F103 is PC13
@@ -24,25 +30,37 @@ void setup () {
     gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ,
             GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
 
-    puts("\n[radio]");
+    printf("\n[radio]\n");
 
-    rf.init(28, 6, 8686);
+    rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");
     rf.txPower(15); // 0 = min .. 31 = max
 
     for (int i = 0; i < (int) sizeof txBuf; ++i)
         txBuf[i] = i;
+
+    printf("  Enter 't' to broadcast a test packet as node %d.\n", rf_nodeid);
+    printf("  Listening for packets on %.1f MHz, group %d ...\n\n",
+            rf_freq * 0.1, rf_group);
 }
 
 void loop () {
+    if (serial_getc() == 't') {
+        printf("  Broadcasting %d-byte test packet\n", txCnt);
+        rf.send(0, txBuf, txCnt);
+        txCnt = (txCnt + 1) % sizeof txBuf;
+    }
+
     int len = rf.receive(rxBuf, sizeof rxBuf);
     if (len >= 0) {
-        printf("RF69 %02x ", len);
-        for (int i = 0; i < len; ++i)
+        printf("rf69 %04x%02x%02x%02x%04x%02x%02x%02x ",
+                rf_freq, rf_group, rf.rssi, rf.lna, rf.afc,
+                rxBuf[0], rxBuf[1], len - 2);
+        for (int i = 2; i < len; ++i)
             printf("%02x", rxBuf[i]);
         const char* sep = rf.afc < 0 ? "" : "+";
-        if (true)
-            printf(" (%d%s%d:%d)", rf.rssi, sep, rf.afc, rf.lna);
+        if (verbose)
+            printf("  (%g%s%d:%d)", rf.rssi * 0.5, sep, rf.afc, rf.lna);
         putchar('\n');
     }
 }
