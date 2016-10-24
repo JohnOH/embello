@@ -18,7 +18,7 @@ uint8_t txBuf[62];
 uint16_t txCnt = 0;
 
 const int rf_freq = 8686;
-const int rf_group = 6;
+const int rf_group = 42;
 const int rf_nodeid = 62;
 
 const bool verbose = true;
