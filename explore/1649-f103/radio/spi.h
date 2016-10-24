@@ -35,5 +35,3 @@ class SpiDev {
         return in;
     }
 };
-
-typedef SpiDev SpiDev1;

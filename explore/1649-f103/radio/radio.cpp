@@ -11,7 +11,7 @@ extern uint32_t millis();
 #include "spi.h"
 #include "rf69.h"
 
-RF69<SpiDev1> rf;
+RF69<SpiDev> rf;
 
 uint8_t rxBuf[64];
 uint8_t txBuf[62];
