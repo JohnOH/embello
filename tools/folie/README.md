@@ -1,6 +1,6 @@
 # Folie v1
 
-The **Fo**rth **Li**ne **E**valuator is a serial terminal interface for [Mecrisp Forth][MF]:
+The **Fo**rth **Li**ve **E**xplorer is a serial terminal interface for [Mecrisp Forth][MF]:
 
 * connects as terminal console to an attached microcontroller board over serial
 * can also connect to a telnet socket or to ssh, launched as a subprocess
