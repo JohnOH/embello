@@ -214,6 +214,8 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
         char c = buf[i];
         if (('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z'))
             buf[i] = c ^ 0x20; // flip lowercase and uppercase
+        else if (c == '\r')
+            buf[i] = '\n';
     }
 
     if (len) {
