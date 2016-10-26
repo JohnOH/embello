@@ -20,7 +20,7 @@
 BINARY = blink
 OBJS = 
 LDSCRIPT = ../stm32l0xx8.ld
-SCRIPT_DIR=.
+SCRIPT_DIR=..
 
 default: $(BINARY).bin
 
