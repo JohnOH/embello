@@ -1,4 +1,4 @@
-**SerPlus** is an STM32F103 bridge between USB and a serial port.
+**SerPlus** is an STM32F103-based bridge between USB and a serial port.
 
 Inline telnet escape codes can be used to control DTR, RTS, and parity.
 
