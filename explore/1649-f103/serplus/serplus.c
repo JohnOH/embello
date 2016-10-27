@@ -39,11 +39,11 @@
 #define GPIO_LED    GPIOA
 #define PIN_LED     GPIO1
 
-#define GPIO_DTR    GPIOA
-#define PIN_DTR     GPIO2
-
 #define GPIO_RTS    GPIOA
-#define PIN_RTS     GPIO3
+#define PIN_RTS     GPIO13
+
+#define GPIO_DTR    GPIOA
+#define PIN_DTR     GPIO14
 
 /******************************************************************************
  * Simple ringbuffer implementation from open-bldc's libgovernor that
@@ -560,6 +560,9 @@ int main(void)
     for (int i = 0; i < 10000000; i++)
         __asm__("");
     gpio_clear(GPIO_USB, PIN_USB); // negative logic, PA0 low enables USB
+
+    // disable the SWD pins, since they are being re-used for DTR & RTS
+    AFIO_MAPR = (AFIO_MAPR & ~(7<<24)) | (4<<24);
 
     while (1) {
         // poll USB while waiting for 2 ms to elapse
