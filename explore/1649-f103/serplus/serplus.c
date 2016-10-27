@@ -123,7 +123,7 @@ static int32_t ring_read(struct ring *ring, uint8_t *data, ring_size_t size)
 
 /*****************************************************************************/
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 128
 
 struct ring input_ring, output_ring;
 uint8_t input_ring_buffer[BUFFER_SIZE], output_ring_buffer[BUFFER_SIZE];
@@ -514,7 +514,10 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
     (void)ep;
     (void)usbd_dev;
 
-    // TODO back pressure: consider not reading the packet if no room in ring
+    // back pressure: don't read the packet if there is not enough room in ring
+    if ((uint32_t)(output_ring.begin - output_ring.end - 1) % BUFFER_SIZE <= 64)
+        return;
+
     uint8_t buf[64];
     int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, sizeof buf);
 
@@ -560,13 +563,15 @@ int main(void)
     gpio_clear(GPIO_USB, PIN_USB); // negative logic, PA0 low enables USB
 
     while (1) {
-        // poll USB while waiting 2 ms to elapse
+        // poll USB while waiting for 2 ms to elapse
+        // it takes 2.7 ms to send 64 bytes at 230400 baud 8N1
         for (int i = 0; i < 2; ++i) {
             uint32_t lastTick = ticks;
             while (ticks == lastTick)
                 usbd_poll(usbd_dev);
         }
 
+        // put up to 64 pending bytes into the USB send packet buffer
         uint8_t buf[64];
         int len = ring_read(&input_ring, buf, sizeof buf);
         if (len > 0) {
