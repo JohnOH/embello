@@ -167,6 +167,14 @@ static void usart_setup(void)
     usart_enable(USART1);
 }
 
+/* telnet escape codes and special values: */
+enum {
+    IAC=255, WILL=251, SB=250, SE=240,
+    CPO=44, SETPAR=3, SETCTL=5,
+    PAR_NONE=1, PAR_ODD=2, PAR_EVEN=3,
+    DTR_ON=8, DTR_OFF=9, RTS_ON=11, RTS_OFF=12,
+};
+
 void usart1_isr(void)
 {
     /* Check if we were called because of RXNE. */
@@ -177,7 +185,12 @@ void usart1_isr(void)
         gpio_toggle(GPIOC, GPIO12);
 
         /* Retrieve the data from the peripheral. */
-        ring_write_ch(&input_ring, usart_recv(USART1));
+        uint8_t c = usart_recv(USART1);
+        ring_write_ch(&input_ring, c);
+
+        /* telnet: escape the escape character, i.e. send it twice */
+        if (c == IAC)
+            ring_write_ch(&input_ring, c);
     }
 
     /* Check if we were called because of TXE. */
@@ -192,8 +205,73 @@ void usart1_isr(void)
             /* Disable the TXE interrupt, it's no longer needed. */
             USART_CR1(USART1) &= ~USART_CR1_TXEIE;
         } else {
-            /* Put data into the transmit register. */
-            usart_send(USART1, data);
+            /* state machine to decode telnet request before sending them on */
+            static int state = 0;
+
+            switch (state) {
+                default: // default state
+                    if (data == IAC)
+                        state = 1;
+                    else
+                        usart_send(USART1, data);
+                    break;
+
+                case 1: // IAC seen
+                    state = 0;
+                    if (data == IAC)
+                        usart_send(USART1, data);
+                    else
+                        state = data == SB ? 3 : 2;
+                    break;
+
+                case 2: // IAC, WILL (or other) seen
+                    state = 0;
+                    break;
+
+                case 3: // IAC, SB seen
+                    state = data == CPO ? 4 : 5;
+                    break;
+
+                case 4: // IAC, SB, CPO seen
+                    state = data == SETPAR ? 7 :
+                            data == SETCTL ? 8 : 5;
+                    break;
+
+                case 5: // wait for IAC + SE
+                    if (data == IAC)
+                        state = 6;
+                    break;
+
+                case 6: // wait for SE
+                    if (data != IAC)
+                        state = data == SE ? 0 : 5;
+                    break;
+
+                case 7: // set parity
+                    state = 5;
+                    if (data == PAR_NONE)
+                        usart_set_parity(USART1, USART_PARITY_NONE);
+                    else if (data == PAR_ODD)
+                        usart_set_parity(USART1, USART_PARITY_ODD);
+                    else if (data == PAR_EVEN)
+                        usart_set_parity(USART1, USART_PARITY_EVEN);
+                    break;
+
+                case 8: // set control
+                    state = 5;
+                    switch (data) {
+                        case DTR_ON:
+                            usart_send(USART1, 'D'); break;
+                        case DTR_OFF:
+                            usart_send(USART1, 'd'); break;
+                        case RTS_ON:
+                            usart_send(USART1, 'R'); break;
+                        case RTS_OFF:
+                            usart_send(USART1, 'r'); break;
+                        default: break;
+                    }
+                    break;
+            }
         }
     }
 }
