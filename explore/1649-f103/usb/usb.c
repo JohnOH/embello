@@ -28,6 +28,18 @@
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
 
+#define GPIO_USB    GPIOA
+#define PIN_USB     GPIO0
+
+#define GPIO_LED    GPIOA
+#define PIN_LED     GPIO1
+
+#define GPIO_DTR    GPIOA
+#define PIN_DTR     GPIO2
+
+#define GPIO_RTS    GPIOA
+#define PIN_RTS     GPIO3
+
 /******************************************************************************
  * Simple ringbuffer implementation from open-bldc's libgovernor that
  * you can find at:
@@ -113,26 +125,23 @@ uint8_t input_ring_buffer[BUFFER_SIZE], output_ring_buffer[BUFFER_SIZE];
 
 static void clock_setup(void)
 {
-    //rcc_clock_setup_in_hsi_out_48mhz();
     rcc_clock_setup_in_hse_8mhz_out_72mhz();
 
     rcc_periph_clock_enable(RCC_GPIOA);
-    rcc_periph_clock_enable(RCC_GPIOC);
     rcc_periph_clock_enable(RCC_AFIO);
     rcc_periph_clock_enable(RCC_USART1);
 }
 
 static void gpio_setup(void)
 {
-    gpio_set(GPIOC, GPIO12);
+    gpio_set(GPIO_LED, PIN_LED);
 
-    /* Setup GPIO6 and 7 (in GPIO port A) for LED use. */
-    gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_50_MHZ,
-            GPIO_CNF_OUTPUT_PUSHPULL, GPIO12);
+    gpio_set_mode(GPIO_LED, GPIO_MODE_OUTPUT_2_MHZ,
+            GPIO_CNF_OUTPUT_PUSHPULL, PIN_LED);
 
-    gpio_set(GPIOA, GPIO0); // PA0 low is USB enable for HyTiny
-    gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
-            GPIO_CNF_OUTPUT_PUSHPULL, GPIO0);
+    gpio_set(GPIO_USB, PIN_USB);
+    gpio_set_mode(GPIO_USB, GPIO_MODE_OUTPUT_2_MHZ,
+            GPIO_CNF_OUTPUT_PUSHPULL, PIN_USB);
 }
 
 static void usart_setup(void)
@@ -182,7 +191,7 @@ void usart1_isr(void)
             ((USART_SR(USART1) & USART_SR_RXNE) != 0)) {
 
         /* Indicate that we got data. */
-        gpio_toggle(GPIOC, GPIO12);
+        gpio_toggle(GPIO_LED, PIN_LED);
 
         /* Retrieve the data from the peripheral. */
         uint8_t c = usart_recv(USART1);
@@ -264,18 +273,26 @@ void usart1_isr(void)
                     state = 5;
                     switch (data) {
                         case DTR_ON:
-                            usart_send(USART1, 'D');
+                            //usart_send(USART1, 'D');
+                            gpio_clear(GPIO_DTR, PIN_DTR);
                             break;
                         case DTR_OFF:
-                            usart_send(USART1, 'd');
+                            //usart_send(USART1, 'd');
+                            gpio_set(GPIO_DTR, PIN_DTR);
                             break;
                         case RTS_ON:
-                            usart_send(USART1, 'R');
+                            //usart_send(USART1, 'R');
+                            gpio_clear(GPIO_RTS, PIN_RTS);
                             break;
                         case RTS_OFF:
-                            usart_send(USART1, 'r');
+                            //usart_send(USART1, 'r');
+                            gpio_set(GPIO_RTS, PIN_RTS);
                             break;
                     }
+                    gpio_set_mode(GPIO_DTR, GPIO_MODE_OUTPUT_2_MHZ,
+                            GPIO_CNF_OUTPUT_PUSHPULL, PIN_DTR);
+                    gpio_set_mode(GPIO_RTS, GPIO_MODE_OUTPUT_2_MHZ,
+                            GPIO_CNF_OUTPUT_PUSHPULL, PIN_RTS);
                     break;
             }
         }
@@ -469,7 +486,7 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
     (void)usbd_dev;
 
     uint8_t buf[64];
-    int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
+    int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, sizeof buf);
 
     if (len) {
         /* Retrieve the data from the peripheral. */
@@ -508,7 +525,8 @@ int main(void)
 
     for (int i = 0; i < 0x800000; i++)
         __asm__("");
-    gpio_clear(GPIOA, GPIO0);
+
+    gpio_clear(GPIO_USB, PIN_USB); // negative logic, PA0 low enables USB
 
     while (1) {
         usbd_poll(usbd_dev);
