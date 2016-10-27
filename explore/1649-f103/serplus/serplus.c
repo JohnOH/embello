@@ -253,7 +253,7 @@ void usart1_isr(void)
 
                 case 4: // IAC, SB, CPO seen
                     state = data == SETPAR ? 7 :
-                            data == SETCTL ? 8 : 5;
+                        data == SETCTL ? 8 : 5;
                     break;
 
                 case 5: // wait for IAC + SE
@@ -354,27 +354,27 @@ static const struct usb_device_descriptor dev = {
  */
 static const struct usb_endpoint_descriptor comm_endp[] = {{
     .bLength = USB_DT_ENDPOINT_SIZE,
-    .bDescriptorType = USB_DT_ENDPOINT,
-    .bEndpointAddress = 0x83,
-    .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
-    .wMaxPacketSize = 16,
-    .bInterval = 255,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = 0x83,
+        .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
+        .wMaxPacketSize = 16,
+        .bInterval = 255,
 }};
 
 static const struct usb_endpoint_descriptor data_endp[] = {{
     .bLength = USB_DT_ENDPOINT_SIZE,
-    .bDescriptorType = USB_DT_ENDPOINT,
-    .bEndpointAddress = 0x01,
-    .bmAttributes = USB_ENDPOINT_ATTR_BULK,
-    .wMaxPacketSize = 64,
-    .bInterval = 1,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = 0x01,
+        .bmAttributes = USB_ENDPOINT_ATTR_BULK,
+        .wMaxPacketSize = 64,
+        .bInterval = 1,
 }, {
     .bLength = USB_DT_ENDPOINT_SIZE,
-    .bDescriptorType = USB_DT_ENDPOINT,
-    .bEndpointAddress = 0x82,
-    .bmAttributes = USB_ENDPOINT_ATTR_BULK,
-    .wMaxPacketSize = 64,
-    .bInterval = 1,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = 0x82,
+        .bmAttributes = USB_ENDPOINT_ATTR_BULK,
+        .wMaxPacketSize = 64,
+        .bInterval = 1,
 }};
 
 static const struct {
@@ -409,46 +409,46 @@ static const struct {
         .bDescriptorSubtype = USB_CDC_TYPE_UNION,
         .bControlInterface = 0,
         .bSubordinateInterface0 = 1,
-     },
+    },
 };
 
 static const struct usb_interface_descriptor comm_iface[] = {{
     .bLength = USB_DT_INTERFACE_SIZE,
-    .bDescriptorType = USB_DT_INTERFACE,
-    .bInterfaceNumber = 0,
-    .bAlternateSetting = 0,
-    .bNumEndpoints = 1,
-    .bInterfaceClass = USB_CLASS_CDC,
-    .bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
-    .bInterfaceProtocol = USB_CDC_PROTOCOL_AT,
-    .iInterface = 0,
+        .bDescriptorType = USB_DT_INTERFACE,
+        .bInterfaceNumber = 0,
+        .bAlternateSetting = 0,
+        .bNumEndpoints = 1,
+        .bInterfaceClass = USB_CLASS_CDC,
+        .bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
+        .bInterfaceProtocol = USB_CDC_PROTOCOL_AT,
+        .iInterface = 0,
 
-    .endpoint = comm_endp,
+        .endpoint = comm_endp,
 
-    .extra = &cdcacm_functional_descriptors,
-    .extralen = sizeof(cdcacm_functional_descriptors),
+        .extra = &cdcacm_functional_descriptors,
+        .extralen = sizeof(cdcacm_functional_descriptors),
 }};
 
 static const struct usb_interface_descriptor data_iface[] = {{
     .bLength = USB_DT_INTERFACE_SIZE,
-    .bDescriptorType = USB_DT_INTERFACE,
-    .bInterfaceNumber = 1,
-    .bAlternateSetting = 0,
-    .bNumEndpoints = 2,
-    .bInterfaceClass = USB_CLASS_DATA,
-    .bInterfaceSubClass = 0,
-    .bInterfaceProtocol = 0,
-    .iInterface = 0,
+        .bDescriptorType = USB_DT_INTERFACE,
+        .bInterfaceNumber = 1,
+        .bAlternateSetting = 0,
+        .bNumEndpoints = 2,
+        .bInterfaceClass = USB_CLASS_DATA,
+        .bInterfaceSubClass = 0,
+        .bInterfaceProtocol = 0,
+        .iInterface = 0,
 
-    .endpoint = data_endp,
+        .endpoint = data_endp,
 }};
 
 static const struct usb_interface ifaces[] = {{
     .num_altsetting = 1,
-    .altsetting = comm_iface,
+        .altsetting = comm_iface,
 }, {
     .num_altsetting = 1,
-    .altsetting = data_iface,
+        .altsetting = data_iface,
 }};
 
 static const struct usb_config_descriptor config = {
@@ -481,30 +481,30 @@ static int cdcacm_control_request(usbd_device *usbd_dev, struct usb_setup_data *
     (void)usbd_dev;
 
     switch (req->bRequest) {
-    case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
-        /*
-         * This Linux cdc_acm driver requires this to be implemented
-         * even though it's optional in the CDC spec, and we don't
-         * advertise it in the ACM functional descriptor.
-         */
-        char local_buf[10];
-        struct usb_cdc_notification *notif = (void *)local_buf;
+        case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
+                                                     /*
+                                                      * This Linux cdc_acm driver requires this to be implemented
+                                                      * even though it's optional in the CDC spec, and we don't
+                                                      * advertise it in the ACM functional descriptor.
+                                                      */
+                                                     char local_buf[10];
+                                                     struct usb_cdc_notification *notif = (void *)local_buf;
 
-        /* We echo signals back to host as notification. */
-        notif->bmRequestType = 0xA1;
-        notif->bNotification = USB_CDC_NOTIFY_SERIAL_STATE;
-        notif->wValue = 0;
-        notif->wIndex = 0;
-        notif->wLength = 2;
-        local_buf[8] = req->wValue & 3;
-        local_buf[9] = 0;
-        // usbd_ep_write_packet(0x83, buf, 10);
-        return 1;
-        }
-    case USB_CDC_REQ_SET_LINE_CODING:
-        if (*len < sizeof(struct usb_cdc_line_coding))
-            return 0;
-        return 1;
+                                                     /* We echo signals back to host as notification. */
+                                                     notif->bmRequestType = 0xA1;
+                                                     notif->bNotification = USB_CDC_NOTIFY_SERIAL_STATE;
+                                                     notif->wValue = 0;
+                                                     notif->wIndex = 0;
+                                                     notif->wLength = 2;
+                                                     local_buf[8] = req->wValue & 3;
+                                                     local_buf[9] = 0;
+                                                     // usbd_ep_write_packet(0x83, buf, 10);
+                                                     return 1;
+                                                 }
+        case USB_CDC_REQ_SET_LINE_CODING:
+                                                 if (*len < sizeof(struct usb_cdc_line_coding))
+                                                     return 0;
+                                                 return 1;
     }
     return 0;
 }
@@ -514,8 +514,8 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
     (void)ep;
     (void)usbd_dev;
 
-    // back pressure: don't read the packet if there is not enough room in ring
-    if ((uint32_t)(output_ring.begin - output_ring.end - 1) % BUFFER_SIZE <= 64)
+    // back pressure: don't read the packet if there's not enough room in ring
+    if ((output_ring.begin - (output_ring.end+1)) % BUFFER_SIZE <= 64)
         return;
 
     uint8_t buf[64];
@@ -540,10 +540,10 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
     usbd_ep_setup(usbd_dev, 0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
     usbd_register_control_callback(
-                usbd_dev,
-                USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
-                USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-                cdcacm_control_request);
+            usbd_dev,
+            USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
+            USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
+            cdcacm_control_request);
 }
 
 int main(void)
@@ -559,7 +559,6 @@ int main(void)
 
     for (int i = 0; i < 10000000; i++)
         __asm__("");
-
     gpio_clear(GPIO_USB, PIN_USB); // negative logic, PA0 low enables USB
 
     while (1) {
