@@ -197,15 +197,13 @@ void usart1_isr(void)
     if (((USART_CR1(USART1) & USART_CR1_TXEIE) != 0) &&
             ((USART_SR(USART1) & USART_SR_TXE) != 0)) {
 
-        int32_t data;
-
-        data = ring_read_ch(&output_ring, NULL);
+        int32_t data = ring_read_ch(&output_ring, NULL);
 
         if (data == -1) {
             /* Disable the TXE interrupt, it's no longer needed. */
             USART_CR1(USART1) &= ~USART_CR1_TXEIE;
         } else {
-            /* state machine to decode telnet request before sending them on */
+            /* state machine to decode telnet request before sending it on */
             static int state = 0;
 
             switch (state) {
@@ -244,31 +242,39 @@ void usart1_isr(void)
 
                 case 6: // wait for SE
                     if (data != IAC)
-                        state = data == SE ? 0 : 5;
+                        state = data == SE ? 0 : data == SB ? 3 : 5;
                     break;
 
                 case 7: // set parity
                     state = 5;
-                    if (data == PAR_NONE)
-                        usart_set_parity(USART1, USART_PARITY_NONE);
-                    else if (data == PAR_ODD)
-                        usart_set_parity(USART1, USART_PARITY_ODD);
-                    else if (data == PAR_EVEN)
-                        usart_set_parity(USART1, USART_PARITY_EVEN);
+                    switch (data) {
+                        case PAR_NONE:
+                            //usart_send(USART1, 'N');
+                            usart_set_parity(USART1, USART_PARITY_NONE); break;
+                        case PAR_ODD:
+                            //usart_send(USART1, 'O');
+                            usart_set_parity(USART1, USART_PARITY_ODD); break;
+                        case PAR_EVEN:
+                            //usart_send(USART1, 'E');
+                            usart_set_parity(USART1, USART_PARITY_EVEN); break;
+                    }
                     break;
 
                 case 8: // set control
                     state = 5;
                     switch (data) {
                         case DTR_ON:
-                            usart_send(USART1, 'D'); break;
+                            usart_send(USART1, 'D');
+                            break;
                         case DTR_OFF:
-                            usart_send(USART1, 'd'); break;
+                            usart_send(USART1, 'd');
+                            break;
                         case RTS_ON:
-                            usart_send(USART1, 'R'); break;
+                            usart_send(USART1, 'R');
+                            break;
                         case RTS_OFF:
-                            usart_send(USART1, 'r'); break;
-                        default: break;
+                            usart_send(USART1, 'r');
+                            break;
                     }
                     break;
             }
