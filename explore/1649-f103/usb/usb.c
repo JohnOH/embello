@@ -135,13 +135,18 @@ static void clock_setup(void)
 static void gpio_setup(void)
 {
     gpio_set(GPIO_LED, PIN_LED);
-
     gpio_set_mode(GPIO_LED, GPIO_MODE_OUTPUT_2_MHZ,
             GPIO_CNF_OUTPUT_PUSHPULL, PIN_LED);
 
     gpio_set(GPIO_USB, PIN_USB);
     gpio_set_mode(GPIO_USB, GPIO_MODE_OUTPUT_2_MHZ,
             GPIO_CNF_OUTPUT_PUSHPULL, PIN_USB);
+
+    /* start with DTR and RTS floating, set only when telnet configures them */
+    gpio_set_mode(GPIO_DTR, GPIO_MODE_INPUT,
+            GPIO_CNF_INPUT_FLOAT, PIN_DTR);
+    gpio_set_mode(GPIO_RTS, GPIO_MODE_INPUT,
+            GPIO_CNF_INPUT_FLOAT, PIN_RTS);
 }
 
 static void usart_setup(void)
@@ -158,8 +163,9 @@ static void usart_setup(void)
             GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_USART1_TX);
 
     /* Setup GPIO pin GPIO_USART1_RE_RX on GPIO port A for receive. */
+    gpio_set(GPIOA, GPIO_USART1_RX); /* weak pull-up avoids picking up noise */
     gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
-            GPIO_CNF_INPUT_FLOAT, GPIO_USART1_RX);
+            GPIO_CNF_INPUT_PULL_UPDOWN, GPIO_USART1_RX);
 
     /* Setup UART parameters. */
     usart_set_baudrate(USART1, 115200);
@@ -258,14 +264,15 @@ void usart1_isr(void)
                     state = 5;
                     switch (data) {
                         case PAR_NONE:
-                            //usart_send(USART1, 'N');
+                            usart_set_databits(USART1, 8);
                             usart_set_parity(USART1, USART_PARITY_NONE); break;
                         case PAR_ODD:
-                            //usart_send(USART1, 'O');
+                            usart_set_databits(USART1, 9);
                             usart_set_parity(USART1, USART_PARITY_ODD); break;
                         case PAR_EVEN:
-                            //usart_send(USART1, 'E');
+                            usart_set_databits(USART1, 9);
                             usart_set_parity(USART1, USART_PARITY_EVEN); break;
+                            break;
                     }
                     break;
 
@@ -273,19 +280,15 @@ void usart1_isr(void)
                     state = 5;
                     switch (data) {
                         case DTR_ON:
-                            //usart_send(USART1, 'D');
                             gpio_clear(GPIO_DTR, PIN_DTR);
                             break;
                         case DTR_OFF:
-                            //usart_send(USART1, 'd');
                             gpio_set(GPIO_DTR, PIN_DTR);
                             break;
                         case RTS_ON:
-                            //usart_send(USART1, 'R');
                             gpio_clear(GPIO_RTS, PIN_RTS);
                             break;
                         case RTS_OFF:
-                            //usart_send(USART1, 'r');
                             gpio_set(GPIO_RTS, PIN_RTS);
                             break;
                     }
@@ -523,7 +526,7 @@ int main(void)
             usb_strings, 3, usbd_control_buffer, sizeof(usbd_control_buffer));
     usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
 
-    for (int i = 0; i < 0x800000; i++)
+    for (int i = 0; i < 10000000; i++)
         __asm__("");
 
     gpio_clear(GPIO_USB, PIN_USB); // negative logic, PA0 low enables USB
