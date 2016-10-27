@@ -1,4 +1,4 @@
-// SImple RF69 demo application.
+// Simple RF69 legacy demo application.
 
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
@@ -9,7 +9,7 @@ extern int serial_getc ();
 extern uint32_t millis();
 
 #include "spi.h"
-#include "rf69.h"
+#include "rf69_legacy.h"
 
 RF69<SpiDev> rf;
 
@@ -17,9 +17,9 @@ uint8_t rxBuf[64];
 uint8_t txBuf[62];
 uint16_t txCnt = 0;
 
-const int rf_freq = 8686;
-const int rf_group = 42;
-const int rf_nodeid = 62;
+const int rf_freq = 8680;
+const int rf_group = 212;
+const int rf_nodeid = 28;
 
 const bool verbose = true;
 
