@@ -29,6 +29,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/cm3/nvic.h>
+#include <libopencm3/cm3/systick.h>
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
 
@@ -126,6 +127,7 @@ static int32_t ring_read(struct ring *ring, uint8_t *data, ring_size_t size)
 
 struct ring input_ring, output_ring;
 uint8_t input_ring_buffer[BUFFER_SIZE], output_ring_buffer[BUFFER_SIZE];
+volatile uint32_t ticks;
 
 static void clock_setup(void)
 {
@@ -304,6 +306,26 @@ void usart1_isr(void)
             }
         }
     }
+}
+
+static void systick_setup(void)
+{
+    /* 72MHz / 8 => 9000000 counts per second. */
+    systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8);
+
+    /* 9000000/9000 = 1000 overflows per second - every 1ms one interrupt */
+    /* SysTick interrupt every N clock pulses: set reload to N-1 */
+    systick_set_reload(8999);
+
+    systick_interrupt_enable();
+
+    /* Start counting. */
+    systick_counter_enable();
+}
+
+void sys_tick_handler(void)
+{
+    ++ticks;
 }
 
 /*****************************************************************************/
@@ -492,6 +514,7 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
     (void)ep;
     (void)usbd_dev;
 
+    // TODO back pressure: consider not reading the packet if no room in ring
     uint8_t buf[64];
     int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, sizeof buf);
 
@@ -499,7 +522,7 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
         /* Retrieve the data from the peripheral. */
         ring_write(&output_ring, buf, len);
 
-        /* Enable transmit interrupt so it sends back the data. */
+        /* Enable usart transmit interrupt so it sends out the data. */
         USART_CR1(USART1) |= USART_CR1_TXEIE;
     }
 }
@@ -525,6 +548,7 @@ int main(void)
     clock_setup();
     gpio_setup();
     usart_setup();
+    systick_setup();
 
     usbd_device *usbd_dev = usbd_init(&st_usbfs_v1_usb_driver, &dev, &config,
             usb_strings, 3, usbd_control_buffer, sizeof(usbd_control_buffer));
@@ -536,7 +560,12 @@ int main(void)
     gpio_clear(GPIO_USB, PIN_USB); // negative logic, PA0 low enables USB
 
     while (1) {
-        usbd_poll(usbd_dev);
+        // poll USB while waiting 2 ms to elapse
+        for (int i = 0; i < 2; ++i) {
+            uint32_t lastTick = ticks;
+            while (ticks == lastTick)
+                usbd_poll(usbd_dev);
+        }
 
         uint8_t buf[64];
         int len = ring_read(&input_ring, buf, sizeof buf);
