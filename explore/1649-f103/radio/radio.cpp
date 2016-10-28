@@ -21,7 +21,7 @@ const int rf_freq = 8680;
 const int rf_group = 212;
 const int rf_nodeid = 28;
 
-const bool verbose = true;
+const bool verbose = false;
 
 void setup () {
     // LED on HyTiny F103 is PA1, LED on BluePill F103 is PC13
@@ -52,15 +52,19 @@ void loop () {
     }
 
     int len = rf.receive(rxBuf, sizeof rxBuf);
-    if (len >= 0) {
-        printf("rf69 %04x%02x%02x%02x%04x%02x%02x%02x ",
+    if (len >= 0 && len <= sizeof rxBuf) {
+        printf("rf69 %04x%02x%02x%02x%04x g%02x i%02x l=%02x ",
                 rf_freq, rf_group, rf.rssi, rf.lna, rf.afc,
-                rxBuf[0], rxBuf[1], len - 2);
-        for (int i = 2; i < len; ++i)
+                rxBuf[0], rxBuf[1], len);
+        for (int i = 0; i < len; ++i)
             printf("%02x", rxBuf[i]);
         const char* sep = rf.afc < 0 ? "" : "+";
         if (verbose)
             printf("  (%g%s%d:%d)", rf.rssi * 0.5, sep, rf.afc, rf.lna);
         putchar('\n');
+
+        gpio_toggle(GPIOA, GPIO1);
+        gpio_toggle(GPIOC, GPIO13);
+
     }
 }
