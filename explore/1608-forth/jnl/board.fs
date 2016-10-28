@@ -1,4 +1,4 @@
-\ install hardware abstractions in flash
+\ board definitions
 
 cr eraseflash
 compiletoflash
@@ -37,5 +37,4 @@ PA15 constant LED
 ;
 
 here hex. ( flash use )
-cornerstone <<<hal-jnl>>>  compiletoram
-\ vim: set ft=forth :
+cornerstone <<<hal-jnl>>>
