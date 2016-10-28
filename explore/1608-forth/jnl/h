@@ -31,10 +31,11 @@ PA15 constant LED
 : init ( -- )  \ board initialisation
   $00 hex.empty !  \ empty flash shows up as $00 iso $FF on these chips
   OMODE-PP LED io-mode!
-\ 72MHz
+\ 16MHz ( set by Mecrisp on startup to get an accurate USART baud rate )
   flash-kb . ." KB <jnl> " hwid hex. ." ok." cr
-\ 1000 systick-hz
+  1000 systick-hz
 ;
 
-cornerstone <<<hal-jnl>>>
+here hex. ( flash use )
+cornerstone <<<hal-jnl>>>  compiletoram
 \ vim: set ft=forth :

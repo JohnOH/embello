@@ -2,10 +2,11 @@
 \ needs h
 \ includes d
 
-\ ( cornerstone ) <<<hal-jnl>>>
+( cornerstone ) <<<hal-jnl>>>
+cr
 compiletoflash
 
-( code-start, see code-size below ) here
+here dup hex. ( code start )
 
 include ../flib/rf69.fs
 include ../flib/bme280.fs
@@ -15,8 +16,6 @@ include ../flib/bme280.fs
 \ include ../mlib/multi.fs
 \ include ../flib/digits.fs
 
-( code size ) here swap - .
-cornerstone <<<lib-jnl>>>
-( flash end ) here hex.
-\ include d
+here dup hex. swap - . ( flash use, code size )
+cornerstone <<<lib-jnl>>>  compiletoram
 \ vim: set ft=forth :
