@@ -272,8 +272,6 @@ int RF69<SPI>::receive (void* ptr, int len) {
 //			printf("%02x", count);
 //			putchar('\n');
 			if (!crc) {
-printf("Good CRC %02x", crc);
-putchar('\n');			
 	      		// only accept packets intended for us, or broadcasts
 	      		// ... or any packet if we're the special catch-all node
       	      	
