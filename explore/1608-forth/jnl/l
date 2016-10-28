@@ -15,8 +15,8 @@ include ../flib/bme280.fs
 \ include ../mlib/multi.fs
 \ include ../flib/digits.fs
 
-( code-size ) here swap - .
+( code size ) here swap - .
 cornerstone <<<lib-jnl>>>
-( flash-end ) here hex.
+( flash end ) here hex.
 \ include d
 \ vim: set ft=forth :
