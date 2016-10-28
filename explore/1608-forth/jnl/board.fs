@@ -36,5 +36,5 @@ PA15 constant LED
   1000 systick-hz
 ;
 
-here hex. ( flash use )
+( flash use: ) here hex.
 cornerstone <<<hal-jnl>>>

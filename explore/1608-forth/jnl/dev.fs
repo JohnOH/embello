@@ -1,5 +1,6 @@
 \ development code
 \ needs core.fs
 cr cr reset
+( ram free: ) flashvar-here here - .
 
-123 . ( testing... )
+( testing... ) 123 .

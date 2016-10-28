@@ -5,13 +5,13 @@
 cr <<<hal-jnl>>>
 compiletoflash
 
-here dup hex. ( code start )
+( code start: ) here dup hex.
 
 include ../flib/rf69.fs
 include ../flib/bme280.fs
 include ../mlib/multi.fs
 
-here dup hex. swap - . ( flash use, code size )
+( flash use, code size: ) here dup hex. swap - .
 cornerstone <<<lib-jnl>>>
 
 include dev.fs
