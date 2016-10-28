@@ -1,23 +1,27 @@
 /*
- * This file is part of the libopencm3 project.
+ * This code is derived from example code in the libopencm3 project:
+ *
+ *  https://github.com/libopencm3/libopencm3-examples/tree/master/
+ *          examples/stm32/f1/stm32-h103/usart_irq_printf
+ *  and     examples/stm32/f1/stm32-h103/usb_cdcacm
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>,
  * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
  * Copyright (C) 2011 Piotr Esden-Tempski <piotr@esden.net>
  * Copyright (C) 2016 Jean-Claude Wippler <jc@wippler.nl>
  *
- * This library is free software: you can redistribute it and/or modify
+ * This code is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
+ * This code is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this code.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <stdlib.h>
@@ -25,8 +29,21 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/cm3/nvic.h>
+#include <libopencm3/cm3/systick.h>
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
+
+#define GPIO_USB    GPIOA
+#define PIN_USB     GPIO0
+
+#define GPIO_LED    GPIOA
+#define PIN_LED     GPIO1
+
+#define GPIO_RTS    GPIOA
+#define PIN_RTS     GPIO13
+
+#define GPIO_DTR    GPIOA
+#define PIN_DTR     GPIO14
 
 /******************************************************************************
  * Simple ringbuffer implementation from open-bldc's libgovernor that
@@ -106,33 +123,36 @@ static int32_t ring_read(struct ring *ring, uint8_t *data, ring_size_t size)
 
 /*****************************************************************************/
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 128
 
 struct ring input_ring, output_ring;
 uint8_t input_ring_buffer[BUFFER_SIZE], output_ring_buffer[BUFFER_SIZE];
+volatile uint32_t ticks;
 
 static void clock_setup(void)
 {
-    //rcc_clock_setup_in_hsi_out_48mhz();
     rcc_clock_setup_in_hse_8mhz_out_72mhz();
 
     rcc_periph_clock_enable(RCC_GPIOA);
-    rcc_periph_clock_enable(RCC_GPIOC);
     rcc_periph_clock_enable(RCC_AFIO);
     rcc_periph_clock_enable(RCC_USART1);
 }
 
 static void gpio_setup(void)
 {
-    gpio_set(GPIOC, GPIO12);
+    gpio_set(GPIO_LED, PIN_LED);
+    gpio_set_mode(GPIO_LED, GPIO_MODE_OUTPUT_2_MHZ,
+            GPIO_CNF_OUTPUT_PUSHPULL, PIN_LED);
 
-    /* Setup GPIO6 and 7 (in GPIO port A) for LED use. */
-    gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_50_MHZ,
-            GPIO_CNF_OUTPUT_PUSHPULL, GPIO12);
+    gpio_set(GPIO_USB, PIN_USB);
+    gpio_set_mode(GPIO_USB, GPIO_MODE_OUTPUT_2_MHZ,
+            GPIO_CNF_OUTPUT_PUSHPULL, PIN_USB);
 
-    gpio_set(GPIOA, GPIO0); // PA0 low is USB enable for HyTiny
-    gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
-            GPIO_CNF_OUTPUT_PUSHPULL, GPIO0);
+    /* start with DTR and RTS floating, set only when telnet configures them */
+    gpio_set_mode(GPIO_DTR, GPIO_MODE_INPUT,
+            GPIO_CNF_INPUT_FLOAT, PIN_DTR);
+    gpio_set_mode(GPIO_RTS, GPIO_MODE_INPUT,
+            GPIO_CNF_INPUT_FLOAT, PIN_RTS);
 }
 
 static void usart_setup(void)
@@ -149,8 +169,9 @@ static void usart_setup(void)
             GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_USART1_TX);
 
     /* Setup GPIO pin GPIO_USART1_RE_RX on GPIO port A for receive. */
+    gpio_set(GPIOA, GPIO_USART1_RX); /* weak pull-up avoids picking up noise */
     gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
-            GPIO_CNF_INPUT_FLOAT, GPIO_USART1_RX);
+            GPIO_CNF_INPUT_PULL_UPDOWN, GPIO_USART1_RX);
 
     /* Setup UART parameters. */
     usart_set_baudrate(USART1, 115200);
@@ -182,7 +203,7 @@ void usart1_isr(void)
             ((USART_SR(USART1) & USART_SR_RXNE) != 0)) {
 
         /* Indicate that we got data. */
-        gpio_toggle(GPIOC, GPIO12);
+        gpio_toggle(GPIO_LED, PIN_LED);
 
         /* Retrieve the data from the peripheral. */
         uint8_t c = usart_recv(USART1);
@@ -197,15 +218,13 @@ void usart1_isr(void)
     if (((USART_CR1(USART1) & USART_CR1_TXEIE) != 0) &&
             ((USART_SR(USART1) & USART_SR_TXE) != 0)) {
 
-        int32_t data;
-
-        data = ring_read_ch(&output_ring, NULL);
+        int32_t data = ring_read_ch(&output_ring, NULL);
 
         if (data == -1) {
             /* Disable the TXE interrupt, it's no longer needed. */
             USART_CR1(USART1) &= ~USART_CR1_TXEIE;
         } else {
-            /* state machine to decode telnet request before sending them on */
+            /* state machine to decode telnet request before sending it on */
             static int state = 0;
 
             switch (state) {
@@ -234,7 +253,7 @@ void usart1_isr(void)
 
                 case 4: // IAC, SB, CPO seen
                     state = data == SETPAR ? 7 :
-                            data == SETCTL ? 8 : 5;
+                        data == SETCTL ? 8 : 5;
                     break;
 
                 case 5: // wait for IAC + SE
@@ -244,36 +263,69 @@ void usart1_isr(void)
 
                 case 6: // wait for SE
                     if (data != IAC)
-                        state = data == SE ? 0 : 5;
+                        state = data == SE ? 0 : data == SB ? 3 : 5;
                     break;
 
                 case 7: // set parity
                     state = 5;
-                    if (data == PAR_NONE)
-                        usart_set_parity(USART1, USART_PARITY_NONE);
-                    else if (data == PAR_ODD)
-                        usart_set_parity(USART1, USART_PARITY_ODD);
-                    else if (data == PAR_EVEN)
-                        usart_set_parity(USART1, USART_PARITY_EVEN);
+                    switch (data) {
+                        case PAR_NONE:
+                            usart_set_databits(USART1, 8);
+                            usart_set_parity(USART1, USART_PARITY_NONE); break;
+                        case PAR_ODD:
+                            usart_set_databits(USART1, 9);
+                            usart_set_parity(USART1, USART_PARITY_ODD); break;
+                        case PAR_EVEN:
+                            usart_set_databits(USART1, 9);
+                            usart_set_parity(USART1, USART_PARITY_EVEN); break;
+                            break;
+                    }
                     break;
 
                 case 8: // set control
                     state = 5;
                     switch (data) {
                         case DTR_ON:
-                            usart_send(USART1, 'D'); break;
+                            gpio_clear(GPIO_DTR, PIN_DTR);
+                            break;
                         case DTR_OFF:
-                            usart_send(USART1, 'd'); break;
+                            gpio_set(GPIO_DTR, PIN_DTR);
+                            break;
                         case RTS_ON:
-                            usart_send(USART1, 'R'); break;
+                            gpio_clear(GPIO_RTS, PIN_RTS);
+                            break;
                         case RTS_OFF:
-                            usart_send(USART1, 'r'); break;
-                        default: break;
+                            gpio_set(GPIO_RTS, PIN_RTS);
+                            break;
                     }
+                    gpio_set_mode(GPIO_DTR, GPIO_MODE_OUTPUT_2_MHZ,
+                            GPIO_CNF_OUTPUT_PUSHPULL, PIN_DTR);
+                    gpio_set_mode(GPIO_RTS, GPIO_MODE_OUTPUT_2_MHZ,
+                            GPIO_CNF_OUTPUT_PUSHPULL, PIN_RTS);
                     break;
             }
         }
     }
+}
+
+static void systick_setup(void)
+{
+    /* 72MHz / 8 => 9000000 counts per second. */
+    systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8);
+
+    /* 9000000/9000 = 1000 overflows per second - every 1ms one interrupt */
+    /* SysTick interrupt every N clock pulses: set reload to N-1 */
+    systick_set_reload(8999);
+
+    systick_interrupt_enable();
+
+    /* Start counting. */
+    systick_counter_enable();
+}
+
+void sys_tick_handler(void)
+{
+    ++ticks;
 }
 
 /*****************************************************************************/
@@ -302,27 +354,27 @@ static const struct usb_device_descriptor dev = {
  */
 static const struct usb_endpoint_descriptor comm_endp[] = {{
     .bLength = USB_DT_ENDPOINT_SIZE,
-    .bDescriptorType = USB_DT_ENDPOINT,
-    .bEndpointAddress = 0x83,
-    .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
-    .wMaxPacketSize = 16,
-    .bInterval = 255,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = 0x83,
+        .bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
+        .wMaxPacketSize = 16,
+        .bInterval = 255,
 }};
 
 static const struct usb_endpoint_descriptor data_endp[] = {{
     .bLength = USB_DT_ENDPOINT_SIZE,
-    .bDescriptorType = USB_DT_ENDPOINT,
-    .bEndpointAddress = 0x01,
-    .bmAttributes = USB_ENDPOINT_ATTR_BULK,
-    .wMaxPacketSize = 64,
-    .bInterval = 1,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = 0x01,
+        .bmAttributes = USB_ENDPOINT_ATTR_BULK,
+        .wMaxPacketSize = 64,
+        .bInterval = 1,
 }, {
     .bLength = USB_DT_ENDPOINT_SIZE,
-    .bDescriptorType = USB_DT_ENDPOINT,
-    .bEndpointAddress = 0x82,
-    .bmAttributes = USB_ENDPOINT_ATTR_BULK,
-    .wMaxPacketSize = 64,
-    .bInterval = 1,
+        .bDescriptorType = USB_DT_ENDPOINT,
+        .bEndpointAddress = 0x82,
+        .bmAttributes = USB_ENDPOINT_ATTR_BULK,
+        .wMaxPacketSize = 64,
+        .bInterval = 1,
 }};
 
 static const struct {
@@ -357,46 +409,46 @@ static const struct {
         .bDescriptorSubtype = USB_CDC_TYPE_UNION,
         .bControlInterface = 0,
         .bSubordinateInterface0 = 1,
-     },
+    },
 };
 
 static const struct usb_interface_descriptor comm_iface[] = {{
     .bLength = USB_DT_INTERFACE_SIZE,
-    .bDescriptorType = USB_DT_INTERFACE,
-    .bInterfaceNumber = 0,
-    .bAlternateSetting = 0,
-    .bNumEndpoints = 1,
-    .bInterfaceClass = USB_CLASS_CDC,
-    .bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
-    .bInterfaceProtocol = USB_CDC_PROTOCOL_AT,
-    .iInterface = 0,
+        .bDescriptorType = USB_DT_INTERFACE,
+        .bInterfaceNumber = 0,
+        .bAlternateSetting = 0,
+        .bNumEndpoints = 1,
+        .bInterfaceClass = USB_CLASS_CDC,
+        .bInterfaceSubClass = USB_CDC_SUBCLASS_ACM,
+        .bInterfaceProtocol = USB_CDC_PROTOCOL_AT,
+        .iInterface = 0,
 
-    .endpoint = comm_endp,
+        .endpoint = comm_endp,
 
-    .extra = &cdcacm_functional_descriptors,
-    .extralen = sizeof(cdcacm_functional_descriptors),
+        .extra = &cdcacm_functional_descriptors,
+        .extralen = sizeof(cdcacm_functional_descriptors),
 }};
 
 static const struct usb_interface_descriptor data_iface[] = {{
     .bLength = USB_DT_INTERFACE_SIZE,
-    .bDescriptorType = USB_DT_INTERFACE,
-    .bInterfaceNumber = 1,
-    .bAlternateSetting = 0,
-    .bNumEndpoints = 2,
-    .bInterfaceClass = USB_CLASS_DATA,
-    .bInterfaceSubClass = 0,
-    .bInterfaceProtocol = 0,
-    .iInterface = 0,
+        .bDescriptorType = USB_DT_INTERFACE,
+        .bInterfaceNumber = 1,
+        .bAlternateSetting = 0,
+        .bNumEndpoints = 2,
+        .bInterfaceClass = USB_CLASS_DATA,
+        .bInterfaceSubClass = 0,
+        .bInterfaceProtocol = 0,
+        .iInterface = 0,
 
-    .endpoint = data_endp,
+        .endpoint = data_endp,
 }};
 
 static const struct usb_interface ifaces[] = {{
     .num_altsetting = 1,
-    .altsetting = comm_iface,
+        .altsetting = comm_iface,
 }, {
     .num_altsetting = 1,
-    .altsetting = data_iface,
+        .altsetting = data_iface,
 }};
 
 static const struct usb_config_descriptor config = {
@@ -414,8 +466,8 @@ static const struct usb_config_descriptor config = {
 
 static const char *usb_strings[] = {
     "Black Sphere Technologies",
-    "CDC-ACM Demo",
-    "DEMO",
+    "SerPlus (based on CDC-ACM Demo)",
+    "SERPLUSx",
 };
 
 /* Buffer to be used for control requests. */
@@ -429,30 +481,30 @@ static int cdcacm_control_request(usbd_device *usbd_dev, struct usb_setup_data *
     (void)usbd_dev;
 
     switch (req->bRequest) {
-    case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
-        /*
-         * This Linux cdc_acm driver requires this to be implemented
-         * even though it's optional in the CDC spec, and we don't
-         * advertise it in the ACM functional descriptor.
-         */
-        char local_buf[10];
-        struct usb_cdc_notification *notif = (void *)local_buf;
+        case USB_CDC_REQ_SET_CONTROL_LINE_STATE: {
+                                                     /*
+                                                      * This Linux cdc_acm driver requires this to be implemented
+                                                      * even though it's optional in the CDC spec, and we don't
+                                                      * advertise it in the ACM functional descriptor.
+                                                      */
+                                                     char local_buf[10];
+                                                     struct usb_cdc_notification *notif = (void *)local_buf;
 
-        /* We echo signals back to host as notification. */
-        notif->bmRequestType = 0xA1;
-        notif->bNotification = USB_CDC_NOTIFY_SERIAL_STATE;
-        notif->wValue = 0;
-        notif->wIndex = 0;
-        notif->wLength = 2;
-        local_buf[8] = req->wValue & 3;
-        local_buf[9] = 0;
-        // usbd_ep_write_packet(0x83, buf, 10);
-        return 1;
-        }
-    case USB_CDC_REQ_SET_LINE_CODING:
-        if (*len < sizeof(struct usb_cdc_line_coding))
-            return 0;
-        return 1;
+                                                     /* We echo signals back to host as notification. */
+                                                     notif->bmRequestType = 0xA1;
+                                                     notif->bNotification = USB_CDC_NOTIFY_SERIAL_STATE;
+                                                     notif->wValue = 0;
+                                                     notif->wIndex = 0;
+                                                     notif->wLength = 2;
+                                                     local_buf[8] = req->wValue & 3;
+                                                     local_buf[9] = 0;
+                                                     // usbd_ep_write_packet(0x83, buf, 10);
+                                                     return 1;
+                                                 }
+        case USB_CDC_REQ_SET_LINE_CODING:
+                                                 if (*len < sizeof(struct usb_cdc_line_coding))
+                                                     return 0;
+                                                 return 1;
     }
     return 0;
 }
@@ -462,14 +514,18 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
     (void)ep;
     (void)usbd_dev;
 
+    // back pressure: don't read the packet if there's not enough room in ring
+    if ((output_ring.begin - (output_ring.end+1)) % BUFFER_SIZE <= 64)
+        return;
+
     uint8_t buf[64];
-    int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
+    int len = usbd_ep_read_packet(usbd_dev, 0x01, buf, sizeof buf);
 
     if (len) {
         /* Retrieve the data from the peripheral. */
         ring_write(&output_ring, buf, len);
 
-        /* Enable transmit interrupt so it sends back the data. */
+        /* Enable usart transmit interrupt so it sends out the data. */
         USART_CR1(USART1) |= USART_CR1_TXEIE;
     }
 }
@@ -484,10 +540,10 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
     usbd_ep_setup(usbd_dev, 0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
     usbd_register_control_callback(
-                usbd_dev,
-                USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
-                USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
-                cdcacm_control_request);
+            usbd_dev,
+            USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
+            USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
+            cdcacm_control_request);
 }
 
 int main(void)
@@ -495,18 +551,29 @@ int main(void)
     clock_setup();
     gpio_setup();
     usart_setup();
+    systick_setup();
 
     usbd_device *usbd_dev = usbd_init(&st_usbfs_v1_usb_driver, &dev, &config,
             usb_strings, 3, usbd_control_buffer, sizeof(usbd_control_buffer));
     usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
 
-    for (int i = 0; i < 0x800000; i++)
+    for (int i = 0; i < 10000000; i++)
         __asm__("");
-    gpio_clear(GPIOA, GPIO0);
+    gpio_clear(GPIO_USB, PIN_USB); // negative logic, PA0 low enables USB
+
+    // disable the SWD pins, since they are being re-used for DTR & RTS
+    AFIO_MAPR = (AFIO_MAPR & ~(7<<24)) | (4<<24);
 
     while (1) {
-        usbd_poll(usbd_dev);
+        // poll USB while waiting for 2 ms to elapse
+        // it takes 2.7 ms to send 64 bytes at 230400 baud 8N1
+        for (int i = 0; i < 2; ++i) {
+            uint32_t lastTick = ticks;
+            while (ticks == lastTick)
+                usbd_poll(usbd_dev);
+        }
 
+        // put up to 64 pending bytes into the USB send packet buffer
         uint8_t buf[64];
         int len = ring_read(&input_ring, buf, sizeof buf);
         if (len > 0) {

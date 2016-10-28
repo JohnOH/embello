@@ -1,6 +1,6 @@
 \ install hardware abstractions in flash
 
-\ cr eraseflash
+cr eraseflash
 compiletoflash
 
 3 constant io-ports  \ A..C

@@ -17,12 +17,11 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-BINARY = serial
-OBJS = main.o
+BINARY = serplus
+OBJS = 
 LDSCRIPT = ../stm32f103.ld
 SCRIPT_DIR=..
 
 default: $(BINARY).bin
-	$(Q)$(PREFIX)-size $(BINARY).elf
 
 include ../Makefile.include

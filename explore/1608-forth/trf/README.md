@@ -1,4 +1,4 @@
-The "Tiny RF" node combines an STM32F103 board (like [this one][SB]) with an RFM69.  
+The "Tiny RF" node combines an STM32F103 board (like [this one][SB]) with an RFM69CW.  
 It uses the "suf" USB-serial driver to connect to a host.
 
   [SB]: http://www.ebay.com/itm/311156408508
@@ -9,9 +9,9 @@ It uses the "suf" USB-serial driver to connect to a host.
 
 ![](image3.jpg)
 
-### Pin allocation
+### RFM69CW pin map
 
-```
+```text
 PA4     SSEL
 PA5     SCLK
 PA6     MISO
@@ -30,27 +30,41 @@ PC13    LED
 
 ### Example of use
 
+As entered:
+
+```text
+folie           <= start the Folie utility from the command line
+2               <= select the second serial port
+eraseflash      <= this is a redefined version which preserves the USB driver
+...             <= connection is lost, but folie automatically recovers
+!s trf69.fs     <= last command entered, radio listening starts automatically
+
 ```
-$ folie -p /dev/cu.usbmodem32212431
-Connected to: /dev/cu.usbmodem32212431
-\       >>> include app.fs
-\       >>> include ../mlib/hexdump.fs
-\       <<<<<<<<<<< ../mlib/hexdump.fs (75 lines)
-\       >>> include ../flib/io-stm32f1.fs
-: bit ( u -- u )  \ turn a bit position into a single-bit mask Redefine bit.  ok.
-\       <<<<<<<<<<< ../flib/io-stm32f1.fs (69 lines)
-\       >>> include ../flib/pins48.fs
-\       <<<<<<<<<<< ../flib/pins48.fs (18 lines)
-\       >>> include ../flib/spi-stm32f1.fs
-\       <<<<<<<<<<< ../flib/spi-stm32f1.fs (68 lines)
-\       >>> include ../flib/rf69.fs
-\       <<<<<<<<<<< ../flib/rf69.fs (183 lines)
-rf69-listen
-\       <<<<<<<<<<< app.fs (14 lines)
-\ done.
-RF69 21EE0689030058C00104 81808080
-RF69 21EE068803005AC00107 8101B73DA38080
-RF69 21EE0689030056C00104 81808080
-RF69 21EE068A030068C00107 8101B73DA48080
-RF69 21EE068A03005EC00104 81808080
+
+Sample output transcript:
+
+```text
+$ folie
+Folie v2.4-1-g80ccc20
+Select the serial port:
+  1: /dev/cu.Bluetooth-Incoming-Port
+  2: /dev/cu.usbmodemC920C931
+? 2
+Enter '!help' for additional help, or ctrc-d to quit.
+[connected to /dev/cu.usbmodemC920C931]
+  ok.
+eraseflash
+Finished. Reset !
+Unha
+[disconnected] no such file or directory
+[connected to /dev/cu.usbmodemC920C931]
+  ok.
+!s trf69.fs
+>>> io-stm32f1.fs 11: Redefine bit.  ok.
+4: rf69-listen
+RF69 21EE0600000000C00104 81808080
+RF69 21EE067F040036C00107 8101AB29B08080
+RF69 21EE067D04004AC00107 8101AA29B18080
+ ok.
+  ok.
 ```
