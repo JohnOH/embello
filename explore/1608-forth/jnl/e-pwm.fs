@@ -13,15 +13,10 @@ omode-pp pa1 io-mode!
 omode-pp pa2 io-mode!
 omode-pp pa3 io-mode!
 
-: go
-     2 PA0 +pwm  \ 2 hz
-     2 PA1 +pwm  \ 2 hz
-     2 PA2 +pwm  \ 2 hz
-     2 PA3 +pwm  \ 2 hz
-   500 PA0 pwm
-  3500 PA1 pwm
-  6500 PA2 pwm
-  9500 PA3 pwm
-;
+: go  \ various duty cycles at 2 Hz
+  2 PA0 +pwm   500 PA0 pwm
+  2 PA1 +pwm  3500 PA1 pwm
+  2 PA2 +pwm  6500 PA2 pwm
+  2 PA3 +pwm  9500 PA3 pwm ;
 
-go
+cr go
