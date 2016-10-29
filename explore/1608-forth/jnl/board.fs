@@ -10,6 +10,8 @@ include ../mlib/hexdump.fs
 include ../flib/io-stm32l0.fs
 include ../flib/hal-stm32l0.fs
 include ../flib/adc-stm32l0.fs
+include ../flib/timer-stm32l0.fs
+include ../flib/pwm-stm32l0.fs
 
 PA4 variable ssel  \ can be changed at run time
 PA5 constant SCLK
