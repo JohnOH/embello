@@ -47,25 +47,29 @@ $40005400 constant I2C1
 : nak? ( -- f ) 4 bit I2C1-ISR bit@ 0<> ;
 
 : >i2c ( b -- nak )  \ send one byte
+  8 . dup h.2 space
   I2C1-TXDR h!
   16 bit I2C1-CR2 bis!  \ set NBYTES to 1
-  33 . begin I2C1-ISR @ 7 bit and until 44 .
+\ 24 bit I2C1-CR2 bis!  \ RELOAD
+  begin I2C1-ISR @ 0 bit and until
   nak? ;
 : i2c> ( nak -- b )  \ read one byte
-  55 . begin I2C1-ISR @ 7 bit and until 66 .
+  15 bit I2C1-CR2 rot if bis! else bic! then
+  5 . begin I2C1-ISR @ 2 bit and until 6 .
   I2C1-RXDR h@ ;
 
 : strdy ( cr2 -- f )
   0 bit I2C1-CR1 bic!  \ clear PE to reset line state
   0 bit I2C1-CR1 bis!  \ set PE
 \ $3F38 I2C1-ICR !  \ clear all flags
-  I2C1-CR2 !  begin 13 bit I2C1-CR2 bit@ 0= until
+  I2C1-CR2 !
+  begin 13 bit I2C1-CR2 bit@ 0= until
   nak? ;
 
 : i2c-tx ( addr -- nak )  \ start device send
-  shl $2000 or strdy ;
+  shl $01012000 or strdy ;
 : i2c-rx ( addr -- nak )  \ start device receive
-  shl $2400 or strdy ;
+  shl $01012400 or strdy ;
 
 : i2c. ( -- )  \ scan and report all I2C devices on the bus
   128 0 do
