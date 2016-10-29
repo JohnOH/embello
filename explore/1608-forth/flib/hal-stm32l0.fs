@@ -124,6 +124,6 @@ $40022000 constant FLASH
   dictionarynext until drop ;
 
 : cornerstone ( "name" -- )  \ define a flash memory cornerstone
-  <builds begin here dup flash-pagesize 1- and while $FFFF h, repeat
-  does>   begin dup  dup flash-pagesize 1- and while 2+       repeat  cr
+  <builds begin here 127 and while $FFFF h, repeat
+  does>   begin dup  127 and while 2+       repeat  cr
   eraseflashfrom ;

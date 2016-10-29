@@ -1,6 +1,7 @@
 \ board definitions
+\ needs always.fs
 
-cr cr eraseflash
+cr eraseflash
 compiletoflash
 
 3 constant io-ports  \ A..C
