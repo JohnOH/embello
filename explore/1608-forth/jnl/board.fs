@@ -12,12 +12,13 @@ include ../flib/hal-stm32l0.fs
 include ../flib/adc-stm32l0.fs
 include ../flib/timer-stm32l0.fs
 include ../flib/pwm-stm32l0.fs
+include ../flib/spi-stm32l0.fs
 
-PA4 variable ssel  \ can be changed at run time
-PA5 constant SCLK
-PA6 constant MISO
-PA7 constant MOSI
-include ../flib/spi-bb.fs
+\ PA4 variable ssel  \ can be changed at run time
+\ PA5 constant SCLK
+\ PA6 constant MISO
+\ PA7 constant MOSI
+\ include ../flib/spi-bb.fs
 
 PB6 constant SCL
 PB7 constant SDA

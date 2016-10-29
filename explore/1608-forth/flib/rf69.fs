@@ -152,12 +152,14 @@ decimal align
 : rf69-init ( -- )  \ init RFM69 with current rf69.group and rf69.freq values
   rf69.group @ rf69.freq @ rf-init ;
 
+: rf69-info ( -- )  \ display reception parameters as hex string
+  rf69.freq @ h.4 rf69.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4 ;
+
 : rf69-listen ( -- )  \ init RFM69 and report incoming packets until key press
   rf69-init cr
   begin
     rf-recv ?dup if
-      ." RF69 " rf69.freq @ h.4 rf69.group @ h.2
-      rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4
+      ." RF69 " rf69-info
       dup 0 do
         rf.buf i + c@ h.2
         i 1 = if 2- h.2 space then
