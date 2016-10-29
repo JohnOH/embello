@@ -3,13 +3,13 @@
 $40005400 constant I2C1
      I2C1 $00 + constant I2C1-CR1
      I2C1 $04 + constant I2C1-CR2
-     I2C1 $08 + constant I2C1-OAR1
-     I2C1 $0C + constant I2C1-OAR2
+\    I2C1 $08 + constant I2C1-OAR1
+\    I2C1 $0C + constant I2C1-OAR2
      I2C1 $10 + constant I2C1-TIMINGR
-     I2C1 $14 + constant I2C1-TIMEOUTR
+\    I2C1 $14 + constant I2C1-TIMEOUTR
      I2C1 $18 + constant I2C1-ISR
      I2C1 $1C + constant I2C1-ICR
-     I2C1 $20 + constant I2C1-PXCR
+\    I2C1 $20 + constant I2C1-PXCR
      I2C1 $24 + constant I2C1-RXDR
      I2C1 $28 + constant I2C1-TXDR
 
@@ -38,7 +38,8 @@ $40005400 constant I2C1
 : i2c-start ( -- )
   13 bit I2C1-CR1 hbis! ;
 : i2c-stop  ( -- )
-  14 bit I2C1-CR1 hbis!
+\ 16 bit I2C1-CR2 bic!
+  14 bit I2C1-CR2 bis!
 \ i2c?
 \ begin $270 I2C1-ISR bit@ until
 ;
@@ -70,6 +71,6 @@ $40005400 constant I2C1
   128 0 do
     cr i h.2 ." :"
     16 0 do  space
-      i j +  dup i2c-rx i2c-stop  if drop ." --" else h.2 then
+      i j +  dup i2c-tx i2c-stop  if drop ." --" else h.2 then
     loop
   16 +loop ;

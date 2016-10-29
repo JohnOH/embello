@@ -3,11 +3,12 @@
 cr cr reset
 
 include ../flib/i2c-stm32l0.fs
-\ include ../flib/bme280.fs
+include ../flib/bme280.fs
 
 \ assumes BME280 is present on PB6..PB7
 
 $11000000 PB6 io-base GPIO.AFRL + !
     $00C0 PB6 io-base GPIO.OTYPER + h!
 
-1234 ms +i2c i2c? i2c.
++i2c i2c? i2c.
+\ 1234 ms bme-init
