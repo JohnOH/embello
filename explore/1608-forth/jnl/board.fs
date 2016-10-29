@@ -8,13 +8,6 @@ compiletoflash
 include ../mlib/hexdump.fs
 include ../flib/io-stm32l0.fs
 include ../flib/hal-stm32l0.fs
-\ include ../flib/timer-stm32f1.fs
-\ include ../flib/pwm-stm32f1.fs
-\ include ../flib/adc-stm32f1.fs
-\ include ../flib/ring.fs
-\ include ../flib/uart2-stm32f1.fs
-\ include ../flib/uart2-irq-stm32f1.fs
-\ include ../flib/spi-stm32f1.fs
 
 PA4 variable ssel  \ can be changed at run time
 PA5 constant SCLK
