@@ -39,11 +39,11 @@ $40013800 constant USART1
 
 $40021000 constant RCC
      RCC $00 + constant RCC-CR
-     RCC $04 + constant RCC-CFGR
-     RCC $10 + constant RCC-APB1RSTR
-     RCC $14 + constant RCC-AHBENR
-     RCC $18 + constant RCC-APB2ENR
-     RCC $1C + constant RCC-APB1ENR
+     RCC $0C + constant RCC-CFGR
+     RCC $28 + constant RCC-APB1RSTR
+     RCC $30 + constant RCC-AHBENR
+     RCC $34 + constant RCC-APB2ENR
+     RCC $38 + constant RCC-APB1ENR
 
 $40022000 constant FLASH
 \   FLASH $0 + constant FLASH-ACR
