@@ -7,7 +7,7 @@ cr cr reset
 
 \ pins PA0..3 are assumed to have LEDs attached
 
-$00002222 gpio-base gpio.afrl + !
+$00002222 PA0 io-base GPIO.AFRL + !
 omode-pp pa0 io-mode!
 omode-pp pa1 io-mode!
 omode-pp pa2 io-mode!

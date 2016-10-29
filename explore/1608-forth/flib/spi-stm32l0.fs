@@ -28,9 +28,9 @@ $40013000 constant SPI1
 
 : spi-init ( -- )  \ set up hardware SPI
   OMODE-PP ssel @ io-mode! -spi
-     OMODE-AF PA5 io-mode!
-     OMODE-AF PA6 io-mode!
-     OMODE-AF PA7 io-mode!
+     OMODE-AF-PP PA5 io-mode!
+     OMODE-AF-PP PA6 io-mode!
+     OMODE-AF-PP PA7 io-mode!
   12 bit RCC-APB2ENR bis!  \ set SPI1EN
   %0000001101000100 SPI1-CR1 !  \ clk/2, i.e. 8 MHz, master
   SPI1-SR @ drop  \ appears to be needed to avoid hang in some cases

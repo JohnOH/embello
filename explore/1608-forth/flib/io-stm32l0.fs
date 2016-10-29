@@ -47,7 +47,8 @@ $50000000 constant GPIO-BASE
 %0100000 constant IMODE-LOW    \ input, pull down
 %0001100 constant IMODE-ADC    \ input, analog
 
-%0001010 constant OMODE-AF     \ alternate function
+%0001010 constant OMODE-AF-PP  \ alternate function, push-pull
+%1001010 constant OMODE-AF-OD  \ alternate function, open drain
 %0000110 constant OMODE-PP     \ output, push-pull
 %1000110 constant OMODE-OD     \ output, open drain
 
