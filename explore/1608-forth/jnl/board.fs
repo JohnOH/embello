@@ -1,6 +1,6 @@
-\ install hardware abstractions in flash
+\ board definitions
 
-cr eraseflash
+cr cr eraseflash
 compiletoflash
 
 3 constant io-ports  \ A..C
@@ -8,13 +8,6 @@ compiletoflash
 include ../mlib/hexdump.fs
 include ../flib/io-stm32l0.fs
 include ../flib/hal-stm32l0.fs
-\ include ../flib/timer-stm32f1.fs
-\ include ../flib/pwm-stm32f1.fs
-\ include ../flib/adc-stm32f1.fs
-\ include ../flib/ring.fs
-\ include ../flib/uart2-stm32f1.fs
-\ include ../flib/uart2-irq-stm32f1.fs
-\ include ../flib/spi-stm32f1.fs
 
 PA4 variable ssel  \ can be changed at run time
 PA5 constant SCLK
@@ -31,10 +24,10 @@ PA15 constant LED
 : init ( -- )  \ board initialisation
   $00 hex.empty !  \ empty flash shows up as $00 iso $FF on these chips
   OMODE-PP LED io-mode!
-\ 72MHz
+\ 16MHz ( set by Mecrisp on startup to get an accurate USART baud rate )
   flash-kb . ." KB <jnl> " hwid hex. ." ok." cr
-\ 1000 systick-hz
+  1000 systick-hz
 ;
 
+( flash use: ) here hex.
 cornerstone <<<hal-jnl>>>
-\ vim: set ft=forth :
