@@ -1,6 +1,6 @@
 \ board definitions
 
-cr eraseflash
+cr cr eraseflash
 compiletoflash
 
 3 constant io-ports  \ A..C
