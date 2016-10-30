@@ -46,13 +46,12 @@ $40012400 constant ADC1
   ADC-DR @ ;
 
 : adc-temp ( - degc )
-  ADC-SMPR @  %111 ADC-SMPR !  23 bit ADC-CCR bis!
+  23 bit ADC-CCR bis!  ADC-SMPR @  %111 ADC-SMPR !
   18 adc drop 18 adc
   330 * 300 / $1FF8007A h@ - 100 * $1FF8007E h@ $1FF8007A h@ - / 30 +
   swap  23 bit ADC-CCR bic!  ADC-SMPR ! ;
 
 : adc-vcc ( - mv )
-  ADC-SMPR @  %111 ADC-SMPR !  22 bit ADC-CCR bis!
-  17 adc drop 17 adc
-  $1FF80078 h@ 3000 * swap /
+  22 bit ADC-CCR bis!  ADC-SMPR @  %111 ADC-SMPR !
+  $1FF80078 h@ 3000 * 17 adc /
   swap  22 bit ADC-CCR bic!  ADC-SMPR ! ;
