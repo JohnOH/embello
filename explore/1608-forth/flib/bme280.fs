@@ -87,6 +87,8 @@
   100 * 512 + 10 arshift  \ convert 1/1024's to 1/100's, w/ rounding
 ;
 
+: bme-calc ( -- h p t ) bme-hpt tcalc -rot pcalc -rot hcalc -rot ;
+
 \ bme-init  bme-calib
 \ params 32 dump
 \ bme-data bme-hpt

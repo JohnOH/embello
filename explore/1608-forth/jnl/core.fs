@@ -9,6 +9,7 @@ compiletoflash
 
 include ../flib/rf69.fs
 include ../flib/bme280.fs
+include ../flib/tsl4531.fs
 include ../mlib/multi.fs
 
 ( flash use, code size: ) here dup hex. swap - .

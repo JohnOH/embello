@@ -30,6 +30,11 @@ $40005400 constant I2C1
 : +i2c ( -- )  \ initialise I2C hardware
   OMODE-AF-OD PB6 io-mode!
   OMODE-AF-OD PB7 io-mode!
+
+  \ TODO this messes up the settings of the other pins
+  $11000000 PB6 io-base GPIO.AFRL + !
+      $00C0 PB6 io-base GPIO.OTYPER + h!
+
   21 bit RCC-APB1ENR bis!  \ set I2C1EN
   $00300619 I2C1-TIMINGR !
   0 bit I2C1-CR1 bis!  \ PE
