@@ -10,7 +10,7 @@ cr cr reset
 imode-adc pa1 io-mode!
  omode-pp pa2 io-mode!  pa2 ios!
 
-+adc adc.
++adc adc?
 
 : temp+vcc
   cr micros adc-temp micros rot - . ." µs " . ." °C "
@@ -20,10 +20,11 @@ imode-adc pa1 io-mode!
 temp+vcc
 
 : go
+  adc-vcc
   begin
-    cr micros pa1 adc micros rot - . .
+    cr micros pa1 adc micros rot - . ." µs " over 4095 */ . ." mV "
     500 ms
-  key? until ;
+  key? until drop ;
 
 \ this causes folie to timeout on include matching, yet still starts running
 1234 ms go

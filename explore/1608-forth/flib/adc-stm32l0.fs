@@ -13,7 +13,7 @@ $40012400 constant ADC1
     ADC1 $0B4 + constant ADC-CALFACT
     ADC1 $308 + constant ADC-CCR
 
-: adc. ( -- )
+: adc? ( -- )
   ADC1
   cr ."     ISR " dup @ hex. 4 +
      ."     IER " dup @ hex. 4 +
