@@ -2,8 +2,8 @@
 \ needs core.fs
 cr cr reset
 
-include ../flib/i2c-stm32l0.fs
-include ../flib/bme280.fs
+\ include ../flib/i2c-stm32l0.fs
+\ include ../flib/bme280.fs
 
 \ assumes BME280 is present on PB6..PB7
 

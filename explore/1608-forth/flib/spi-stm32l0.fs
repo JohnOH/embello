@@ -11,10 +11,15 @@ $40013000 constant SPI1
 \    SPI1 $14 + constant SPI1-RXCRCR
 \    SPI1 $18 + constant SPI1-TXCRCR
 
-: spi. ( -- )  \ display SPI hardware registers
-  cr ." CR1 " SPI1-CR1 @ h.4
-    ."  CR2 " SPI1-CR2 @ h.4
-     ."  SR " SPI1-SR @ h.4 ;
+: spi? ( -- )
+  SPI1
+  cr ."     CR1 " dup @ hex. 4 +
+     ."     CR2 " dup @ hex. 4 +
+     ."      SR " dup @ hex. 4 +
+     ."      DR " dup @ hex. 4 +
+  cr ."   CRCPR " dup @ hex. 4 +
+     ."  RXCRCR " dup @ hex. 4 +
+     ."  TXCRCR " dup @ hex. drop cr ;
 
 : +spi ( -- ) ssel @ ioc! ;  \ select SPI
 : -spi ( -- ) ssel @ ios! ;  \ deselect SPI
@@ -36,13 +41,3 @@ $40013000 constant SPI1
   SPI1-SR @ drop  \ appears to be needed to avoid hang in some cases
   2 bit SPI1-CR2 bis!  \ SS output enable
 ;
-
-: spi. ( -- )
-  SPI1
-  cr ."     CR1 " dup @ hex. 4 +
-     ."     CR2 " dup @ hex. 4 +
-     ."      SR " dup @ hex. 4 +
-     ."      DR " dup @ hex. 4 +
-  cr ."   CRCPR " dup @ hex. 4 +
-     ."  RXCRCR " dup @ hex. 4 +
-     ."  TXCRCR " dup @ hex. drop cr ;
