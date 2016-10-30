@@ -1,4 +1,4 @@
-\ hardware i2c driver - not working yet
+\ hardware i2c driver
 
 $40005400 constant I2C1
      I2C1 $00 + constant I2C1-CR1
