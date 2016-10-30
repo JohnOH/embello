@@ -45,12 +45,12 @@ $40012400 constant ADC1
   begin 2 bit ADC-ISR bit@ until  \ wait until EOC set
   ADC-DR @ ;
 
-: adc-vcc ( - mv )
+: adc-vcc ( -- mv )
   22 bit ADC-CCR bis!  ADC-SMPR @  %111 ADC-SMPR !
   $1FF80078 h@ 3000 * 17 adc /
   swap  22 bit ADC-CCR bic!  ADC-SMPR ! ;
 
-: adc-temp ( - degc )
+: adc-temp ( -- degc )
   23 bit ADC-CCR bis!  ADC-SMPR @  %111 ADC-SMPR !
   18 adc drop 18 adc
   swap  23 bit ADC-CCR bic!  ADC-SMPR !

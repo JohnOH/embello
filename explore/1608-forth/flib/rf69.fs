@@ -177,7 +177,7 @@ decimal align
     loop
   $10 +loop ;
 
-: rf69-txtest ( n - )  \ send out a test packet with the number as ASCII chars
+: rf69-txtest ( n -- )  \ send out a test packet with the number as ASCII chars
   rf69-init  15 rf-power  0 <# #s #> 0 rf-send ;
 
 \ rf69.

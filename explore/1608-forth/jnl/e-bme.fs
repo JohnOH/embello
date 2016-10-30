@@ -7,12 +7,15 @@ cr cr reset
 
 \ assumes BME280 is present on PB6..PB7
 
+: .2 ( n -- )  \ display value with two decimal points
+  0 swap 0,01 f* 0,005 d+ 2 f.n ;
+
 : go
   bme-init bme-calib
   begin
     cr
     micros bme-data bme-calc >r >r >r micros swap - . ." µs: " r> r> r>
-    . ." °C " . ." hPa " . ." %RH (all x100)"
+    .2 ." °C " .2 ." hPa " .2 ." %RH "
     500 ms
     $30 i2c-tx drop i2c-stop  \ FIXME hangs with back-to-back accesses to $29!
   key? until ;
