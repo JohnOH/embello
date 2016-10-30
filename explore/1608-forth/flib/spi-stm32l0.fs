@@ -19,7 +19,7 @@ $40013000 constant SPI1
      ."      DR " dup @ hex. 4 +
   cr ."   CRCPR " dup @ hex. 4 +
      ."  RXCRCR " dup @ hex. 4 +
-     ."  TXCRCR " dup @ hex. drop cr ;
+     ."  TXCRCR " dup @ hex. drop ;
 
 : +spi ( -- ) ssel @ ioc! ;  \ select SPI
 : -spi ( -- ) ssel @ ios! ;  \ deselect SPI

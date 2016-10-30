@@ -25,7 +25,7 @@ $40005400 constant I2C1
          ."   ICR " dup @ h.4 space 4 +
          ."  PXCR " dup @ h.2 space 4 +
        ."    RXDR " dup @ h.2 space 4 +
-         ."  TXDR " dup @ h.2 space drop cr ;
+         ."  TXDR " dup @ h.2 space drop ;
 
 : +i2c ( -- )  \ initialise I2C hardware
   OMODE-AF-OD PB6 io-mode!
