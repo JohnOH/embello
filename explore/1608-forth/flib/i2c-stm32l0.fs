@@ -36,40 +36,36 @@ $40005400 constant I2C1
 ;
 
 : i2c-start ( -- )
-  13 bit I2C1-CR1 hbis! ;
+  13 bit I2C1-CR2 bis! ;
 : i2c-stop  ( -- )
-\ 16 bit I2C1-CR2 bic!
-  14 bit I2C1-CR2 bis!
-\ i2c?
-\ begin $270 I2C1-ISR bit@ until
-;
+  14 bit I2C1-CR2 bis! ;
 
 : nak? ( -- f ) 4 bit I2C1-ISR bit@ 0<> ;
 
 : >i2c ( b -- nak )  \ send one byte
   8 . dup h.2 space
-  I2C1-TXDR h!
   16 bit I2C1-CR2 bis!  \ set NBYTES to 1
 \ 24 bit I2C1-CR2 bis!  \ RELOAD
+  I2C1-TXDR h!
   begin I2C1-ISR @ 0 bit and until
+  9 .
   nak? ;
 : i2c> ( nak -- b )  \ read one byte
   15 bit I2C1-CR2 rot if bis! else bic! then
   5 . begin I2C1-ISR @ 2 bit and until 6 .
   I2C1-RXDR h@ ;
 
-: strdy ( cr2 -- f )
+: i2c-rxtx ( addr rw -- f )
   0 bit I2C1-CR1 bic!  \ clear PE to reset line state
+  0 bit I2C1-CR1 bic!  \ TODO is this delay needed?
   0 bit I2C1-CR1 bis!  \ set PE
 \ $3F38 I2C1-ICR !  \ clear all flags
-  I2C1-CR2 !
+  9 lshift or shl $01012000  or I2C1-CR2 !
   begin 13 bit I2C1-CR2 bit@ 0= until
   nak? ;
 
-: i2c-tx ( addr -- nak )  \ start device send
-  shl $01012000 or strdy ;
-: i2c-rx ( addr -- nak )  \ start device receive
-  shl $01012400 or strdy ;
+: i2c-tx ( addr -- nak ) 0 i2c-rxtx ;  \ start device send
+: i2c-rx ( addr -- nak ) 1 i2c-rxtx ;  \ start device receive
 
 : i2c. ( -- )  \ scan and report all I2C devices on the bus
   128 0 do
