@@ -18,4 +18,9 @@ imode-adc pa1 io-mode!
   key? until ;
 
 \ this causes folie to timeout on include matching, yet still starts running
-1234 ms go
+\ 1234 ms go
+
++adc 
+
+( °C ) adc-temp .
+( mV ) adc-vcc .

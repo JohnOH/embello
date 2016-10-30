@@ -13,6 +13,20 @@ $40012400 constant ADC1
     ADC1 $0B4 + constant ADC-CALFACT
     ADC1 $308 + constant ADC-CCR
 
+: adc. ( -- )
+  ADC1
+  cr ."     ISR " dup @ hex. 4 +
+     ."     IER " dup @ hex. 4 +
+  cr ."      CR " dup @ hex. 4 +
+  cr ."   CFGR1 " dup @ hex. 4 +
+     ."   CFGR2 " dup @ hex. 4 +
+  cr ."    SMPR " dup @ hex. $C +
+     ."      TR " dup @ hex. 8 +
+  cr ."  CHSELR " dup @ hex. $18 +
+     ."      DR " dup @ hex. $74 +
+  cr ." CALFACT " dup @ hex. $254 +
+     ."     CCR " dup @ hex. drop cr ;
+
 : adc-calib ( -- )  \ perform an ADC calibration cycle
   31 bit ADC-CR bis!  \ set ADCAL
   begin 31 bit ADC-CR bit@ 0= until  \ wait until ADCAL is clear
@@ -31,16 +45,14 @@ $40012400 constant ADC1
   begin 2 bit ADC-ISR bit@ until  \ wait until EOC set
   ADC-DR @ ;
 
-: adc. ( -- )
-  ADC1
-  cr ."     ISR " dup @ hex. 4 +
-     ."     IER " dup @ hex. 4 +
-  cr ."      CR " dup @ hex. 4 +
-  cr ."   CFGR1 " dup @ hex. 4 +
-     ."   CFGR2 " dup @ hex. 4 +
-  cr ."    SMPR " dup @ hex. $C +
-     ."      TR " dup @ hex. 8 +
-  cr ."  CHSELR " dup @ hex. $18 +
-     ."      DR " dup @ hex. $74 +
-  cr ." CALFACT " dup @ hex. $254 +
-     ."     CCR " dup @ hex. drop cr ;
+: adc-temp ( - degc )
+  ADC-SMPR @  %111 ADC-SMPR !  23 bit ADC-CCR bis!
+  18 adc drop 18 adc
+  330 * 300 / $1FF8007A h@ - 100 * $1FF8007E h@ $1FF8007A h@ - / 30 +
+  swap  23 bit ADC-CCR bic!  ADC-SMPR ! ;
+
+: adc-vcc ( - mv )
+  ADC-SMPR @  %111 ADC-SMPR !  22 bit ADC-CCR bis!
+  17 adc drop 17 adc
+  $1FF80078 h@ 3000 * swap /
+  swap  22 bit ADC-CCR bic!  ADC-SMPR ! ;
