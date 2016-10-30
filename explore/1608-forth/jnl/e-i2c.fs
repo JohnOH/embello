@@ -11,4 +11,6 @@ $11000000 PB6 io-base GPIO.AFRL + !
     $00C0 PB6 io-base GPIO.OTYPER + h!
 
 +i2c i2c? i2c.
-1234 ms bme-init bme-calib bme-data bme-hpt cr tcalc . pcalc . hcalc .
+bme-init bme-calib
+bme-data bme-hpt
+tcalc . pcalc . hcalc .

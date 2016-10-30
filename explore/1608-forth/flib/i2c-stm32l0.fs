@@ -35,38 +35,33 @@ $40005400 constant I2C1
   0 bit I2C1-CR1 bis!  \ PE
 ;
 
-: i2c-start ( -- )
-  13 bit I2C1-CR2 bis! ;  \ set START
-: i2c-stop  ( -- )
-\ 24 bit I2C1-CR2 bic!  \ clear RELOAD
-  14 bit I2C1-CR2 bis!  \ set STOP
-;
+: i2c-stop  ( -- ) 14 bit I2C1-CR2 bis! ;
 
 : nak? ( -- f ) 4 bit I2C1-ISR bit@ 0<> ;
 
 : >i2c ( b -- nak )  \ send one byte
-  [char] > emit dup h.2 space
+\ [char] > emit dup h.2 space
   16 bit I2C1-CR2 bis!  \ set NBYTES to 1
 \ 24 bit I2C1-CR2 bis!  \ RELOAD
   I2C1-TXDR h!
   begin I2C1-ISR @ 0 bit and until
   nak?
-  [char] w emit dup .
+\ [char] w emit dup .
+  5 us
 ;
 
 : i2c> ( nak -- b )  \ read one byte
-  [char] r emit dup .
+\ [char] r emit dup .
   16 bit I2C1-CR2 bis!  \ set NBYTES to 1
   begin I2C1-ISR @ 7 bit and until
   I2C1-RXDR h@
-  [char] < emit dup h.2 space
+\ [char] < emit dup h.2 space
   swap if i2c-stop then ;
 
 : i2c-rxtx ( addr rw -- f )
-  10 us
+  5 us
   0 bit I2C1-CR1 bic!  \ clear PE to reset line state
   0 bit I2C1-CR1 bis!  \ set PE
-\ $3F38 I2C1-ICR !  \ clear all flags
   9 lshift or shl $01012000  or I2C1-CR2 !
   begin 13 bit I2C1-CR2 bit@ 0= until
   nak? ;
