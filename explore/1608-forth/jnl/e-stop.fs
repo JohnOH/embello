@@ -20,6 +20,18 @@ $40007000 constant PWR
       PWR $0 + constant PWR-CR
       PWR $4 + constant PWR-CSR
 
+$40010400 constant EXTI
+     EXTI $00 + constant EXTI-IMR
+     EXTI $04 + constant EXTI-EMR
+\    EXTI $08 + constant EXTI-RTSR
+\    EXTI $0C + constant EXTI-FTSR
+\    EXTI $10 + constant EXTI-SWIER
+     EXTI $14 + constant EXTI-PR
+
+\ see https://developer.arm.com/docs/dui0662/latest/4-cortex-m0-peripherals/
+\                       43-system-control-block/436-system-control-register
+$E000ED10 constant SCR
+
 : lptim? ( -- )
   LPTIM1
   cr  ." ISR " dup @ h.2 space 4 +
@@ -42,24 +54,20 @@ $40007000 constant PWR
   37000 128 / LPTIM-ARR !         \ 1s timout
 ;
 
-: hsi-off 0 bit RCC-CR bic! ;
+: only-msi 8 bit RCC-CR ! ;
 
-: lp-stop
-  65KHz hsi-off  \ fake for now, i.e. still running, but very slowly
-;
+: wfe ( -- ) [ $BF20 h, ] inline ; \ WFE Opcode, enters sleep mode
 
 : stop1s ( -- )
-  1 bit LPTIM-CR bis!               \ set SNGSTRT
-  lp-stop
-  begin 1 bit LPTIM-ISR bit@ until  \ wait for ARRM
-  1 bit LPTIM-ICR bis!              \ clear ARRM
+  1 bit LPTIM-CR bis!                   \ set SNGSTRT
+  1 bit LPTIM-IER bis!                  \ set ARRMIE
+  29 bit EXTI-EMR bis!                  \ set EM29
+  2 bit SCR bis!                        \ set SLEEPDEEP
+  begin wfe 1 bit LPTIM-ISR bit@ until  \ wait for ARRM
+  1 bit LPTIM-ICR bis!                  \ clear ARRM
 ;
 
-: lp-blink
-  begin
-    3 0 do stop1s loop
-    led iox!
-  key? until ;
+: lp-blink ( -- )  only-msi  begin  3 0 do stop1s loop  led iox!  key? until ;
 
 rf69-init rf-sleep led-off 2.1MHz
 1000 systick-hz  \ FIXME if omitted, blink startup stalls for several seconds
@@ -71,6 +79,9 @@ rf69-init rf-sleep led-off 2.1MHz
 ( RCC-CR ) RCC-CR @ hex.
 ( RCC-CSR ) RCC-CSR @ hex.
 ( RCC-CCIPR ) RCC-CCIPR @ hex.
+( EXTI-IMR ) EXTI-IMR @ hex.
+( EXTI-EMR ) EXTI-EMR @ hex.
+( EXTI-PR ) EXTI-PR @ hex.
 
 lptim?
 
