@@ -38,33 +38,39 @@ $40007000 constant PWR
   31 bit RCC-APB1ENR bis!         \ enable LPTIM1
   31 bit RCC-APB1SMENR bis!       \ also enable in sleep mode
   %111 9 lshift LPTIM-CFGR !      \ 128 prescaler
-  0 bit LPTIM-CR bis!
-  289 LPTIM-ARR !
+  0 bit LPTIM-CR bis!             \ set ENABLE
+  37000 128 / LPTIM-ARR !         \ 1s timout
+;
+
+: hsi-off 0 bit RCC-CR bic! ;
+
+: lp-stop
+  65KHz hsi-off  \ fake for now, i.e. still running, but very slowly
 ;
 
 : stop1s ( -- )
   1 bit LPTIM-CR bis!               \ set SNGSTRT
+  lp-stop
   begin 1 bit LPTIM-ISR bit@ until  \ wait for ARRM
   1 bit LPTIM-ICR bis!              \ clear ARRM
 ;
 
 : lp-blink
   begin
+    3 0 do stop1s loop
     led iox!
-    1 0 do stop1s loop
   key? until ;
 
-2.1mhz
-1000 systick-hz
+rf69-init rf-sleep led-off 2.1MHz
+1000 systick-hz  \ FIXME if omitted, blink startup stalls for several seconds
 +lptim 
 
-( clock ) clock-hz @ .
+( clock-hz ) clock-hz @ .
 ( PWR-CR ) PWR-CR @ hex.
 ( PWR-CSR ) PWR-CSR @ hex.
-\ ( CR ) RCC-CR @ hex.
-\ ( CFGR ) RCC-CFGR @ hex.
-\ ( ICSCR ) RCC-ICSCR @ hex.
-\ ( CCIPR ) RCC-CCIPR @ hex.
+( RCC-CR ) RCC-CR @ hex.
+( RCC-CSR ) RCC-CSR @ hex.
+( RCC-CCIPR ) RCC-CCIPR @ hex.
 
 lptim?
 
