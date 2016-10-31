@@ -38,6 +38,8 @@ $40012400 constant ADC1
   adc-calib  1 ADC-CR !   \ perform calibration, then set ADEN to enable ADC
 ;
 
+: -adc ( -- ) 1 bit ADC-CR bis! 9 bit RCC-APB2ENR bic! ;
+
 : adc ( pin -- u )  \ read ADC value
 \ IMODE-ADC over io-mode!
   io# bit ADC-CHSELR !

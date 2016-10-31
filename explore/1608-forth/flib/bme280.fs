@@ -91,5 +91,4 @@
 
 \ bme-init  bme-calib
 \ params 32 dump
-\ bme-data bme-hpt
-\ tcalc . pcalc . hcalc .
+\ bme-data bme-calc . . .

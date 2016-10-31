@@ -68,9 +68,9 @@ $40022000 constant FLASH
   72000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
 ;
 
-: 16MHz ( -- )  \ set the main clock back to 16 MHz, keep baud rate at 115200
-  0 RCC-CFGR !                    \ revert to HSI @ 16 MHz, no PLL
-  $81 RCC-CR !                    \ turn off HSE and PLL, power-up value
+: 16MHz ( -- )  \ set the main clock to 16 MHz, keep baud rate at 115200
+  %01 RCC-CFGR !                  \ revert to HSI16, no PLL
+  0 bit RCC-CR !                  \ turn off MSI, HSE, and PLL
   16000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
 ;
 
