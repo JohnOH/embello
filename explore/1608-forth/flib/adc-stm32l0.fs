@@ -47,8 +47,7 @@ $40012400 constant ADC1
 
 : adc ( pin -- u )  \ read ADC value, repeated twice to avoid chip erratum
 \ IMODE-ADC over io-mode!
-  io# bit ADC-CHSELR !
-  adc1 drop adc1 ;
+  io# bit ADC-CHSELR !  adc1 drop adc1 ;
 
 : adc-vcc ( -- mv )
   22 bit ADC-CCR bis!  ADC-SMPR @  %111 ADC-SMPR !
@@ -57,6 +56,5 @@ $40012400 constant ADC1
 
 : adc-temp ( -- degc )
   23 bit ADC-CCR bis!  ADC-SMPR @  %111 ADC-SMPR !
-  18 adc drop 18 adc
-  swap  23 bit ADC-CCR bic!  ADC-SMPR !
+  18 adc  swap  23 bit ADC-CCR bic!  ADC-SMPR !
   adc-vcc 3000 */ $1FF8007A h@ - 100 $1FF8007E h@ $1FF8007A h@ - */ 30 + ;
