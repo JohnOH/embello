@@ -1,6 +1,7 @@
 \ these definitions should always stay loaded
 
 cr $4000 eraseflashfrom  \ need to start off with a clean Mecrisp image
+cr
 compiletoflash
 
 : cornerstone ( "name" -- )  \ define a flash memory cornerstone

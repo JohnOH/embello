@@ -32,20 +32,23 @@ $40012400 constant ADC1
   begin 31 bit ADC-CR bit@ 0= until  \ wait until ADCAL is clear
 ;
 
+: adc1 ( -- u )  \ read ADC value once
+  2 bit ADC-CR bis!  \ set ADSTART to start ADC
+  begin 2 bit ADC-ISR bit@ until  \ wait until EOC set
+  ADC-DR @ ;
+
 : +adc ( -- )  \ initialise ADC
 \ FIXME can't call this twice, recalibration will hang!
   9 bit RCC-APB2ENR bis!  \ set ADCEN
   adc-calib  1 ADC-CR !   \ perform calibration, then set ADEN to enable ADC
-;
+  adc1 ;
 
 : -adc ( -- ) 1 bit ADC-CR bis! 9 bit RCC-APB2ENR bic! ;
 
-: adc ( pin -- u )  \ read ADC value
+: adc ( pin -- u )  \ read ADC value, repeated twice to avoid chip erratum
 \ IMODE-ADC over io-mode!
   io# bit ADC-CHSELR !
-  2 bit ADC-CR bis!  \ set ADSTART to start ADC
-  begin 2 bit ADC-ISR bit@ until  \ wait until EOC set
-  ADC-DR @ ;
+  adc1 drop adc1 ;
 
 : adc-vcc ( -- mv )
   22 bit ADC-CCR bis!  ADC-SMPR @  %111 ADC-SMPR !

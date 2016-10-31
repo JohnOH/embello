@@ -2,6 +2,7 @@
 \ needs always.fs
 
 cr eraseflash
+cr
 compiletoflash
 
 3 constant io-ports  \ A..C

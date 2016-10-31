@@ -3,6 +3,7 @@
 \ includes dev.fs
 
 cr <<<hal-jnl>>>
+cr
 compiletoflash
 
 ( code start: ) here dup hex.

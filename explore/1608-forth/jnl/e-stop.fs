@@ -71,9 +71,10 @@ $E000ED10 constant SCR
   1 bit LPTIM-ICR bis!                  \ clear ARRM
 ;
 
-: lp-blink ( -- )  only-msi  begin  3 0 do stop1s loop  led iox!  key? until ;
+: lp-blink ( -- )  only-msi  begin  stop1s led iox!  key? until ;
 
-rf69-init rf-sleep led-off 2.1MHz
+\ rf69-init rf-sleep
+led-off 2.1MHz
 1000 systick-hz  \ FIXME if omitted, blink startup stalls for several seconds
 +lptim 
 

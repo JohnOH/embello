@@ -39,7 +39,8 @@ $E000ED10 constant SCR
 ( EXTI-EMR ) EXTI-EMR @ hex.
 ( EXTI-PR ) EXTI-PR @ hex.
 
-rf69-init rf-sleep led-off
+\ rf69-init rf-sleep
+led-off
 0 RCC-CCIPR !
 
 standby wfe
