@@ -27,10 +27,14 @@ include ../flib/i2c-stm32l0.fs
 
 PA15 constant LED
 
+: led-on led ioc! ;
+: led-off led ios! ;
+
 : init ( -- )  \ board initialisation
   $00 hex.empty !  \ empty flash shows up as $00 iso $FF on these chips
   OMODE-PP LED io-mode!
 \ 16MHz ( set by Mecrisp on startup to get an accurate USART baud rate )
+  2 RCC-CCIPR !  \ set USART1 clock to HSI16, independent of sysclk
   flash-kb . ." KB <jnl> " hwid hex. ." ok." cr
   1000 systick-hz
 ;

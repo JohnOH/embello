@@ -39,40 +39,39 @@ $40013800 constant USART1
 
 $40021000 constant RCC
      RCC $00 + constant RCC-CR
+     RCC $04 + constant RCC-ICSCR
      RCC $0C + constant RCC-CFGR
      RCC $28 + constant RCC-APB1RSTR
      RCC $30 + constant RCC-AHBENR
      RCC $34 + constant RCC-APB2ENR
      RCC $38 + constant RCC-APB1ENR
+     RCC $4C + constant RCC-CCIPR
 
 $40022000 constant FLASH
 \   FLASH $0 + constant FLASH-ACR
-
-\ adjusted for STM32L053 @ 72 MHz (original STM32F100 by Igor de om1zz, 2015)
 
 16000000 variable clock-hz  \ the system clock is 16 MHz after reset
 
 : baud ( u -- u )  \ calculate baud rate divider, based on current clock rate
   clock-hz @ swap / ;
 
-: 72MHz ( -- )  \ set the main clock to 72 MHz, keep baud rate at 115200
-  16 bit RCC-CR bis!              \ set HSEON
-  begin 17 bit RCC-CR bit@ until  \ wait for HSERDY
-  1 16 lshift                     \ HSE clock is 8 MHz Xtal source for PLL
-  7 18 lshift or                  \ PLL factor: 8 MHz * 9 = 72 MHz = HCLK
-  4  8 lshift or                  \ PCLK1 = HCLK/2
-  2 14 lshift or                  \ ADCPRE = PCLK2/6
-            2 or  RCC-CFGR !      \ PLL is the system clock
-  24 bit RCC-CR bis!              \ set PLLON
-  begin 25 bit RCC-CR bit@ until  \ wait for PLLRDY
-  72000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
-;
+: 65KHz ( -- )  \ set the main clock to 65 KHz, assume it was set to 2.1 MHz
+  %111 13 lshift RCC-ICSCR bic!  65536 clock-hz ! ;
 
-: 16MHz ( -- )  \ set the main clock to 16 MHz, keep baud rate at 115200
+: 2.1MHz ( -- )  \ set the main clock to 2.1 MHz
+  RCC-ICSCR dup @  %111 13 lshift bic  %101 13 lshift or  swap !  \ range 5
+  8 bit RCC-CR bis!               \ set MSION
+  begin 9 bit RCC-CR bit@ until   \ wait for MSIRDY
+  %00 RCC-CFGR !                  \ revert to MSI @ 2.1 MHz, no PLL
+  $101 RCC-CR !                   \ turn off HSE, and PLL
+  2097000 clock-hz ! ;
+
+: 16MHz ( -- )  \ set the main clock to 16 MHz
+  0 bit RCC-CR bis!               \ set HSI16ON
+  begin 2 bit RCC-CR bit@ until   \ wait for HSI16RDYF
   %01 RCC-CFGR !                  \ revert to HSI16, no PLL
-  0 bit RCC-CR !                  \ turn off MSI, HSE, and PLL
-  16000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
-;
+  1 RCC-CR !                      \ turn off MSI, HSE, and PLL
+  16000000 clock-hz ! ;
 
 0 variable ticks
 
