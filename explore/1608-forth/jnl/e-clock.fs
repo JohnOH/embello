@@ -45,8 +45,8 @@ $40007000 constant PWR-CR
 
 : down   slow         wait-for-key            fast ;  \ 680 µA
 : lost   slow hsi-off wait-for-key            fast ;  \ 280 µA
-: snooze slow 6 1 do i . 10000 0 do loop loop fast ;  \ 280 µA
-: doze   slow hsi-off    50000 0 do loop      fast ;  \ 50 µA
+: snooze slow 6 1 do i . 10 ( *100 ) ms loop  fast ;  \ 280 µA
+: doze   slow hsi-off    50 ( *100 ) ms       fast ;  \ 50 µA
 
 : do-adc slow +adc adc-vcc . adc-temp . -adc  fast ;
 
