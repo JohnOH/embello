@@ -9,7 +9,7 @@
 
 : smem-id ( -- u)  \ return the SPI memory's manufacturer and device ID
   $9F smem-cmd spi> 8 lshift spi> or 8 lshift spi> or -spi ;
-: smem-size ( - u )  \ return size of spi memory chip in KB
+: smem-size ( -- u )  \ return size of spi memory chip in KB
   smem-id $FF and 10 -  bit ;
 
 : smem-wipe ( -- )  \ wipe entire flash memory
