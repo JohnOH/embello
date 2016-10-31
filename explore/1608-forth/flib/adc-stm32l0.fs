@@ -25,7 +25,7 @@ $40012400 constant ADC1
   cr ."  CHSELR " dup @ hex. $18 +
      ."      DR " dup @ hex. $74 +
   cr ." CALFACT " dup @ hex. $254 +
-     ."     CCR " dup @ hex. drop cr ;
+     ."     CCR " dup @ hex. drop ;
 
 : adc-calib ( -- )  \ perform an ADC calibration cycle
   31 bit ADC-CR bis!  \ set ADCAL
