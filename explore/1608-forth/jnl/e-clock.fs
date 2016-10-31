@@ -39,16 +39,16 @@ $40007000 constant PWR-CR
 : slow reduce 65KHz 10 systick-hz ;
 : fast 2.1mhz 1000 systick-hz ;
 
-\ FIXME various issues
-: do-bme +i2c bme-init bme-calib slow bme-data fast bme-calc . . . ;
-: do-tsl +i2c tsl-init           slow tsl-data fast .              ;
-
-: down   slow         wait-for-key            fast ;  \ 680 µA
+: down   slow         wait-for-key            fast ;  \ 430 µA
 : lost   slow hsi-off wait-for-key            fast ;  \ 280 µA
-: snooze slow 6 1 do i . 10 ( *100 ) ms loop  fast ;  \ 280 µA
+: snooze slow 6 1 do i . 10 ( *100 ) ms loop  fast ;  \ 440 µA
 : doze   slow hsi-off    50 ( *100 ) ms       fast ;  \ 50 µA
 
 : do-adc slow +adc adc-vcc . adc-temp . -adc  fast ;
+
+\ FIXME should only run +i2c once before using these
+: do-bme bme-init bme-calib slow bme-data fast bme-calc . . . ;
+: do-tsl tsl-init slow tsl-data fast . ;
 
 ( PWR-CR ) PWR-CR @ hex.
 ( CR ) RCC-CR @ hex.
