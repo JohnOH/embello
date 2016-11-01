@@ -36,13 +36,17 @@
      3 bit constant RF:IRQ2_SENT
      2 bit constant RF:IRQ2_RECVD
 
-0 variable rf.mode
-0 variable rf.rssi
-0 variable rf.lna
-0 variable rf.afc
-0 variable rf.last
+   0 variable rf.mode
+   0 variable rf.rssi
+   0 variable rf.lna
+   0 variable rf.afc
+   0 variable rf.last
 
-66 buffer: rf.buf
+   66 buffer: rf.buf
+
+   1 variable rf69.nodeid
+  42 variable rf69.group
+8686 variable rf69.freq
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 hex
@@ -119,35 +123,13 @@ decimal align
   RF:M_STDBY rf!mode
   over 2+ RF:FIFO rf!
   dup rf-parity or RF:FIFO rf!
-  $C0 and 1 or RF:FIFO rf!  \ TODO hardwired node 1
+  $C0 and rf69.nodeid @ or RF:FIFO rf!
   ( addr count ) rf-n!spi
   RF:M_TX rf!mode
   begin RF:IRQ2 rf@ RF:IRQ2_SENT and until
   RF:M_STDBY rf!mode ;
 
-\ TODO get rid of this, superseded by rf69-listen
-: rfdemo ( -- )  \ display incoming packets in RF12demo format
-  42 8686 rf-init
-  cr
-  begin
-    rf-recv ?dup if
-      ." OK "  0 do  rf.buf i + c@ . loop  cr
-    then
-  key? until ;
-
-\ TODO get rid of this, superseded by rf69-listen
-: rfdemox ( -- )  \ display incoming packets in RF12demo HEX format
-  42 8686 rf-init  cr
-  begin
-    rf-recv ?dup if
-      ." OKX "  0 do  rf.buf i + c@ h.2  loop  cr
-    then
-  key? until ;
-
 \ new code starts here, this is the intended public API for the RF69 driver
-
-  42 variable rf69.group
-8686 variable rf69.freq
 
 : rf69-init ( -- )  \ init RFM69 with current rf69.group and rf69.freq values
   rf69.group @ rf69.freq @ rf-init ;
