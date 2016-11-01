@@ -11,11 +11,13 @@ cr
 : go
   bme-init bme-calib tsl-init
   begin
-    only-msi stop1s hsi-on
+    only-msi stop1s stop1s stop1s hsi-on
     bme-data bme-calc  tsl-data  +adc adc-vcc -adc
     display cr 1 ms
   key? until ;
 
+led-off
+rf69-init rf-sleep
 2.1MHz 1000 systick-hz
 +lptim +i2c
 
