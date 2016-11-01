@@ -28,24 +28,24 @@ cr
 20 cells buffer: pkt.buf  \ room to collect up to 20 values for sending
       0 variable pkt.ptr  \ current position in this packet buffer
 
-: u>> ( u -- ) pkt.ptr @ ! 4 pkt.ptr +! ;  \ append 32-bit value to packet
-: u14>> ( u -- ) $3FFF and u>> ;           \ append 14-bit value to packet
+: u+> ( u -- ) pkt.ptr @ ! 4 pkt.ptr +! ;  \ append 32-bit value to packet
+: u14+> ( u -- ) $3FFF and u+> ;           \ append 14-bit value to packet
 
-: <pkt ( format -- ) pkt.buf pkt.ptr ! u>> ;  \ start collecting values
+: <pkt ( format -- ) pkt.buf pkt.ptr ! u+> ;  \ start collecting values
 : pkt>rf ( -- )  \ broadcast the collected values as RF packet
   <v
     pkt.ptr @  begin  4 - dup @ u#v  dup pkt.buf u<= until  drop
   v> 0 rf-send ;
 
-\ for example, to send a packet of type 123, with values 11, 22, and 33:
-\   123 <pkt 11 u>> 22 u>> 33 u>> pkt>rf
+\ for example, to send a packet of type 123, with values 11, 2222, and 333333:
+\   123 <pkt 11 u+> 2222 u+> 333333 u+> pkt>rf
 
 \ -----------------------------------------------------------------------------
 
 \ assumes that the BME280 and TSL4531 sensors are connected to PB6..PB7
 
 : display ( h p t l v -- )
-  . ." °Cx100 " . ." Pa " . ." %RHx100 "  . ." lux "  . ." mV " ;
+  . ." °Cx100, " . ." Pa, " . ." %RHx100, "  . ." lux, "  . ." mV " ;
 
 : go
   bme-init bme-calib tsl-init
@@ -57,7 +57,7 @@ cr
     debug if
       hwid hex. ." = " display cr 1 ms
     else
-      2 <pkt hwid u>> u14>>  4 0 do u>> loop pkt>rf rf-sleep
+      2 <pkt hwid u+> u14+>  4 0 do u+> loop pkt>rf rf-sleep
     then
   key? until ;
 
