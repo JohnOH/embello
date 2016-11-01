@@ -4,7 +4,7 @@ cr cr reset
 cr
 
 1 constant debug  \ 0 = send RF packets, 1 = display on serial port
-1 constant rate  \ seconds between readings
+10 constant rate  \ seconds between readings
 
 \ -----------------------------------------------------------------------------
 \ variable-int encoding, turns 64-bit ints into 1..10 bytes
@@ -45,19 +45,19 @@ cr
 \ assumes that the BME280 and TSL4531 sensors are connected to PB6..PB7
 
 : display ( h p t l v -- )
-  . ." °Cx100, " . ." Pa, " . ." %RHx100, "  . ." lux, "  . ." mV " ;
+  . ." °Cx100, " . ." Pa, " . ." %RHx100, "  . ." lux, "  . ." °C, " . ." mV " ;
 
 : go
   bme-init bme-calib tsl-init
   begin
     led-off
     only-msi  rate 0 do stop1s loop  hsi-on
-    +adc adc-vcc -adc  tsl-data  bme-data bme-calc
+    +adc adc-vcc adc-temp -adc  tsl-data  bme-data bme-calc
     led-on
     debug if
       hwid hex. ." = " display cr 1 ms
     else
-      2 <pkt hwid u+> u14+>  4 0 do u+> loop pkt>rf rf-sleep
+      2 <pkt hwid u+> u14+>  5 0 do u+> loop pkt>rf rf-sleep
     then
   key? until ;
 
