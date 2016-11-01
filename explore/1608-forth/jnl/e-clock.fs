@@ -9,27 +9,27 @@ $40007000 constant PWR-CR
 
 : slow-usart1a
   1 RCC-CCIPR !  \ put USART1 on system clock
-  0 bit usart1-cr1 bic!
-  15 bit usart1-cr1 bis!  \ 8x iso 16x oversampling
+  0 bit USART1-CR1 bic!
+  15 bit USART1-CR1 bis!  \ 8x iso 16x oversampling
 \ 115200 2/ baud USART1-BRR !
   10 us
   34 USART1-BRR !
   10 us
-  0 bit usart1-cr1 bis!
+  0 bit USART1-CR1 bis!
 ;
 
 : slow-usart1b
 \ 0 RCC-CCIPR !  \ put USART1 on system clock
-  0 bit usart1-cr1 bic!
+  0 bit USART1-CR1 bic!
 \ 115200 baud USART1-BRR !
 \ 15000 baud USART1-BRR !
 \ 18 USART1-BRR !
 \ 19200 baud USART1-BRR !
   138 baud USART1-BRR !
-  0 bit usart1-cr1 bis!
+  0 bit USART1-CR1 bis!
 ;
 
-: hsi-off 0 bit RCC-CR bic! ;
+: only-msi 8 bit RCC-CR ! ;
 
 : wait-for-key begin sleep ( led iox! ) key? until ;
 : reduce rf69-init rf-sleep led-off 2.1MHz ;
@@ -37,12 +37,12 @@ $40007000 constant PWR-CR
 \ reduce systick at 65 KHz, else interrupts will eat up all the clock cycles
 \ this means micros/us/millis/ms will all work, but 100x slower than usual
 : slow reduce 65KHz 10 systick-hz ;
-: fast 2.1mhz 1000 systick-hz ;
+: fast 2.1MHz 1000 systick-hz ;
 
-: down   slow         wait-for-key            fast ;  \ 430 µA
-: lost   slow hsi-off wait-for-key            fast ;  \ 280 µA
-: snooze slow 6 1 do i . 10 ( *100 ) ms loop  fast ;  \ 440 µA
-: doze   slow hsi-off    50 ( *100 ) ms       fast ;  \ 50 µA
+: down   slow          wait-for-key           fast ;  \ 430 µA
+: lost   slow only-msi wait-for-key           fast ;  \ 200 µA
+: snooze slow 6 1 do i . 10 ( *100 ) ms loop  fast ;  \ 450 µA
+: doze   slow only-msi   50 ( *100 ) ms       fast ;  \ 50 µA (or 210?)
 
 : do-adc slow +adc adc-vcc . adc-temp . -adc  fast ;
 
