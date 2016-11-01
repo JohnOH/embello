@@ -5,7 +5,7 @@ cr cr reset
 \ include ../flib/i2c-stm32l0.fs
 \ include ../flib/bme280.fs
 
-\ assumes BME280 is present on PB6..PB7
+\ assumes that the BME280 sensor is connected to PB6..PB7
 
 : .2 ( n -- )  \ display value with two decimal points
   0 swap 0,01 f* 0,005 d+ 2 f.n ;

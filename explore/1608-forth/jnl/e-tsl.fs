@@ -5,7 +5,7 @@ cr cr reset
 \ include ../flib/i2c-stm32l0.fs
 \ include ../flib/tsl4531.fs
 
-\ assumes TSL4531 is present on PB6..PB7
+\ assumes that the TSL4531 sensor is connected to PB6..PB7
 
 : go
   tsl-init
