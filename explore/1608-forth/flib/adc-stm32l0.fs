@@ -41,7 +41,7 @@ $40012400 constant ADC1
 \ FIXME can't call this twice, recalibration will hang!
   9 bit RCC-APB2ENR bis!  \ set ADCEN
   adc-calib  1 ADC-CR !   \ perform calibration, then set ADEN to enable ADC
-  adc-once ;
+  adc-once drop ;
 
 : -adc ( -- ) 1 bit ADC-CR bis! 9 bit RCC-APB2ENR bic! ;
 

@@ -1,6 +1,7 @@
 \ exploring a self-contained sensor node
 \ needs core.fs
 cr cr reset
+cr
 
 \ assumes that the BME280 and TSL4531 sensors are connected to PB6..PB7
 
@@ -10,7 +11,7 @@ cr cr reset
 : go
   bme-init bme-calib tsl-init
   begin
-    only-msi stop1s stop1s stop1s hsi-on
+    only-msi stop1s hsi-on
     bme-data bme-calc  tsl-data  +adc adc-vcc -adc
     display cr 1 ms
   key? until ;
