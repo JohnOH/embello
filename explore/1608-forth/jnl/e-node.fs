@@ -4,7 +4,7 @@ cr cr reset
 cr
 
 1 constant debug  \ 0 = send RF packets, 1 = display on serial port
-10 constant rate  \ seconds between readings
+1 constant rate  \ seconds between readings
 
 \ -----------------------------------------------------------------------------
 \ variable-int encoding, turns 64-bit ints into 1..10 bytes
@@ -31,8 +31,8 @@ cr
 : u>> ( u -- ) pkt.ptr @ ! 4 pkt.ptr +! ;  \ append 32-bit value to packet
 : u14>> ( u -- ) $3FFF and u>> ;           \ append 14-bit value to packet
 
-: <pkt ( format -- ) pkt.buf pkt.ptr ! u>> ;
-: pkt>rf ( -- )  \ broadcast collected data as RF packet
+: <pkt ( format -- ) pkt.buf pkt.ptr ! u>> ;  \ start collecting values
+: pkt>rf ( -- )  \ broadcast the collected values as RF packet
   <v
     pkt.ptr @  begin  4 - dup @ u#v  dup pkt.buf u<= until  drop
   v> 0 rf-send ;
@@ -55,7 +55,7 @@ cr
     +adc adc-vcc -adc  tsl-data  bme-data bme-calc
     led-on
     debug if
-      display cr 1 ms
+      hwid hex. ." = " display cr 1 ms
     else
       2 <pkt hwid u>> u14>>  4 0 do u>> loop pkt>rf rf-sleep
     then
