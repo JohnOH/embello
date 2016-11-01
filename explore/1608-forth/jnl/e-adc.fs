@@ -13,8 +13,8 @@ imode-adc pa1 io-mode!
 +adc adc?
 
 : temp+vcc
-  cr micros adc-temp micros rot - . ." µs " . ." °C "
-  cr micros adc-vcc micros rot - . ." µs " . ." mV "
+  cr micros adc-temp micros rot - . ." µs: " . ." °C "
+  cr micros adc-vcc micros rot - . ." µs: " . ." mV "
 ;
 
 temp+vcc
