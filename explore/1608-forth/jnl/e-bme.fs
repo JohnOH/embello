@@ -13,11 +13,10 @@ cr cr reset
 : go
   bme-init bme-calib
   begin
+    500 ms
     cr
     micros bme-data bme-calc >r >r >r micros swap - . ." µs: " r> r> r>
     .2 ." °C " .2 ." hPa " .2 ." %RH "
-    500 ms
-    $30 i2c-tx drop i2c-stop  \ FIXME hangs with back-to-back accesses to $29!
   key? until ;
 
 +i2c i2c? i2c.

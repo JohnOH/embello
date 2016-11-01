@@ -15,6 +15,7 @@ include ../flib/timer-stm32l0.fs
 include ../flib/pwm-stm32l0.fs
 include ../flib/spi-stm32l0.fs
 include ../flib/i2c-stm32l0.fs
+include ../flib/sleep-stm32l0.fs
 
 \ PA4 variable ssel  \ can be changed at run time
 \ PA5 constant SCLK

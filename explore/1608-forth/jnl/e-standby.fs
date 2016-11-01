@@ -3,31 +3,16 @@
 cr cr reset
 cr
 
-$40007000 constant PWR
-      PWR $0 + constant PWR-CR
-      PWR $4 + constant PWR-CSR
-
-$40010400 constant EXTI
-     EXTI $00 + constant EXTI-IMR
-     EXTI $04 + constant EXTI-EMR
-\    EXTI $08 + constant EXTI-RTSR
-\    EXTI $0C + constant EXTI-FTSR
-\    EXTI $10 + constant EXTI-SWIER
-     EXTI $14 + constant EXTI-PR
-
-\ see https://developer.arm.com/docs/dui0662/latest/4-cortex-m0-peripherals/
-\                       43-system-control-block/436-system-control-register
-$E000ED10 constant SCR
-
-: wfe ( -- ) [ $BF20 h, ] inline ; \ WFE Opcode, enters sleep mode
+\ include ../flib/sleep-stm32l0.fs
 
 : standby ( -- )
-  1 bit PWR-CR bis!                     \ set PDDS for standby mode
-\ 0 bit PWR-CR bis!                     \ set LPSDSR
-\ 29 bit EXTI-IMR bic!                  \ clear IM29
-  29 bit EXTI-EMR bis!                  \ set EM29
-\ -1 EXTI-PR !                          \ clear all pending
-  2 bit SCR bis!                        \ set SLEEPDEEP
+  1 bit PWR-CR bis!     \ set PDDS for standby mode
+\ 0 bit PWR-CR bis!     \ set LPSDSR
+\ 29 bit EXTI-IMR bic!  \ clear IM29
+  29 bit EXTI-EMR bis!  \ set EM29
+\ -1 EXTI-PR !          \ clear all pending
+  2 bit SCR bis!        \ set SLEEPDEEP
+  wfe                   \ enter standby mode
 ;
 
 ( clock-hz ) clock-hz @ .
@@ -39,8 +24,8 @@ $E000ED10 constant SCR
 ( EXTI-EMR ) EXTI-EMR @ hex.
 ( EXTI-PR ) EXTI-PR @ hex.
 
-\ rf69-init rf-sleep
-led-off
-0 RCC-CCIPR !
+rf69-init rf-sleep
+led-off 2.1MHz
 
-standby wfe
+\ this causes folie to timeout on include matching, yet still starts running
+1234 ms only-msi standby

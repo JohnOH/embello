@@ -55,6 +55,8 @@ $40022000 constant FLASH
 : baud ( u -- u )  \ calculate baud rate divider, based on current clock rate
   clock-hz @ swap / ;
 
+: only-msi 8 bit RCC-CR ! ;  \ turn off HSI16, this'll disable the console UART
+
 : 65KHz ( -- )  \ set the main clock to 65 KHz, assume it was set to 2.1 MHz
   %111 13 lshift RCC-ICSCR bic!  65536 clock-hz ! ;
 
