@@ -3,7 +3,7 @@
 cr cr reset
 cr
 
-1 constant debug  \ 0 = send RF packets, 1 = display on serial port
+0 constant debug  \ 0 = send RF packets, 1 = display on serial port
 10 constant rate  \ seconds between readings
 
 \ -----------------------------------------------------------------------------
@@ -44,26 +44,34 @@ cr
 
 \ assumes that the BME280 and TSL4531 sensors are connected to PB6..PB7
 
-: display ( h p t l v -- )
-  . ." °Cx100, " . ." Pa, " . ." %RHx100, "  . ." lux, "  . ." °C, " . ." mV " ;
+: display ( vprev vcc tint lux humi pres temp -- )
+  hwid hex. ." = "
+  . ." °cC, " . ." Pa, " . ." %cRH, "  . ." lux, "  . ." °C, "
+  . ." => " . ." mV " ;
+
+: send-packet ( vprev vcc tint lux humi pres temp -- )
+  2 <pkt  hwid u+>  u14+> 6 0 do u+> loop  pkt>rf ;
 
 : go
   bme-init bme-calib tsl-init
-  begin
+  0  begin
     led-off
-    only-msi  rate 0 do stop1s loop  hsi-on
-    +adc adc-vcc adc-temp -adc  tsl-data  bme-data bme-calc
+    -adc only-msi  rate 0 do stop1s loop  hsi-on +adc
+
+    adc-vcc adc-temp
+    tsl-data  bme-data bme-calc
     led-on
     debug if
-      hwid hex. ." = " display cr 1 ms
+      display cr 1 ms
     else
-      2 <pkt hwid u+> u14+>  5 0 do u+> loop pkt>rf rf-sleep
+      send-packet rf-sleep
     then
-  key? until ;
+    adc-vcc
+  key? until  drop ;
 
 2.1MHz 1000 systick-hz
 
-8688 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
+8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
 rf69-init rf-sleep
 
 +lptim +i2c
