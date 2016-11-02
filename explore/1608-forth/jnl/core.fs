@@ -9,6 +9,7 @@ compiletoflash
 ( code start: ) here dup hex.
 
 include ../flib/rf69.fs
+include ../flib/varint.fs
 include ../flib/bme280.fs
 include ../flib/tsl4531.fs
 include ../mlib/multi.fs
