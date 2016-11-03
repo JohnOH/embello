@@ -4,6 +4,6 @@ include board.fs
 include core.fs
 include main.fs
 
-: inix init ( unattended ) main ;
+: init init unattended main ;
 
 ( flash end, ram free: ) here hex. compiletoram flashvar-here here - .

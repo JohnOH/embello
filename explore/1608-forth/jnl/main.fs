@@ -14,7 +14,7 @@
 
 : low-power-sleep
   rf-sleep
-  -adc only-msi
+  -adc \ only-msi
   rate 0 do stop1s loop
   hsi-on +adc ;
 
