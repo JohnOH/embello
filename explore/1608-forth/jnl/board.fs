@@ -1,8 +1,7 @@
 \ board definitions
 \ needs always.fs
 
-cr eraseflash
-cr
+eraseflash
 compiletoflash
 ( board start: ) here dup hex.
 

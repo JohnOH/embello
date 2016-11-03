@@ -1,9 +1,7 @@
 \ development code
-cr <<<core>>>
-cr
+
+<<<core>>>
 
 include main.fs
-
 ( ram free: ) flashvar-here here - .
-
 main

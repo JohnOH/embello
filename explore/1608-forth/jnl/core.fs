@@ -1,7 +1,6 @@
 \ core libraries
 
-cr <<<board>>>
-cr
+<<<board>>>
 compiletoflash
 ( core start: ) here dup hex.
 
