@@ -55,7 +55,7 @@ PA15 constant LED
 \ for use with a turnkey app in flash, i.e. ": init init unattended ... ;"
 
 : unattended
-  rx-connected? if ."  ok." cr quit then \ return to command prompt
+  rx-connected? if quit then \ return to command prompt
   ['] fake-key? hook-key? ! ;
 
 ( board end, size: ) here dup hex. swap - .

@@ -26,6 +26,8 @@
   bme-init bme-calib  tsl-init
 
   begin
+    led-off 
+
     adc-vcc                      ( vprev )
     low-power-sleep
     adc-vcc adc-temp             ( vprev vcc tint )
@@ -38,6 +40,4 @@
     else
       send-packet
     then
-
-    led-off 
   key? until ;

@@ -1,6 +1,6 @@
 \ development code
 
-reset
+<<<core>>>
 
 include main.fs
 
