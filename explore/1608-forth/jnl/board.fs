@@ -4,6 +4,7 @@
 cr eraseflash
 cr
 compiletoflash
+( board start: ) here dup hex.
 
 3 constant io-ports  \ A..C
 
@@ -41,5 +42,5 @@ PA15 constant LED
   1000 systick-hz
 ;
 
-( flash use: ) here hex.
-cornerstone <<<hal-jnl>>>
+( board end, size: ) here dup hex. swap - .
+cornerstone <<<board>>>

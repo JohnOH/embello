@@ -1,8 +1,4 @@
-\ exploring a self-contained sensor node
-\ needs core.fs
-cr cr reset
-cr
-
+\ application setup and main loop
 \ assumes that the BME280 and TSL4531 sensors are connected to PB6..PB7
 
 0 constant debug  \ 0 = send RF packets, 1 = display on serial port
@@ -16,30 +12,32 @@ cr
 : send-packet ( vprev vcc tint lux humi pres temp -- )
   2 <pkt  hwid u+>  u14+> 6 0 do u+> loop  pkt>rf ;
 
-: go
-  bme-init bme-calib tsl-init
+: low-power-sleep
+  rf-sleep
+  -adc only-msi
+  rate 0 do stop1s loop
+  hsi-on +adc ;
+
+: main
+  2.1MHz  1000 systick-hz  +lptim +i2c +adc
+
+  8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid ! rf69-init
+
+  bme-init bme-calib  tsl-init
+
   begin
-    adc-vcc
-
-    rf-sleep  -adc only-msi  rate 0 do stop1s loop  hsi-on +adc
-
-    adc-vcc adc-temp
-    tsl-data  bme-data bme-calc
+    adc-vcc                      ( vprev )
+    low-power-sleep
+    adc-vcc adc-temp             ( vprev vcc tint )
+    tsl-data  bme-data bme-calc  ( vprev vcc tint lux humi pres temp )
 
     led-on
+
     debug if
       display cr 1 ms
     else
       send-packet
     then
+
     led-off 
   key? until ;
-
-2.1MHz 1000 systick-hz
-
-8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid ! rf69-init
-
-+lptim +i2c +adc
-
-\ this causes folie to timeout on include matching, yet still starts running
-1234 ms go
