@@ -1,6 +1,11 @@
 \ hex output and dump utilities
 \ adapted from mecrisp 2.0.2 (GPL3)
 
+: .v ( ... -- ... )  \ view stack, this is a slightly cleaner version of .s
+  ." Stack#" depth . ." < "
+  -1 depth negate ?do sp@ i 2+ cells - @ . loop
+  ." >" cr ;
+
 : u.4 ( u -- ) 0 <# # # # # #> type ;
 : u.2 ( u -- ) 0 <# # # #> type ;
 

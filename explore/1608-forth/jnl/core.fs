@@ -1,20 +1,15 @@
 \ core libraries
-\ needs board.fs
-\ includes dev.fs
 
-cr <<<hal-jnl>>>
-cr
+<<<board>>>
 compiletoflash
-
-( code start: ) here dup hex.
+( core start: ) here dup hex.
 
 include ../flib/rf69.fs
 include ../flib/varint.fs
 include ../flib/bme280.fs
 include ../flib/tsl4531.fs
+include ../flib/tlv493.fs
 include ../mlib/multi.fs
 
-( flash use, code size: ) here dup hex. swap - .
-cornerstone <<<lib-jnl>>>
-
-include dev.fs
+( core end, size: ) here dup hex. swap - .
+cornerstone <<<core>>>

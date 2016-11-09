@@ -18,7 +18,7 @@
 
 : putpixel ( x y -- )  \ set a pixel in display memory
   1 over 7 and lshift ( x y bit ) -rot
-  3 rshift 7 lshift + lcdmem + bis! ;
+  3 rshift 7 lshift + lcdmem + cbis! ;
 
 : display ( -- )  \ update the oled from display memory
   $00 lcd!c  \ SETLOWCOLUMN

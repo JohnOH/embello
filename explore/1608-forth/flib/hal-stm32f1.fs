@@ -90,7 +90,7 @@ $40022000 constant FLASH
 : micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
 \ assumes systick is running at 1000 Hz, overhead is about 1.8 us @ 72 MHz
 \ get current ticks and systick, spinloops if ticks changed while we looked
-  0 dup  begin 2drop  ticks @ $E000E018 @  over ticks @ = until
+  begin ticks @ $E000E018 @ over ticks @ <> while 2drop repeat
   $E000E014 @ 1+ swap -  \ convert down-counter to remaining
   clock-hz @ 1000000 / ( ticks systicks mhz )
   / swap 1000 * + ;
