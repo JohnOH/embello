@@ -9,6 +9,8 @@ include ../flib/varint.fs
 include ../flib/bme280.fs
 include ../flib/tsl4531.fs
 include ../flib/tlv493.fs
+include ../flib/oled.fs
+include ../mlib/graphics.fs
 include ../mlib/multi.fs
 
 ( core end, size: ) here dup hex. swap - .

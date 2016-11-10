@@ -29,8 +29,8 @@ include ../flib/sleep-stm32l0.fs
 
 PA15 constant LED
 
-: led-on led ioc! ;
-: led-off led ios! ;
+: led-on LED ioc! ;
+: led-off LED ios! ;
 
 : init ( -- )  \ board initialisation
   $00 hex.empty !  \ empty flash shows up as $00 iso $FF on these chips
