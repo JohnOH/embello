@@ -112,7 +112,6 @@ decimal
   drop display ;
 
 : lcd-init ( -- )  \ initialise the oled display
-  +i2c
   $AE lcd!c  \ DISPLAYOFF
   $D5 lcd!c  \ SETDISPLAYCLOCKDIV
   $80 lcd!c
@@ -140,4 +139,4 @@ decimal
   $AF lcd!c  \ DISPLAYON
 ;
 
-\ lcd-init show-logo
+\ +i2c lcd-init show-logo
