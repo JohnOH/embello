@@ -4,7 +4,7 @@
 0 constant debug  \ 0 = send RF packets, 1 = display on serial port
 10 constant rate  \ seconds between readings
 
-: display ( vprev vcc tint lux humi pres temp -- )
+: show-readings ( vprev vcc tint lux humi pres temp -- )
   hwid hex. ." = "
   . ." °cC, " . ." Pa, " . ." %cRH, "
   . ." lux, "  . ." °C, " . ." => " . ." mV " ;
@@ -37,7 +37,7 @@
     led-on
 
     debug if
-      display cr 1 ms
+      show-readings cr 1 ms
     else
       send-packet
     then
