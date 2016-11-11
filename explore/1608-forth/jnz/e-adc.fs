@@ -5,10 +5,10 @@ cr cr reset
 \ include ../flib/adc-stm32l0.fs
 
 \ pin definitions: PA0 = 0V, PA1 = ADC in, PA2 = 3.3V
-\ works well for a trimpot inserted in a breadboard
- omode-pp pa0 io-mode!  pa0 ioc!
+\ works well with a trimpot inserted in a breadboard
+omode-pp  pa0 io-mode!  pa0 ioc!
 imode-adc pa1 io-mode!
- omode-pp pa2 io-mode!  pa2 ios!
+omode-pp  pa2 io-mode!  pa2 ios!
 
 +adc adc?
 
