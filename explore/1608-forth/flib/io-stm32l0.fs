@@ -17,6 +17,8 @@ $50000000 constant GPIO-BASE
 
 : bit ( u -- u )  \ turn a bit position into a single-bit mask
   1 swap lshift  1-foldable ;
+: bit! ( mask addr f -- )  \ set or clear specified bit(s)
+  if bis! else bic! then ;
 
 : io ( port# pin# -- pin )  \ combine port and pin into single int
   swap 8 lshift or  2-foldable ;
@@ -69,7 +71,9 @@ $50000000 constant GPIO-BASE
   over          over GPIO.OSPEEDR io-config
   over 2 rshift over GPIO.MODER   io-config
   over 4 rshift over GPIO.PUPDR   io-config
-  2drop ;  \ TODO open drain mode config
+  \ open drain mode config
+  dup io-mask swap io-base GPIO.OTYPER +
+  ( mode mask addr ) rot %1000000 and bit! ;
 
 : io. ( pin -- )  \ display readable GPIO registers associated with a pin
   cr
