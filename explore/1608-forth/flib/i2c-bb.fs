@@ -44,6 +44,9 @@
   128 0 do
     cr i h.2 ." :"
     16 0 do  space
-      i j +  dup i2c-rx i2c-stop  if drop ." --" else h.2 then
+      i j +
+      dup $08 < over $77 > or if 2 spaces else
+        dup i2c-tx i2c-stop  if drop ." --" else h.2 then
+      then
     loop
   16 +loop ;
