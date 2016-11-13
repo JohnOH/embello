@@ -45,7 +45,7 @@
     cr i h.2 ." :"
     16 0 do  space
       i j +
-      dup $08 < over $77 > or if 2 spaces else
+      dup $08 < over $77 > or if drop 2 spaces else
         dup i2c-tx i2c-stop  if drop ." --" else h.2 then
       then
     loop
