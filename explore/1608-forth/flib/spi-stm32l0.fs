@@ -1,6 +1,9 @@
 \ hardware SPI driver
 
-PA4  variable ssel   \ can be changed at run time
+[ifndef] ssel  PA4 variable ssel  [then]  \ can be changed at run time
+[ifndef] SCLK  PA5 constant SCLK  [then]
+[ifndef] MISO  PA6 constant MISO  [then]
+[ifndef] MOSI  PA7 constant MOSI  [then]
 
 $40013000 constant SPI1
      SPI1 $00 + constant SPI1-CR1
@@ -32,10 +35,11 @@ $40013000 constant SPI1
 : >spi ( c -- ) >spi> drop ;  \ write byte to SPI
 
 : spi-init ( -- )  \ set up hardware SPI
-  OMODE-PP ssel @ io-mode! -spi
-     OMODE-AF-PP PA5 io-mode!
-     OMODE-AF-PP PA6 io-mode!
-     OMODE-AF-PP PA7 io-mode!
+  OMODE-PP    ssel @ io-mode! -spi
+  OMODE-AF-PP SCLK   io-mode!
+  OMODE-AF-PP MISO   io-mode!
+  OMODE-AF-PP MOSI   io-mode!
+
   12 bit RCC-APB2ENR bis!  \ set SPI1EN
   %0000001101000100 SPI1-CR1 !  \ clk/2, i.e. 8 MHz, master
   SPI1-SR @ drop  \ appears to be needed to avoid hang in some cases

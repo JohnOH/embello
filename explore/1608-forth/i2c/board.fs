@@ -5,7 +5,7 @@ eraseflash
 compiletoflash
 ( board start: ) here dup hex.
 
-3 constant io-ports  \ A..C
+$77 constant BME.ADDR  \ due to solder jumper
 
 include ../mlib/cond.fs
 include ../mlib/hexdump.fs
@@ -14,12 +14,10 @@ include ../flib/hal-stm32l0.fs
 include ../flib/adc-stm32l0.fs
 include ../flib/timer-stm32l0.fs
 include ../flib/pwm-stm32l0.fs
+\ include ../flib/spi-bb.fs
 include ../flib/spi-stm32l0.fs
-include ../flib/i2c-stm32l0.fs
-
-\ PB6 constant SCL
-\ PB7 constant SDA
 \ include ../flib/i2c-bb.fs
+include ../flib/i2c-stm32l0.fs
 
 \ debug LEDs, connected to rightmost I/O pins on main header
 PA0  constant LED1

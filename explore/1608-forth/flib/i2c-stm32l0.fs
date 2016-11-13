@@ -1,5 +1,8 @@
 \ hardware i2c driver
 
+[ifndef] SCL  PB6 constant SCL  [then]
+[ifndef] SDA  PB7 constant SDA  [then]
+
 $40005400 constant I2C1
      I2C1 $00 + constant I2C1-CR1
      I2C1 $04 + constant I2C1-CR2
@@ -28,24 +31,23 @@ $40005400 constant I2C1
          ."  TXDR " dup @ h.2 space drop ;
 
 : +i2c ( -- )  \ initialise I2C hardware
-  OMODE-AF-OD PB6 io-mode!
-  OMODE-AF-OD PB7 io-mode!
+  OMODE-AF-OD SCL io-mode!
+  OMODE-AF-OD SDA io-mode!
 
-  \ TODO this messes up the settings of the other pins
+  \ TODO this assumes PB6+PB7 and messes up the settings of the other pins
   $11000000 PB6 io-base GPIO.AFRL + !
-      $00C0 PB6 io-base GPIO.OTYPER + h!
 
   21 bit RCC-APB1ENR bis!  \ set I2C1EN
   $00300619 I2C1-TIMINGR !
   0 bit I2C1-CR1 bis!  \ PE
 ;
 
-: nak? ( -- f ) 4 bit I2C1-ISR bit@ 0<> ;
+: ack-nak ( -- f ) 4 bit I2C1-ISR bit@ 0<> ;
 
 : i2c-start  ( -- f )
   24 bit 13 bit or I2C1-CR2 bis!  \ RELOAD, START
   begin 13 bit I2C1-CR2 bit@ 0= until  \ !START
-  nak?
+  ack-nak
 ;
 
 : i2c-stop  ( -- )
@@ -58,7 +60,7 @@ $40005400 constant I2C1
   16 bit I2C1-CR2 bis!  \ NBYTES = 1
   I2C1-TXDR h!
   begin 0 bit I2C1-ISR bit@ until  \ TXE
-  nak?
+  ack-nak
 ;
 
 : i2c> ( nak -- b )  \ read one byte

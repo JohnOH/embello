@@ -1,6 +1,9 @@
 \ bit-banged i2c driver
 \ adapted from http://excamera.com/sphinx/article-forth-i2c.html
 
+[ifndef] SCL  PB6 constant SCL  [then]
+[ifndef] SDA  PB7 constant SDA  [then]
+
 : +i2c ( -- )  \ initialise bit-banged I2C
   OMODE-PP SCL io-mode!
   OMODE-OD SDA io-mode!
