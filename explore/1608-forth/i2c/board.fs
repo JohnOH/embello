@@ -16,17 +16,29 @@ include ../flib/timer-stm32l0.fs
 include ../flib/pwm-stm32l0.fs
 include ../flib/spi-stm32l0.fs
 include ../flib/i2c-stm32l0.fs
-include ../flib/sleep-stm32l0.fs
-
-\ PA4 variable ssel  \ can be changed at run time
-\ PA5 constant SCLK
-\ PA6 constant MISO
-\ PA7 constant MOSI
-\ include ../flib/spi-bb.fs
 
 \ PB6 constant SCL
 \ PB7 constant SDA
 \ include ../flib/i2c-bb.fs
+
+\ debug LEDs, connected to rightmost I/O pins on main header
+PA0  constant LED1
+PA1  constant LED2
+PA2  constant LED3
+PA3  constant LED4
+PA11 constant LED5
+PA12 constant LED6
+
+: debug-pwm
+\ FIXME set alt function #2 on all PWM pins, should be moved inside pwm driver
+  $00002222 LED1 io-base GPIO.AFRL + !
+
+  \ various duty cycles at 2 Hz
+  2 LED1 +pwm   500 LED1 pwm
+  2 LED2 +pwm  3500 LED2 pwm
+  2 LED3 +pwm  6500 LED3 pwm
+  2 LED4 +pwm  9500 LED4 pwm
+;
 
 PA15 constant LED
 
@@ -38,7 +50,7 @@ PA15 constant LED
   OMODE-PP LED io-mode!
 \ 16MHz ( set by Mecrisp on startup to get an accurate USART baud rate )
   2 RCC-CCIPR !  \ set USART1 clock to HSI16, independent of sysclk
-  flash-kb . ." KB <jnl> " hwid hex. ." ok." cr
+  flash-kb . ." KB <i2c> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 

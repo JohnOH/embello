@@ -1,9 +1,11 @@
 \ read out the BME280 sensor
 \ needs i2c
 
+[ifndef] BME.ADDR  $76 constant BME.ADDR  [then]
+
 : bme-init ( -- )
   +i2c
-  $76 i2c-tx drop
+  BME.ADDR i2c-tx drop
   $F2 >i2c drop %1 >i2c drop
   $F4 >i2c drop %100111 >i2c drop
   $F5 >i2c drop %10100000 >i2c drop
@@ -14,9 +16,9 @@
 0 variable tfine   \ used for p & h compensation
 
 : bme-rd ( reg -- )
-  $76 i2c-tx drop
+  BME.ADDR i2c-tx drop
   >i2c drop i2c-stop
-  $76 i2c-rx drop ;
+  BME.ADDR i2c-rx drop ;
 
 : bme-i2c+ ( addr nak -- addr+1 ) i2c> over c! 1+ ;
 
