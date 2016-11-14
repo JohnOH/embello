@@ -1,7 +1,7 @@
 \ application setup and main loop
 \ detect and list all attached I2C devices periodically
 
-1 constant DEBUG  \ 0 = show on LCD, 1 = show on serial
+0 constant DEBUG  \ 0 = show on LCD, 1 = show on serial
 
 : lcd-emit ( c -- )
   dup $0A = if drop
@@ -17,7 +17,7 @@
 
 : i2c.lcd ( -- )  \ scan and report all I2C devices on the bus
   128 0 do
-    [ DEBUG 0= ] [if]  i 0= if clear then  [else]  cr i h.2 ." : "  [then]
+    [ DEBUG ] [if]  cr i h.2 ." : "  [else]  i if cr then  [then]
     
     16 0 do
       i j +
@@ -28,13 +28,14 @@
   16 +loop ;
 
 : main
-  +i2c debug-pwm
-  [ DEBUG 0= ] [if]  lcd-init  ['] lcd-emit hook-emit !  [then]
+  debug-pwm  +i2c lcd-init
+  [ DEBUG 0= ] [if]  ['] lcd-emit hook-emit !  [then]
 
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
   rf69-init 16 rf-power rf-sleep
 
   begin
-    i2c.lcd display
+    cr 0 font-x ! 0 font-y ! clear i2c.lcd display
     1000 ms
-  key? until ;
+  key? until
+  ['] serial-emit hook-emit ! ;
