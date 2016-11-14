@@ -7,28 +7,38 @@ cr cr reset
 
 100 buffer: i2c.buf
  0 variable i2c.ptr
- 0 variable i2c.hdr
 
 : i2c-reset ( -- )  i2c.buf i2c.ptr ! ;
 
-: i2c-addr ( u -- )  shl i2c.hdr c!  i2c-reset ;
+: i2c-addr ( u -- )  shl I2C1-CR2 !  i2c-reset ;
 
 : i2c++ ( -- addr )  i2c.ptr @  1 i2c.ptr +! ;
 
 : >i2c ( u -- ) i2c++ c! ;
 : i2c> ( -- u ) i2c++ c@ ;
 
-: n>i2c ( u -- )
-  drop
+: i2c-start ( rd -- )
+  if 10 bit I2C1-CR2 bis! then  \ RD_WRN
+  13 bit I2C1-CR2 bis!  \ START
+  begin 13 bit I2C1-CR2 bit@ 0= until  \ wait !START
 ;
 
-: i2c>n ( u -- )
-  drop
-;
+: i2c-setn ( u -- )  \ prepare for N-byte transfer and reset buffer pointer
+  16 lshift $FF00FFFF I2C1-CR2 bit@ or I2C1-CR2 !  i2c-reset ;
+  
+: n>i2c ( u -- )  \ send N bytes to the I2C interface
+  i2c-setn
+  begin
+    begin 1 bit I2C1-ISR bit@ until  \ wait TXIS
+    i2c> I2C1-TXDR c!
+  again ;
 
-: i2c-txrx ;
-: i2c-tx ;
-: i2c-rx ;
+: i2c>n ( u -- )  \ receive N bytes from the I2C interface
+  i2c-setn
+  begin
+    begin 2 bit I2C1-ISR bit@ until  \ wait RXNE
+    I2C1-RXDR c@ >i2c
+  again ;
 
 \ there are 4 cases:
 \   tx>0 rx>0 : START - tx - RESTART - rx - STOP
@@ -36,22 +46,22 @@ cr cr reset
 \   tx=0 rx>0 : START - rx - STOP
 \   tx=0 rx=0 : START - STOP          (used for presence detection)
 
-: i2c-xfer ( u -- f )
+: i2c-xfer ( u -- nak )
   i2c.ptr @ i2c.buf - ?dup if
-    n>i2c
-    ?dup if
-      i2c-txrx \ tx>0 rx>0
-    else
-      i2c-tx \ tx>0 rx=0
+    0 i2c-start n>i2c
+    ?dup if  \ tx>0 rx>0
+      1 i2c-start i2c>n
+    else  \ tx>0 rx=0
     then
+    i2c-stop
   else
-    ?dup if
-      i2c-rx \ tx=0 rx>0
-    else
-      i2c-tx \ tx=0 rx=0
+    ?dup if  \ tx=0 rx>0
+      1 i2c-start i2c>n
+    else  \ tx=0 rx=0
     then
+    i2c-stop
   then
-  i2c-reset ;
+  i2c-reset ack-nak ;
 
 \ assumes that the VEML6040 sensor is connected to PB6..PB7
 
