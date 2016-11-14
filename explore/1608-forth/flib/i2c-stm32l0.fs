@@ -47,14 +47,13 @@ $40005400 constant I2C1
 ;
 
 : i2c-stop  ( -- )
-  24 bit I2C1-CR2 bic!  \ !RELOAD
   14 bit I2C1-CR2 bis!  \ STOP
   begin 15 bit I2C1-ISR bit@ 0= until  \ !BUSY
 ;
 
 : >i2c ( b -- nak )  \ send one byte
   16 bit I2C1-CR2 bis!  \ set NBYTES to 1
-  I2C1-TXDR h!
+  I2C1-TXDR c!
   begin 7 bit I2C1-ISR bit@ until  \ TCR
   ack-nak ;
 
@@ -62,7 +61,7 @@ $40005400 constant I2C1
   16 bit I2C1-CR2 bis!  \ NBYTES = 1
   if 14 bit I2C1-CR2 bis! then  \ STOP
   begin 7 bit I2C1-ISR bit@ until  \ TCR
-  I2C1-RXDR h@ ;
+  I2C1-RXDR c@ ;
 
 : i2c-rxtx ( addr rw -- f )
   9 lshift or shl $01012000  or I2C1-CR2 !

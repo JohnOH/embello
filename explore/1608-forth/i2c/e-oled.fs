@@ -4,9 +4,9 @@
 <<<core>>>
 compiletoflash
 
-\ include ../flib/i2c-stm32l0.fs
-\ include ../flib/oled.fs
-\ include ../mlib/graphics.fs
+include ../flib/i2c-stm32l0.fs
+include ../flib/oled.fs
+include ../mlib/graphics.fs
 
 \ assumes that the OLED is connected to PB6..PB7
 

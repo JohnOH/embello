@@ -1,9 +1,7 @@
 \ VEML6040 readout over I2C experiment
 \ needs core.fs
 cr cr reset
-cr
 
-\ include ../flib/i2c-bb.fs
 include ../flib/i2c-stm32l0.fs
 \ include ../flib/veml6040.fs
 
@@ -45,13 +43,13 @@ include ../flib/i2c-stm32l0.fs
 \ this causes folie to timeout on include matching, yet still starts running
 \ 1234 ms go
 
-: c
+: conf
   $10 i2c-tx drop
   $00 >i2c drop
   $00 >i2c drop
   $00 >i2c drop
   i2c-stop ;
-: d ( reg -- )
+: reg ( reg -- )
   $10 i2c-tx drop
   >i2c drop
 \ i2c-start
@@ -59,6 +57,6 @@ include ../flib/i2c-stm32l0.fs
   $10 i2c-rx drop
   0 i2c> 1 i2c> i2c-stop
   8 lshift or . ;
-: e $08 d $09 d $0A d $0B d ;
+: rd $08 reg $09 reg $0A reg $0B reg ;
 
-c e
+conf rd
