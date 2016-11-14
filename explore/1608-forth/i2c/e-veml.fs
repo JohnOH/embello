@@ -29,7 +29,8 @@ cr cr reset
 : n>i2c ( u -- )  \ send N bytes to the I2C interface
   i2c-setn
   begin
-    begin 1 bit I2C1-ISR bit@ until  \ wait TXIS
+    begin 0 bit I2C1-ISR bit@ until  \ wait TXE
+    6 bit I2C1-ISR bit@ if exit then  \ until TC
     i2c> I2C1-TXDR c!
   again ;
 
@@ -87,4 +88,6 @@ cr cr reset
 i2c.buf 100 0 fill
 
 \ this causes folie to timeout on include matching, yet still starts running
-1234 ms go
+\ 1234 ms go
+
+veml-init veml-data . . . .
