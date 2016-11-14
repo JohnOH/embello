@@ -44,42 +44,33 @@ $40005400 constant I2C1
 
 : ack-nak ( -- f ) 4 bit I2C1-ISR bit@ 0<> ;
 
-: i2c-start  ( -- f )
-  24 bit 13 bit or I2C1-CR2 bis!  \ RELOAD, START
-  begin 13 bit I2C1-CR2 bit@ 0= until  \ !START
-  ack-nak
-;
-
 : i2c-stop  ( -- )
   24 bit I2C1-CR2 bic!  \ RELOAD
   14 bit I2C1-CR2 bis!  \ STOP
-  begin 15 bit I2C1-ISR bit@ 0= until  \ !BUSY
+\ begin 15 bit I2C1-ISR bit@ 0= until  \ !BUSY
 ;
 
 : >i2c ( b -- nak )  \ send one byte
-  16 bit I2C1-CR2 bis!  \ NBYTES = 1
+  16 bit I2C1-CR2 bis!  \ set NBYTES to 1
+\ 24 bit I2C1-CR2 bis!  \ RELOAD
   I2C1-TXDR h!
-  begin 0 bit I2C1-ISR bit@ until  \ TXE
+  begin I2C1-ISR @ 0 bit and until
   ack-nak
+  5 us
 ;
 
 : i2c> ( nak -- b )  \ read one byte
-  if
-    25 bit  \ AUTOEND
-  else
-    24 bit  \ RELOAD
-  then
-  16 bit or \ set NBYTES to 1
-  I2C1-CR2 dup h@ swap !
-  begin 2 bit I2C1-ISR bit@ until  \ RXNE
+  16 bit I2C1-CR2 bis!  \ NBYTES = 1
+  begin I2C1-ISR @ 7 bit and until
   I2C1-RXDR h@
-;
+  swap if i2c-stop then ;
 
 : i2c-rxtx ( addr rw -- f )
   0 bit I2C1-CR1 bic!  \ clear PE to reset line state
   0 bit I2C1-CR1 bis!  \ set PE
-  9 lshift or shl I2C1-CR2 !
-  i2c-start ;
+  9 lshift or shl $01012000  or I2C1-CR2 !
+  begin 13 bit I2C1-CR2 bit@ 0= until
+  ack-nak ;
 
 : i2c-tx ( addr -- nak ) 0 i2c-rxtx ;  \ start device send
 : i2c-rx ( addr -- nak ) 1 i2c-rxtx ;  \ start device receive
