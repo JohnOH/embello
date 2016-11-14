@@ -3,8 +3,6 @@
 cr cr reset
 cr
 
-\ PB6 constant SCL
-\ PB7 constant SDA
 \ include ../flib/i2c-bb.fs
 include ../flib/i2c-stm32l0.fs
 \ include ../flib/veml6040.fs
@@ -24,7 +22,7 @@ include ../flib/i2c-stm32l0.fs
 ;
 
 : veml-rd ( reg -- val )
-  $10 i2c-tx drop >i2c drop i2c-start drop 0 i2c> 1 i2c> \ i2c-stop
+  $10 i2c-tx drop >i2c drop $10 i2c-rx drop 0 i2c> 1 i2c> \ i2c-stop
   8 lshift or ;
 
 : veml-data
@@ -42,7 +40,7 @@ include ../flib/i2c-stm32l0.fs
     $30 i2c-tx drop i2c-stop  \ FIXME hangs with back-to-back accesses to $29!
   key? until ;
 
-+i2c 100 ms i2c? i2c.
++i2c 100 ms i2c? \ i2c.
 
 \ $30 i2c-tx drop i2c-stop
 \ 100 ms
@@ -56,4 +54,19 @@ include ../flib/i2c-stm32l0.fs
 
 : a $10 i2c-tx drop $00 >i2c drop           i2c-stop ;
 : b $11 i2c-tx drop                         i2c-stop ;
-: c $11 i2c-tx drop i2c-start drop 1 i2c> . i2c-stop ;
+: c
+  $10 i2c-tx drop
+  $00 >i2c drop
+  $00 >i2c drop
+  $00 >i2c drop
+  i2c-stop ;
+: d
+  $10 i2c-tx drop
+  $0B >i2c drop
+  i2c-stop
+  $10 i2c-rx drop
+  0 i2c> .
+  1 i2c> .
+  i2c-stop ;
+
+c
