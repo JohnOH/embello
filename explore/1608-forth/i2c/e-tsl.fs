@@ -14,7 +14,6 @@ cr cr reset
     cr
     micros tsl-data micros rot - . ." µs: "
     . ." lux "
-    $30 i2c-tx drop i2c-stop  \ FIXME hangs with back-to-back accesses to $29!
   key? until ;
 
 +i2c i2c? i2c.
