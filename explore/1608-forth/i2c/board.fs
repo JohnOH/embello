@@ -19,25 +19,6 @@ include ../flib/spi-stm32l0.fs
 \ include ../flib/i2c-bb.fs
 include ../flib/i2c-stm32l0.fs
 
-\ debug LEDs, connected to rightmost I/O pins on main header
-PA0  constant LED1
-PA1  constant LED2
-PA2  constant LED3
-PA3  constant LED4
-PA11 constant LED5
-PA12 constant LED6
-
-: debug-pwm
-\ FIXME set alt function #2 on all PWM pins, should be moved inside pwm driver
-  $00002222 LED1 io-base GPIO.AFRL + !
-
-  \ various duty cycles at 2 Hz
-  2 LED1 +pwm   500 LED1 pwm
-  2 LED2 +pwm  3500 LED2 pwm
-  2 LED3 +pwm  6500 LED3 pwm
-  2 LED4 +pwm  9500 LED4 pwm
-;
-
 PA15 constant LED
 
 : led-on LED ioc! ;
