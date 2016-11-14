@@ -42,18 +42,9 @@ include ../flib/i2c-stm32l0.fs
 
 +i2c 100 ms i2c? \ i2c.
 
-\ $30 i2c-tx drop i2c-stop
-\ 100 ms
-\ 1 ms
-\ $31 i2c-tx drop i2c-stop
-\ 
-\ veml-init
-\ 
 \ this causes folie to timeout on include matching, yet still starts running
 \ 1234 ms go
 
-: a $10 i2c-tx drop $00 >i2c drop           i2c-stop ;
-: b $11 i2c-tx drop                         i2c-stop ;
 : c
   $10 i2c-tx drop
   $00 >i2c drop
@@ -66,9 +57,8 @@ include ../flib/i2c-stm32l0.fs
 \ i2c-start
   i2c-stop
   $10 i2c-rx drop
-  0 i2c> .
-  1 i2c> .
-  i2c-stop ;
+  0 i2c> 1 i2c> i2c-stop
+  8 lshift or . ;
 : e $08 d $09 d $0A d $0B d ;
 
-c
+c e
