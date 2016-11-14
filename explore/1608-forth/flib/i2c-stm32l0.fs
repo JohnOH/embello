@@ -46,22 +46,23 @@ $40005400 constant I2C1
   4 bit I2C1-ISR bit@ 0<>  \ NAKF
 ;
 
+: wait-tcr ( -- )
+  16 bit I2C1-CR2 bis!  \ NBYTES = 1
+  begin 7 bit I2C1-ISR bit@ until  \ TCR
+;
+
 : i2c-stop  ( -- )
   14 bit I2C1-CR2 bis!  \ STOP
   begin 15 bit I2C1-ISR bit@ 0= until  \ !BUSY
 ;
 
 : >i2c ( b -- nak )  \ send one byte
-  16 bit I2C1-CR2 bis!  \ set NBYTES to 1
-  I2C1-TXDR c!
-  begin 7 bit I2C1-ISR bit@ until  \ TCR
+  I2C1-TXDR c! wait-tcr
   ack-nak ;
 
 : i2c> ( nak -- b )  \ read one byte
-  16 bit I2C1-CR2 bis!  \ NBYTES = 1
   if 14 bit I2C1-CR2 bis! then  \ STOP
-  begin 7 bit I2C1-ISR bit@ until  \ TCR
-  I2C1-RXDR c@ ;
+  wait-tcr I2C1-RXDR c@ ;
 
 : i2c-rxtx ( addr rw -- f )
   9 lshift or shl $01012000  or I2C1-CR2 !
