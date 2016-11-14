@@ -17,7 +17,7 @@
 
 : i2c.lcd ( -- )  \ scan and report all I2C devices on the bus
   128 0 do
-    [ DEBUG ] [if]  cr i h.2 ." : "  [else]  i if cr then  [then]
+    DEBUG if  cr i h.2 ." : "  else  i if cr then  then
     
     16 0 do
       i j +
@@ -29,7 +29,7 @@
 
 : main
   debug-pwm  +i2c lcd-init
-  [ DEBUG 0= ] [if]  ['] lcd-emit hook-emit !  [then]
+  DEBUG 0= if  ['] lcd-emit hook-emit !  then
 
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
   rf69-init 16 rf-power rf-sleep
@@ -38,4 +38,5 @@
     cr 0 font-x ! 0 font-y ! clear i2c.lcd display
     1000 ms
   key? until
+
   ['] serial-emit hook-emit ! ;
