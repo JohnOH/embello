@@ -60,13 +60,15 @@ include ../flib/i2c-stm32l0.fs
   $00 >i2c drop
   $00 >i2c drop
   i2c-stop ;
-: d
+: d ( reg -- )
   $10 i2c-tx drop
-  $0B >i2c drop
+  >i2c drop
+\ i2c-start
   i2c-stop
   $10 i2c-rx drop
   0 i2c> .
   1 i2c> .
   i2c-stop ;
+: e $08 d $09 d $0A d $0B d ;
 
 c
