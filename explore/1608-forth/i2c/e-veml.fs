@@ -29,7 +29,7 @@ cr cr reset
   
 : i2c-wr ( -- )  \ send bytes to the I2C interface
   begin
-    5 us
+    100 0 do loop \ 5 us
     begin %111001 I2C1-ISR bit@ until  \ wait for TC, STOPF, NACKF, or TXE
   6 bit I2C1-ISR bit@ not while  \ while !TC
     i2c> I2C1-TXDR !
@@ -37,7 +37,7 @@ cr cr reset
 
 : i2c-rd ( -- )  \ receive bytes from the I2C interface
   begin
-    5 us
+    100 0 do loop \ 5 us
     begin %111100 I2C1-ISR bit@ until  \ wait for TC, STOPF, NACKF, or RXNE
   6 bit I2C1-ISR bit@ not while  \ while !TC
     I2C1-RXDR @ >i2c
