@@ -13,6 +13,8 @@ The **Fo**rth **Li**ve **E**xplorer is a serial terminal interface for [Mecrisp 
 * firmware uploads: allows erasing an STM32F1 chip and uploading new firmware
 * the default baud rate is 115200, see `folie -help` for a list of options
 
+> Note: there's a new [Folie v2][F2] in development (work-in-progress for now).
+
 ### Installation
 
 The latest binaries can be found in the release area on [GitHub][GH].  
@@ -89,3 +91,4 @@ MIT, see also [chzyer/readline][LR] and [tarm/serial][LS] included in this app.
   [LR]: https://github.com/chzyer/readline/blob/v1.2/LICENSE
   [LS]: https://github.com/tarm/serial/blob/master/LICENSE
   [EL]: https://github.com/jeelabs/esp-link
+  [F2]: https://github.com/jeelabs/folie
