@@ -42,7 +42,7 @@ PA12 constant LED6
     16 0 do
       i j +
       dup $08 < over $77 > or if drop space else
-        dup i2c-tx i2c-stop  if drop ." -" else h.1 then
+        dup i2c-addr  0 i2c-xfer  if drop ." -" else h.1 then
       then
     loop
   16 +loop ;
