@@ -58,7 +58,6 @@ $40005400 constant I2C1
   $3F38 I2C1-ICR !  \ clear all flags
   if 10 bit I2C1-CR2 bis! then  \ RD_WRN
   13 bit I2C1-CR2 bis!  \ START
-\ begin 13 bit I2C1-CR2 bit@ not until  \ wait for !START
 ;
 
 : i2c-stop  ( -- )
@@ -71,18 +70,18 @@ $40005400 constant I2C1
   
 : i2c-wr ( -- )  \ send bytes to the I2C interface
   begin
-    200 0 do loop \ 5 us
     begin %111001 I2C1-ISR bit@ until  \ wait for TC, STOPF, NACKF, or TXE
   6 bit I2C1-ISR bit@ not while  \ while !TC
     i2c> I2C1-TXDR c!
+    200 0 do loop \ 5 us
   repeat ;
 
 : i2c-rd ( -- )  \ receive bytes from the I2C interface
   begin
-    200 0 do loop \ 5 us
     begin %111100 I2C1-ISR bit@ until  \ wait for TC, STOPF, NACKF, or RXNE
   6 bit I2C1-ISR bit@ not while  \ while !TC
     I2C1-RXDR c@ >i2c
+    200 0 do loop \ 5 us
   repeat ;
 
 \ there are 4 cases:
