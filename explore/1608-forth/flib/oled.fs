@@ -23,9 +23,9 @@
   $10 lcd!c  \ SETHIGHCOLUMN
   $40 lcd!c  \ SETSTARTLINE
 
-  lcdmem  64 0 do  \ send as a number of 16-byte data messages
+  lcdmem  16 0 do  \ send as a number of 64-byte data messages
     $3C i2c-addr $40 >i2c 
-    16 0 do  dup c@ >i2c  1+ loop
+    64 0 do  dup c@ >i2c  1+ loop
     0 i2c-xfer drop
   loop drop ;
 
