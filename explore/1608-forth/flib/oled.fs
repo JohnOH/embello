@@ -1,10 +1,8 @@
 \ interface to 128x64 OLED
 \ uses i2c
 
-: nak? ( nak -- ) if ." nak " then ;
-
 : lcd!c ( v -- )  \ send a command to the lcd
-  $3C i2c-tx nak? $00 >i2c nak? >i2c nak? i2c-stop ;
+  $3C i2c-addr  $00 >i2c >i2c  0 i2c-xfer drop ;
 
 \ the oled's display memory buffer is set up as 8 rows of 128 bytes
 \ each byte is 8 pixels down, from b0 at the top to b7 at the bottom
@@ -26,9 +24,9 @@
   $40 lcd!c  \ SETSTARTLINE
 
   lcdmem  64 0 do  \ send as a number of 16-byte data messages
-    $3C i2c-tx nak? $40 >i2c nak?
-    16 0 do  dup c@ >i2c nak?  1+  loop
-    i2c-stop
+    $3C i2c-addr $40 >i2c 
+    16 0 do  dup c@ >i2c  1+ loop
+    0 i2c-xfer drop
   loop drop ;
 
 create logo  \ 64x64 pixels
@@ -112,6 +110,7 @@ decimal
   drop display ;
 
 : lcd-init ( -- )  \ initialise the oled display
+  +i2c
   $AE lcd!c  \ DISPLAYOFF
   $D5 lcd!c  \ SETDISPLAYCLOCKDIV
   $80 lcd!c
@@ -139,4 +138,4 @@ decimal
   $AF lcd!c  \ DISPLAYON
 ;
 
-\ +i2c lcd-init show-logo
+\ lcd-init show-logo
