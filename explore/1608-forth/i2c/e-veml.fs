@@ -18,28 +18,30 @@ cr cr reset
 : i2c> ( -- u ) i2c++ c@ ;
 
 : i2c-start ( rd -- )
+  $3F38 I2C1-ICR !  \ clear all flags
   if 10 bit I2C1-CR2 bis! then  \ RD_WRN
   13 bit I2C1-CR2 bis!  \ START
-  begin 13 bit I2C1-CR2 bit@ 0= until  \ wait !START
+\ begin 13 bit I2C1-CR2 bit@ 0= until  \ wait !START
 ;
 
 : i2c-setn ( u -- )  \ prepare for N-byte transfer and reset buffer pointer
-  16 lshift $FF00FFFF I2C1-CR2 bit@ or I2C1-CR2 !  i2c-reset ;
+  16 lshift I2C1-CR2 @ $FF00FFFF and or I2C1-CR2 !  i2c-reset ;
   
-: n>i2c ( u -- )  \ send N bytes to the I2C interface
-  i2c-setn
+: i2c-wr ( -- )  \ send bytes to the I2C interface
+  ." N> " i2c? cr
   begin
-    begin 0 bit I2C1-ISR bit@ until  \ wait TXE
-    6 bit I2C1-ISR bit@ if exit then  \ until TC
-    i2c> I2C1-TXDR c!
-  again ;
+    begin I2C1-ISR @ %111001 and until  \ wait TC, STOPF, NACKF, or TXE
+  1 bit I2C1-ISR bit@ while  \ while TXIS
+    i2c> I2C1-TXDR !
+  repeat ;
 
-: i2c>n ( u -- )  \ receive N bytes from the I2C interface
-  i2c-setn
+: i2c-rd ( -- )  \ receive bytes from the I2C interface
+  ." N< " i2c? cr
   begin
-    begin 2 bit I2C1-ISR bit@ until  \ wait RXNE
-    I2C1-RXDR c@ >i2c
-  again ;
+    begin I2C1-ISR @ %111100 and until  \ wait TC, STOPF, NACKF, or RXNE
+  2 bit I2C1-ISR bit@ while  \ while RXNE
+    I2C1-RXDR @ >i2c
+  repeat ;
 
 \ there are 4 cases:
 \   tx>0 rx>0 : START - tx - RESTART - rx - STOP
@@ -49,20 +51,25 @@ cr cr reset
 
 : i2c-xfer ( u -- nak )
   i2c.ptr @ i2c.buf - ?dup if
-    0 i2c-start n>i2c
-    ?dup if  \ tx>0 rx>0
-      1 i2c-start i2c>n
-    else  \ tx>0 rx=0
-    then
-    i2c-stop
+    i2c-setn  0 i2c-start  i2c-wr  \ tx>0
   else
-    ?dup if  \ tx=0 rx>0
-      1 i2c-start i2c>n
-    else  \ tx=0 rx=0
-    then
-    i2c-stop
+    dup 0= if 0 i2c-start then  \ tx=0 rx=0
   then
-  i2c-reset ack-nak ;
+  ?dup if
+    i2c-setn  1 i2c-start  i2c-rd  \ rx>0
+  then
+  i2c-stop ack-nak i2c-reset ;
+
+: i2c. ( -- )  \ scan and report all I2C devices on the bus
+  128 0 do
+    cr i h.2 ." :"
+    16 0 do  space
+      i j +
+      dup $08 < over $77 > or if drop 2 spaces else
+        dup i2c-addr  0 i2c-xfer  if drop ." --" else h.2 then
+      then
+    loop
+  16 +loop ;
 
 \ assumes that the VEML6040 sensor is connected to PB6..PB7
 
@@ -84,10 +91,10 @@ cr cr reset
     ." w: " .  ." b: " .  ." g: " .  ." r: " .
   key? until ;
 
-+i2c 100 ms i2c? \ i2c.
++i2c 100 ms i2c? i2c.
 i2c.buf 100 0 fill
 
 \ this causes folie to timeout on include matching, yet still starts running
 \ 1234 ms go
 
-veml-init veml-data . . . .
+cr veml-init veml-data . . . .
