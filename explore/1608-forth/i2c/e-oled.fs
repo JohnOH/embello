@@ -1,6 +1,6 @@
 \ show logo on an OLED attached via I2C
 
-\ these three includes won't fit in ram
+\ these includes won't all fit in ram
 <<<core>>>
 compiletoflash
 

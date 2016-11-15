@@ -37,7 +37,8 @@ PA12 constant LED6
 
 : i2c.short ( -- )  \ scan and report all I2C devices on the bus, short format
   128 0 do
-    DEBUG if  cr i h.2 ." : "  else  i if cr then  then
+    DEBUG i or if cr then
+    i h.2 ." : "
     
     16 0 do
       i j +
@@ -48,7 +49,7 @@ PA12 constant LED6
   16 +loop ;
 
 : main
-  leds-pwm  +i2c lcd-init show-logo
+  leds-pwm  lcd-init show-logo
   DEBUG 0= if  ['] lcd-emit hook-emit !  then
 
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
@@ -59,4 +60,4 @@ PA12 constant LED6
     cr 0 font-x ! 0 font-y ! clear i2c.short display
   key? until
 
-  ['] serial-emit hook-emit ! ;
+  ['] serial-emit hook-emit !  show-logo ;

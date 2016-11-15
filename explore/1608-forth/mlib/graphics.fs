@@ -5,9 +5,7 @@
 \ : putpixel ( x y -- ) ;
 \ : display ( -- ) ;
 
-\ -------------------------------------------------------------
 \  Bresenham line
-\ -------------------------------------------------------------
 
 0 variable line-x1   0 variable line-y1
 0 variable line-sx   0 variable line-sy
@@ -33,9 +31,7 @@
   2drop
 ;
 
-\ -------------------------------------------------------------
 \  Bresenham ellipse
-\ -------------------------------------------------------------
 
 0 variable ellipse-xm   0 variable ellipse-ym
 0 variable ellipse-dx   0 variable ellipse-dy
@@ -88,158 +84,138 @@
 
 : circle ( xm ym r -- ) dup ellipse ;
 
-\ -------------------------------------------------------------
-\ Artwork for 8x8 Bitmap Font, taken mostly from Commodore C64
-\ -------------------------------------------------------------
+\ 5x7 bitmap font, display on a 6x8 grid
 
-hex
-create font
-
-0000 h, 0000 h, 0000 h, 0000 h,  \ 32: Space
-1818 h, 1818 h, 0000 h, 0018 h,  \ 33 !
-6666 h, 0066 h, 0000 h, 0000 h,  \ 34 "
-6666 h, 66FF h, 66FF h, 0066 h,  \ 35 #
-3E18 h, 3C60 h, 7C06 h, 0018 h,  \ 36 $
-6662 h, 180C h, 6630 h, 0046 h,  \ 37 %
-663C h, 383C h, 6667 h, 003F h,  \ 38 &
-1818 h, 0018 h, 0000 h, 0000 h,  \ 39 '  (*)
-180C h, 3030 h, 1830 h, 000C h,  \ 40 (
-1830 h, 0C0C h, 180C h, 0030 h,  \ 41 )
-6600 h, FF3C h, 663C h, 0000 h,  \ 42 *
-1800 h, 7E18 h, 1818 h, 0000 h,  \ 43 +
-0000 h, 0000 h, 1800 h, 3018 h,  \ 44 ,
-0000 h, 7E00 h, 0000 h, 0000 h,  \ 45 -
-0000 h, 0000 h, 1800 h, 0018 h,  \ 46 .
-0300 h, 0C06 h, 3018 h, 0060 h,  \ 47 /
-663C h, 766E h, 6666 h, 003C h,  \ 48 0
-1818 h, 1838 h, 1818 h, 007E h,  \ 49 1
-663C h, 0C06 h, 6030 h, 007E h,  \ 50 2
-663C h, 1C06 h, 6606 h, 003C h,  \ 51 3
-0E06 h, 661E h, 067F h, 0006 h,  \ 52 4
-607E h, 067C h, 6606 h, 003C h,  \ 53 5
-663C h, 7C60 h, 6666 h, 003C h,  \ 54 6
-667E h, 180C h, 1818 h, 0018 h,  \ 55 7
-663C h, 3C66 h, 6666 h, 003C h,  \ 56 8
-663C h, 3E66 h, 6606 h, 003C h,  \ 57 9
-0000 h, 0018 h, 1800 h, 0000 h,  \ 58 :
-0000 h, 0018 h, 1800 h, 3018 h,  \ 59 ;
-180E h, 6030 h, 1830 h, 000E h,  \ 60 <
-0000 h, 007E h, 007E h, 0000 h,  \ 61 =
-1870 h, 060C h, 180C h, 0070 h,  \ 62 >
-663C h, 0C06 h, 0018 h, 0018 h,  \ 63 ?
-
-663C h, 6E6E h, 6260 h, 003C h,  \ 64 @
-3C18 h, 7E66 h, 6666 h, 0066 h,  \ 65 A
-667C h, 7C66 h, 6666 h, 007C h,  \ 66 B
-663C h, 6060 h, 6660 h, 003C h,  \ 67 C
-6C78 h, 6666 h, 6C66 h, 0078 h,  \ 68 D
-607E h, 7860 h, 6060 h, 007E h,  \ 69 E
-607E h, 7860 h, 6060 h, 0060 h,  \ 70 F
-663C h, 6E60 h, 6666 h, 003C h,  \ 71 G
-6666 h, 7E66 h, 6666 h, 0066 h,  \ 72 H
-183C h, 1818 h, 1818 h, 003C h,  \ 73 I
-0C1E h, 0C0C h, 6C0C h, 0038 h,  \ 74 J
-6C66 h, 7078 h, 6C78 h, 0066 h,  \ 75 K
-6060 h, 6060 h, 6060 h, 007E h,  \ 76 L
-7763 h, 6B7F h, 6363 h, 0063 h,  \ 77 M
-7666 h, 7E7E h, 666E h, 0066 h,  \ 78 N
-663C h, 6666 h, 6666 h, 003C h,  \ 79 O
-667C h, 7C66 h, 6060 h, 0060 h,  \ 80 P
-663C h, 6666 h, 3C66 h, 000E h,  \ 81 Q
-667C h, 7C66 h, 6C78 h, 0066 h,  \ 82 R
-663C h, 3C60 h, 6606 h, 003C h,  \ 83 S
-187E h, 1818 h, 1818 h, 0018 h,  \ 84 T
-6666 h, 6666 h, 6666 h, 003C h,  \ 85 U
-6666 h, 6666 h, 3C66 h, 0018 h,  \ 86 V
-6363 h, 6B63 h, 777F h, 0063 h,  \ 87 W
-6666 h, 183C h, 663C h, 0066 h,  \ 88 X
-6666 h, 3C66 h, 1818 h, 0018 h,  \ 89 Y
-067E h, 180C h, 6030 h, 007E h,  \ 90 Z
-303C h, 3030 h, 3030 h, 003C h,  \ 91 [
-6000 h, 1830 h, 060C h, 0003 h,  \ 92 \  (*)
-0C3C h, 0C0C h, 0C0C h, 003C h,  \ 93 ]
-1C08 h, 0063 h, 0000 h, 0000 h,  \ 94 ^  (*)
-0000 h, 0000 h, 0000 h, 00FF h,  \ 95 _
-
-1818 h, 000C h, 0000 h, 0000 h,  \ 96  ` (*)
-0000 h, 063C h, 663E h, 003E h,  \ 97  a
-6000 h, 7C60 h, 6666 h, 007C h,  \ 98  b
-0000 h, 603C h, 6060 h, 003C h,  \ 99  c
-0600 h, 3E06 h, 6666 h, 003E h,  \ 100 d
-0000 h, 663C h, 607E h, 003C h,  \ 101 e
-0E00 h, 3E18 h, 1818 h, 0018 h,  \ 102 f
-0000 h, 663E h, 3E66 h, 7C06 h,  \ 103 g
-6000 h, 7C60 h, 6666 h, 0066 h,  \ 104 h
-1800 h, 3800 h, 1818 h, 003C h,  \ 105 i
-0600 h, 0600 h, 0606 h, 3C06 h,  \ 106 j
-6000 h, 6C60 h, 6C78 h, 0066 h,  \ 107 k
-3800 h, 1818 h, 1818 h, 003C h,  \ 108 l
-0000 h, 7F66 h, 6B7F h, 0063 h,  \ 109 m
-0000 h, 667C h, 6666 h, 0066 h,  \ 110 n
-0000 h, 663C h, 6666 h, 003C h,  \ 111 o
-0000 h, 667C h, 7C66 h, 6060 h,  \ 112 p
-0000 h, 663E h, 3E66 h, 0606 h,  \ 113 q
-0000 h, 667C h, 6060 h, 0060 h,  \ 114 r
-0000 h, 603E h, 063C h, 007C h,  \ 115 s
-1800 h, 187E h, 1818 h, 000E h,  \ 116 t
-0000 h, 6666 h, 6666 h, 003E h,  \ 117 u
-0000 h, 6666 h, 3C66 h, 0018 h,  \ 118 v
-0000 h, 6B63 h, 3E7F h, 0036 h,  \ 119 w
-0000 h, 3C66 h, 3C18 h, 0066 h,  \ 120 x
-0000 h, 6666 h, 3E66 h, 780C h,  \ 121 y
-0000 h, 0C7E h, 3018 h, 007E h,  \ 122 z
-180E h, 7018 h, 1818 h, 000E h,  \ 123 {  (*)
-1818 h, 1818 h, 1818 h, 1818 h,  \ 124 |  (*)
-1870 h, 0E18 h, 1818 h, 0070 h,  \ 125 }  (*)
-0000 h, 6E3B h, 0000 h, 0000 h,  \ 126 ~  (*)
-FFFF h, FFFF h, FFFF h, FFFF h,  \ 127 DEL
-
-decimal
+create font-5x7 hex
+  00 c, 00 c, 00 c, 00 c, 00 c, \
+  00 c, 00 c, 4F c, 00 c, 00 c, \ !
+  00 c, 03 c, 00 c, 03 c, 00 c, \ "
+  14 c, 3E c, 14 c, 3E c, 14 c, \ #
+  24 c, 2A c, 7F c, 2A c, 12 c, \ $
+  63 c, 13 c, 08 c, 64 c, 63 c, \ %
+  36 c, 49 c, 55 c, 22 c, 50 c, \ &
+  00 c, 00 c, 07 c, 00 c, 00 c, \ '
+  00 c, 1C c, 22 c, 41 c, 00 c, \ (
+  00 c, 41 c, 22 c, 1C c, 00 c, \ )
+  0A c, 04 c, 1F c, 04 c, 0A c, \ *
+  04 c, 04 c, 1F c, 04 c, 04 c, \ +
+  50 c, 30 c, 00 c, 00 c, 00 c, \ ,
+  08 c, 08 c, 08 c, 08 c, 08 c, \ -
+  60 c, 60 c, 00 c, 00 c, 00 c, \ .
+  00 c, 60 c, 1C c, 03 c, 00 c, \ /
+  3E c, 41 c, 49 c, 41 c, 3E c, \ 0
+  00 c, 02 c, 7F c, 00 c, 00 c, \ 1
+  46 c, 61 c, 51 c, 49 c, 46 c, \ 2
+  21 c, 49 c, 4D c, 4B c, 31 c, \ 3
+  18 c, 14 c, 12 c, 7F c, 10 c, \ 4
+  4F c, 49 c, 49 c, 49 c, 31 c, \ 5
+  3E c, 51 c, 49 c, 49 c, 32 c, \ 6
+  01 c, 01 c, 71 c, 0D c, 03 c, \ 7
+  36 c, 49 c, 49 c, 49 c, 36 c, \ 8
+  26 c, 49 c, 49 c, 49 c, 3E c, \ 9
+  00 c, 33 c, 33 c, 00 c, 00 c, \ :
+  00 c, 53 c, 33 c, 00 c, 00 c, \ ;
+  00 c, 08 c, 14 c, 22 c, 41 c, \ <
+  14 c, 14 c, 14 c, 14 c, 14 c, \ =
+  41 c, 22 c, 14 c, 08 c, 00 c, \ >
+  06 c, 01 c, 51 c, 09 c, 06 c, \ ?
+  3E c, 41 c, 49 c, 15 c, 1E c, \ @
+  78 c, 16 c, 11 c, 16 c, 78 c, \ A
+  7F c, 49 c, 49 c, 49 c, 36 c, \ B
+  3E c, 41 c, 41 c, 41 c, 22 c, \ C
+  7F c, 41 c, 41 c, 41 c, 3E c, \ D
+  7F c, 49 c, 49 c, 49 c, 49 c, \ E
+  7F c, 09 c, 09 c, 09 c, 09 c, \ F
+  3E c, 41 c, 41 c, 49 c, 7B c, \ G
+  7F c, 08 c, 08 c, 08 c, 7F c, \ H
+  00 c, 41 c, 7F c, 41 c, 00 c, \ I
+  38 c, 40 c, 40 c, 41 c, 3F c, \ J
+  7F c, 08 c, 08 c, 14 c, 63 c, \ K
+  7F c, 40 c, 40 c, 40 c, 40 c, \ L
+  7F c, 06 c, 18 c, 06 c, 7F c, \ M
+  7F c, 06 c, 18 c, 60 c, 7F c, \ N
+  3E c, 41 c, 41 c, 41 c, 3E c, \ O
+  7F c, 09 c, 09 c, 09 c, 06 c, \ P
+  3E c, 41 c, 51 c, 21 c, 5E c, \ Q
+  7F c, 09 c, 19 c, 29 c, 46 c, \ R
+  26 c, 49 c, 49 c, 49 c, 32 c, \ S
+  01 c, 01 c, 7F c, 01 c, 01 c, \ T
+  3F c, 40 c, 40 c, 40 c, 7F c, \ U
+  0F c, 30 c, 40 c, 30 c, 0F c, \ V
+  1F c, 60 c, 1C c, 60 c, 1F c, \ W
+  63 c, 14 c, 08 c, 14 c, 63 c, \ X
+  03 c, 04 c, 78 c, 04 c, 03 c, \ Y
+  61 c, 51 c, 49 c, 45 c, 43 c, \ Z
+  00 c, 7F c, 41 c, 00 c, 00 c, \ [
+  00 c, 03 c, 1C c, 60 c, 00 c, \ \
+  00 c, 41 c, 7F c, 00 c, 00 c, \ ]
+  0C c, 02 c, 01 c, 02 c, 0C c, \ ^
+  40 c, 40 c, 40 c, 40 c, 40 c, \ _
+  00 c, 01 c, 02 c, 04 c, 00 c, \ `
+  20 c, 54 c, 54 c, 54 c, 78 c, \ a
+  7F c, 48 c, 44 c, 44 c, 38 c, \ b
+  38 c, 44 c, 44 c, 44 c, 44 c, \ c
+  38 c, 44 c, 44 c, 48 c, 7F c, \ d
+  38 c, 54 c, 54 c, 54 c, 18 c, \ e
+  08 c, 7E c, 09 c, 09 c, 00 c, \ f
+  0C c, 52 c, 52 c, 54 c, 3E c, \ g
+  7F c, 08 c, 04 c, 04 c, 78 c, \ h
+  00 c, 00 c, 7D c, 00 c, 00 c, \ i
+  00 c, 40 c, 3D c, 00 c, 00 c, \ j
+  7F c, 10 c, 28 c, 44 c, 00 c, \ k
+  00 c, 00 c, 3F c, 40 c, 00 c, \ l
+  7C c, 04 c, 18 c, 04 c, 78 c, \ m
+  7C c, 08 c, 04 c, 04 c, 78 c, \ n
+  38 c, 44 c, 44 c, 44 c, 38 c, \ o
+  7F c, 12 c, 11 c, 11 c, 0E c, \ p
+  0E c, 11 c, 11 c, 12 c, 7F c, \ q
+  00 c, 7C c, 08 c, 04 c, 04 c, \ r
+  48 c, 54 c, 54 c, 54 c, 24 c, \ s
+  04 c, 3E c, 44 c, 44 c, 00 c, \ t
+  3C c, 40 c, 40 c, 20 c, 7C c, \ u
+  1C c, 20 c, 40 c, 20 c, 1C c, \ v
+  1C c, 60 c, 18 c, 60 c, 1C c, \ w
+  44 c, 28 c, 10 c, 28 c, 44 c, \ x
+  46 c, 28 c, 10 c, 08 c, 06 c, \ y
+  44 c, 64 c, 54 c, 4C c, 44 c, \ z
+  00 c, 08 c, 77 c, 41 c, 00 c, \ {
+  00 c, 00 c, 7F c, 00 c, 00 c, \ |
+  00 c, 41 c, 77 c, 08 c, 00 c, \ }
+  10 c, 08 c, 18 c, 10 c, 08 c, \ ~
+calign decimal
 
 : ascii>bitpattern ( c -- c-addr ) \ Translates ASCII to address of bitpatterns.
-  32 umax 127 umin
-  32 - 8 * font +
-1-foldable ;
-
-\ -------------------------------------------------------------
-\  Write a string with 8x8 bitmap font of the Commodore 64
-\ -------------------------------------------------------------
+  32 umax 127 umin  32 - 5 * font-5x7 +  1-foldable ;
 
 0 variable font-x   0 variable font-y
 
-: drawbytepattern ( c -- )
-  8 0 do dup 128 and if font-x @ font-y @ putpixel then shl 1 font-x +! loop
-  drop -8 font-x +!
-;
+: drawbytepattern ( c -- )  \ draws 8 bits vertically
+  8 0 do dup 1 and if font-x @ font-y @ putpixel then shr 1 font-y +! loop
+  drop  -8 font-y +! ;
 
 : drawcharacterbitmap ( c-addr -- )
-  8 0 do dup c@ drawbytepattern 1 font-y +! 1+ loop
-  drop -8 font-y +! 8 font-x +!
-;
+  5 0 do dup c@ drawbytepattern 1 font-x +! 1+ loop
+  drop  1 font-x +! ;
 
 : get-first-char ( addr len -- addr   len c ) over c@ ;
 : cut-first-char ( addr len -- addr+1 len-1 ) 1- swap 1+ swap ;
 
 : drawstring ( addr u x y -- )
   font-y ! font-x !
-
   begin
     dup 0<>
   while \ Adjust the following code to add your own unicode characters.
     get-first-char ascii>bitpattern drawcharacterbitmap cut-first-char
   repeat
-  2drop
-;
+  2drop ;
 
-\ -------------------------------------------------------------
 \  A small demo
-\ -------------------------------------------------------------
 
 : demo ( -- )
   clear
   50 24 32 10 ellipse display
   50 24 34 12 ellipse display
-  s" Mecrisp" 22 20 drawstring display
+  s" Mecrisp" 30 20 drawstring display
   2 14 12 34 line display
   4 14 14 34 line display
 ;
