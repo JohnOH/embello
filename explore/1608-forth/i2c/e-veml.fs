@@ -28,26 +28,20 @@ cr cr reset
   16 lshift I2C1-CR2 @ $FF00FFFF and or I2C1-CR2 !  i2c-reset ;
   
 : i2c-wr ( -- )  \ send bytes to the I2C interface
-\ ." N> " i2c? cr
   begin
-    11 .
+    5 us
     begin %111001 I2C1-ISR bit@ until  \ wait for TC, STOPF, NACKF, or TXE
-\   begin $1 I2C1-ISR bit@ until  \ wait TXE
-    12 .
-\ 1 bit I2C1-ISR bit@ while  \ while TXIS
   6 bit I2C1-ISR bit@ not while  \ while !TC
-    i2c> 13 . dup . I2C1-TXDR !
-  repeat 14 . cr ;
+    i2c> I2C1-TXDR !
+  repeat ;
 
 : i2c-rd ( -- )  \ receive bytes from the I2C interface
-\ ." N< " i2c? cr
   begin
-    21 .
+    5 us
     begin %111100 I2C1-ISR bit@ until  \ wait for TC, STOPF, NACKF, or RXNE
-    22 .
   6 bit I2C1-ISR bit@ not while  \ while !TC
-    I2C1-RXDR @ 23 . dup . >i2c
-  repeat 24 . cr ;
+    I2C1-RXDR @ >i2c
+  repeat ;
 
 \ there are 4 cases:
 \   tx>0 rx>0 : START - tx - RESTART - rx - STOP
