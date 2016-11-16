@@ -50,6 +50,7 @@ PA12 constant LED6
 
 : main
   leds-pwm  lcd-init show-logo
+  OMODE-PP LED5 io-mode!  OMODE-PP LED6 io-mode!
   DEBUG 0= if  ['] lcd-emit hook-emit !  then
 
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
@@ -57,7 +58,9 @@ PA12 constant LED6
 
   begin
     1000 ms
-    cr 0 font-x ! 0 font-y ! clear i2c.short display
+    cr 0 font-x ! 0 font-y ! clear
+    LED5 ios!  i2c.short  LED5 ioc!
+    LED6 ios!  display    LED6 ioc!
   key? until
 
   ['] serial-emit hook-emit !  show-logo ;
