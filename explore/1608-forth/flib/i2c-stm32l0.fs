@@ -39,7 +39,6 @@ $40005400 constant I2C1
 
   21 bit RCC-APB1ENR bis!  \ set I2C1EN
   $00300619 I2C1-TIMINGR !
-  0 bit I2C1-CR1 bis!  \ PE
 ;
 
 100 buffer: i2c.buf
@@ -55,7 +54,6 @@ $40005400 constant I2C1
 : i2c> ( -- u )  i2c++ c@ ;
 
 : i2c-start ( rd -- )
-  $3F38 I2C1-ICR !  \ clear all flags
   if 10 bit I2C1-CR2 bis! then  \ RD_WRN
   13 bit I2C1-CR2 bis!  \ START
 ;
@@ -70,7 +68,6 @@ $40005400 constant I2C1
   
 : i2c-wr ( -- )  \ send bytes to the I2C interface
   begin
-    100 0 do loop \ 5 us
     begin %1011001 I2C1-ISR bit@ until  \ wait for TCR, STOPF, NACKF, or TXE
   %1011000 I2C1-ISR bit@ not while  \ while !TCR, !STOPF, and !NACKF
     i2c> I2C1-TXDR c!
@@ -91,6 +88,7 @@ $40005400 constant I2C1
 \   tx=0 rx=0 : START - STOP          (used for presence detection)
 
 : i2c-xfer ( u -- nak )
+  0 bit I2C1-CR1 bic!  0 bit I2C1-CR1 bis!  \ toggle PE low to reset
   i2c.ptr @ i2c.buf - ?dup if
     i2c-setn  0 i2c-start  i2c-wr  \ tx>0
   else
