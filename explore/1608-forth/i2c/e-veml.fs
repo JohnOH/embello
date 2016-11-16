@@ -12,8 +12,8 @@ include ../flib/veml6040.fs
   begin
     500 ms
     cr
-    micros veml-data 2>r 2>r micros swap - . ." µs: " 2r> 2r>
-    ." w: " .  ." b: " .  ." g: " .  ." r: " .
+    micros veml-data 2>r 2>r micros swap - . ." µs: "
+    ." r: " r> .  ." g: " r> .  ." b: " r> .  ." w: " r> .
   key? until ;
 
 \ this causes folie to timeout on include matching, yet still starts running

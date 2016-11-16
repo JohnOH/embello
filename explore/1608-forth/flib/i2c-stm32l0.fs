@@ -52,6 +52,8 @@ $40005400 constant I2C1
 
 : >i2c ( u -- )  i2c++ c! ;
 : i2c> ( -- u )  i2c++ c@ ;
+: i2c>h ( -- u )  i2c> i2c> 8 lshift or ;
+
 
 : i2c-start ( rd -- )
   if 10 bit I2C1-CR2 bis! then  \ RD_WRN
