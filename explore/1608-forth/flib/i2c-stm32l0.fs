@@ -49,20 +49,21 @@ $40005400 constant I2C1
 
 : i2c-addr ( u -- )  shl I2C1-CR2 !  i2c-reset ;
 
-: i2c++ ( -- addr )  i2c.ptr @  1 i2c.ptr +! ;
+: i2c++ ( -- addr )  i2c.ptr @  dup 1+ i2c.ptr ! ;
 
-: >i2c ( u -- ) i2c++ c! ;
-: i2c> ( -- u ) i2c++ c@ ;
+: >i2c ( u -- )  i2c++ c! ;
+: i2c> ( -- u )  i2c++ c@ ;
 
 : i2c-start ( rd -- )
   $3F38 I2C1-ICR !  \ clear all flags
   if 10 bit I2C1-CR2 bis! then  \ RD_WRN
   13 bit I2C1-CR2 bis!  \ START
+\ begin 13 bit I2C1-ISR bit@ not until  \ !START
 ;
 
 : i2c-stop  ( -- )
   14 bit I2C1-CR2 bis!  \ STOP
-  begin 15 bit I2C1-ISR bit@ 0= until  \ !BUSY
+  begin 15 bit I2C1-ISR bit@ not until  \ !BUSY
 ;
 
 : i2c-setn ( u -- )  \ prepare for N-byte transfer and reset buffer pointer
@@ -78,10 +79,9 @@ $40005400 constant I2C1
 
 : i2c-rd ( -- )  \ receive bytes from the I2C interface
   begin
-    begin %111100 I2C1-ISR bit@ until  \ wait for TC, STOPF, NACKF, or RXNE
-  6 bit I2C1-ISR bit@ not while  \ while !TC
+    begin %1011100 I2C1-ISR bit@ until  \ wait for TCR, STOPF, NACKF, or RXNE
+  2 bit I2C1-ISR bit@ while  \ while RXNE
     I2C1-RXDR c@ >i2c
-    200 0 do loop \ 5 us
   repeat ;
 
 \ there are 4 cases:
