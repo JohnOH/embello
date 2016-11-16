@@ -1,13 +1,12 @@
 \ read out the TSL4531 sensor
 \ needs i2c
 
-: tsl-rd ( reg -- )
-  $29 i2c-tx drop
-  >i2c drop i2c-stop
-  $29 i2c-rx drop ;
+: tsl-init ( -- )
+  +i2c
+  $29 i2c-addr  $03 >i2c  0 i2c-xfer drop ;
 
-: tsl-init ( -- ) +i2c $29 i2c-tx drop $03 >i2c drop i2c-stop ;
-: tsl-data ( -- v ) $84 tsl-rd 0 i2c> 1 i2c> i2c-stop 8 lshift or ;
+: tsl-data ( -- v )
+  $29 i2c-addr  $84 >i2c  2 i2c-xfer drop  i2c> i2c> 8 lshift or ;
 
 \ tsl-init
 \ tsl-data .

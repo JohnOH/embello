@@ -3,7 +3,7 @@
 cr cr reset
 
 \ include ../flib/i2c-stm32l0.fs
-\ include ../flib/tsl4531.fs
+include ../flib/tsl4531.fs
 
 \ assumes that the TSL4531 sensor is connected to PB6..PB7
 
@@ -16,7 +16,7 @@ cr cr reset
     . ." lux "
   key? until ;
 
-+i2c i2c? i2c.
++i2c i2c? \ i2c.
 
 \ this causes folie to timeout on include matching, yet still starts running
 1234 ms go
