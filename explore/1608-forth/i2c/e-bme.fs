@@ -11,15 +11,13 @@ include ../flib/bme280.fs
   0 swap 0,01 f* 0,005 d+ 2 f.n ;
 
 : go
-  bme-init bme-calib
+  bme-init if ." can't find BME280" exit then bme-calib
   begin
     500 ms
     cr
     micros bme-data bme-calc >r >r >r micros swap - . ." µs: " r> r> r>
     .2 ." °C " .2 ." hPa " .2 ." %RH "
   key? until ;
-
-+i2c i2c? \ i2c.
 
 \ this causes folie to timeout on include matching, yet still starts running
 1234 ms go

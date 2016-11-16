@@ -3,13 +3,13 @@
 
 [ifndef] BME.ADDR  $76 constant BME.ADDR  [then]
 
-: bme-init ( -- )
+: bme-init ( -- nak )
   +i2c
   BME.ADDR i2c-addr
   $F2 >i2c %1 >i2c 
   $F4 >i2c %100111 >i2c 
   $F5 >i2c %10100000 >i2c
-  0 i2c-xfer drop ;
+  0 i2c-xfer ;
 
 32 buffer: params  \ calibration data
  8 buffer: values  \ last reading

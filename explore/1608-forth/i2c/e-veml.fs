@@ -8,7 +8,7 @@ include ../flib/veml6040.fs
 \ assumes that the VEML6040 sensor is connected to PB6..PB7
 
 : go
-  veml-init
+  veml-init if ." can't find VEML6040" exit then
   begin
     500 ms
     cr
