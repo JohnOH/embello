@@ -37,8 +37,7 @@
            dup c@  4 lshift swap 1+
                c@  4 rshift  or or ;
 
-: bme-data ( -- )
-  values  8 $F7 bme-rd drop ;
+: bme-data ( -- )  values  8 $F7 bme-rd drop ;
 
 : bme-hpt ( -- rawh rawp rawt )
   values 6 + dup c@ 8 lshift swap 1+ c@ or  0 bme-u20be  3 bme-u20be ;
