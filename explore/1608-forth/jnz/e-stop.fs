@@ -1,5 +1,6 @@
 \ stop mode experiment
 \ needs core.fs
+
 cr cr reset
 cr
 
@@ -10,13 +11,13 @@ include ../flib/sleep-stm32l0.fs
 
 : lp-blink ( -- )
   only-msi
-  0 RCC-APB2ENR !  \ disable USART1 and SPI1
+\ 0 RCC-APB2ENR !  \ disable USART1 and SPI1
   begin
     stop1s stop1s stop1s
     led-on 10 ms led-off
   again ;
 
-rf69-init rf-sleep
+[IFDEF] rf69-init  rf69-init rf-sleep  [THEN]
 2.1MHz 1000 systick-hz
 \ %1 RCC-IOPENR !  \ disable all GPIO clocks, except GPIOA
 
