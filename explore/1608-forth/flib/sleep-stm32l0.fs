@@ -54,8 +54,9 @@ $E000ED10 constant SCR
 : wfe ( -- ) [ $BF20 h, ] inline ; \ WFE Opcode, enters sleep mode
 
 : stop1s ( -- )
+  9 bit PWR-CR bis!                     \ set ULP
 \ 1 bit PWR-CR bis!                     \ set PDDS for standby mode
-\ 0 bit PWR-CR bis!                     \ set LPSDSR
+  0 bit PWR-CR bis!                     \ set LPSDSR
   1 bit LPTIM-CR bis!                   \ set SNGSTRT
   1 bit LPTIM-IER bis!                  \ set ARRMIE
 \ 29 bit EXTI-IMR bic!                  \ clear IM29
@@ -66,9 +67,8 @@ $E000ED10 constant SCR
   1 bit LPTIM-ICR bis!                  \ clear ARRM
 ;
 
-\ : lp-blink ( -- )  only-msi  begin  stop1s led iox!  key? until ;
+\ : lp-blink ( -- )  only-msi  begin  stop1s led iox!  again ;
 \
 \ rf69-init rf-sleep
-\ led-off 2.1MHz
-\ 1000 systick-hz  \ FIXME if omitted, blink startup stalls for several seconds
-\ +lptim 
+\ led-off 2.1MHz 1000 systick-hz
+\ +lptim lp-blink
