@@ -24,7 +24,8 @@
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
   rf69-init 16 rf-power
 
-  bme-init bme-calib  tsl-init
+  bme-init drop bme-calib
+  tsl-init drop
 
   begin
     led-off 
