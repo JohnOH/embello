@@ -9,26 +9,31 @@ cr cr reset
      RCC $2C + constant RCC-IOPENR
      $40015804 constant DBG-CR
 
+: wfi ( -- ) [ $BF30 h, ] inline ;  \ same as "sleep" in multi.fs
+
 : standby ( -- )
   2.1MHz  1000 systick-hz
-\ 11 bit PWR-CR bis!    \ 1.2V, range 3
+  0 RCC-CCIPR !  \ set USART1 clock to APB clock
+  28 bit RCC-APB1ENR bis!  \ set PWREN
+\ 11 bit PWR-CR bis!       \ 1.2V, range 3
 \ PWR-CR      @ hex.
 \ PWR-CSR     @ hex.
 \ begin 4 bit PWR-CSR bit@ not until  \ wait for !VOSF
 \ PWR-CR      @ hex.
 \ PWR-CSR     @ hex.
   only-msi
-\ 0 RCC-APB2ENR !       \ disable USART1
-\ %1 RCC-IOPENR !       \ disable all GPIO clocks, except GPIOA
-\ 9 bit PWR-CR bis!     \ set ULP
-  1 bit PWR-CR bis!     \ set PDDS for standby mode
-\ 0 bit PWR-CR bis!     \ set LPSDSR
-\ 14 bit PWR-CR bis!    \ set LPRUN
-\ 29 bit EXTI-IMR bic!  \ clear IM29
-  29 bit EXTI-EMR bis!  \ set EM29
-\ -1 EXTI-PR !          \ clear all pending
-  2 bit SCR bis!        \ set SLEEPDEEP
-  wfe                   \ enter standby mode
+  0 RCC-APB2ENR !          \ disable USART1
+  %1 RCC-IOPENR !          \ disable all GPIO clocks, except GPIOA
+  9 bit PWR-CR bis!        \ set ULP
+  2 bit PWR-CR bis!        \ set CWUF
+  1 bit PWR-CR bis!        \ set PDDS for standby mode
+  0 bit PWR-CR bis!        \ set LPSDSR
+  14 bit PWR-CR bis!       \ set LPRUN
+\ 29 bit EXTI-IMR bic!     \ clear IM29
+  29 bit EXTI-EMR bis!     \ set EM29
+\ -1 EXTI-PR !             \ clear all pending
+  2 bit SCR bis!           \ set SLEEPDEEP
+  wfe                      \ enter standby mode
 ;
 
 [IFDEF] rf69-init  rf69-init rf-sleep  [THEN]
@@ -52,6 +57,8 @@ cr cr reset
 \ 0 bit PWR-CR bis!     \ set LPSDSR
 \ 9 bit PWR-CR bis!     \ set ULP
 \ 14 bit PWR-CR bis!    \ set LPRUN
+
+23 bit RCC-CSR bis!  \ set RMVF
 
 ( clock-hz    ) clock-hz    @ .
 ( PWR-CR      ) PWR-CR      @ hex.
