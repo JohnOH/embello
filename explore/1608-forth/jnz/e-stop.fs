@@ -10,17 +10,15 @@ include ../flib/sleep-stm32l0.fs
      $40015804 constant DBG-CR
 
 : lp-blink ( -- )
-  only-msi
-\ 0 RCC-APB2ENR !  \ disable USART1 and SPI1
+  2.1MHz 1000 systick-hz
+\ 11 bit PWR-CR bis!                  \ 1.2V, range 3
+\ begin 4 bit PWR-CSR bit@ not until  \ wait for !VOSF
   begin
-    stop1s stop1s stop1s
+    stop1s stop1s stop1s stop1s stop1s
     led-on 10 ms led-off
   again ;
 
 [IFDEF] rf69-init  rf69-init rf-sleep  [THEN]
-2.1MHz 1000 systick-hz
-\ %1 RCC-IOPENR !  \ disable all GPIO clocks, except GPIOA
-
 +lptim lptim?
 
 ( clock-hz    ) clock-hz @ .
@@ -36,5 +34,6 @@ include ../flib/sleep-stm32l0.fs
 ( EXTI-EMR    ) EXTI-EMR @ hex.
 ( EXTI-PR     ) EXTI-PR @ hex.
 ( DBG-CR      ) DBG-CR @ hex.
+( SCR         ) SCR         @ hex.
 
 led-off lp-blink

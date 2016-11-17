@@ -12,17 +12,8 @@ cr cr reset
 : wfi ( -- ) [ $BF30 h, ] inline ;  \ same as "sleep" in multi.fs
 
 : standby ( -- )
-  2.1MHz  1000 systick-hz
-  0 RCC-CCIPR !  \ set USART1 clock to APB clock
+  2.1MHz  1000 systick-hz  only-msi
   28 bit RCC-APB1ENR bis!  \ set PWREN
-\ 11 bit PWR-CR bis!       \ 1.2V, range 3
-\ PWR-CR      @ hex.
-\ PWR-CSR     @ hex.
-\ begin 4 bit PWR-CSR bit@ not until  \ wait for !VOSF
-\ PWR-CR      @ hex.
-\ PWR-CSR     @ hex.
-  only-msi
-  0 RCC-APB2ENR !          \ disable USART1
   %1 RCC-IOPENR !          \ disable all GPIO clocks, except GPIOA
   9 bit PWR-CR bis!        \ set ULP
   2 bit PWR-CR bis!        \ set CWUF

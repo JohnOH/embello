@@ -1,7 +1,7 @@
 \ core libraries
 
 <<<board>>>
-compiletoflash
+cr compiletoflash
 ( core start: ) here dup hex.
 
 include ../flib/rf69.fs

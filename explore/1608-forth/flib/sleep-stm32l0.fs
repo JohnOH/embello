@@ -55,14 +55,16 @@ $E000ED10 constant SCR
 
 : stop1s ( -- )
   28 bit RCC-APB1ENR bis!               \ set PWREN
+\ 14 bit PWR-CR bis!                    \ set LPRUN
   9 bit PWR-CR bis!                     \ set ULP
-\ 1 bit PWR-CR bis!                     \ set PDDS for standby mode
+\ 2 bit PWR-CR bis!                     \ set CWUF
+\ 1 bit PWR-CR bic!                     \ clear PDDS for stop mode
   0 bit PWR-CR bis!                     \ set LPSDSR
   1 bit LPTIM-CR bis!                   \ set SNGSTRT
   1 bit LPTIM-IER bis!                  \ set ARRMIE
-  29 bit EXTI-IMR bic!                  \ clear IM29
-  29 bit EXTI-EMR bis!                  \ set EM29
-  -1 EXTI-PR !                          \ clear all pending
+\ 29 bit EXTI-IMR bic!                  \ clear IM29
+\ 29 bit EXTI-EMR bis!                  \ set EM29
+\ -1 EXTI-PR !                          \ clear all pending
   2 bit SCR bis!                        \ set SLEEPDEEP
   begin wfe 1 bit LPTIM-ISR bit@ until  \ wait for ARRM
   1 bit LPTIM-ICR bis!                  \ clear ARRM
