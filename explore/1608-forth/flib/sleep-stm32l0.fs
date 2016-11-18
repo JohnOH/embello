@@ -64,9 +64,9 @@ $E000ED10 constant SCR
   2 bit SCR bic!                        \ clear SLEEPDEEP
 ;
 
-: stop100ms ( -- ) 37000 10 / 128 / LPTIM-ARR !  stop ;
-: stop1s    ( -- ) 37000      128 / LPTIM-ARR !  stop ;
-: stop10s   ( -- ) 37000 10 * 128 / LPTIM-ARR !  stop ;
+: stop100ms ( -- ) 3700   64 + 128 / LPTIM-ARR !  stop ;
+: stop1s    ( -- ) 37000  64 + 128 / LPTIM-ARR !  stop ;
+: stop10s   ( -- ) 370000 64 + 128 / LPTIM-ARR !  stop ;
 
 \ : lp-blink ( -- )  only-msi  begin  stop1s led iox!  again ;
 \
