@@ -40,7 +40,7 @@ $E000ED10 constant SCR
       ." ARR " dup @ h.4 space 4 +
       ." CNT " dup @ h.4 space drop ;
 
-: +lptim
+: +lptim ( -- )  \ enable the low-power timer
   0 bit RCC-CSR bis!              \ set LSION
   begin 1 bit RCC-CSR bit@ until  \ wait for LSIRDY
   %01 18 lshift RCC-CCIPR bis!    \ use LSI clock
@@ -48,27 +48,25 @@ $E000ED10 constant SCR
   31 bit RCC-APB1SMENR bis!       \ also enable in sleep mode
   %111 9 lshift LPTIM-CFGR !      \ 128 prescaler
   0 bit LPTIM-CR bis!             \ set ENABLE
-  37000 128 / LPTIM-ARR !         \ 1s timout
+  \ the following settings prepare for sleep mode
+  28 bit RCC-APB1ENR bis!         \ set PWREN
+  %1000000101 PWR-CR bis!         \ set ULP, CWUF, and LPSDSR
 ;
 
 : wfe ( -- ) [ $BF20 h, ] inline ; \ WFE Opcode, enters sleep mode
 
-: stop1s ( -- )
-  28 bit RCC-APB1ENR bis!               \ set PWREN
-\ 14 bit PWR-CR bis!                    \ set LPRUN
-  9 bit PWR-CR bis!                     \ set ULP
-\ 2 bit PWR-CR bis!                     \ set CWUF
-\ 1 bit PWR-CR bic!                     \ clear PDDS for stop mode
-  0 bit PWR-CR bis!                     \ set LPSDSR
+: stop ( -- )  \ enter stop mode, will resume when LPTIMER fires
   1 bit LPTIM-CR bis!                   \ set SNGSTRT
   1 bit LPTIM-IER bis!                  \ set ARRMIE
-\ 29 bit EXTI-IMR bic!                  \ clear IM29
-\ 29 bit EXTI-EMR bis!                  \ set EM29
-\ -1 EXTI-PR !                          \ clear all pending
   2 bit SCR bis!                        \ set SLEEPDEEP
   begin wfe 1 bit LPTIM-ISR bit@ until  \ wait for ARRM
   1 bit LPTIM-ICR bis!                  \ clear ARRM
+  2 bit SCR bic!                        \ clear SLEEPDEEP
 ;
+
+: stop100ms ( -- ) 37000 10 / 128 / LPTIM-ARR !  stop ;
+: stop1s    ( -- ) 37000      128 / LPTIM-ARR !  stop ;
+: stop10s   ( -- ) 37000 10 * 128 / LPTIM-ARR !  stop ;
 
 \ : lp-blink ( -- )  only-msi  begin  stop1s led iox!  again ;
 \
