@@ -2,7 +2,7 @@
 \ adapted from mecrisp 2.0.2 (GPL3)
 
 : .v ( ... -- ... )  \ view stack, this is a slightly cleaner version of .s
-  ." Stack#" depth . ." < "
+  ." Stack #" depth . ." < "
   -1 depth negate ?do sp@ i 2+ cells - @ . loop
   ." >" cr ;
 

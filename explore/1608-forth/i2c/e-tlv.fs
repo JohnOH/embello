@@ -15,7 +15,6 @@ cr
     cr
     micros tlv-data >r >r >r micros swap - . ." µs: " r> r> r>
     ." x: " rot . ." y: " swap . ." z: " .
-    $30 i2c-tx drop i2c-stop  \ FIXME hangs with back-to-back accesses to $5E!
   key? until ;
 
 +i2c i2c? i2c.

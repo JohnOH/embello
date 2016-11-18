@@ -16,9 +16,9 @@ PA12 constant LED6
   $00002222 LED1 io-base GPIO.AFRL + !
 
   \ various duty cycles at 2 Hz
-  2 LED1 +pwm   500 LED1 pwm
-  2 LED2 +pwm  3500 LED2 pwm
-  2 LED3 +pwm  6500 LED3 pwm
+  2 LED1 +pwm  3500 LED1 pwm
+  2 LED2 +pwm  5500 LED2 pwm
+  2 LED3 +pwm  7500 LED3 pwm
   2 LED4 +pwm  9500 LED4 pwm
 ;
 
@@ -37,26 +37,30 @@ PA12 constant LED6
 
 : i2c.short ( -- )  \ scan and report all I2C devices on the bus, short format
   128 0 do
-    DEBUG if  cr i h.2 ." : "  else  i if cr then  then
+    DEBUG i or if cr then
+    i h.2 ." : "
     
     16 0 do
       i j +
       dup $08 < over $77 > or if drop space else
-        dup i2c-tx i2c-stop  if drop ." -" else h.1 then
+        dup i2c-addr  0 i2c-xfer  if drop ." -" else h.1 then
       then
     loop
   16 +loop ;
 
 : main
-  leds-pwm  +i2c lcd-init show-logo
+  leds-pwm  lcd-init show-logo
+  OMODE-PP LED5 io-mode!  OMODE-PP LED6 io-mode!
   DEBUG 0= if  ['] lcd-emit hook-emit !  then
 
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
   rf69-init 16 rf-power rf-sleep
 
   begin
-    1000 ms
-    cr 0 font-x ! 0 font-y ! clear i2c.short display
+    500 ms
+    cr 0 font-x ! 0 font-y ! clear
+    LED5 ios!  i2c.short  LED5 ioc!
+    LED6 ios!  display    LED6 ioc!
   key? until
 
-  ['] serial-emit hook-emit ! ;
+  ['] serial-emit hook-emit !  show-logo ;

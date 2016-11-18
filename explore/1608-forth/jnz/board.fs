@@ -12,13 +12,16 @@ include ../flib/hal-stm32l0.fs
 include ../flib/adc-stm32l0.fs
 include ../flib/timer-stm32l0.fs
 include ../flib/pwm-stm32l0.fs
-\ include ../flib/spi-bb.fs
-include ../flib/spi-stm32l0.fs
-\ include ../flib/i2c-bb.fs
 include ../flib/i2c-stm32l0.fs
 include ../flib/sleep-stm32l0.fs
 
-PA15 constant LED
+PA15 variable ssel  \ can be changed at run time
+PB3 constant SCLK
+\ PA6 constant MISO
+\ PA7 constant MOSI
+include ../flib/spi-stm32l0.fs
+
+PB5 constant LED
 
 : led-on LED ioc! ;
 : led-off LED ios! ;
@@ -28,7 +31,7 @@ PA15 constant LED
   OMODE-PP LED io-mode!
 \ 16MHz ( set by Mecrisp on startup to get an accurate USART baud rate )
   2 RCC-CCIPR !  \ set USART1 clock to HSI16, independent of sysclk
-  flash-kb . ." KB <jnl> " hwid hex. ." ok." cr
+  flash-kb . ." KB <jnz> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 
