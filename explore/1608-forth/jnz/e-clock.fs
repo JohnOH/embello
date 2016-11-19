@@ -29,15 +29,15 @@ cr
 
 \ reduce systick at 65 KHz, else interrupts will eat up all the clock cycles
 \ this means micros/us/millis/ms will all work, but 100x slower than usual
-: slow 65KHz 10 systick-hz ;      \ 280 µA
-: fast 2.1MHz 1000 systick-hz ;   \ 680 µA
+: slow 65KHz  10   systick-hz ;  \ 280 µA
+: fast 2.1MHz 1000 systick-hz ;  \ 680 µA
+: fast 16MHz  1000 systick-hz ;  \ 2000 µA
 
-: wait-for-key begin sleep ( led iox! ) key? until ;  \ 435 µA
-
-: down   slow          wait-for-key           fast ;  \ 280 µA
-: lost   slow only-msi wait-for-key           fast ;  \ 32 µA
-: snooze slow 9 0 do i . 10 ( *100 ) ms loop  fast ;  \ 280 µA
-: doze   slow only-msi   50 ( *100 ) ms       fast ;  \ 40 µA
+: wait begin sleep ( led iox! ) key? until ;  \ 435 µA @2.1 / 1350 µA @16
+: down slow          wait             fast ;  \ 280 µA
+: lost      only-msi wait             fast ;  \ 195 µA, UART dead
+: doze slow only-msi   50 ( *100 ) ms fast ;  \  40 µA
+: coma slow only-msi wait             fast ;  \  32 µA, UART dead
 
 : do-adc slow +adc adc-vcc . adc-temp . -adc  fast ;
 
@@ -45,18 +45,18 @@ cr
 \ : do-tsl tsl-init slow tsl-data fast . ;
 
 led-off
+
 [IFDEF] rf69-init  rf69-init rf-sleep  [THEN]
 
-( PWR-CR ) PWR-CR @ hex.
-( CR ) RCC-CR @ hex.
-( CFGR ) RCC-CFGR @ hex.
-( ICSCR ) RCC-ICSCR @ hex.
-( CCIPR ) RCC-CCIPR @ hex.
+( PWR-CR  ) PWR-CR @ hex.
+( CR      ) RCC-CR @ hex.
+( CFGR    ) RCC-CFGR @ hex.
+( ICSCR   ) RCC-ICSCR @ hex.
+( CCIPR   ) RCC-CCIPR @ hex.
 ( BRR*100 ) 1152 baud .
 ( BRR*100 ) 192 baud .
-
-( 16 MHz )  10 ms 16Mhz 16 .
-( 2.1 MHz ) 10 ms 2.1Mhz 3 ms 123 .
+( 16 MHz  ) 10 ms 16Mhz 123 .
+( 2.1 MHz ) 10 ms 2.1Mhz 3 ms 456 .
 
 \ ( BRR*100 ) 1152 baud .
 \ ( CFGR ) RCC-CFGR @ hex.
