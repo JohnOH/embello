@@ -16,6 +16,19 @@ include ../flib/spi-stm32l0.fs
 include ../flib/i2c-stm32l0.fs
 include ../flib/sleep-stm32l0.fs
 
+\ these ADC inputs can also be used to measure the four opamp outputs
+\ can be used to compare with analog plug, and to check for limits
+\ the built-in ADC is less precise but also much faster: 1 Msps vs 4 sps
+PA0  constant ANA1
+PA1  constant ANA2
+PA2  constant ANA3
+PA3  constant ANA4
+
+\ PA11 and PA12 are tied together to supply current to the op-amp
+PA11 constant VCC1
+PA12 constant VCC2
+
+\ the LED can be seen dimly through the white plastic cover
 PA15 constant LED
 
 : led-on LED ioc! ;
