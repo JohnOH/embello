@@ -8,23 +8,10 @@ compiletoflash
 include ../mlib/hexdump.fs
 include ../flib/stm32f4/io.fs
 include ../flib/stm32f4/hal.fs
-\ include ../flib/stm32f4/adc.fs
-\ include ../flib/any/ring.fs
-\ include ../flib/stm32f4/uart2.fs
-\ include ../flib/stm32f4/uart2-irq.fs
-\ include ../flib/stm32f4/spi.fs
+include ../flib/any/spi-bb.fs
+include ../flib/any/i2c-bb.fs
 
 \ board definitions for Haoyu HY-STM32Core144, i.e. "Core Board Four"
-
-\ PA4 variable ssel  \ can be changed at run time
-\ PA5 constant SCLK
-\ PA6 constant MISO
-\ PA7 constant MOSI
-include ../flib/any/spi-bb.fs
-
-\ PB6 constant SCL
-\ PB7 constant SDA
-include ../flib/any/i2c-bb.fs
 
 PF6 constant LED
 

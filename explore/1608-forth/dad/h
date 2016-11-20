@@ -16,12 +16,9 @@ include ../flib/any/ring.fs
 include ../flib/stm32f1/uart2.fs
 include ../flib/stm32f1/uart2-irq.fs
 include ../flib/stm32f1/spi.fs
+include ../flib/any/i2c-bb.fs
 
 \ board definitions for generic STM32F103 boards
-
-\ PB6 constant SCL
-\ PB7 constant SDA
-include ../flib/any/i2c-bb.fs
 
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD

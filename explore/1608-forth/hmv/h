@@ -17,6 +17,7 @@ include ../flib/stm32f1/rtc.fs
 include ../flib/any/ring.fs
 include ../flib/stm32f1/uart2.fs
 include ../flib/stm32f1/uart2-irq.fs
+include ../flib/any/i2c-bb.fs
 
 \ board definitions for Hy-MiniSTM32V
 
@@ -25,10 +26,6 @@ PC12 constant SCLK
 PC8  constant MISO
 PD2  constant MOSI
 include ../flib/any/spi-bb.fs
-
-\ PB6 constant SCL
-\ PB7 constant SDA
-include ../flib/any/i2c-bb.fs
 
 PB0 constant LED1
 PB1 constant LED2

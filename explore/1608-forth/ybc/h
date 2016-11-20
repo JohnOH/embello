@@ -18,12 +18,9 @@ include ../flib/any/ring.fs
 include ../flib/stm32f1/uart2.fs
 include ../flib/stm32f1/uart2-irq.fs
 include ../flib/stm32f1/spi.fs
+include ../flib/any/i2c-bb.fs
 
 \ board definitions for Yellow Blue STM32F103RC
-
-\ PB6 constant SCL
-\ PB7 constant SDA
-include ../flib/any/i2c-bb.fs
 
 PD2 constant LED
 
