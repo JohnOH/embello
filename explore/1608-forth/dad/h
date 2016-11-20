@@ -6,23 +6,22 @@ compiletoflash
 4 constant io-ports  \ A..D
 
 include ../mlib/hexdump.fs
-include ../flib/io-stm32f1.fs
-include ../flib/hal-stm32f1.fs
-include ../flib/timer-stm32f1.fs
-include ../flib/pwm-stm32f1.fs
-include ../flib/adc-stm32f1.fs
-include ../flib/rtc-stm32f1.fs
-include ../flib/ring.fs
-include ../flib/uart2-stm32f1.fs
-include ../flib/uart2-irq-stm32f1.fs
-include ../flib/spi-stm32f1.fs
+include ../flib/stm32f1/io.fs
+include ../flib/stm32f1/hal.fs
+include ../flib/stm32f1/timer.fs
+include ../flib/stm32f1/pwm.fs
+include ../flib/stm32f1/adc.fs
+include ../flib/stm32f1/rtc.fs
+include ../flib/any/ring.fs
+include ../flib/stm32f1/uart2.fs
+include ../flib/stm32f1/uart2-irq.fs
+include ../flib/stm32f1/spi.fs
 
 \ board definitions for generic STM32F103 boards
 
-PB6 constant SCL
-PB7 constant SDA
-
-include ../flib/i2c-bb.fs
+\ PB6 constant SCL
+\ PB7 constant SDA
+include ../flib/any/i2c-bb.fs
 
 : init ( -- )  \ board initialisation
   -jtag  \ disable JTAG, we only need SWD

@@ -1,4 +1,4 @@
-A collection of files for use with Mecrisp Stellaris Forth on STM32F103 boards:
+A collection of files for use with Mecrisp Stellaris Forth on STM32 boards:
 
 * **aia** - ARMinARM, Raspberry add-on w/ STM32F103RE
 * **bme** - BME280 sensor exploration using the Olimexino-STM32

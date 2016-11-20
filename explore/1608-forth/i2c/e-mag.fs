@@ -2,8 +2,8 @@
 \ needs core.fs
 cr cr reset
 
-\ include ../flib/i2c-stm32l0.fs
-include ../flib/mag3110.fs
+\ include ../flib/stm32l0/i2c.fs
+include ../flib/i2c/mag3110.fs
 
 \ assumes that the MAG3110 sensor is connected to PB6..PB7
 

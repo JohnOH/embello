@@ -4,7 +4,7 @@ $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
 compiletoflash
 
 include hal-stm32f1.fs
-include ../flib/ring.fs
+include ../flib/any/ring.fs
 include usb.fs
 
 : init ( -- )

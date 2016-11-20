@@ -2,8 +2,8 @@
 \ needs core.fs
 cr cr reset
 
-include ../flib/i2c-stm32l0.fs
-include ../flib/bme280.fs
+include ../flib/stm32l0/i2c.fs
+include ../flib/i2c/bme280.fs
 
 \ assumes that the BME280 sensor is connected to PB6..PB7
 

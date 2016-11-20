@@ -8,14 +8,13 @@
 RCC $18 + constant RCC-APB2ENR
 
 include ../mlib/hexdump.fs
-include ../flib/io-stm32f1.fs
-include ../flib/pins144.fs
-include ../flib/spi-stm32f1.fs
+include ../flib/stm32f1/io.fs
+include ../flib/pkg/pins144.fs
+include ../flib/stm32f1/spi.fs
 
-PB6 constant SCL
-PB7 constant SDA
-
-include ../flib/i2c-bb.fs
+\ PB6 constant SCL
+\ PB7 constant SDA
+include ../flib/any/i2c-bb.fs
 
 PC0 constant LED1
 PD3 constant LED2

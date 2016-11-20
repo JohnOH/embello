@@ -5,14 +5,14 @@
 RCC $18 + constant RCC-APB2ENR
 
 include ../mlib/hexdump.fs
-include ../flib/io-stm32f1.fs
-include ../flib/pins64.fs
-include ../flib/spi-stm32f1.fs
+include ../flib/stm32f1/io.fs
+include ../flib/pkg/pins64.fs
+include ../flib/stm32f1/spi.fs
 
-PB6 constant SCL
-PB7 constant SDA
-include ../flib/i2c-bb.fs
-\ include ../flib/i2c-stm32f1.fs
+\ PB6 constant SCL
+\ PB7 constant SDA
+include ../flib/any/i2c-bb.fs
+\ include ../flib/stm32f1/i2c.fs
 
 : ms 0 do 12000 0 do loop loop ;  \ assumes 72 MHz clock
 

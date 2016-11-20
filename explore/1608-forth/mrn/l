@@ -7,7 +7,7 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../flib/rf69.fs
+include ../flib/spi/rf69.fs
 include ../mlib/multi.fs
 
 PA10 constant RF12-IRQ
@@ -20,8 +20,8 @@ PA10 constant RF12-IRQ
 : >rf12> ( u -- u )  \ 16-bit SPI using two 8-bit SPI exchanges
   +spi2 dup 8 rshift >spi2> 8 lshift swap >spi2> or -spi2 ;
 
-include ../flib/crc.fs
-include ../flib/rf12.fs
+include ../flib/any/crc.fs
+include ../flib/spi/rf12.fs
 
 ( code-size ) here swap - .
 cornerstone <<<lib-mrn>>>

@@ -132,12 +132,12 @@ This is a transcript of loading "h" and then "l" into the system with the
     Finished. Reset !Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
         >>> include ../flib/hexdump.fs
         <<<<<<<<<<< ../flib/hexdump.fs (73 lines)
-        >>> include ../flib/io-stm32f1.fs
-        <<<<<<<<<<< ../flib/io-stm32f1.fs (59 lines)
-        >>> include ../flib/hal-stm32f1.fs
-        <<<<<<<<<<< ../flib/hal-stm32f1.fs (109 lines)
-        >>> include ../flib/adc-stm32f1.fs
-        <<<<<<<<<<< ../flib/adc-stm32f1.fs (26 lines)
+        >>> include ../flib/stm32f1/io.fs
+        <<<<<<<<<<< ../flib/stm32f1/io.fs (59 lines)
+        >>> include ../flib/stm32f1/hal.fs
+        <<<<<<<<<<< ../flib/stm32f1/hal.fs (109 lines)
+        >>> include ../flib/stm32f1/adc.fs
+        <<<<<<<<<<< ../flib/stm32f1/adc.fs (26 lines)
         <<<<<<<<<<< h (34 lines)
 
     *** exit status: 0
@@ -146,14 +146,14 @@ This is a transcript of loading "h" and then "l" into the system with the
     msend l 
     ( cornerstone ) <<<hal-rnw>>> 
     Finished. Reset !Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
-        >>> include ../flib/spi-bb.fs
-        <<<<<<<<<<< ../flib/spi-bb.fs (26 lines)
-        >>> include ../flib/rf69.fs
-        <<<<<<<<<<< ../flib/rf69.fs (164 lines)
-        >>> include ../flib/i2c-bb.fs
-        <<<<<<<<<<< ../flib/i2c-bb.fs (49 lines)
-        >>> include ../flib/oled.fs
-        <<<<<<<<<<< ../flib/oled.fs (93 lines)
+        >>> include ../flib/any/spi-bb.fs
+        <<<<<<<<<<< ../flib/any/spi-bb.fs (26 lines)
+        >>> include ../flib/spi/rf69.fs
+        <<<<<<<<<<< ../flib/spi/rf69.fs (164 lines)
+        >>> include ../flib/any/i2c-bb.fs
+        <<<<<<<<<<< ../flib/any/i2c-bb.fs (49 lines)
+        >>> include ../flib/i2c/oled.fs
+        <<<<<<<<<<< ../flib/i2c/oled.fs (93 lines)
         >>> include ../mlib/graphics.fs
         <<<<<<<<<<< ../mlib/graphics.fs (247 lines)
         >>> include ../mlib/multi.fs

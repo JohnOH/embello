@@ -7,12 +7,12 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../flib/rf69.fs
-include ../flib/oled.fs
-\ include ../flib/tft-ili9325.fs
+include ../flib/spi/rf69.fs
+include ../flib/i2c/oled.fs
+\ include ../flib/spi/tft-ili9325.fs
 include ../mlib/graphics.fs
+include ../flib/any/digits.fs
 include ../mlib/multi.fs
-include ../flib/digits.fs
 
 PA10 constant RF12-IRQ
 
@@ -24,8 +24,8 @@ PA10 constant RF12-IRQ
 : >rf12> ( u -- u )  \ 16-bit SPI using two 8-bit SPI exchanges
   +spi dup 8 rshift >spi> 8 lshift swap >spi> or -spi ;
 
-include ../flib/crc.fs
-include ../flib/rf12.fs
+include ../flib/any/crc.fs
+include ../flib/spi/rf12.fs
 
 : showdigit ( n x -- )
   swap 256 * digits + 64 0 do
