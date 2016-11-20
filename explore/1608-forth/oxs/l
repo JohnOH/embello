@@ -7,7 +7,7 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-\ include ../flib/sdcard.fs
+\ include ../flib/spi/sdcard.fs
 include ../flib/spi/rf69.fs
 include ../flib/i2c/oled.fs
 include ../mlib/graphics.fs

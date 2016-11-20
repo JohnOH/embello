@@ -2,7 +2,7 @@
 \ needs core.fs
 cr cr reset
 
-\ include ../flib/adc-stm32l0.fs
+\ include ../flib/stm32l0/adc.fs
 
 \ pin definitions: PA0 = 0V, PA1 = ADC in, PA2 = 3.3V
 \ works well with a trimpot inserted in a breadboard

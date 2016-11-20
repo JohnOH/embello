@@ -4,7 +4,7 @@
 cr cr reset
 cr
 
-\ include ../flib/sleep-stm32l0.fs
+\ include ../flib/stm32l0/sleep.fs
 
 : highz-gpio
 \ this s(h)aves another 0.6 µA ...

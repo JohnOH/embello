@@ -3,7 +3,7 @@
 cr cr reset
 cr
 
-\ include ../flib/sleep-stm32l0.fs
+\ include ../flib/stm32l0/sleep.fs
 
 : standby ( -- )
   2.1MHz  1000 systick-hz  only-msi
