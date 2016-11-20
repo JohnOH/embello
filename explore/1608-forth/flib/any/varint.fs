@@ -24,6 +24,10 @@
 : u+> ( u -- ) pkt.ptr @ ! 4 pkt.ptr +! ;  \ append 32-bit value to packet
 : u14+> ( u -- ) $3FFF and u+> ;           \ append 14-bit value to packet
 
+\ shift one position left - if negative, invert all bits (puts sign in bit 0)
+\ this compresses better for *signed* values of small magnitude
+: n+> ( n -- ) shl  dup 0< xor  u+> ;      \ append signed value to packet
+
 : <pkt ( format -- ) pkt.buf pkt.ptr ! u+> ;  \ start collecting values
 : pkt>rf ( -- )  \ broadcast the collected values as RF packet
   <v

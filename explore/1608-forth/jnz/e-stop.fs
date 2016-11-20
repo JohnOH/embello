@@ -12,8 +12,8 @@ cr
   IMODE-ADC PA1  io-mode!
   IMODE-ADC PA2  io-mode!
   IMODE-ADC PA3  io-mode!
-\ IMODE-ADC PA4  io-mode!   \ SSEL
-\ IMODE-ADC PA5  io-mode!   \ SCLK
+  IMODE-ADC PA4  io-mode!
+  IMODE-ADC PA5  io-mode!
 \ IMODE-ADC PA6  io-mode!   \ MISO
 \ IMODE-ADC PA7  io-mode!   \ MOSI
   IMODE-ADC PA8  io-mode!
@@ -23,12 +23,12 @@ cr
   IMODE-ADC PA12 io-mode!
   IMODE-ADC PA13 io-mode!
   IMODE-ADC PA14 io-mode!
-\ IMODE-ADC PA15 io-mode!   \ LED
+\ IMODE-ADC PA15 io-mode!   \ SSEL
   IMODE-ADC PB0  io-mode!
   IMODE-ADC PB1  io-mode!
-  IMODE-ADC PB3  io-mode!
+\ IMODE-ADC PB3  io-mode!   \ SCLK
   IMODE-ADC PB4  io-mode!
-  IMODE-ADC PB5  io-mode!
+\ IMODE-ADC PB5  io-mode!   \ LED
   IMODE-ADC PB6  io-mode!
   IMODE-ADC PB7  io-mode!
   IMODE-ADC PC14 io-mode!

@@ -5,8 +5,6 @@ eraseflash
 compiletoflash
 ( board start: ) here dup hex.
 
-$77 constant BME.ADDR  \ due to solder jumper
-
 include ../mlib/cond.fs
 include ../mlib/hexdump.fs
 include ../flib/stm32l0/io.fs
@@ -16,7 +14,21 @@ include ../flib/stm32l0/timer.fs
 include ../flib/stm32l0/pwm.fs
 include ../flib/stm32l0/spi.fs
 include ../flib/stm32l0/i2c.fs
+include ../flib/stm32l0/sleep.fs
 
+\ these ADC inputs can also be used to measure the four opamp outputs
+\ can be used to compare with analog plug, and to check for limits
+\ the built-in ADC is less precise but also much faster: 1 Msps vs 4 sps
+PA0  constant ANA1
+PA1  constant ANA2
+PA2  constant ANA3
+PA3  constant ANA4
+
+\ PA11 and PA12 are tied together to supply current to the op-amp
+PA11 constant VCC1
+PA12 constant VCC2
+
+\ the LED can be seen dimly through the white plastic cover
 PA15 constant LED
 
 : led-on LED ioc! ;
@@ -27,7 +39,7 @@ PA15 constant LED
   OMODE-PP LED io-mode!
 \ 16MHz ( set by Mecrisp on startup to get an accurate USART baud rate )
   2 RCC-CCIPR !  \ set USART1 clock to HSI16, independent of sysclk
-  flash-kb . ." KB <i2c> " hwid hex. ." ok." cr
+  flash-kb . ." KB <rvm> " hwid hex. ." ok." cr
   1000 systick-hz
 ;
 

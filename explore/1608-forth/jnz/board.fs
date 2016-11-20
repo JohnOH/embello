@@ -7,19 +7,19 @@ compiletoflash
 
 include ../mlib/cond.fs
 include ../mlib/hexdump.fs
-include ../flib/io-stm32l0.fs
-include ../flib/hal-stm32l0.fs
-include ../flib/adc-stm32l0.fs
-include ../flib/timer-stm32l0.fs
-include ../flib/pwm-stm32l0.fs
-include ../flib/i2c-stm32l0.fs
-include ../flib/sleep-stm32l0.fs
+include ../flib/stm32l0/io.fs
+include ../flib/stm32l0/hal.fs
+include ../flib/stm32l0/adc.fs
+include ../flib/stm32l0/timer.fs
+include ../flib/stm32l0/pwm.fs
+include ../flib/stm32l0/i2c.fs
+include ../flib/stm32l0/sleep.fs
 
 PA15 variable ssel  \ can be changed at run time
 PB3 constant SCLK
 \ PA6 constant MISO
 \ PA7 constant MOSI
-include ../flib/spi-stm32l0.fs
+include ../flib/stm32l0/spi.fs
 
 PB5 constant LED
 

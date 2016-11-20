@@ -2,8 +2,8 @@
 \ needs core.fs
 cr cr reset
 
-\ include ../flib/timer-stm32l0.fs
-\ include ../flib/pwm-stm32l0.fs
+\ include ../flib/stm32l0/timer.fs
+\ include ../flib/stm32l0/pwm.fs
 
 \ pins PA0..3 are assumed to have LEDs attached
 

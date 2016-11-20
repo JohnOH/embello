@@ -2,8 +2,8 @@
 \ needs core.fs
 cr cr reset
 
-\ include ../flib/spi-stm32l0.fs
-\ include ../flib/rf69.fs
+\ include ../flib/stm32l0/spi.fs
+\ include ../flib/spi/rf69.fs
 
 \ assumes RFM69 is present on PA4..PA7
 

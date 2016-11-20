@@ -7,9 +7,9 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../flib/tft-fsmc-r61505u.fs
+include ../flib/fsmc/tft-r61505u.fs
+include ../flib/spi/sdcard.fs
 include ../mlib/graphics.fs
-include ../flib/sdcard.fs
 include ../mlib/multi.fs
 include ../mlib/sine.fs
 

@@ -8,4 +8,4 @@
   $0E i2c-addr  $01 >i2c  6 i2c-xfer drop  i2c>h i2c>h i2c>h ;
 
 \ mag-init .
-\ mag-data .
+\ mag-data . . .

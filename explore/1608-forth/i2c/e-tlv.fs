@@ -3,8 +3,8 @@
 cr cr reset
 cr
 
-\ include ../flib/i2c-stm32l0.fs
-\ include ../flib/tlv493.fs
+\ include ../flib/stm32l0/i2c.fs
+\ include ../flib/i2c/tlv493.fs
 
 \ assumes that the TLV493 sensor is connected to PB6..PB7
 

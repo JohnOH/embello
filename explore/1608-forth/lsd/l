@@ -7,7 +7,7 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../flib/smem.fs
+include ../flib/spi/smem.fs
 include ../mlib/graphics.fs
 include ../mlib/multi.fs
 include ../mlib/sine.fs
