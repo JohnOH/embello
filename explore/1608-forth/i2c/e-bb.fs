@@ -22,8 +22,4 @@ include ../flib/i2c/bme280.fs
 +i2c i2c.
 
 \ this causes folie to timeout on include matching, yet still starts running
-\ 1234 ms go
-
-bme-init .
-bme-calib params 32 dump
-bme-data bme-calc . . .
+1234 ms go

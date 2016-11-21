@@ -44,6 +44,8 @@
     0= xi2c>
   then ;
 
+: i2c>h ( -- u )  i2c> i2c> 8 lshift or ;
+
 : i2c-addr ( u -- )
   shl  dup i2c.adr !  i2c.prv !  0 i2c.nak !  i2c-start ;
 
