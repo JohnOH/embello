@@ -3,20 +3,27 @@
 cr cr reset
 
 include ../flib/any/i2c-bb.fs
-include ../flib/i2c/veml6040.fs
+include ../flib/i2c/bme280.fs
 
-\ assumes that the VEML6040 sensor is connected to PB6..PB7
+\ assumes that the BME280 sensor is connected to PB6..PB7
+
+: .2 ( n -- )  \ display value with two decimal points
+  0 swap 0,01 f* 0,005 d+ 2 f.n ;
 
 : go
-  veml-init if ." can't find VEML6040" exit then
+  bme-init if ." can't find BME280" exit then bme-calib
   begin
     500 ms
     cr
-    micros veml-data 2>r 2>r micros swap - . ." µs: "
-    ." r: " r> .  ." g: " r> .  ." b: " r> .  ." w: " r> .
+    micros bme-data bme-calc >r >r >r micros swap - . ." µs: " r> r> r>
+    .2 ." °C " .2 ." hPa " .2 ." %RH "
   key? until ;
 
 +i2c i2c.
 
 \ this causes folie to timeout on include matching, yet still starts running
-1234 ms go
+\ 1234 ms go
+
+bme-init .
+bme-calib params 32 dump
+bme-data bme-calc . . .
