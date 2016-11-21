@@ -4,6 +4,7 @@
 4 constant io-ports  \ A..D
 RCC $18 + constant RCC-APB2ENR
 
+include ../mlib/cond.fs
 include ../mlib/hexdump.fs
 include ../flib/stm32f1/io.fs
 include ../flib/pkg/pins48.fs
