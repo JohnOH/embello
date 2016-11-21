@@ -4,6 +4,8 @@
 [ifndef] SCL  PB6 constant SCL  [then]
 [ifndef] SDA  PB7 constant SDA  [then]
 
+[ifndef] I2C.DELAY  10 constant i2c.DELAY  [then]  \ can't be less than 1
+
 0 variable i2c.adr
 0 variable i2c.nak
 0 variable i2c.prv
@@ -15,8 +17,7 @@
 ;
 
 : i2c-half ( -- )  \ half-cycle timing delay for I2C
-  10 0 do loop ; \ approx 250 KHz?
-\ inline ; \ no half-cycle delay, max speed
+  I2C.DELAY 0 do loop ;
 
 : i2c-start ( -- )  \ with SCL high, change SDA from 1 to 0
   1 SDA io! i2c-half SCL ios! i2c-half 0 SDA io! i2c-half SCL ioc! ;
@@ -49,9 +50,11 @@
   shl  dup i2c.adr !  i2c.prv !  0 i2c.nak !  i2c-start ;
 
 : i2c-xfer ( u -- nak )
-  i2c-flush i2c-stop
+  i2c-flush
   dup i2c.cnt !  if
     i2c.adr @ 1+ i2c.prv ! i2c-flush
+  else
+    i2c-stop
   then
   i2c.nak @
   dup if i2c-stop 0 i2c.cnt ! then  \ ignore reads if we had a nak

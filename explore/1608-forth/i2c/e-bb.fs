@@ -3,7 +3,7 @@
 cr cr reset
 
 include ../flib/any/i2c-bb.fs
-\ include ../flib/i2c/veml6040.fs
+include ../flib/i2c/veml6040.fs
 
 \ assumes that the VEML6040 sensor is connected to PB6..PB7
 
@@ -16,7 +16,7 @@ include ../flib/any/i2c-bb.fs
     ." r: " r> .  ." g: " r> .  ." b: " r> .  ." w: " r> .
   key? until ;
 
-\ this causes folie to timeout on include matching, yet still starts running
-\ 1234 ms go
-
 +i2c i2c.
+
+\ this causes folie to timeout on include matching, yet still starts running
+1234 ms go
