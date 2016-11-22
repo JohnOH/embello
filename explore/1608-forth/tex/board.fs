@@ -30,14 +30,29 @@ include ../flib/stm32f1/spi.fs
 
 PA1 constant LED
 
+\ pin connections to the RFM69
+PB0 constant RF.DIO0
+PB1 constant RF.DIO1
+PA8 constant RF.DIO2
+PB3 constant RF.DIO3
+PB5 constant RF.DIO5
+PB4 constant RF.RST
+PA4 constant RF.SEL
+
+PA15 constant SMEM.SEL  \ SPI flash memory
+
 : hello ( -- ) flash-kb . ." KB <tex> " hwid hex. ;
 
 : init ( -- )  \ board initialisation
   init  \ this is essential to start up USB comms!
   -jtag  \ disable JTAG, we only need SWD
-  OMODE-PP LED io-mode!
-\ hello ." ok." cr
+
+  OMODE-PP LED      io-mode!  LED      ios!
+  OMODE-PP RF.SEL   io-mode!  RF.SEL   ios!
+  OMODE-PP SMEM.SEL io-mode!  SMEM.SEL ios!
+
   1000 systick-hz
+\ hello ." ok." cr
 ;
 
 ( board end, size: ) here dup hex. swap - .
