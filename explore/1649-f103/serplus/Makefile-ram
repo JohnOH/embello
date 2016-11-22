@@ -23,5 +23,7 @@ LDSCRIPT = ../stm32f103-ram.ld
 SCRIPT_DIR=..
 
 default: $(BINARY).bin
+# don't call it $(BINARY)-arm.bin since that would be deleted by "make clean"
+	mv $(BINARY).bin $(BINARY).bin-ram
 
 include ../Makefile.include
