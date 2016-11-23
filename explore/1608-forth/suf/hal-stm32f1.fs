@@ -7,9 +7,6 @@
 : hwid ( -- u )  \ a "fairly unique" hardware ID as single 32-bit int
   chipid 1 do xor loop ;
 
-: bit ( u -- u )  \ turn a bit position into a single-bit mask
-  1 swap lshift  1-foldable ;
-
 $40010000 constant AFIO
      AFIO $4 + constant AFIO-MAPR
 

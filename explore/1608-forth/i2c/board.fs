@@ -5,17 +5,18 @@ eraseflash
 compiletoflash
 ( board start: ) here dup hex.
 
-$77 constant BME.ADDR  \ due to solder jumper
-
 include ../mlib/cond.fs
 include ../mlib/hexdump.fs
 include ../flib/stm32l0/io.fs
+include ../flib/pkg/pins32.fs
 include ../flib/stm32l0/hal.fs
 include ../flib/stm32l0/adc.fs
 include ../flib/stm32l0/timer.fs
 include ../flib/stm32l0/pwm.fs
 include ../flib/stm32l0/spi.fs
 include ../flib/stm32l0/i2c.fs
+
+$77 constant BME.ADDR  \ due to solder jumper
 
 PA15 constant LED
 

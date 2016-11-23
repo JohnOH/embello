@@ -1,14 +1,14 @@
 \ application setup and main loop
 \ assumes that the Analog Plug is connected to PB6..PB7
 
-1 constant debug  \ 0 = send RF packets, 1 = display on serial port
+0 constant debug  \ 0 = send RF packets, 1 = display on serial port
 
 : show-readings ( vy vb vg vr -- )
   hwid hex. ." = "
-  ." Vr: " . ." Vg: " . ." Vb " . ." Vy " . ;
+  ." Vr: " . ." Vg: " . ." Vb " . ;
 
 : send-packet ( vy vb vg vr -- )
-  3 <pkt  hwid u+>  4 0 do n+> loop  pkt>rf ;
+  3 <pkt  hwid u+>  3 0 do n+> loop  pkt>rf ;
 
 : opamp-on
   VCC1 ios!  VCC2 ios!  \ tied together: must always be the same!
@@ -31,7 +31,7 @@
   begin
     led-off rf-sleep
 
-    4 0 do i mcp-data loop
+    0 mcp-data 2 mcp-data 3 mcp-data  \ op-amp on chan #1 is not working!
 
     led-on
     debug if

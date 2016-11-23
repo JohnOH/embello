@@ -12,6 +12,11 @@
 : smem-size ( -- u )  \ return size of spi memory chip in KB
   smem-id $FF and 10 -  bit ;
 
+: smem32b ( -- u )  \ get 4 SPI bytes and return them as one 32b word
+  0  4 0 do 8 lshift spi> or loop ;
+: smem-uid ( -- u1 u2 )  \ return the chip's 64-bit unique ID
+  $4B smem-cmd 4 0 do 0 >spi loop smem32b smem32b -spi ;
+
 : smem-wipe ( -- )  \ wipe entire flash memory
   $60 smem-wcmd  smem-wait ;
 : smem-erase ( page -- )  \ erase one 4K sector in flash memory

@@ -5,6 +5,7 @@ compiletoflash
 
 7 constant io-ports  \ A..G
 
+include ../mlib/cond.fs
 include ../mlib/hexdump.fs
 include ../flib/stm32f4/io.fs
 include ../flib/pkg/pins144.fs

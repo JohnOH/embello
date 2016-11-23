@@ -1,7 +1,11 @@
 \ USB console for HyTiny-STM103T boards
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
+cr
 compiletoflash
+
+: bit ( u -- u )  \ turn a bit position into a single-bit mask
+  1 swap lshift  1-foldable ;
 
 include hal-stm32f1.fs
 include ../flib/any/ring.fs

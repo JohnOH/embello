@@ -5,8 +5,10 @@ compiletoflash
 
 8 constant io-ports  \ A..H
 
+include ../mlib/cond.fs
 include ../mlib/hexdump.fs
 include ../flib/stm32f4/io.fs
+include ../flib/pkg/pins100.fs
 include ../flib/stm32f7/hal.fs
 
 include clock.fs

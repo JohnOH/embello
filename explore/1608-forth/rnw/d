@@ -26,7 +26,7 @@ reset
 : lcdtry ( -- ) lcd-init show-logo  1000 ms  lcd-init demo ;
 \ : tfttry ( -- ) tft-init demo ;
 : digtry ( -- ) lcd-init 1234 shownum ;
-: rtctry ( -- ) +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+\ : rtctry ( -- ) +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
 : adctry ( -- ) +adc  begin  PB0 adc .  key? until ;
 : uartry ( -- ) +uart uart. ;
 : pwmtry ( -- ) 1 LED +pwm 100 LED pwm ;

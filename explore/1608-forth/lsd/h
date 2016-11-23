@@ -5,6 +5,7 @@ compiletoflash
 
 4 constant io-ports  \ A..D
 
+include ../mlib/cond.fs
 include ../mlib/hexdump.fs
 include ../flib/stm32f1/io.fs
 include ../flib/pkg/pins64.fs
@@ -18,6 +19,7 @@ include ../flib/any/ring.fs
 include ../flib/stm32f1/uart2.fs
 include ../flib/stm32f1/uart2-irq.fs
 include ../flib/stm32f1/spi.fs
+include ../flib/stm32f1/spi2.fs
 include ../flib/any/i2c-bb.fs
 
 \ board definitions for STM32F107RC, "Little Shark Display"

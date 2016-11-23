@@ -8,6 +8,7 @@ compiletoflash
 include ../mlib/cond.fs
 include ../mlib/hexdump.fs
 include ../flib/stm32l0/io.fs
+include ../flib/pkg/pins32.fs
 include ../flib/stm32l0/hal.fs
 include ../flib/stm32l0/adc.fs
 include ../flib/stm32l0/timer.fs
