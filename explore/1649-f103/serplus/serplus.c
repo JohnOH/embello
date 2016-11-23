@@ -190,7 +190,7 @@ static void usart_setup(void)
 
 /* telnet escape codes and special values: */
 enum {
-    IAC=255, WILL=251, SB=250, SE=240,
+    IAC=255, WILL=251, DONT=254, SB=250, SE=240,
     CPO=44, SETPAR=3, SETCTL=5,
     PAR_NONE=1, PAR_ODD=2, PAR_EVEN=3,
     DTR_ON=8, DTR_OFF=9, RTS_ON=11, RTS_OFF=12,
@@ -240,10 +240,11 @@ void usart1_isr(void)
                     if (data == IAC)
                         usart_send(USART1, data);
                     else
-                        state = data == SB ? 3 : 2;
+                        state = data == SB ? 3 :
+                                WILL <= data && data <= DONT ? 2 : 0;
                     break;
 
-                case 2: // IAC, WILL (or other) seen
+                case 2: // IAC, WILL (or WONT/DO/DONT) seen
                     state = 0;
                     break;
 
