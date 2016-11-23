@@ -2,6 +2,7 @@
 \ detect and list all attached I2C devices periodically
 
 0 constant DEBUG  \ 0 = show on LCD, 1 = show on serial
+0 constant RADIO  \ 0 = no radio present, 1 = radio present
 
 \ debug LEDs, connected to rightmost I/O pins on main header
 PA0  constant LED1
@@ -48,13 +49,15 @@ PA12 constant LED6
     loop
   16 +loop ;
 
-: main
+: radio-init ( -- )
+  8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
+  rf69-init 16 rf-power rf-sleep ;
+
+: main ( -- )
   leds-pwm  lcd-init show-logo
   OMODE-PP LED5 io-mode!  OMODE-PP LED6 io-mode!
   DEBUG 0= if  ['] lcd-emit hook-emit !  then
-
-  8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
-  rf69-init 16 rf-power rf-sleep
+  RADIO if radio-init then
 
   begin
     500 ms
