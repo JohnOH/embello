@@ -8,7 +8,7 @@ $E000ED08 constant VTOR
 : serplus
   SERPLUS-DATA SERPLUS-ADDR SERPLUS-SIZE move  \ copy to RAM
 
-  ." Switching to SerPlus..." cr
+  ." Switching to SerPlus..."
   10 0 do usb-poll 1 ms loop  \ drain USB connection
 
   23 bit RCC-APB1ENR bic!  \ clear USBEN

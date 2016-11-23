@@ -6,7 +6,7 @@
  *  and     examples/stm32/f1/stm32-h103/usb_cdcacm
  *
  * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>,
- * Copyright (C) 2010 Gareth McMullin <gareth@blacksphere.co.nz>
+ * Copyright (C) 2010, 2013 Gareth McMullin <gareth@blacksphere.co.nz>
  * Copyright (C) 2011 Piotr Esden-Tempski <piotr@esden.net>
  * Copyright (C) 2016 Jean-Claude Wippler <jc@wippler.nl>
  *
@@ -464,10 +464,12 @@ static const struct usb_config_descriptor config = {
     .interface = ifaces,
 };
 
+static char serial_no[9];
+
 static const char *usb_strings[] = {
     "Black Sphere Technologies",
     "SerPlus (based on CDC-ACM Demo)",
-    "SERPLUSx",
+    serial_no,
 };
 
 /* Buffer to be used for control requests. */
@@ -546,12 +548,50 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
             cdcacm_control_request);
 }
 
+static char *get_dev_unique_id(char *s)
+{
+#if defined(STM32F4) || defined(STM32F2)
+#	define UNIQUE_SERIAL_R 0x1FFF7A10
+#	define FLASH_SIZE_R    0x1fff7A22
+#elif defined(STM32F3)
+#	define UNIQUE_SERIAL_R 0x1FFFF7AC
+#	define FLASH_SIZE_R    0x1fff77cc
+#elif defined(STM32L1)
+#	define UNIQUE_SERIAL_R 0x1ff80050
+#	define FLASH_SIZE_R    0x1FF8004C
+#else
+#	define UNIQUE_SERIAL_R 0x1FFFF7E8;
+#	define FLASH_SIZE_R    0x1ffff7e0
+#endif
+	volatile uint32_t *unique_id_p = (volatile uint32_t *)UNIQUE_SERIAL_R;
+	uint32_t unique_id = *unique_id_p ^  // was "+" in original BMP
+			*(unique_id_p + 1) ^ // was "+" in original BMP
+			*(unique_id_p + 2);
+	int i;
+
+	/* Calculated the upper flash limit from the exported data
+	   in theparameter block*/
+	//max_address = (*(uint32_t *) FLASH_SIZE_R) <<10;
+	/* Fetch serial number from chip's unique ID */
+	for(i = 0; i < 8; i++) {
+		s[7-i] = ((unique_id >> (4*i)) & 0xF) + '0';
+	}
+	for(i = 0; i < 8; i++)
+		if(s[i] > '9')
+			s[i] += 'A' - '9' - 1;
+	s[8] = 0;
+
+	return s;
+}
+
 int main(void)
 {
     clock_setup();
     gpio_setup();
     usart_setup();
     systick_setup();
+
+    get_dev_unique_id(serial_no);
 
     usbd_device *usbd_dev = usbd_init(&st_usbfs_v1_usb_driver, &dev, &config,
             usb_strings, 3, usbd_control_buffer, sizeof(usbd_control_buffer));
