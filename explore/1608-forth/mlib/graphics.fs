@@ -213,11 +213,11 @@ calign decimal
 
 : demo ( -- )
   clear
-  50 24 32 10 ellipse display
-  50 24 34 12 ellipse display
-  s" Mecrisp" 30 20 drawstring display
-  2 14 12 34 line display
-  4 14 14 34 line display
+  50 14 32 10 ellipse display
+  50 14 34 12 ellipse display
+  s" Mecrisp" 30 10 drawstring display
+  2 4 12 24 line display
+  4 4 14 24 line display
 ;
 
 \ initlcd demo
