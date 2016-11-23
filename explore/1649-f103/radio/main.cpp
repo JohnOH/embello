@@ -26,7 +26,7 @@
 #include <errno.h>
 
 static void clock_setup () {
-    rcc_clock_setup_in_hse_8mhz_out_72mhz();
+//    rcc_clock_setup_in_hse_8mhz_out_72mhz();
 
     /* Enable clocks for GPIO port A/C for LED and USART1. */
     rcc_periph_clock_enable(RCC_GPIOA);

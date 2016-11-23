@@ -3,6 +3,7 @@
 #ifndef chThdYield
 #define chThdYield() // FIXME should be renamed, ChibiOS leftover
 #endif
+#define RF69_SPI_BULK false
 
 template< typename SPI >
 class RF69 {
@@ -11,6 +12,7 @@ class RF69 {
     void encrypt (const char* key);
     void txPower (uint8_t level);
     uint16_t crc_ccitt_update (uint16_t crc, uint8_t data);
+	void delay_3t (uint64_t cycles);
 
     int receive (void* ptr, int len);
     uint send (uint8_t header, const void* ptr, int len);
@@ -69,11 +71,12 @@ class RF69 {
       IRQ1_RXREADY      = 1<<6,
       IRQ1_SYNADDRMATCH = 1<<0,
 
+	  IRQ2_FIFOFULL     = 1<<7,
       IRQ2_FIFONOTEMPTY = 1<<6,
+	  IRQ2_FIFOLEVEL	= 1<<5,
+      IRQ2_FIFOOVERRUN  = 1<<4,
       IRQ2_PACKETSENT   = 1<<3,
       IRQ2_PAYLOADREADY = 1<<2,
-	  IRQ2_FIFOFULL     = 1<<7,
-      IRQ2_FIFOOVERRUN  = 1<<4,
     };
 
     void setMode (uint8_t newMode);
@@ -150,7 +153,7 @@ static const uint8_t configRegs [] = {
   
   0x37, 0x00, // PacketConfig1 = fixed, no crc, filt off
   0x38, 0x00, // PayloadLength = 0, unlimited
-  0x3C, 0x80, // at least one byte in the FIFO
+  0x3C, 0x85, // at least four bytes in the FIFO :id:len=0:crc-l:crc-h:
   0x3D, 0x10, // PacketConfig2, interpkt = 1, autorxrestart off
   0x6F, 0x20, // TestDagc ...
   0
@@ -161,7 +164,7 @@ void RF69<SPI>::init (uint8_t id, uint8_t groupid, int freq) {
   myId = id;
 
   // 10 MHz, i.e. 30 MHz / 3 (or 4 MHz if clock is still at 12 MHz)
-  spi.master(3);
+  spi.master(1024);
 /*
   do
     writeReg(REG_SYNCVALUE1, 0xAA);
@@ -175,7 +178,8 @@ void RF69<SPI>::init (uint8_t id, uint8_t groupid, int freq) {
 
   group = groupid;
   writeReg(REG_SYNCVALUE4, group);
-}
+  
+  }
 
 template< typename SPI >
 void RF69<SPI>::encrypt (const char* key) {
@@ -228,10 +232,10 @@ int RF69<SPI>::receive (void* ptr, int len) {
 			}
 		}
 
-//    if (readReg(REG_IRQFLAGS2) & IRQ2_PAYLOADREADY) {
-    	if (readReg(REG_IRQFLAGS2) & IRQ2_FIFOFULL) {
+    	if (readReg(REG_IRQFLAGS2) & IRQ2_FIFOLEVEL) {	// Min 3 bytes in FIFO?
 			((uint8_t*) ptr)[0] = group;
 			crc = crc_ccitt_update(~0, group);		// Group number in CRC
+
 #if RF69_SPI_BULK
 			spi.enable();
 			spi.transfer(REG_FIFO);
@@ -240,35 +244,51 @@ int RF69<SPI>::receive (void* ptr, int len) {
 			((uint8_t*) ptr)[1] = dest;
 			crc = crc_ccitt_update(crc, dest);
 			int count = spi.transfer(0);			// Data bytes	
-			((uint8_t*) ptr)[2] = count;	
-			crc = crc_ccitt_update(crc, count);
-			for (int i = 0; i < (count + 2); ++i) {
-        		ç v = spi.transfer(0);
-        		if (i < len) {
-          			((uint8_t*) ptr)[i + 3] = v;
-					crc = crc_ccitt_update(crc, v);
+			if (count <= 66) {
+				((uint8_t*) ptr)[2] = count;	
+				crc = crc_ccitt_update(crc, count);
+				for (int i = 0; i < (count + 2); ++i) {
+					v = spi.transfer(0);
+        			if (i < len) {
+          				((uint8_t*) ptr)[i + 3] = v;
+						crc = crc_ccitt_update(crc, v);
+						// might need < 0.16uS delay/byte to keep FIF0 ahead of RF
+					}
 				}
       		}
       	
       		spi.disable();
 #else
+
 			dest = readReg(REG_FIFO);				// Target Id
 			((uint8_t*) ptr)[1] = dest;
 			crc = crc_ccitt_update(crc, dest);
-			int count = readReg(REG_FIFO);				// Data bytes
-			((uint8_t*) ptr)[2] = count;
-			crc = crc_ccitt_update(crc, count);
-			for (int i = 0; i < (count + 2); ++i) {
-        		uint8_t v = readReg(REG_FIFO);
-        		if (i < len) {
-					((uint8_t*) ptr)[i + 3] = v;
-					crc = crc_ccitt_update(crc, v);
-//					printf("%02x", v);
+			int count = readReg(REG_FIFO);			// Data bytes
+			if (count <= 66) {
+				((uint8_t*) ptr)[2] = count;
+				crc = crc_ccitt_update(crc, count);
+				for (int i = 0; i < (count + 2); ++i) {
+        			uint8_t v = readReg(REG_FIFO);
+        			if (i < len) {
+						((uint8_t*) ptr)[i + 3] = v;
+						crc = crc_ccitt_update(crc, v);
+						// might need < 0.16uS delay/byte to keep FIFO ahead of RF
+//						printf(" %u", v);
+						for (int l = 0; l < 300; ++l) {	// @ 8MHz
+//						for (int l = 0; l < 2000; ++l) {	// @ 72MHz
+							asm("");			
+						}
+					}
 				}
+//			putchar('\n');
+
       		}
 //			putchar('\n');
 #endif
+
 			setMode(MODE_SLEEP);
+			writeReg(REG_IRQFLAGS2, IRQ2_FIFOOVERRUN);  	// Clear FIFO
+    		setMode(MODE_RECEIVE);
 //			printf("%02x", count);
 //			putchar('\n');
 			if (!crc) {
@@ -279,6 +299,9 @@ int RF69<SPI>::receive (void* ptr, int len) {
 //    			if (dest == myId || dest == 0 || myId == 31) return count;
 //    			if (dest == myId || myId == 31) return count;
 				return count;
+    		} else {
+				printf("Bad CRC i%u l=%u", (dest & 0x1F), count);
+				putchar('\n');
     		}
   		}
 	return -1;
@@ -288,7 +311,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
 template< typename SPI >
 uint RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
 	setMode(MODE_SLEEP);
-	writeReg(REG_IRQFLAGS2, IRQ2_FIFOOVERRUN);  	// Clear FIFO
+	writeReg(REG_IRQFLAGS2, IRQ2_FIFOOVERRUN);  // Clear FIFO
 	crc = crc_ccitt_update(~0, group);			// Group number in CRC
 #if RF69_SPI_BULK
 	spi.enable();
@@ -329,12 +352,12 @@ uint RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
 	The NXP LPC810 hardware CRC module refers to this approach as CRC-CCITT
 */
 template< typename SPI >
-uint16_t RF69<SPI>::crc_ccitt_update (uint16_t crc, uint8_t data) {
+uint16_t RF69<SPI>::crc_ccitt_update (uint16_t i_crc, uint8_t i_data) {
 
-    crc ^= data;
+    i_crc ^= i_data;
     for (int i = 0; i < 8; ++i)
-        crc = (crc >> 1) ^ (0xA001 * (crc & 1));
-    return crc;
+        i_crc = (i_crc >> 1) ^ (0xA001 * (i_crc & 1));
+    return i_crc;
 
 /*
 // table lookup is more concise and probably faster, but generates more code...
@@ -348,4 +371,19 @@ uint16_t RF69<SPI>::crc_ccitt_update (uint16_t crc, uint8_t data) {
     crc = (crc >> 4) ^ crcTable[crc&0x0F] ^ crcTable[data&0x0F];
     return (crc >> 4) ^ crcTable[crc&0x0F] ^ crcTable[data>>4];	*/
 }
-    
+/*
+static void setup_isr(void)
+{
+	/* Enable EXTI0 interrupt. *
+	nvic_enable_irq(BUTTON_DISCO_USER_NVIC);
+
+	gpio_mode_setup(BUTTON_DISCO_USER_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE,
+			BUTTON_DISCO_USER_PIN);
+
+	/* Configure the EXTI subsystem. *
+	exti_select_source(BUTTON_DISCO_USER_EXTI, BUTTON_DISCO_USER_PORT);
+	state.falling = false;
+	exti_set_trigger(BUTTON_DISCO_USER_EXTI, EXTI_TRIGGER_RISING);
+	exti_enable_request(BUTTON_DISCO_USER_EXTI);
+}    
+*/

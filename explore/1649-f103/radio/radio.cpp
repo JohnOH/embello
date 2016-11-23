@@ -2,6 +2,10 @@
 
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
+#include <libopencm3/stm32/exti.h>
+#include <libopencm3/cm3/systick.h>
+#include <libopencm3/cm3/cortex.h>
+#include <libopencm3/stm32f10x.h>
 #include <stdio.h>
 
 // defined in main.cpp
@@ -13,7 +17,7 @@ extern uint32_t millis();
 
 RF69<SpiDev> rf;
 
-uint8_t rxBuf[64];
+uint8_t rxBuf[71];	// :grp:dest:len:66 bytes:crc-l:crc-h:
 uint8_t txBuf[62];
 uint16_t txCnt = 0;
 
@@ -31,6 +35,12 @@ void setup () {
             GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
 
     printf("\n[radio]\n");
+
+//  ButtonInit();
+//  LEDsInit();
+  systick_set_frequency(15000000);
+  cm_enable_interrupts();
+
 
     rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");
@@ -52,7 +62,7 @@ void loop () {
     }
 
     int len = rf.receive(rxBuf, sizeof rxBuf);
-    if (len >= 0 && len <= sizeof rxBuf) {
+    if (len >= 0 && len <= 72) {
         printf("rf69 %04X%02X%02X%02X%04X g%u i%u l=%u %u",
                 rf_freq, rf_group, rf.rssi, rf.lna, rf.afc,
                 rxBuf[0], (rxBuf[1] & 0x1F), len, rxBuf[1]);
@@ -67,4 +77,9 @@ void loop () {
         gpio_toggle(GPIOC, GPIO13);
 
     }
+}
+void SysTick_Handler(void)
+{
+        gpio_toggle(GPIOA, GPIO1);
+        gpio_toggle(GPIOC, GPIO13);
 }
