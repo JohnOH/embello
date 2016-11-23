@@ -6,12 +6,14 @@ $E000ED08 constant VTOR
 : systick-off ( -- ) 0 $E000E010 ! ;
 
 : serplus
-  SERPLUS-DATA SERPLUS-ADDR SERPLUS-SIZE move
-  SERPLUS-ADDR 32 dump cr
+  SERPLUS-DATA SERPLUS-ADDR SERPLUS-SIZE move  \ copy to RAM
+
+  ." Switching to SerPlus..." cr
+  10 0 do usb-poll 1 ms loop  \ drain USB connection
 
   23 bit RCC-APB1ENR bic!  \ clear USBEN
   0 bit $4001080C bis!  \ set PA0 high
-  100 ms
+  10 ms  \ force USB disconnect
 
   systick-off  \ can't have any interrupts firing from now on
   SERPLUS-ADDR VTOR !  \ reset the vector base to RAM
