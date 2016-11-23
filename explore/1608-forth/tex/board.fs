@@ -1,7 +1,7 @@
 \ board definitions
 
 \ eraseflash
-compiletoflash
+cr compiletoflash
 ( board start: ) here dup hex.
 
 \ TODO this should have been in hal.fs ...
@@ -47,6 +47,9 @@ PA15 constant SMEM.SEL  \ SPI flash memory
   $10000 compiletoflash here -  flashvar-here compiletoram here -
   ." ram: " . ." free " ." flash: " . ." free " ;
 
+\ filter and  process incoming telnet escapes from folie
+include x-telnet.fs
+
 : init ( -- )  \ board initialisation
   init  \ this is essential to start up USB comms!
   -jtag  \ disable JTAG, we only need SWD
@@ -56,6 +59,8 @@ PA15 constant SMEM.SEL  \ SPI flash memory
   OMODE-PP SMEM.SEL io-mode!  SMEM.SEL ios!
 
   1000 systick-hz
+
+  telnet-io
 \ hello ." ok." cr
 ;
 
