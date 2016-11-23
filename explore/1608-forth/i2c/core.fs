@@ -16,3 +16,4 @@ include ../mlib/graphics.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>
+compiletoram

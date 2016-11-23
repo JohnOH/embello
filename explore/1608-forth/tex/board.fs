@@ -41,7 +41,11 @@ PA4 constant RF.SEL
 
 PA15 constant SMEM.SEL  \ SPI flash memory
 
-: hello ( -- ) flash-kb . ." KB <tex> " hwid hex. ;
+32 constant OLED.HEIGHT  \ overrides default of 64
+
+: hello ( -- ) flash-kb . ." KB <tex> " hwid hex.
+  $10000 compiletoflash here -  flashvar-here compiletoram here -
+  ." ram: " . ." free " ." flash: " . ." free " ;
 
 : init ( -- )  \ board initialisation
   init  \ this is essential to start up USB comms!
@@ -57,3 +61,4 @@ PA15 constant SMEM.SEL  \ SPI flash memory
 
 ( board end, size: ) here dup hex. swap - .
 cornerstone <<<board>>>
+compiletoram

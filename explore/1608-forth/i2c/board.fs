@@ -51,3 +51,4 @@ PA15 constant LED
 
 ( board end, size: ) here dup hex. swap - .
 cornerstone <<<board>>>
+compiletoram

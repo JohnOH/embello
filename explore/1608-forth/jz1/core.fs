@@ -17,3 +17,4 @@ include ../mlib/multi.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>
+compiletoram
