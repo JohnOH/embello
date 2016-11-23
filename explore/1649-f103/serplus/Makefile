@@ -22,6 +22,6 @@ OBJS =
 LDSCRIPT = ../stm32f103.ld
 SCRIPT_DIR=..
 
-default: $(BINARY).bin
+default: clean $(BINARY).bin
 
 include ../Makefile.include

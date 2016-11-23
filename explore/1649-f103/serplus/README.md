@@ -6,6 +6,6 @@ Based on the `usart1_irq_printf` and `usb_cdcacm` code from [libopencm3-examples
 
 For the RAM-based version, to be loaded at $20002000, use:
 
-    make clean && make -f Makefile-ram
+    make -f Makefile-ram
 
    [EX]: https://github.com/libopencm3/libopencm3-examples/tree/master/examples/stm32/f1/stm32-h103
