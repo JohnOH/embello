@@ -1,10 +1,12 @@
 \ interface to 128x64 OLED
 \ uses i2c
 
+[ifndef] OLED.HEIGHT  64 constant OLED.HEIGHT  [then]
+
 : lcd!c ( v -- )  \ send a command to the lcd
   $3C i2c-addr  $00 >i2c >i2c  0 i2c-xfer drop ;
 
-\ the oled's display memory buffer is set up as 8 rows of 128 bytes
+\ the oled's display memory buffer is set up as 4 or 8 rows of 128 bytes
 \ each byte is 8 pixels down, from b0 at the top to b7 at the bottom
 
 1024 buffer: lcdmem
@@ -15,6 +17,7 @@
   lcdmem 1024 0 fill ;
 
 : putpixel ( x y -- )  \ set a pixel in display memory
+  OLED.HEIGHT 64 < if 2* 1+ then
   1 over 7 and lshift ( x y bit ) -rot
   3 rshift 7 lshift + lcdmem + cbis! ;
 
@@ -99,7 +102,7 @@ decimal
 
 : show-logo ( -- )  \ show the JeeLabs logo
   clear
-  logo  64 0 do
+  logo  OLED.HEIGHT 0 do
     64 0 do
       dup i 5 rshift cells + @
       i not $1F and rshift
