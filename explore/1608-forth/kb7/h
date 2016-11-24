@@ -1,6 +1,7 @@
 \ install hardware abstractions in flash
 
 cr  ' nop irq-systick !  eraseflash
+cr
 compiletoflash
 
 8 constant io-ports  \ A..H

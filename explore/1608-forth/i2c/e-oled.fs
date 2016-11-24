@@ -25,9 +25,9 @@
   hook-emit @
   ['] lcd-emit hook-emit !
   cr 0 font-x ! 0 font-y ! clear
-  ." The quick brown <fox>" display cr
-  ." jumps over the fairly" display cr
-  ." lazy little <doggie>!" display cr
+  ." The quick brown <fox>" cr
+  ." jumps over the fairly" cr
+  ." lazy little <doggie>!" cr
   ."  (or so they say...)"  display
   hook-emit ! ;
 

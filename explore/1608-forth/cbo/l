@@ -3,6 +3,7 @@
 \ includes d
 
 ( cornerstone ) <<<hal-cbo>>>
+cr
 compiletoflash
 
 ( code-start, see code-size below ) here

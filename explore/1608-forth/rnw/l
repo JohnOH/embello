@@ -3,6 +3,7 @@
 \ includes d
 
 ( cornerstone ) <<<hal-rnw>>>
+cr
 compiletoflash
 
 ( code-start, see code-size below ) here
