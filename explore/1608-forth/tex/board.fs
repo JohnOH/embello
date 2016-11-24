@@ -47,7 +47,7 @@ PA15 constant SMEM.SEL  \ SPI flash memory
   $10000 compiletoflash here -  flashvar-here compiletoram here -
   ." ram: " . ." free " ." flash: " . ." free " ;
 
-\ filter and  process incoming telnet escapes from folie
+\ filter and process incoming telnet escapes from folie
 include x-telnet.fs
 
 : init ( -- )  \ board initialisation

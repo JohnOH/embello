@@ -1,8 +1,7 @@
 \ USB console for HyTiny-STM103T boards
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
-cr
-compiletoflash
+cr compiletoflash
 
 : bit ( u -- u )  \ turn a bit position into a single-bit mask
   1 swap lshift  1-foldable ;
@@ -12,9 +11,9 @@ include ../flib/any/ring.fs
 include usb.fs
 
 : init ( -- )
-  1000000 0 do loop  \ approx 1s delay
+\ 1000000 0 do loop  \ approx 1s delay
   72MHz  \ this is required for USB use
-  key? if key if exit then then  \ safety escape hatch
+\ key? if key if exit then then  \ safety escape hatch
   \ board-specific way to enable USB
   %1111 $40010800 bic!  \ PA0: output, push-pull, 2 MHz
   %0010 $40010800 bis!
