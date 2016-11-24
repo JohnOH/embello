@@ -13,6 +13,7 @@ include ../flib/any/digits.fs
 include ../mlib/multi.fs
 
 include serplus.fs
+include x-serplus.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>
