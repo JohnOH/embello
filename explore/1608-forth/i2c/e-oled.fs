@@ -10,12 +10,12 @@
 
 \ assumes that the OLED is connected to PB6..PB7
 
-OLED.HEIGHT 64 < [if] $18 [else] $38 [then] constant OLED.MASK
-
 : lcd-emit ( c -- )  \ switch the output to the OLED, cr's move to next line
   dup $0A = if drop
-    font-y @  7 or 1+  OLED.MASK and  dup font-y !  \ advance to next line
-\   16 * lcdmem + 128 0 fill  \ clear entire line
+    2 OLED.LARGE - \ 2 for small OLED, 1 for large OLED
+    OLED.LARGE 32 * $18 or  \ mask for Y positions: $18 or $38
+    font-y @  7 or 1+ and  dup font-y !  \ advance to next line
+    over * 16 * lcdmem + swap 128 * 0 fill  \ clear entire line
     0 font-x !  \ go to start of line
   else
     ascii>bitpattern drawcharacterbitmap
@@ -29,14 +29,9 @@ OLED.HEIGHT 64 < [if] $18 [else] $38 [then] constant OLED.MASK
   ." jumps over the fairly" display cr
   ." lazy little <doggie>!" display cr
   ."  (or so they say...)"  display
-\ 2000 ms
-\ cr ."  (say...)"  display
-\ 2000 ms
-\ cr ."  (...)"  display
   hook-emit ! ;
 
 \ +i2c i2c? i2c.
 lcd-init
 show-logo
-
-go
+1234 ms go

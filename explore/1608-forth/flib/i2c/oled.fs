@@ -1,7 +1,7 @@
 \ interface to 128x64 OLED
 \ uses i2c
 
-[ifndef] OLED.HEIGHT  64 constant OLED.HEIGHT  [then]
+[ifndef] OLED.LARGE  1 constant OLED.LARGE  [then]  \ 0 = 128x32, 1 = 128x64
 
 : lcd!c ( v -- )  \ send a command to the lcd
   $3C i2c-addr  $00 >i2c >i2c  0 i2c-xfer drop ;
@@ -17,7 +17,7 @@
   lcdmem 1024 0 fill ;
 
 : putpixel ( x y -- )  \ set a pixel in display memory
-  OLED.HEIGHT 64 < if 2* 1+ then
+  OLED.LARGE 0= if 2* 1+ then
   1 over 7 and lshift ( x y bit ) -rot
   3 rshift 7 lshift + lcdmem + cbis! ;
 
@@ -102,7 +102,7 @@ decimal
 
 : show-logo ( -- )  \ show the JeeLabs logo
   clear
-  logo  OLED.HEIGHT 0 do
+  logo  OLED.LARGE 1+ 32 * 0 do
     64 0 do
       dup i 5 rshift cells + @
       i not $1F and rshift
