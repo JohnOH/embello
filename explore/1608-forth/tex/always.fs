@@ -1,1 +1,1 @@
-Error: don't send this file, use "../suf/f-hytiny.fs" instead, for USB support
+: x ." Error: wrong file, use '../suf/f-hytiny.fs' for USB support" ; x
