@@ -28,8 +28,8 @@ telnet mode if going through a "SerPlus" interface.
 > consists of uploading a complete pre-built image (`usb-hytiny.hex`) into the
 > HyTiny, but it tends to lag the latest releases at times - YMMV! If you want
 > to try it out and take advantage of Folie's nifty upload-from-the-web feature,
-> replace everything below with this the following typed into Folie, all on one
-> line and without leading or trailing spaces:
+> replace everything below with the following typed into Folie, all on one line
+> and without leading or trailing spaces:
 >
 >     !s https://github.com/jeelabs/embello/blob/
 >     master/explore/1608-forth/suf/usb-hytiny.hex
