@@ -25,7 +25,7 @@ Folie v2 or later. Use "raw" mode (-r) with a BUB or similar, or the default
 telnet mode if going through a "SerPlus" interface.
 
 > **Note:** there is a quick way to bypass all the build steps below, which
-> consists of uploading a complete pre-built image (`f-hytiny.hex`) into the
+> consists of uploading a complete pre-built image (`usb-hytiny.hex`) into the
 > HyTiny, but it tends to lag the latest releases at times - YMMV! If you want
 > to try it out and take advantage of Folie's nifty upload-from-the-web feature,
 > replace everything below with this the following typed into Folie, all on one
