@@ -111,3 +111,36 @@ button on the HyTiny.
 See the `explore/1649-f103/serplus/` folder for more information about SerPlus.
 
 As of this writing (Nov 2016), switching to SerPlus causes a reset. See above...
+
+### Updates
+
+At some point there will be updates to `board.fs` or `core.fs`, or to some of
+the files they include. Since all this code sits above the USB driver layer,
+it can fact be updated through USB. Here is how to update `board.fs`:
+
+* type `eraseflash` at the Forth prompt
+* the unit resets, you'll lose the USB session and may need to relaunch Folie
+* when connected again, enter `words` to see all definitions scroll by
+* the last two entries should be called `init` and `eraseflash`
+* go to the `../tex/` area (as before, this can be done inside Folie)
+* re-install the updated board code, using `!s board.fs`
+* if you enter `words` now, the last item listed should be `<<<board>>>`
+* board has now been replaced, but we'll need to re-install `core.fs` as well
+* continue with the steps below...
+
+To replace only the `core.fs` code and leave `board.fs` intact, start here:
+
+* type `<<<board>>>` at the Forth prompt
+* the unit resets, you'll lose the USB session and may need to relaunch Folie
+* when connected again, enter `words` to see all definitions scroll by
+* the last entry should be called `<<<board>>>`
+* go to the `../tex/` area (as before, this can be done inside Folie)
+* re-install the updated core code, using `!s core.fs`
+* if you enter `words` now, the last item listed should be `<<<core>>>`
+
+Excellent, you're done - you have a shiny new version of tex installed in flash.
+
+Note that updates to the USB driver or to Mecrisp Forth itself cannot be done
+through the USB connection. You'll need to hook up the serial port again, and
+follow the "Software" instructions above, same as when installing from scratch.
+
