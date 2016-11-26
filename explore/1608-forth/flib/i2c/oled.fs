@@ -22,6 +22,7 @@
   3 rshift 7 lshift + lcdmem + cbis! ;
 
 : display ( -- )  \ update the oled from display memory
+  $B0 lcd!c  \ SET PAGE START
   $00 lcd!c  \ SETLOWCOLUMN
   $10 lcd!c  \ SETHIGHCOLUMN
   $40 lcd!c  \ SETSTARTLINE

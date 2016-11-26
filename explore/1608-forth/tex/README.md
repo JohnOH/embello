@@ -44,7 +44,7 @@ We're almost done... hang in there!
 * you can always reset the dictionary by typing `<<<board>>>`
 * load some useful drivers and library code, using `!s core.fs`
 * now, the RFM69 and OLED + graphics are loaded, ready for use
-* at any time, to reset the Forth dict to just usb+board+core, type `<<<core>>>
+* at any time, to reset the Forth dict to just usb+board+core, type `<<<core>>>`
 
 That's it. You now have a fairly complete environment running over USB. See the
 `board.fs` and `core.fs` source code to find out what has been included.
@@ -57,7 +57,7 @@ flash memory (RAM definitions always end up at the beginning of these listings).
 
 A USB-based console setup has some quirks, because a reset in Forth causes the
 entire system to restart, losing the current USB session and re-enumerating it.
-This has a similar effect as unplogging and re-plluging the HyTiny.
+This has a similar effect as unplugging and re-plugging the HyTiny.
 
 Right now, on MacOS this is fairly harmless, because the re-enumerated device
 shows up with the same name again within a second or so, and Folie will then
