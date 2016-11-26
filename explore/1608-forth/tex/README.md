@@ -16,13 +16,25 @@ The PDF shows all the relevant pin assignments.
 
 ### Software
 
-Tex runs on Mecrisp 2.3.0 or later, with its console I/O over USB.
-The code for the "Serial USB driver for Forth is in the `../suf/` directory.
+Tex (i.e. the software) runs on Mecrisp 2.3.0 or later, with console I/O over
+USB.  The code for the "Serial USB driver for Forth" is in the `../suf/` area.
 
 To load the software onto the HyTiny, you need to connect power and the PA9 +
 PA10 pins to a USB-serial adapter. On the host side, you need to be running
 Folie v2 or later. Use "raw" mode (-r) with a BUB or similar, or the default
 telnet mode if going through a "SerPlus" interface.
+
+> **Note:** there is a quick way to bypass all the build steps below, which
+> consists of uploading a complete pre-built image (`f-hytiny.hex`) into the
+> HyTiny, but it tends to lag the latest releases at times - YMMV! If you want
+> to try it out and take advantage of Folie's nifty upload-from-the-web feature,
+> replace everything below with this the following typed into Folie, all on one
+> line and without leading or trailing spaces:
+>
+>     !s https://github.com/jeelabs/embello/blob/
+>     master/explore/1608-forth/suf/usb-hytiny.hex
+>
+> Then, disconnect and plug the HyTiny back in, now using its USB jack.
 
 Here is a rough outline of the steps involved:
 
