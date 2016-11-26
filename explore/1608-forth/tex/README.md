@@ -97,3 +97,15 @@ It's often easy to see when you get it wrong, because you'll get "funny" chars.
 
 In short: you have to be aware of "-r" for this initial setup, but once tex is
 fully installed and being used on an day-to-day basis, it's no longer needed.
+
+### SerPlus
+
+Tex includes a `serplus` mode, which turns the HyTiny into a USB-serial
+interface (using the host FTDI connector). The difference with a BUB and other
+USB-serial interfaces, is that it interprets (and strips) in-band telnet
+escapes. With SerPlus, Folie can control the DTR and the RTS pin, and both reset
+_and_ re-flash an attached STM32 µC board. The way to start this is to enter
+`serplus` as Forth command. To switch back to Forth, you have to press the RESET
+button on the HyTiny.
+
+See the `explore/1649-f103/serplus/` folder for more information about SerPlus.
