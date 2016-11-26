@@ -19,6 +19,8 @@ include usb.fs
   \ board-specific way to enable USB
   %1111 $40010800 bic!  \ PA0: output, push-pull, 2 MHz
   %0010 $40010800 bis!
+  0 bit $4001080C bis!  \ set PA0 high
+  100000 0 do loop
   0 bit $4001080C bic!  \ set PA0 low
 
   \ disable all console I\O until new hooks are in place
