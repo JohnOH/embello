@@ -1,0 +1,68 @@
+This area is for the "Tiny Extender", a HyTiny with an "Extender PCB".
+
+The PCB combines a HyTiny (STM32F103), optional RFM69CW, optional SPI flash,
+and female FTDI host header (i.e. to talk to and program a JeeNode Zero, etc).
+
+### Hardware
+
+See the EAGLE files and derived documentation:
+
+* `tex-v1.sch` - EAGLE 7.6 schematic
+* `tex-v1.pdf` - EAGLE 7.6 schematic, as PDF
+* `tex-v1.brd` - EAGLE 7.6 board layout
+* `tex-v1.png` - EAGLE 7.6 board layout, as image
+
+The PDF shows all the relevant pin assignments.
+
+### Software
+
+Tex runs on Mecrisp 2.3.0 or later, with its console I/O over USB.
+The code for the "Serial USB driver for Forth is in the `../suf/` directory.
+
+To load the software onto the HyTiny, you need to connect power and the PA9 +
+PA10 pins to a USB-serial adapter. On the host side, you need to be running
+Folie v2 or later. Use "raw" mode (-r) with a BUB or similar, or the default
+telnet mode if going through a "SerPlus" interface.
+
+Here is a rough outline of the steps involved:
+
+* use Folie's `!u` command to upload `f103-mecrisp` into the Hytine
+* after a reset, the Hytiny now runs Forth over its USART1 interface
+* go to the `../suf/` area so you can send the USB driver
+* enter `!s hytiny.fs` to send the driver, there should be no errors
+* after reset, you will no longer have serial access to the HyTiny
+* unplug the HyTiny and re-connect using its USB jack
+* if all went well, you should be able to restart Folie and connect again
+* you are now running Forth over USB, but with very little support code loaded
+* the `eraseflash` word has been redefined so that the USB driver stays intact
+
+We're almost done... hang in there!
+
+* go back to the `../tex/` area (can be done inside Folie, using `!cd ...`)
+* load the board definitions, by entering this in Folie: `!s board.fs`
+* now, the basic board peripherals and pin definitions are in flash
+* you can always reset the dictionary by typing `<<<board>>>`
+* load some useful drivers and library code, using `!s core.fs`
+* now, the RFM69 and OLED + graphics are loaded, ready for use
+* at any time, to reset the Forth dict to just usb+board+core, type `<<<core>>>
+
+That's it. You now have a fairly complete environment running over USB. See the
+`board.fs` and `core.fs` source code to find out what has been included.
+
+For a (very) long list of what's currently defined, type `words`. For a shorter
+list, you can type `list`. The last item shown is also the last word defined in
+flash memory (RAM definitions always end up at the beginning of these listings).
+
+### Caveats
+
+A USB-based console setup has some quirks, because a reset in Forth causes the
+entire system to restart, losing the current USB session and re-enumerating it.
+This has a similar effect as unplogging and re-plluging the HyTiny.
+
+Right now, on MacOS this is fairly harmless, because the re-enumerated device
+shows up with the same name again within a second or so, and Folie will then
+automatically pick it up and re-connect.
+
+On Linux and Windows, this is (as of end Nov 2016) not yet the case. You will
+need to quit Folie, and restart it, selecting the correct USB port again - which
+may have gotten a new name (i.e. `COM<N+1>`, resp. `/dev/ttyACM<N+1>`).
