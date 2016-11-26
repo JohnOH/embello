@@ -109,3 +109,5 @@ _and_ re-flash an attached STM32 µC board. The way to start this is to enter
 button on the HyTiny.
 
 See the `explore/1649-f103/serplus/` folder for more information about SerPlus.
+
+As of this writing (Nov 2016), switching to SerPlus causes a reset. See above...
