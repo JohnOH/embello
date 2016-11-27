@@ -32,8 +32,7 @@ telnet mode if going through a "SerPlus" interface.
 > advantage of Folie's nifty upload-from-the-web feature, replace everything
 > below with the following line:
 >
->     !s
->     https://github.com/jeelabs/embello/blob/master/explore/1608-forth/suf/usb-common.hex
+>     !s https://github.com/jeelabs/embello/blob/master/explore/1608-forth/suf/usb-common.hex
 >
 > Then, disconnect and plug the HyTiny back in using its USB jack. Now you can
 > continue with the "Update" section below to install the rest of the code.
