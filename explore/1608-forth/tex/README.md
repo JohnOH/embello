@@ -27,16 +27,16 @@ Folie v2 or later. Use "raw" mode (-r) with a BUB or similar, or the default
 telnet mode if going through a "SerPlus" interface.
 
 > **Note:** there is a quick way to bypass all the build steps below, which
-> consists of uploading a complete pre-built image (`usb-hytiny.hex`) into the
+> consists of uploading a complete pre-built image (`usb-common.hex`) into the
 > HyTiny, but it tends to lag the latest releases at times - YMMV!  To try it
 > out and take advantage of Folie's nifty upload-from-the-web feature, replace
 > everything below with the following line:
 >
->     !s https://github.com/jeelabs/embello/blob/master/explore/1608-forth/tex/tex-hytiny.hex
+>     !s https://github.com/jeelabs/embello/blob/master/explore/1608-forth/suf/usb-common.hex
 >
 > Then, disconnect and plug the HyTiny back in, now using its USB jack.
 
-Here is a rough outline of the steps involved:
+Here is a rough outline of the steps involved to install tex from scratch:
 
 * use Folie's `!u` command to upload `f103-mecrisp` into the HyTiny
 * there are several crucial details (with ISP pressed, briefly press RESET)
@@ -129,7 +129,7 @@ As of this writing (Nov 2016), switching to SerPlus causes a reset. See above...
 
 At some point there will be updates to `board.fs` or `core.fs`, or to some of
 the files they include. Since all this code sits above the USB driver layer,
-it can fact be updated through USB. Here is how to update `board.fs`:
+it can in fact be updated through USB. Here is how to update `board.fs`:
 
 * type `eraseflash` at the Forth prompt
 * the unit resets, you'll lose the USB session and may need to relaunch Folie
@@ -170,11 +170,10 @@ some other differences:
 * there's no USB-pull-up via a transistor to trigger USB re-enumeration
 * instead, PA12 must be controlled internally via GPIO, using different code
 
-That last difference makes it impossible to re-use exactly the same code for
-both boards. Instead, the `f-generic.fs` source needs to be used for the USB
-driver, instead of `f-hytiny.fs`. As a consquence, the pre-built hex and bin
-files are also called differently, i.e. `usb-generic.*` instead of
-`usb-hytiny.*`.
+That last difference makes it harder to re-use exactly the same code for both
+boards. But there's a way out: since the flash sizes differ, this has been used
+to differenctiate between the two and create a single `f-common.fs` setup which
+will auto-detect on startup and control USB accordingly.
 
 So if you keep these differences in mind, you should be able to adapt the above
 information and get tex working on the Blue Pill as well.

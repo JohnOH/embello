@@ -11,7 +11,7 @@ include ../flib/any/ring.fs
 include usb.fs
 
 : init ( -- )
-\ 1000000 0 do loop  \ approx 1s delay
+\ init
   72MHz  \ this is required for USB use
 \ key? if key if exit then then  \ safety escape hatch
   \ board-specific way to enable USB

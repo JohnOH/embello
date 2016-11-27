@@ -6,6 +6,8 @@
   $1FFFF7E8 @ $1FFFF7EC @ $1FFFF7F0 @ 3 ;
 : hwid ( -- u )  \ a "fairly unique" hardware ID as single 32-bit int
   chipid 1 do xor loop ;
+: flash-kb ( -- u )  \ return size of flash memory in KB
+  $1FFFF7E0 h@ ;
 
 $40010000 constant AFIO
      AFIO $4 + constant AFIO-MAPR

@@ -7,9 +7,6 @@ compiletoflash
 \ TODO this should have been in hal.fs ...
 RCC $18 + constant RCC-APB2ENR
 
-: flash-kb ( -- u )  \ return size of flash memory in KB
-  $1FFFF7E0 h@ ;
-
 : -jtag ( -- )  \ disable JTAG on PB3 PB4 PA15
   25 bit AFIO-MAPR bis! ;
 
