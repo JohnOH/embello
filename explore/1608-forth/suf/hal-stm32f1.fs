@@ -9,6 +9,9 @@
 : flash-kb ( -- u )  \ return size of flash memory in KB
   $1FFFF7E0 h@ ;
 
+: bit ( u -- u )  \ turn a bit position into a single-bit mask
+  1 swap lshift  1-foldable ;
+
 $40010000 constant AFIO
      AFIO $4 + constant AFIO-MAPR
 
