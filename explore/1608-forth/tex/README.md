@@ -44,7 +44,7 @@ Here is a rough outline of the steps involved to install tex from scratch:
 * there are several crucial details (with ISP pressed, briefly press RESET)
 * after a succesful reflash, the HyTiny now runs Forth on its USART1 interface
 * go to the `../suf/` area so you can append the USB driver to it
-* enter `!s hytiny.fs` to send the driver, there should be no errors
+* enter `!s f-common.fs` to send the driver, there should be no errors
 * after reset, you will no longer have serial access to the HyTiny
 * unplug the HyTiny and re-connect using its USB jack
 * if all went well, you should be able to restart Folie and connect again
