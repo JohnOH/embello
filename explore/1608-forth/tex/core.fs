@@ -5,6 +5,7 @@ cr compiletoflash
 ( core start: ) here dup hex.
 
 include ../flib/spi/rf69.fs
+include ../flib/any/varint.fs
 include ../flib/spi/smem.fs
 include ../flib/i2c/oled.fs
 
