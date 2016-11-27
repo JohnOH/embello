@@ -89,6 +89,11 @@ All of these, apart from the explicit `reset`, are due to the fact that the
 Forth dictionary is a linked list, and that major surgery on it requires Mecrisp
 to re-initialise itself from scratch. Including the USB driver, in this context.
 
+Due to the disruptive nature of resets when using the console over USB, it is
+not possible to send files from Folie with the above "resetting commands" in
+them. Instead, you need to comment those out, type them in manually, and _then_
+send the file with the remaining code.
+
 ### Telnet
 
 Another detail to be aware of is Folie's "telnet" vs "raw" (-r) mode. In its
