@@ -14,6 +14,8 @@ See the EAGLE files and derived documentation:
 
 The PDF shows all the relevant pin assignments.
 
+Further down below is a section about a alternate board, called the Blue Pill.
+
 ### Software
 
 Tex (i.e. the software) runs on Mecrisp 2.3.0 or later, with console I/O over
@@ -26,21 +28,20 @@ telnet mode if going through a "SerPlus" interface.
 
 > **Note:** there is a quick way to bypass all the build steps below, which
 > consists of uploading a complete pre-built image (`usb-hytiny.hex`) into the
-> HyTiny, but it tends to lag the latest releases at times - YMMV! If you want
-> to try it out and take advantage of Folie's nifty upload-from-the-web feature,
-> replace everything below with the following typed into Folie, all on one line
-> and without leading or trailing spaces:
+> HyTiny, but it tends to lag the latest releases at times - YMMV!  To try it
+> out and take advantage of Folie's nifty upload-from-the-web feature, replace
+> everything below with the following line:
 >
->     !s https://github.com/jeelabs/embello/blob/
->     master/explore/1608-forth/suf/usb-hytiny.hex
+>     !s https://github.com/jeelabs/embello/blob/master/explore/1608-forth/tex/tex-hytiny.hex
 >
 > Then, disconnect and plug the HyTiny back in, now using its USB jack.
 
 Here is a rough outline of the steps involved:
 
 * use Folie's `!u` command to upload `f103-mecrisp` into the HyTiny
-* after a reset, the HyTiny now runs Forth over its USART1 interface
-* go to the `../suf/` area so you can send the USB driver
+* there are several crucial details (with ISP pressed, briefly press RESET)
+* after a succesful reflash, the HyTiny now runs Forth on its USART1 interface
+* go to the `../suf/` area so you can append the USB driver to it
 * enter `!s hytiny.fs` to send the driver, there should be no errors
 * after reset, you will no longer have serial access to the HyTiny
 * unplug the HyTiny and re-connect using its USB jack
@@ -156,3 +157,24 @@ Note that updates to the USB driver or to Mecrisp Forth itself cannot be done
 through the USB connection. You'll need to hook up the serial port again, and
 follow the "Software" instructions above, same as when installing from scratch.
 
+### Blue Pill
+
+There is another very common low-cost F103 board, which is often called the
+"Blue Pill". It differs slightly from the HyTiny in shape and size, but also has
+some other differences:
+
+* it's a 48-pin µC, vs HyTiny's 36-pin, and has more I/O pins and h/w interfaces
+* it reports 64K flash, vs 128K for the HyTiny (but rumours say it's still 128K)
+* the LED is on PC13, vs PA1 on the HyTiny
+* the ISP pin (BOOT0) is a yellow jumper instead of a push-button
+* there's no USB-pull-up via a transistor to trigger USB re-enumeration
+* instead, PA12 must be controlled internally via GPIO, using different code
+
+That last difference makes it impossible to re-use exactly the same code for
+both boards. Instead, the `f-generic.fs` source needs to be used for the USB
+driver, instead of `f-hytiny.fs`. As a consquence, the pre-built hex and bin
+files are also called differently, i.e. `usb-generic.*` instead of
+`usb-hytiny.*`.
+
+So if you keep these differences in mind, you should be able to adapt the above
+information and get tex working on the Blue Pill as well.
