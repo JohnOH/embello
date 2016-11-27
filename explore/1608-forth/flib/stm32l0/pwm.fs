@@ -27,5 +27,6 @@
   dup p2cmp 4 * bit swap p2tim timer-base $20 + bic! ;
 
 : pwm ( u pin -- )  \ set pwm rate, 0 = full off, 10000 = full on
+  10000 rot - swap  \ reverse to sense of the PWM count value
   dup p2cmp cells swap p2tim timer-base + $34 + !  \ save to CCR1..4
 ;
