@@ -172,7 +172,7 @@ some other differences:
 
 That last difference makes it harder to re-use exactly the same code for both
 boards. But there's a way out: since the flash sizes differ, this has been used
-to differenctiate between the two and create a single `f-common.fs` setup which
+to differentiate between the two and create a single `f-common.fs` setup which
 will auto-detect on startup and control USB accordingly.
 
 So if you keep these differences in mind, you should be able to adapt the above
