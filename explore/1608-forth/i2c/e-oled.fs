@@ -21,14 +21,20 @@
     ascii>bitpattern drawcharacterbitmap
   then ;
 
+: greeting
+  clear
+  ." STM32 ARM Cortex M3 +" cr
+  ."  64K flash + 20K RAM " cr
+  ." + Mecrisp Forth 2.3.0" cr
+  ."  => interactive fun! "
+  display
+;
+
 : go
   hook-emit @
   ['] lcd-emit hook-emit !
-  cr 0 font-x ! 0 font-y ! clear
-  ." The quick brown <fox>" cr
-  ." jumps over the fairly" cr
-  ." lazy little <doggie>!" cr
-  ."  (or so they say...)"  display
+  cr 0 font-x ! 0 font-y !
+  greeting
   hook-emit ! ;
 
 \ +i2c i2c? i2c.
