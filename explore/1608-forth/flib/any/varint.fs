@@ -22,7 +22,6 @@
       0 variable pkt.ptr  \ current position in this packet buffer
 
 : u+> ( u -- ) pkt.ptr @ ! 4 pkt.ptr +! ;  \ append 32-bit value to packet
-: u14+> ( u -- ) $3FFF and u+> ;           \ append 14-bit value to packet
 
 \ shift one position left - if negative, invert all bits (puts sign in bit 0)
 \ this compresses better for *signed* values of small magnitude
