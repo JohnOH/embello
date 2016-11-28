@@ -11,8 +11,8 @@ compiletoflash
 \ include ../flib/spi/sdcard.fs
 include ../flib/spi/rf69.fs
 include ../flib/i2c/oled.fs
-include ../mlib/graphics.fs
-include ../mlib/multi.fs
+include ../flib/mecrisp/graphics.fs
+include ../flib/mecrisp/multi.fs
 
 PA0 constant VAC-IN
 PB0 constant VBAT-IN

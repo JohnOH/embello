@@ -12,8 +12,8 @@ include ../flib/i2c/veml6040.fs
 include ../flib/i2c/mag3110.fs
 include ../flib/i2c/oled.fs
 
-include ../mlib/graphics.fs
-include ../mlib/multi.fs
+include ../flib/mecrisp/graphics.fs
+include ../flib/mecrisp/multi.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>

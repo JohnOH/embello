@@ -8,7 +8,7 @@ compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../mlib/multi.fs
+include ../flib/mecrisp/multi.fs
 
 ( code-size ) here swap - .
 cornerstone <<<lib-dad>>>

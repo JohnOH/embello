@@ -6,9 +6,9 @@ cr compiletoflash
 
 include ../flib/i2c/oled.fs
 
-include ../mlib/graphics.fs
+include ../flib/mecrisp/graphics.fs
 include ../flib/any/digits.fs
-include ../mlib/multi.fs
+include ../flib/mecrisp/multi.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>

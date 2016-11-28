@@ -27,7 +27,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32 boards:
 These files implement a range of hardware drivers and other generic functions:
 
 * **`flib`** - Forth library, various modules used by the above boards
-* **`mlib`** - Mecrisp library, copied / modified from Mecrisp sample code
+* **`flib/mecrisp`** - Mecrisp library, copied / modified from Mecrisp code
 
 For details, see the JeeLabs weblog posts and articles:
 

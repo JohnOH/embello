@@ -6,7 +6,7 @@
 
 \ include ../flib/stm32l0/i2c.fs
 \ include ../flib/i2c/oled.fs
-\ include ../mlib/graphics.fs
+\ include ../flib/mecrisp/graphics.fs
 
 \ assumes that the OLED is connected to PB6..PB7
 

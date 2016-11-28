@@ -1,5 +1,5 @@
 \ incude this to dump the loaded image as Intel hex code
 
 compiletoram
-include ../mlib/hexdump.fs
+include ../flib/mecrisp/hexdump.fs
 hexdump

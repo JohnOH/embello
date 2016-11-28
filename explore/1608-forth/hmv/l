@@ -10,9 +10,9 @@ compiletoflash
 
 include ../flib/fsmc/tft-r61505u.fs
 include ../flib/spi/sdcard.fs
-include ../mlib/graphics.fs
-include ../mlib/multi.fs
-include ../mlib/sine.fs
+include ../flib/mecrisp/graphics.fs
+include ../flib/mecrisp/multi.fs
+include ../flib/mecrisp/sine.fs
 
 : index>sine ( u -- u )
   0 swap  \ [0..4095] as fixed-point
