@@ -15,7 +15,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32 boards:
 * **`oxs`** - Olimexino-STM32 board w/ STM32F103RB, CAN, µSD, and LiPo charger
 * **`prc`** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
 * **`rnw`** - RF Node Watcher w/ HyTiny STM32F103TB, RFM69, and 128x64 OLED
-* **`rvm`** - Remote voltmeter w/ STM32L051 and a 4-chan Analog Plug
+* **`rvm`** - Remote voltmeter w/ STM32L052 and a 4-chan Analog Plug
 * **`suf`** - Serial USB driver for Forth, routes console I/O over USB
 * **`tex`** - Tiny Extender, a HyTiny w/ extender board for RFM69 + SPI flash
 * **`trf`** - Tiny RF node, a bridge from RFM69 to USB serial

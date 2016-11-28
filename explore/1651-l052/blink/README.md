@@ -1,1 +1,1 @@
-Simple LED blink demo (STM32L051).
+Simple LED blink demo (STM32L052).
