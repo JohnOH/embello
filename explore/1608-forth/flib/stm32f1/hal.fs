@@ -11,6 +11,9 @@
 : flash-pagesize ( addr - u )  \ return size of flash page at given address
   drop flash-kb 128 <= if 1024 else 2048 then ;
 
+: bit ( u -- u )  \ turn a bit position into a single-bit mask
+  1 swap lshift  1-foldable ;
+
 : io.all ( -- )  \ display all the readable GPIO registers
   io-ports 0 do i 0 io io. loop ;
 

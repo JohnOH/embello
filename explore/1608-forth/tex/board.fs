@@ -4,8 +4,8 @@
 compiletoflash
 ( board start: ) here dup hex.
 
-\ TODO this should have been in hal.fs ...
-RCC $18 + constant RCC-APB2ENR
+\ RCC $18 + constant RCC-APB2ENR
+\ RCC $14 + constant RCC-AHBENR
 
 : -jtag ( -- )  \ disable JTAG on PB3 PB4 PA15
   25 bit AFIO-MAPR bis! ;
@@ -40,7 +40,7 @@ PA15 constant SMEM.SEL  \ SPI flash memory
 
 : hello ( -- ) flash-kb . ." KB <tex> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -
-  ." ram: " . ." free " ." flash: " . ." free " ;
+  ." ram/flash: " . . ." free " ;
 
 \ filter and process incoming telnet escapes from folie
 include x-telnet.fs
@@ -54,7 +54,6 @@ include x-telnet.fs
   OMODE-PP SMEM.SEL io-mode!  SMEM.SEL ios!
 
   1000 systick-hz
-
   telnet-io
 \ hello ." ok." cr
 ;
