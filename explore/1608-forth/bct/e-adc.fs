@@ -45,17 +45,16 @@
 \ does some curious "pin arithmetic", knowing that PB14 is PB13+1, i.e.
 \   n = 0 : A0/B3/B4/B5, n = 1 : A1/B8/B9/B10, n = 2 : A2/B13/B14/B15
 : config ( uuuu n -- )
-  dup >r
-  5 * PB5 +                        config-pin
-  1- ( PB4 )    swap 4 rshift swap config-pin
-  1- ( PB3 )    swap 4 rshift swap config-pin
-  drop r> PA0 + swap 4 rshift swap config-pin  2drop ;
+  dup PA0 + >r 5 * PB5 +        config-pin
+  1- ( PB4 ) swap 4 rshift swap config-pin
+  1- ( PB3 ) swap 4 rshift swap config-pin
+  drop r>    swap 4 rshift swap config-pin  2drop ;
 
 : config-all ( rd bk yw -- )  \ configure all test points at once
   yw config  bk config  rd config ;
 
 : measure ( n -- mv )  \ measure voltage on ADC <n>
-  PA0 + dup adc drop adc 3300 4095 */ ;
+  PA0 +  dup adc drop  adc 3300 4095 */ ;
 : meas. ( n -- )  \ measure and print voltage with mV accuracy, i.e. 3 decimals
   measure 0 swap  1000,0 f/  0,0005 d+  3 f.n ;
 : meas.all ( -- )  cr 25 spaces  rd meas.  bk meas.  yw meas. ;
@@ -70,3 +69,5 @@ $1333 m  \ all weak pull-up
 $1444 m  \ all floating, will vary
 $1555 m  \ all weak pull-down
 $1666 m  \ all tied to Gnd
+
+$1111 dup dup config-all  \ end with all analog
