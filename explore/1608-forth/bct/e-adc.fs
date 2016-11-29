@@ -42,11 +42,14 @@
 \   $-X-- = digital 680 Ω switch
 \   $--X- = digital 18 kΩ switch
 \   $---X = digital 470 kΩ switch
+\ does some curious "pin arithmetic", knowing that PB14 is PB13+1, i.e.
+\   n = 0 : A0/B3/B4/B5, n = 1 : A1/B8/B9/B10, n = 2 : A2/B13/B14/B15
 : config ( uuuu n -- )
-  PB13 +                         config-pin
-  5 -         swap 4 rshift swap config-pin
-  5 -         swap 4 rshift swap config-pin
-  PB3 - PA0 + swap 4 rshift swap config-pin  2drop ;
+  dup >r
+  5 * PB5 +                        config-pin
+  1- ( PB4 )    swap 4 rshift swap config-pin
+  1- ( PB3 )    swap 4 rshift swap config-pin
+  drop r> PA0 + swap 4 rshift swap config-pin  2drop ;
 
 : config-all ( rd bk yw -- )  \ configure all test points at once
   yw config  bk config  rd config ;
