@@ -37,7 +37,7 @@
   endcase ;
 
 \ configure one combined ADC/680/18k/470k test point
-\ the argument specifies for modes, each in the range 0..6 (see above):
+\ the argument specifies four pin modes, each in the range 0..6 (see above):
 \   $X--- = analog pin
 \   $-X-- = digital 680 Ω switch
 \   $--X- = digital 18 kΩ switch
