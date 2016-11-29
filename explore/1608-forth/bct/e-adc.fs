@@ -52,7 +52,7 @@
   yw config  bk config  rd config ;
 
 : measure ( n -- mv )  \ measure voltage on ADC <n>
-  PA0 + adc 3300 4095 */ ;
+  PA0 + dup adc drop adc 3300 4095 */ ;
 : meas. ( n -- )  \ measure and print voltage with mV accuracy, i.e. 3 decimals
   measure 0 swap  1000,0 f/  0,0005 d+  3 f.n ;
 : meas.all ( -- )  cr 25 spaces  rd meas.  bk meas.  yw meas. ;
@@ -61,9 +61,9 @@
 
 : m ( u -- ) dup dup config-all meas.all 10 ms meas.all 10 ms meas.all ;
 
-$1111 m
-$1222 m
-$1333 m
-$1444 m
-$1555 m
-$1666 m
+$1111 m  \ all analog, will vary
+$1222 m  \ all tied to Vcc
+$1333 m  \ all weak pull-up
+$1444 m  \ all floating, will vary
+$1555 m  \ all weak pull-down
+$1666 m  \ all tied to Gnd
