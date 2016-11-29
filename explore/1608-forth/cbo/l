@@ -3,11 +3,12 @@
 \ includes d
 
 ( cornerstone ) <<<hal-cbo>>>
+cr
 compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../mlib/multi.fs
+include ../flib/mecrisp/multi.fs
 
 \ -----------------------------------------------------------------------------
 \ PSRAM on HY-STM32F1xxCore144 Core/Dev Board

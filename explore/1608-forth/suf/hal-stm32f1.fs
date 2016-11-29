@@ -6,6 +6,11 @@
   $1FFFF7E8 @ $1FFFF7EC @ $1FFFF7F0 @ 3 ;
 : hwid ( -- u )  \ a "fairly unique" hardware ID as single 32-bit int
   chipid 1 do xor loop ;
+: flash-kb ( -- u )  \ return size of flash memory in KB
+  $1FFFF7E0 h@ ;
+
+: bit ( u -- u )  \ turn a bit position into a single-bit mask
+  1 swap lshift  1-foldable ;
 
 $40010000 constant AFIO
      AFIO $4 + constant AFIO-MAPR
@@ -16,6 +21,8 @@ $40013800 constant USART1
 $40021000 constant RCC
      RCC $00 + constant RCC-CR
      RCC $04 + constant RCC-CFGR
+     RCC $14 + constant RCC-AHBENR
+     RCC $18 + constant RCC-APB2ENR
      RCC $1C + constant RCC-APB1ENR
 
 $40022000 constant FLASH

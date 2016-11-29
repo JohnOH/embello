@@ -6,6 +6,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32 boards:
 * **`cbo`** - Haoyu Core Board One board w/ STM32F103ZE and lots of RAM+flash
 * **`dad`** - Dime-A-Dozen, for all those cheap eBay STM32F103C8 boards
 * **`gd4`** - GoldDragon 407 w/ STM32F407ZG and 3.2" LCD
+* **`gu6`** - Generic 64-pin chips for use with USB console
 * **`hmv`** - Haoyu Hy-STM32MiniV board w/ STM32F103VC and 3.2" LCD
 * **`i2c`** - I2C test setup with lots of breakout boards and JeeLabs plugs
 * **`kb7`** - Ken Boak's STM32F746VG Break-Out-Board
@@ -14,7 +15,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32 boards:
 * **`oxs`** - Olimexino-STM32 board w/ STM32F103RB, CAN, µSD, and LiPo charger
 * **`prc`** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
 * **`rnw`** - RF Node Watcher w/ HyTiny STM32F103TB, RFM69, and 128x64 OLED
-* **`rvm`** - Remote voltmeter w/ STM32L051 and a 4-chan Analog Plug
+* **`rvm`** - Remote voltmeter w/ STM32L052 and a 4-chan Analog Plug
 * **`suf`** - Serial USB driver for Forth, routes console I/O over USB
 * **`tex`** - Tiny Extender, a HyTiny w/ extender board for RFM69 + SPI flash
 * **`trf`** - Tiny RF node, a bridge from RFM69 to USB serial
@@ -26,7 +27,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32 boards:
 These files implement a range of hardware drivers and other generic functions:
 
 * **`flib`** - Forth library, various modules used by the above boards
-* **`mlib`** - Mecrisp library, copied / modified from Mecrisp sample code
+* **`flib/mecrisp`** - Mecrisp library, copied / modified from Mecrisp code
 
 For details, see the JeeLabs weblog posts and articles:
 

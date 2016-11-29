@@ -10,3 +10,4 @@ include ../flib/i2c/mcp3424.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>
+compiletoram

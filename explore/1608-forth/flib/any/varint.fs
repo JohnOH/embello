@@ -36,3 +36,25 @@
 
 \ for example, to send a packet of type 123, with values 11, 2222, and 333333:
 \   123 <pkt 11 u+> 2222 u+> 333333 u+> pkt>rf
+: *++ ( addr -- c )  dup @ c@  1 rot +! ;
+
+\ variable-int decoding: call var-init once, then var> until it returns 0
+\ see "var." below for an example of how these can be used
+
+0 variable var.ptr
+0 variable var.end
+
+: var-init ( addr cnt -- )
+  over + var.end ! var.ptr ! ;
+
+: var> ( -- 0 | n 1 )
+  0
+  var.ptr @ var.end @ u< if 
+    begin
+      7 lshift  var.ptr *++  tuck + swap
+    $80 and until
+    $80 - 1
+  then ;
+
+: var. ( addr cnt -- )  \ decode and display all the varints
+  var-init begin var> while . repeat ;

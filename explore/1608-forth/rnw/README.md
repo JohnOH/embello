@@ -130,8 +130,8 @@ This is a transcript of loading "h" and then "l" into the system with the
     msend h 
     cr eraseflash 
     Finished. Reset !Mecrisp-Stellaris 2.2.1 for STM32F103 by Matthias Koch
-        >>> include ../mlib/hexdump.fs
-        <<<<<<<<<<< ../mlib/hexdump.fs (73 lines)
+        >>> include ../flib/mecrisp/hexdump.fs
+        <<<<<<<<<<< ../flib/mecrisp/hexdump.fs (73 lines)
         >>> include ../flib/stm32f1/io.fs
         <<<<<<<<<<< ../flib/stm32f1/io.fs (59 lines)
         >>> include ../flib/stm32f1/hal.fs
@@ -154,10 +154,10 @@ This is a transcript of loading "h" and then "l" into the system with the
         <<<<<<<<<<< ../flib/any/i2c-bb.fs (49 lines)
         >>> include ../flib/i2c/oled.fs
         <<<<<<<<<<< ../flib/i2c/oled.fs (93 lines)
-        >>> include ../mlib/graphics.fs
-        <<<<<<<<<<< ../mlib/graphics.fs (247 lines)
-        >>> include ../mlib/multi.fs
-        <<<<<<<<<<< ../mlib/multi.fs (206 lines)
+        >>> include ../flib/mecrisp/graphics.fs
+        <<<<<<<<<<< ../flib/mecrisp/graphics.fs (247 lines)
+        >>> include ../flib/mecrisp/multi.fs
+        <<<<<<<<<<< ../flib/mecrisp/multi.fs (206 lines)
     ( code-size ) here swap - . 10016  ok.
     ( flash-end ) here hex. 00007C00  ok.
         >>> include d

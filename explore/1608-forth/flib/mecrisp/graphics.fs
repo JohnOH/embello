@@ -197,27 +197,21 @@ calign decimal
   5 0 do dup c@ drawbytepattern 1 font-x +! 1+ loop
   drop  1 font-x +! ;
 
-: get-first-char ( addr len -- addr   len c ) over c@ ;
-: cut-first-char ( addr len -- addr+1 len-1 ) 1- swap 1+ swap ;
-
 : drawstring ( addr u x y -- )
   font-y ! font-x !
-  begin
-    dup 0<>
-  while \ Adjust the following code to add your own unicode characters.
-    get-first-char ascii>bitpattern drawcharacterbitmap cut-first-char
-  repeat
-  2drop ;
+  0 ?do
+    \ Adjust the following code to add your own unicode characters.
+    dup c@ ascii>bitpattern drawcharacterbitmap 1+
+  loop  drop ;
 
 \  A small demo
 
 : demo ( -- )
   clear
-  50 24 32 10 ellipse display
-  50 24 34 12 ellipse display
-  s" Mecrisp" 30 20 drawstring display
-  2 14 12 34 line display
-  4 14 14 34 line display
-;
+  50 14 32 10 ellipse display
+  50 14 34 12 ellipse display
+  s" Mecrisp" 30 10 drawstring display
+  2 4 12 24 line display
+  4 4 14 24 line display ;
 
-\ initlcd demo
+\ lcd-init demo

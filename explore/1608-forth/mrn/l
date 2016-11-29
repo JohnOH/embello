@@ -3,12 +3,13 @@
 \ includes d
 
 ( cornerstone ) <<<hal-mrn>>>
+cr
 compiletoflash
 
 ( code-start, see code-size below ) here
 
 include ../flib/spi/rf69.fs
-include ../mlib/multi.fs
+include ../flib/mecrisp/multi.fs
 
 PA10 constant RF12-IRQ
 

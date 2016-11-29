@@ -1,12 +1,13 @@
 \ install hardware abstractions in flash
 
 cr  ' nop irq-systick !  eraseflash
+cr
 compiletoflash
 
 8 constant io-ports  \ A..H
 
-include ../mlib/cond.fs
-include ../mlib/hexdump.fs
+include ../flib/mecrisp/cond.fs
+include ../flib/mecrisp/hexdump.fs
 include ../flib/stm32f4/io.fs
 include ../flib/pkg/pins100.fs
 include ../flib/stm32f7/hal.fs

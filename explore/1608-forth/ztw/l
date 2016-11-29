@@ -3,12 +3,13 @@
 \ includes d
 
 ( cornerstone ) <<<hal-ztw>>>
+cr
 compiletoflash
 
 ( code-start, see code-size below ) here
 
 include ../flib/spi/rf69.fs
-include ../mlib/multi.fs
+include ../flib/mecrisp/multi.fs
 
 ( code-size ) here swap - .
 cornerstone <<<lib-ztw>>>

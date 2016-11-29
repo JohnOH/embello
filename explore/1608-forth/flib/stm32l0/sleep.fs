@@ -55,7 +55,8 @@ $E000ED10 constant SCR
 
 : wfe ( -- ) [ $BF20 h, ] inline ; \ WFE Opcode, enters sleep mode
 
-: stop ( -- )  \ enter stop mode, will resume when LPTIMER fires
+: stop-freq ( u -- )  \ enter stop mode, will resume when LPTIMER fires
+  64 + 128 / LPTIM-ARR !                \ round and set LPTIMER count
   1 bit LPTIM-CR bis!                   \ set SNGSTRT
   1 bit LPTIM-IER bis!                  \ set ARRMIE
   2 bit SCR bis!                        \ set SLEEPDEEP
@@ -64,9 +65,9 @@ $E000ED10 constant SCR
   2 bit SCR bic!                        \ clear SLEEPDEEP
 ;
 
-: stop100ms ( -- ) 3700   64 + 128 / LPTIM-ARR !  stop ;
-: stop1s    ( -- ) 37000  64 + 128 / LPTIM-ARR !  stop ;
-: stop10s   ( -- ) 370000 64 + 128 / LPTIM-ARR !  stop ;
+: stop100ms ( -- ) 3700   stop-freq ;
+: stop1s    ( -- ) 37000  stop-freq ;
+: stop10s   ( -- ) 370000 stop-freq ;
 
 \ : lp-blink ( -- )  only-msi  begin  stop1s led iox!  again ;
 \

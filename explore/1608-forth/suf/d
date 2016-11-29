@@ -5,7 +5,7 @@
 \ led ios!
 
 \ needed for "h.4"
-include ../mlib/hexdump.fs
+include ../flib/mecrisp/hexdump.fs
 
 : -usb-io ( -- )
   ['] serial-key?  hook-key?  !

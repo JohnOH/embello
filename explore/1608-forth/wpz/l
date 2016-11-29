@@ -3,12 +3,13 @@
 \ includes d
 
 ( cornerstone ) <<<hal-wpz>>>
+cr
 compiletoflash
 
 ( code-start, see code-size below ) here
 
-include ../mlib/multi.fs
-include ../mlib/sine.fs
+include ../flib/mecrisp/multi.fs
+include ../flib/mecrisp/sine.fs
 
 : index>sine ( u -- u )
   0 swap  \ [0..4095] as fixed-point
