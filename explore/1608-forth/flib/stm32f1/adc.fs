@@ -4,6 +4,8 @@ $40012400 constant ADC1
     ADC1 $00 + constant ADC1-SR
     ADC1 $04 + constant ADC1-CR1
     ADC1 $08 + constant ADC1-CR2
+    ADC1 $0C + constant ADC1-SMPR1
+    ADC1 $10 + constant ADC1-SMPR2
     ADC1 $2C + constant ADC1-SQR1
     ADC1 $30 + constant ADC1-SQR2
     ADC1 $34 + constant ADC1-SQR3
@@ -17,13 +19,22 @@ $40020000 constant DMA1
     DMA1 $10 + constant DMA1-CPAR1
     DMA1 $14 + constant DMA1-CMAR1
 
+: adc-calib ( -- )  \ perform an ADC calibration cycle
+  2 bit ADC1-CR2 bis!  begin 2 bit ADC1-CR2 bit@ 0= until ;
+
+: adc-once ( -- u )  \ read ADC value once
+  0 bit ADC1-CR2 bis!  \ set ADON to start ADC
+  begin 1 bit ADC1-SR bit@ until  \ wait until EOC set
+  ADC1-DR @ ;
+
 : +adc ( -- )  \ initialise ADC
   9 bit RCC-APB2ENR bis!  \ set ADC1EN
   1 ADC1-CR2 bis!  \ set ADON to enable ADC
+  \ 7.5 cycles sampling time is enough for 18 kΩ to ground, measures as zero
+  \ even 239.5 cycles is not enough for 470 kΩ, it still leaves 70 mV residual
+  %111 21 lshift ADC1-SMPR1 bis! \ set SMP17 to 239.5 cycles for vRefInt
+  %110110110 ADC1-SMPR2 bis! \ set SMP0/1/2 to 71.5 cycles, i.e. 83 µs/conv
 ;
-
-: adc-calib ( -- )  \ perform an ADC calibration cycle
-  2 bit ADC1-CR2 bis!  begin 2 bit ADC1-CR2 bit@ 0= until ;
 
 : adc# ( pin -- n )  \ convert pin number to adc index
 \ nasty way to map the pins (a "c," table offset lookup might be simpler)
@@ -31,13 +42,10 @@ $40020000 constant DMA1
   dup io# swap  io-port ?dup if shl + 6 + then ;
 
 : adc ( pin -- u )  \ read ADC value
-  IMODE-ADC over io-mode!
+\ IMODE-ADC over io-mode!
 \ nasty way to map the pins (a "c," table offset lookup might be simpler)
 \   PA0..7 => 0..7, PB0..1 => 8..9, PC0..5 => 10..15
-  adc# ADC1-SQR3 !
-      1 ADC1-CR2 bis!  \ set ADON to start ADC
-  begin 1 bit ADC1-SR bit@ until  \ wait until EOC set
-  ADC1-DR @ ;
+  adc# ADC1-SQR3 !  adc-once ;
 
 : adc1-dma ( addr count pin rate -- )  \ continuous DMA-based conversion
   3 +timer        \ set the ADC trigger rate using timer 3
@@ -65,3 +73,7 @@ $40020000 constant DMA1
            8 bit or  \ DMA
            0 bit or  \ ADON
         ADC1-CR2 ! ;
+
+: adc-vcc ( -- mv )
+  23 bit ADC1-CR2 bis!  \ TSVREFE
+  3300 1200  17 ADC1-SQR3 !  adc-once  */ ;

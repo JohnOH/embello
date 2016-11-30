@@ -1,5 +1,7 @@
 \ explore ADC with the component tester circuit
 
+include ../flib/stm32f1/adc.fs
+
 \ fixed pin assignments:
 \   PA0, PA1, PA2 = analog inputs (resp: yellow, black, red clips)
 \   PB3, PB4, PB5 = 680 Ω, 18 kΩ, 470 kΩ - tied to PA0
@@ -71,3 +73,5 @@ $1555 m  \ all weak pull-down
 $1666 m  \ all tied to Gnd
 
 $1111 dup dup config-all  \ end with all analog
+
+adc-vcc .
