@@ -1,6 +1,6 @@
 \ explore ADC with the component tester circuit
 
-include ../flib/stm32f1/adc.fs
+\ include ../flib/stm32f1/adc.fs
 
 \ fixed pin assignments:
 \   PA0, PA1, PA2 = analog inputs (resp: yellow, black, red clips)
