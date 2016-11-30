@@ -29,12 +29,13 @@ $40020000 constant DMA1
 
 : +adc ( -- )  \ initialise ADC
   9 bit RCC-APB2ENR bis!  \ set ADC1EN
-  1 ADC1-CR2 bis!  \ set ADON to enable ADC
+  23 bit  \ set TSVREFE for vRefInt use
+   0 bit or ADC1-CR2 bis!  \ set ADON to enable ADC
   \ 7.5 cycles sampling time is enough for 18 kΩ to ground, measures as zero
   \ even 239.5 cycles is not enough for 470 kΩ, it still leaves 70 mV residual
   %111 21 lshift ADC1-SMPR1 bis! \ set SMP17 to 239.5 cycles for vRefInt
   %110110110 ADC1-SMPR2 bis! \ set SMP0/1/2 to 71.5 cycles, i.e. 83 µs/conv
-;
+  adc-once drop ;
 
 : adc# ( pin -- n )  \ convert pin number to adc index
 \ nasty way to map the pins (a "c," table offset lookup might be simpler)
@@ -74,6 +75,5 @@ $40020000 constant DMA1
            0 bit or  \ ADON
         ADC1-CR2 ! ;
 
-: adc-vcc ( -- mv )
-  23 bit ADC1-CR2 bis!  \ TSVREFE
+: adc-vcc ( -- mv )  \ return estimated Vcc, based on 1.2V internal bandgap
   3300 1200  17 ADC1-SQR3 !  adc-once  */ ;

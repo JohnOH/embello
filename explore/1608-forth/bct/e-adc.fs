@@ -62,6 +62,7 @@ include ../flib/stm32f1/adc.fs
 : meas.all ( -- )  cr 25 spaces  rd meas.  bk meas.  yw meas. ;
 
 +adc
+adc-vcc .
 
 : m ( u -- ) dup dup config-all meas.all 10 ms meas.all 10 ms meas.all ;
 
@@ -73,5 +74,3 @@ $1555 m  \ all weak pull-down
 $1666 m  \ all tied to Gnd
 
 $1111 dup dup config-all  \ end with all analog
-
-adc-vcc .
