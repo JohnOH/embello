@@ -10,7 +10,7 @@
   . ." lux, "  . ." °C, " . ." => " . ." mV " ;
 
 : send-packet ( vprev vcc tint lux humi pres temp -- )
-  2 <pkt  hwid u+>  u14+> 6 0 do u+> loop  pkt>rf ;
+  2 <pkt  hwid u+>  n+> 6 0 do u+> loop  pkt>rf ;
 
 : low-power-sleep
   rf-sleep
