@@ -74,3 +74,13 @@ $1555 m  \ all weak pull-down
 $1666 m  \ all tied to Gnd
 
 $1111 dup dup config-all  \ end with all analog
+
+: resistor ( hi lo -- val )
+  $6666 swap config
+  $4244 over config 10 ms dup meas.
+  $1424 over config 10 ms dup meas.
+  $1442 over config 10 ms dup meas.
+  drop
+;
+
+bk rd resistor
