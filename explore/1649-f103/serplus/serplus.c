@@ -33,17 +33,25 @@
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
 
-#define GPIO_USB    GPIOA
-#define PIN_USB     GPIO0
+// HyTiny
+#define GPIO_USB1   GPIOA
+#define PIN_USB1    GPIO0
+#define GPIO_LED1   GPIOA
+#define PIN_LED1    GPIO1
 
-#define GPIO_LED    GPIOA
-#define PIN_LED     GPIO1
+// BluePill
+#define GPIO_USB2   GPIOA
+#define PIN_USB2    GPIO12
+#define GPIO_LED2   GPIOC
+#define PIN_LED2    GPIO13
 
 #define GPIO_RTS    GPIOA
 #define PIN_RTS     GPIO13
 
 #define GPIO_DTR    GPIOA
 #define PIN_DTR     GPIO14
+
+bool isHyTiny;
 
 /******************************************************************************
  * Simple ringbuffer implementation from open-bldc's libgovernor that
@@ -134,19 +142,32 @@ static void clock_setup(void)
     rcc_clock_setup_in_hse_8mhz_out_72mhz();
 
     rcc_periph_clock_enable(RCC_GPIOA);
+    rcc_periph_clock_enable(RCC_GPIOC);
     rcc_periph_clock_enable(RCC_AFIO);
     rcc_periph_clock_enable(RCC_USART1);
 }
 
 static void gpio_setup(void)
 {
-    gpio_set(GPIO_LED, PIN_LED);
-    gpio_set_mode(GPIO_LED, GPIO_MODE_OUTPUT_2_MHZ,
-            GPIO_CNF_OUTPUT_PUSHPULL, PIN_LED);
+    isHyTiny = *(const uint16_t*) 0x1FFFF7E0 == 128; // HyTiny has 128K flash
 
-    gpio_set(GPIO_USB, PIN_USB);
-    gpio_set_mode(GPIO_USB, GPIO_MODE_OUTPUT_2_MHZ,
-            GPIO_CNF_OUTPUT_PUSHPULL, PIN_USB);
+    if (isHyTiny) {
+        gpio_set(GPIO_LED1, PIN_LED1);
+        gpio_set_mode(GPIO_LED1, GPIO_MODE_OUTPUT_2_MHZ,
+                GPIO_CNF_OUTPUT_PUSHPULL, PIN_LED1);
+
+        gpio_set(GPIO_USB1, PIN_USB1);
+        gpio_set_mode(GPIO_USB1, GPIO_MODE_OUTPUT_2_MHZ,
+                GPIO_CNF_OUTPUT_PUSHPULL, PIN_USB1);
+    } else {
+        gpio_set(GPIO_LED2, PIN_LED2);
+        gpio_set_mode(GPIO_LED2, GPIO_MODE_OUTPUT_2_MHZ,
+                GPIO_CNF_OUTPUT_PUSHPULL, PIN_LED2);
+
+        gpio_clear(GPIO_USB2, PIN_USB2);
+        gpio_set_mode(GPIO_USB2, GPIO_MODE_OUTPUT_2_MHZ,
+                GPIO_CNF_OUTPUT_OPENDRAIN, PIN_USB2);
+    }
 
     /* start with DTR and RTS floating, set only when telnet configures them */
     gpio_set_mode(GPIO_DTR, GPIO_MODE_INPUT,
@@ -203,7 +224,10 @@ void usart1_isr(void)
             ((USART_SR(USART1) & USART_SR_RXNE) != 0)) {
 
         /* Indicate that we got data. */
-        gpio_toggle(GPIO_LED, PIN_LED);
+        if (isHyTiny)
+            gpio_toggle(GPIO_LED1, PIN_LED1);
+        else
+            gpio_toggle(GPIO_LED2, PIN_LED2);
 
         /* Retrieve the data from the peripheral. */
         uint8_t c = usart_recv(USART1);
@@ -587,9 +611,21 @@ static char *get_dev_unique_id(char *s)
 int main(void)
 {
     clock_setup();
+
+    // disable the SWD pins, since they are being re-used for DTR & RTS
+    AFIO_MAPR = (AFIO_MAPR & ~(7<<24)) | (4<<24);
+
     gpio_setup();
     usart_setup();
     systick_setup();
+
+    for (int i = 0; i < 10000000; i++)
+        __asm__("");
+
+    if (isHyTiny)
+        gpio_clear(GPIO_USB1, PIN_USB1); // negative logic, PA0 low enables USB
+    else
+        gpio_set(GPIO_USB2, PIN_USB2); // positive logic, PA12 high enables USB
 
     get_dev_unique_id(serial_no);
 
@@ -599,10 +635,6 @@ int main(void)
 
     for (int i = 0; i < 10000000; i++)
         __asm__("");
-    gpio_clear(GPIO_USB, PIN_USB); // negative logic, PA0 low enables USB
-
-    // disable the SWD pins, since they are being re-used for DTR & RTS
-    AFIO_MAPR = (AFIO_MAPR & ~(7<<24)) | (4<<24);
 
     while (1) {
         // poll USB while waiting for 2 ms to elapse
