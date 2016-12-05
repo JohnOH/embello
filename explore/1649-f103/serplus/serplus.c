@@ -46,12 +46,15 @@
 #define PIN_LED2    GPIO13
 
 #define GPIO_RTS    GPIOA
-#define PIN_RTS     GPIO13
-
 #define GPIO_DTR    GPIOA
-#define PIN_DTR     GPIO14
+// HyTiny
+#define PIN_RTS1    GPIO13
+#define PIN_DTR1    GPIO14
+// Blue Pill
+#define PIN_RTS2    GPIO2
+#define PIN_DTR2    GPIO3
 
-bool isHyTiny;
+uint32_t gpio_led, pin_led, gpio_usb, pin_usb, pin_rts, pin_dtr;
 
 /******************************************************************************
  * Simple ringbuffer implementation from open-bldc's libgovernor that
@@ -149,31 +152,39 @@ static void clock_setup(void)
 
 static void gpio_setup(void)
 {
-    isHyTiny = *(const uint16_t*) 0x1FFFF7E0 == 128; // HyTiny has 128K flash
+    // several pin choices depend on the actual board this is running on
 
-    if (isHyTiny) {
-        gpio_set(GPIO_LED1, PIN_LED1);
-        gpio_set_mode(GPIO_LED1, GPIO_MODE_OUTPUT_2_MHZ,
-                GPIO_CNF_OUTPUT_PUSHPULL, PIN_LED1);
-
-        gpio_set(GPIO_USB1, PIN_USB1);
-        gpio_set_mode(GPIO_USB1, GPIO_MODE_OUTPUT_2_MHZ,
-                GPIO_CNF_OUTPUT_PUSHPULL, PIN_USB1);
+    if (*(const uint16_t*) 0x1FFFF7E0 == 128) { // only HyTiny has 128K flash
+        gpio_led = GPIO_LED1;
+        pin_led = PIN_LED1;
+        gpio_usb = GPIO_USB1;
+        pin_usb = PIN_USB1;
+        pin_rts = PIN_RTS1;
+        pin_dtr = PIN_DTR1;
     } else {
-        gpio_set(GPIO_LED2, PIN_LED2);
-        gpio_set_mode(GPIO_LED2, GPIO_MODE_OUTPUT_2_MHZ,
-                GPIO_CNF_OUTPUT_PUSHPULL, PIN_LED2);
-
-        gpio_clear(GPIO_USB2, PIN_USB2);
-        gpio_set_mode(GPIO_USB2, GPIO_MODE_OUTPUT_2_MHZ,
-                GPIO_CNF_OUTPUT_OPENDRAIN, PIN_USB2);
+        gpio_led = GPIO_LED2;
+        pin_led = PIN_LED2;
+        gpio_usb = GPIO_USB2;
+        pin_usb = PIN_USB2;
+        pin_rts = PIN_RTS2;
+        pin_dtr = PIN_DTR2;
     }
+
+    gpio_set(gpio_led, pin_led);
+    gpio_set_mode(gpio_led, GPIO_MODE_OUTPUT_2_MHZ,
+            GPIO_CNF_OUTPUT_PUSHPULL, pin_led);
+
+    // careful, PA1 uses negative logic, PA12 uses positive logic!
+    (pin_usb == PIN_USB1 ? gpio_set : gpio_clear)(gpio_usb, pin_usb);
+
+    gpio_set_mode(gpio_usb, GPIO_MODE_OUTPUT_2_MHZ,
+            GPIO_CNF_OUTPUT_PUSHPULL, pin_usb);
 
     /* start with DTR and RTS floating, set only when telnet configures them */
     gpio_set_mode(GPIO_DTR, GPIO_MODE_INPUT,
-            GPIO_CNF_INPUT_FLOAT, PIN_DTR);
+            GPIO_CNF_INPUT_FLOAT, pin_dtr);
     gpio_set_mode(GPIO_RTS, GPIO_MODE_INPUT,
-            GPIO_CNF_INPUT_FLOAT, PIN_RTS);
+            GPIO_CNF_INPUT_FLOAT, pin_rts);
 }
 
 static void usart_setup(void)
@@ -224,10 +235,7 @@ void usart1_isr(void)
             ((USART_SR(USART1) & USART_SR_RXNE) != 0)) {
 
         /* Indicate that we got data. */
-        if (isHyTiny)
-            gpio_toggle(GPIO_LED1, PIN_LED1);
-        else
-            gpio_toggle(GPIO_LED2, PIN_LED2);
+        gpio_toggle(gpio_led, pin_led);
 
         /* Retrieve the data from the peripheral. */
         uint8_t c = usart_recv(USART1);
@@ -310,22 +318,22 @@ void usart1_isr(void)
                     state = 5;
                     switch (data) {
                         case DTR_ON:
-                            gpio_clear(GPIO_DTR, PIN_DTR);
+                            gpio_clear(GPIO_DTR, pin_dtr);
                             break;
                         case DTR_OFF:
-                            gpio_set(GPIO_DTR, PIN_DTR);
+                            gpio_set(GPIO_DTR, pin_dtr);
                             break;
                         case RTS_ON:
-                            gpio_clear(GPIO_RTS, PIN_RTS);
+                            gpio_clear(GPIO_RTS, pin_rts);
                             break;
                         case RTS_OFF:
-                            gpio_set(GPIO_RTS, PIN_RTS);
+                            gpio_set(GPIO_RTS, pin_rts);
                             break;
                     }
                     gpio_set_mode(GPIO_DTR, GPIO_MODE_OUTPUT_2_MHZ,
-                            GPIO_CNF_OUTPUT_PUSHPULL, PIN_DTR);
+                            GPIO_CNF_OUTPUT_PUSHPULL, pin_dtr);
                     gpio_set_mode(GPIO_RTS, GPIO_MODE_OUTPUT_2_MHZ,
-                            GPIO_CNF_OUTPUT_PUSHPULL, PIN_RTS);
+                            GPIO_CNF_OUTPUT_PUSHPULL, pin_rts);
                     break;
             }
         }
@@ -621,11 +629,7 @@ int main(void)
 
     for (int i = 0; i < 10000000; i++)
         __asm__("");
-
-    if (isHyTiny)
-        gpio_clear(GPIO_USB1, PIN_USB1); // negative logic, PA0 low enables USB
-    else
-        gpio_set(GPIO_USB2, PIN_USB2); // positive logic, PA12 high enables USB
+    gpio_toggle(gpio_usb, pin_usb);
 
     get_dev_unique_id(serial_no);
 
