@@ -19,7 +19,7 @@ uint16_t txCnt = 0;
 
 const int rf_freq = 8686;
 const int rf_group = 42;
-const int rf_nodeid = 62;
+const int rf_nodeid = 61;
 
 const bool verbose = true;
 
@@ -34,7 +34,7 @@ void setup () {
 
     rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");
-    rf.txPower(15); // 0 = min .. 31 = max
+    rf.txPower(16); // 0 = min .. 31 = max
 
     for (int i = 0; i < (int) sizeof txBuf; ++i)
         txBuf[i] = i;
