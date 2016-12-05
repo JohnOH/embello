@@ -11,6 +11,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32 boards:
 * **`hmv`** - Haoyu Hy-STM32MiniV board w/ STM32F103VC and 3.2" LCD
 * **`i2c`** - I2C test setup with lots of breakout boards and JeeLabs plugs
 * **`kb7`** - Ken Boak's STM32F746VG Break-Out-Board
+* **`lnr`** - Led Node Revisited - using a JeeNode Zero to drive LEDs via PWM
 * **`lsd`** - Little Shark Display board w/ STM32F107RC and 1.44" LCD
 * **`mrn`** - Multi Receiver Node w/ STM32F103C8 and some wireless modules
 * **`oxs`** - Olimexino-STM32 board w/ STM32F103RB, CAN, µSD, and LiPo charger
@@ -29,6 +30,7 @@ These files implement a range of hardware drivers and other generic functions:
 
 * **`flib`** - Forth library, various modules used by the above boards
 * **`flib/mecrisp`** - Mecrisp library, copied / modified from Mecrisp code
+* **`util`** - utility code by various JeeLabs members, not yet integrated
 
 For details, see the JeeLabs weblog posts and articles:
 
