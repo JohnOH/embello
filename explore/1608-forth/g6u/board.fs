@@ -30,7 +30,7 @@ include ../flib/stm32f1/rtc.fs
 
 0 constant OLED.LARGE  \ display size: 0 = 128x32, 1 = 128x64 (default)
 
-: hello ( -- ) flash-kb . ." KB <gu6> " hwid hex.
+: hello ( -- ) flash-kb . ." KB <g6u> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -
   ." ram/flash: " . . ." free " ;
 

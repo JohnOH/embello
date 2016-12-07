@@ -7,7 +7,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32 boards:
 * **`cbo`** - Haoyu Core Board One board w/ STM32F103ZE and lots of RAM+flash
 * **`dad`** - Dime-A-Dozen, for all those cheap eBay STM32F103C8 boards
 * **`gd4`** - GoldDragon 407 w/ STM32F407ZG and 3.2" LCD
-* **`gu6`** - Generic 64-pin chips for use with USB console
+* **`g6u`** - Generic 64-pin chips for use with USB console
 * **`hmv`** - Haoyu Hy-STM32MiniV board w/ STM32F103VC and 3.2" LCD
 * **`i2c`** - I2C test setup with lots of breakout boards and JeeLabs plugs
 * **`kb7`** - Ken Boak's STM32F746VG Break-Out-Board

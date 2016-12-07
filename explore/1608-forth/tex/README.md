@@ -185,7 +185,7 @@ will auto-detect on startup and control USB accordingly.
 So if you keep these differences in mind, you should be able to adapt the above
 information and get the USB console working on the Blue Pill as well.
 
-There is now a `../gu6` area for generic boards like the Blue Pill, running over
+There is now a `../g6u` area for generic boards like the Blue Pill, running over
 USB and with pin definitions up to 64-pin chips. Here is a transcript of loading
 those definitions once the USB console is working:
 
