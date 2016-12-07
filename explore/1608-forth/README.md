@@ -32,6 +32,10 @@ These files implement a range of hardware drivers and other generic functions:
 * **`flib/mecrisp`** - Mecrisp library, copied / modified from Mecrisp code
 * **`util`** - utility code by various JeeLabs members, not yet integrated
 
+Most of the above projects use Mecrisp Forth "core" builds from this area:
+
+* **`cores`** - Matthias Koch's Mecrisp Stellaris Forth with minor extensions
+
 For details, see the JeeLabs weblog posts and articles:
 
 * <http://jeelabs.org/2016/02/dive-into-forth/>
