@@ -1,7 +1,6 @@
 // Main application logic.
 
 #include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/usart.h>
 #include <stdio.h>
 
 // defined in main.cpp

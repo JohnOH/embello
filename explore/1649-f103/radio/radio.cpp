@@ -21,9 +21,15 @@ uint8_t rxBuf[71];	// :grp:dest:len:66 bytes:crc-l:crc-h:
 uint8_t txBuf[62];
 uint16_t txCnt = 0;
 
+<<<<<<< HEAD
 const int rf_freq = 8680;
 const int rf_group = 212;
 const int rf_nodeid = 28;
+=======
+const int rf_freq = 8686;
+const int rf_group = 42;
+const int rf_nodeid = 61;
+>>>>>>> jeelabs/master
 
 const bool verbose = true;
 
@@ -44,7 +50,7 @@ void setup () {
 
     rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");
-    rf.txPower(15); // 0 = min .. 31 = max
+    rf.txPower(16); // 0 = min .. 31 = max
 
     for (int i = 0; i < (int) sizeof txBuf; ++i)
         txBuf[i] = i;
