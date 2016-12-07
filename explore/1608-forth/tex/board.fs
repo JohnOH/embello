@@ -15,6 +15,7 @@ compiletoflash
       dup 6 + ctype space
         dictionarynext until drop ;
 
+include ../flib/mecrisp/calltrace.fs
 include ../flib/mecrisp/cond.fs
 include ../flib/mecrisp/hexdump.fs
 include ../flib/stm32f1/clock.fs
@@ -47,6 +48,7 @@ include x-telnet.fs
 
 : init ( -- )  \ board initialisation
   init  \ this is essential to start up USB comms!
+  ['] ct-irq irq-fault !  \ show call trace in unhandled exceptions
   -jtag  \ disable JTAG, we only need SWD
 
   OMODE-PP LED      io-mode!  LED      ios!
