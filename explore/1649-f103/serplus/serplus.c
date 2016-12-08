@@ -331,7 +331,7 @@ void usart1_isr(void)
                             break;
                     }
                     gpio_set_mode(GPIO_DTR, GPIO_MODE_OUTPUT_2_MHZ,
-                            GPIO_CNF_OUTPUT_PUSHPULL, pin_dtr);
+                            GPIO_CNF_OUTPUT_OPENDRAIN, pin_dtr);
                     gpio_set_mode(GPIO_RTS, GPIO_MODE_OUTPUT_2_MHZ,
                             GPIO_CNF_OUTPUT_PUSHPULL, pin_rts);
                     break;
