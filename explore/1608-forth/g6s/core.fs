@@ -1,6 +1,6 @@
 \ core definitions
 
-\ <<<board>>>
+<<<board>>>
 compiletoflash
 ( core start: ) here dup hex.
 

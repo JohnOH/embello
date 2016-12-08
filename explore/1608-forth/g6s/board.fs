@@ -1,7 +1,8 @@
 \ board definitions
 
-\ eraseflash
+cr cr eraseflash
 compiletoflash
+
 ( board start: ) here dup hex.
 
 4 constant io-ports  \ A..D
@@ -27,6 +28,7 @@ include ../flib/stm32f1/rtc.fs
   init  \ uses new uart init convention
   ['] ct-irq irq-fault !  \ show call trace in unhandled exceptions
   -jtag  \ disable JTAG, we only need SWD
+  72MHz
   1000 systick-hz
   hello ." ok." cr
 ;
