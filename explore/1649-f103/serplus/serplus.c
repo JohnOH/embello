@@ -624,7 +624,6 @@ int main(void)
     AFIO_MAPR = (AFIO_MAPR & ~(7<<24)) | (4<<24);
 
     gpio_setup();
-    usart_setup();
     systick_setup();
 
     for (int i = 0; i < 10000000; i++)
@@ -639,6 +638,8 @@ int main(void)
 
     for (int i = 0; i < 10000000; i++)
         __asm__("");
+
+    usart_setup(); // late config to allow USB setup to complete first
 
     while (1) {
         // poll USB while waiting for 2 ms to elapse
