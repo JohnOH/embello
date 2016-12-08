@@ -31,12 +31,5 @@ include ../flib/stm32f1/rtc.fs
   hello ." ok." cr
 ;
 
-: forgetram ( -- )  \ remove all definitions in RAM without requiring a reset
-  compiletoram
-  \ these values are build/version/arch-specific!!!
-  $4F28 @ $4F30 @ !  \ RamDictionaryAnfang  Dictionarypointer !
-  $4F38 @ $4F34 @ !  \ CoreDictionaryAnfang Fadenende !
-;
-
 ( board end, size: ) here dup hex. swap - .
 cornerstone <<<board>>>

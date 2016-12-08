@@ -34,13 +34,6 @@ PA15 constant LED
   1000 systick-hz
   hello ." ok." cr ;
 
-: forgetram ( -- )  \ remove all definitions in RAM without requiring a reset
-  compiletoram
-  \ these values are build/version/arch-specific!!!
-  $4F28 @ $4F30 @ !  \ RamDictionaryAnfang  Dictionarypointer !
-  $4F38 @ $4F34 @ !  \ CoreDictionaryAnfang Fadenende !
-;
-
 : rx-connected? ( -- f )  \ true if RX is connected (and idle)
   IMODE-LOW PA10 io-mode!  PA10 io@ 0<>  OMODE-AF-PP PA10 io-mode!
   dup if 1 ms serial-key? if serial-key drop then then \ flush any input noise
