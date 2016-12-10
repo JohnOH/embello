@@ -12,6 +12,6 @@ PA1 constant GREEN
 PA2 constant BLUE
 
 \ various duty cycles at 100 Hz
-100 RED   +pwm  5000 RED   pwm
-100 GREEN +pwm  3000 GREEN pwm
-100 BLUE  +pwm  2000 BLUE  pwm
+100 RED   pwm-init  5000 RED   pwm
+100 GREEN pwm-init  3000 GREEN pwm
+100 BLUE  pwm-init  2000 BLUE  pwm

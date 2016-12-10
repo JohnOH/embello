@@ -8,7 +8,7 @@ reset
 
 : tftry tft-init clear TFT-BL ios! demo ;
 
-: pwmtry ( -- )  1 LED2 +pwm 100 LED2 pwm ;
+: pwmtry ( -- )  1 LED2 pwm-init 100 LED2 pwm ;
 
 \ -----------------------------------------------------------------------------
 \ sleep mode tryout

@@ -17,10 +17,10 @@ PA12 constant LED6
   $00002222 LED1 io-base GPIO.AFRL + !
 
   \ various duty cycles at 2 Hz
-  2 LED1 +pwm  3500 LED1 pwm
-  2 LED2 +pwm  5500 LED2 pwm
-  2 LED3 +pwm  7500 LED3 pwm
-  2 LED4 +pwm  9500 LED4 pwm
+  2 LED1 pwm-init  3500 LED1 pwm
+  2 LED2 pwm-init  5500 LED2 pwm
+  2 LED3 pwm-init  7500 LED3 pwm
+  2 LED4 pwm-init  9500 LED4 pwm
 ;
 
 : lcd-emit ( c -- )  \ switch the output to the OLED, cr's move to next line

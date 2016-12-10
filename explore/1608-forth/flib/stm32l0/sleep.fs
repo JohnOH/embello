@@ -40,7 +40,7 @@ $E000ED10 constant SCR
       ." ARR " dup @ h.4 space 4 +
       ." CNT " dup @ h.4 space drop ;
 
-: +lptim ( -- )  \ enable the low-power timer
+: lptim-init ( -- )  \ enable the low-power timer
   0 bit RCC-CSR bis!              \ set LSION
   begin 1 bit RCC-CSR bit@ until  \ wait for LSIRDY
   %01 18 lshift RCC-CCIPR bis!    \ use LSI clock
@@ -73,4 +73,4 @@ $E000ED10 constant SCR
 \
 \ rf69-init rf-sleep
 \ led-off 2.1MHz 1000 systick-hz
-\ +lptim lp-blink
+\ lptim-init lp-blink

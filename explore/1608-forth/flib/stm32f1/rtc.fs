@@ -14,7 +14,7 @@ $40002800 constant RTC
 
 : rtc-wait ( -- ) begin 1 bit RCC-BDCR bit@ until ;
 
-: +rtc ( -- )  \ restart internal RTC using attached 32,768 Hz crystal
+: rtc-init ( -- )  \ restart internal RTC using attached 32,768 Hz crystal
   %11 27 lshift RCC-APB1ENR bis!   \ enable PWREN and BKPEN
                8 bit PWR-CR bis!   \ disable backup domain write protection
 \           16 bit RCC-BDCR bis!   \ reset backup domain

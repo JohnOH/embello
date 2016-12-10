@@ -16,14 +16,14 @@
 \ ;
 \ u
 
-: +pwm ( hz pin -- )  \ set up PWM for a pin, using specified repetition rate
+: pwm-init ( hz pin -- )  \ set up PWM for pin, using specified repetition rate
   >r  OMODE-AF-PP r@ io-mode!
   1600 swap / 1- 16 lshift 10000 or  r@ p2tim +timer
   $78 r@ p2cmp 1 and 8 * lshift ( $0078 or $7800 )
   r@ p2tim timer-base $18 + r@ p2cmp 2 and 2* + bis!
   r@ p2cmp 4 * bit r> p2tim timer-base $20 + bis! ;
 
-: -pwm ( pin -- )  \ disable PWM, but leave timer running
+: pwm-deinit ( pin -- )  \ disable PWM, but leave timer running
   dup p2cmp 4 * bit swap p2tim timer-base $20 + bic! ;
 
 : pwm ( u pin -- )  \ set pwm rate, 0 = full off, 10000 = full on
