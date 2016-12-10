@@ -21,7 +21,7 @@ cr
   begin
     adc-vcc
 
-    rf-sleep  -adc only-msi  rate 0 do stop1s loop  hsi-on +adc
+    rf-sleep  -adc only-msi  rate 0 do stop1s loop  hsi-on adc-init
 
     adc-vcc adc-temp
     tsl-data  bme-data bme-calc
@@ -39,7 +39,7 @@ cr
 
 8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid ! rf69-init
 
-+lptim +i2c +adc
++lptim +i2c adc-init
 
 \ this causes folie to timeout on include matching, yet still starts running
 1234 ms go

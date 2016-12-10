@@ -27,7 +27,7 @@ reset
 \ : tfttry ( -- ) tft-init demo ;
 : digtry ( -- ) lcd-init 1234 shownum ;
 \ : rtctry ( -- ) +i2c  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
-: adctry ( -- ) +adc  begin  PB0 adc .  key? until ;
+: adctry ( -- ) adc-init  begin  PB0 adc .  key? until ;
 : uartry ( -- ) +uart uart. ;
 : pwmtry ( -- ) 1 LED +pwm 100 LED pwm ;
 : r12try ( -- ) 5 868 rf12-init ." +" cr rf12-start begin rf12-poll key? until ;
@@ -57,7 +57,7 @@ reset
   0  100 0 do over adc + loop  100 / nip ;
 
 : vmeter ( -- )  \ a simple voltmeter on PA3
-  +adc lcd-init
+  adc-init lcd-init
   begin cr
     0 PA3 vreading dup . Voff @ -  \ take a reading
     4095,0 f/ Vmul 2@ f*           \ convert to Volt

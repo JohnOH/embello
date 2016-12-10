@@ -27,7 +27,7 @@ $40020000 constant DMA1
   begin 1 bit ADC1-SR bit@ until  \ wait until EOC set
   ADC1-DR @ ;
 
-: +adc ( -- )  \ initialise ADC
+: adc-init ( -- )  \ initialise ADC
   9 bit RCC-APB2ENR bis!  \ set ADC1EN
   23 bit  \ set TSVREFE for vRefInt use
    0 bit or ADC1-CR2 bis!  \ set ADON to enable ADC
@@ -49,9 +49,9 @@ $40020000 constant DMA1
   adc# ADC1-SQR3 !  adc-once ;
 
 : adc1-dma ( addr count pin rate -- )  \ continuous DMA-based conversion
-  3 +timer        \ set the ADC trigger rate using timer 3
-  +adc  adc drop  \ perform one conversion to set up the ADC
-  2dup 0 fill     \ clear sampling buffer
+  3 +timer            \ set the ADC trigger rate using timer 3
+  adc-init  adc drop  \ perform one conversion to set up the ADC
+  2dup 0 fill         \ clear sampling buffer
 
     0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
       2/ DMA1-CNDTR1 !     \ 2-byte entries

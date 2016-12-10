@@ -16,10 +16,10 @@
   rf-sleep
   -adc \ only-msi
   rate 0 do stop1s loop
-  hsi-on +adc ;
+  hsi-on adc-init ;
 
 : main
-  2.1MHz  1000 systick-hz  +lptim +i2c +adc
+  2.1MHz  1000 systick-hz  +lptim +i2c adc-init
 
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
   rf69-init 16 rf-power

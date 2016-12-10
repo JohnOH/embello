@@ -130,7 +130,7 @@ PB5 constant WHITE-BTN
   display ;
 
 : config-pins ( -- )
-  +adc  0 heat!  100 fan!  \ initialise with safest setting
+  adc-init  0 heat!  100 fan!  \ initialise with safest setting
 
   imode-adc  HEATER-SENSE io-mode!  HEATER-SENSE ioc!
   imode-adc  POWER-SENSE  io-mode!  POWER-SENSE  ioc!
