@@ -33,7 +33,7 @@ calign
   timer-lookup
   dup 100 < if  bit RCC-APB1ENR  else  100 - bit RCC-APB2ENR  then ;
 
-: +timer ( u n -- )  \ enable timer n as free-running with period u
+: timer-init ( u n -- )  \ enable timer n as free-running with period u
   dup timer-enabit bis!  \ clock enable
              timer-base >r
   dup 16 rshift TIM.PSC r@ + h!    \ upper 16 bits are used to set prescaler
@@ -43,5 +43,5 @@ calign
           0 bit TIM.CR1 r> + !     \ CEN
 ;
 
-: -timer ( n -- )  \ disable timer n
+: timer-deinit ( n -- )  \ disable timer n
   timer-enabit bic! ;

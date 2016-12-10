@@ -49,7 +49,7 @@ $40020000 constant DMA1
   adc# ADC1-SQR3 !  adc-once ;
 
 : adc1-dma ( addr count pin rate -- )  \ continuous DMA-based conversion
-  3 +timer            \ set the ADC trigger rate using timer 3
+  3 timer-init        \ set the ADC trigger rate using timer 3
   adc-init  adc drop  \ perform one conversion to set up the ADC
   2dup 0 fill         \ clear sampling buffer
 

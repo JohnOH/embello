@@ -13,7 +13,7 @@ $2C constant TIM.ARR
 : timer-enabit ( n -- bit addr )  \ return bit and enable address for timer n
   2- bit RCC-APB1ENR ;
 
-: +timer ( u n -- )  \ enable timer n as free-running with period u
+: timer-init ( u n -- )  \ enable timer n as free-running with period u
   dup timer-enabit bis!  \ clock enable
              timer-base >r
   dup 16 rshift TIM.PSC r@ + h!    \ upper 16 bits are used to set prescaler
@@ -23,5 +23,5 @@ $2C constant TIM.ARR
           0 bit TIM.CR1 r> + !     \ CEN
 ;
 
-: -timer ( n -- )  \ disable timer n
+: timer-deinit ( n -- )  \ disable timer n
   timer-enabit bic! ;

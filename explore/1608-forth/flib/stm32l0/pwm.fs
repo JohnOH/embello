@@ -18,7 +18,7 @@
 
 : pwm-init ( hz pin -- )  \ set up PWM for pin, using specified repetition rate
   >r  OMODE-AF-PP r@ io-mode!
-  1600 swap / 1- 16 lshift 10000 or  r@ p2tim +timer
+  1600 swap / 1- 16 lshift 10000 or  r@ p2tim timer-init
   $78 r@ p2cmp 1 and 8 * lshift ( $0078 or $7800 )
   r@ p2tim timer-base $18 + r@ p2cmp 2 and 2* + bis!
   r@ p2cmp 4 * bit r> p2tim timer-base $20 + bis! ;
