@@ -4,7 +4,7 @@
 [ifndef] MCP.ADDR  $68 constant MCP.ADDR  [then]
 
 : mcp-init ( -- nak )
-  +i2c  MCP.ADDR i2c-addr  $1100 >i2c  0 i2c-xfer ;
+  i2c-init  MCP.ADDR i2c-addr  $1100 >i2c  0 i2c-xfer ;
 
 : mcp-data ( chan -- n )  \ measure as signed 17-bit, wait in stop mode
   5 lshift %10001100 or  \ 18-bit readings, 3.75 SPS, PGA x1

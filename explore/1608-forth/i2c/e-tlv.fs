@@ -17,7 +17,7 @@ cr
     ." x: " rot . ." y: " swap . ." z: " .
   key? until ;
 
-+i2c i2c? i2c.
+i2c-init i2c? i2c.
 
 \ this causes folie to timeout on include matching, yet still starts running
 1234 ms go

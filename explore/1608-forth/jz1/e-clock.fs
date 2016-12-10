@@ -46,7 +46,7 @@ $40007000 constant PWR-CR
 
 : do-adc slow adc-init adc-vcc . adc-temp . -adc  fast ;
 
-\ FIXME should only run +i2c once before using these
+\ FIXME should only run i2c-init once before using these
 : do-bme bme-init bme-calib slow bme-data fast bme-calc . . . ;
 : do-tsl tsl-init slow tsl-data fast . ;
 

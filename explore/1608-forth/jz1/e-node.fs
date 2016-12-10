@@ -39,7 +39,7 @@ cr
 
 8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid ! rf69-init
 
-+lptim +i2c adc-init
++lptim i2c-init adc-init
 
 \ this causes folie to timeout on include matching, yet still starts running
 1234 ms go
