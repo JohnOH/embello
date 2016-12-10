@@ -30,7 +30,7 @@ PC5 constant PULSE3
   VBAT-IN adc 3300 * 4 * 4095 / ;
 
 : config-pins
-  adc-init  +uart-irq
+  adc-init  uart-irq-init
   omode-pp   VBAT-GND io-mode!  VBAT-GND ioc!
   imode-pull DCF77-IN io-mode!  DCF77-IN ioc!
   imode-pull PULSE1   io-mode!  PULSE1 ioc!
