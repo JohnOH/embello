@@ -500,7 +500,7 @@ static char serial_no[9];
 
 static const char *usb_strings[] = {
     "JeeLabs",
-    "SerPlus (based on CDC-ACM Demo from libopencm3)",
+    "SerPlus",
     serial_no,
 };
 
