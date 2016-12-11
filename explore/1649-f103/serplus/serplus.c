@@ -499,8 +499,8 @@ static const struct usb_config_descriptor config = {
 static char serial_no[9];
 
 static const char *usb_strings[] = {
-    "Black Sphere Technologies",
-    "SerPlus (based on CDC-ACM Demo)",
+    "JeeLabs",
+    "SerPlus (based on CDC-ACM Demo from libopencm3)",
     serial_no,
 };
 
