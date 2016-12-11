@@ -190,7 +190,7 @@ USB and with pin definitions up to 64-pin chips. Here is a transcript of loading
 those definitions once the USB console is working:
 
 ```
-$ cd ../gu6
+$ cd ../g6u
 $ folie -r
 Select the serial port:
   1: /dev/cu.Bluetooth-Incoming-Port
@@ -217,9 +217,9 @@ Finished. Reset
 1> core.fs 5: ( core start: ) 00008800  ok.
 1> core.fs 13: ( core end, size: ) 0000A7EC 8172  ok.
   ok.
-hello 64 KB <gu6> 322F221E ram: 17456 free flash: 20480 free  ok.
+hello 64 KB <g6u> 322F221E ram: 17456 free flash: 20480 free  ok.
 ```
 
-You can copy this `gu6/` area as starting point for your own explorations and
+You can copy this `g6u/` area as starting point for your own explorations and
 projects. Note that you may have to adjust the relative directory references in
 `board.fs` and `core.fs` if you copy it to a different location.
