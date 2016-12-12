@@ -33,9 +33,8 @@ PC13    LED
 As entered:
 
 ```text
-folie           <= start the Folie utility from the command line
+folie -r        <= start the Folie utility from the command line
 2               <= select the second serial port
-eraseflash      <= this is a redefined version which preserves the USB driver
 ...             <= connection is lost, but folie automatically recovers
 !s trf69.fs     <= last command entered, radio listening starts automatically
 
@@ -44,27 +43,19 @@ eraseflash      <= this is a redefined version which preserves the USB driver
 Sample output transcript:
 
 ```text
-$ folie
-Folie v2.4-1-g80ccc20
+$ folie -r
 Select the serial port:
   1: /dev/cu.Bluetooth-Incoming-Port
   2: /dev/cu.usbmodemC920C931
 ? 2
-Enter '!help' for additional help, or ctrc-d to quit.
+Enter '!help' for additional help, or ctrl-d to quit.
 [connected to /dev/cu.usbmodemC920C931]
-  ok.
-eraseflash
-Finished. Reset !
-Unha
-[disconnected] no such file or directory
-[connected to /dev/cu.usbmodemC920C931]
-  ok.
 !s trf69.fs
->>> io-stm32f1.fs 11: Redefine bit.  ok.
-4: rf69-listen
-RF69 21EE0600000000C00104 81808080
-RF69 21EE067F040036C00107 8101AB29B08080
-RF69 21EE067D04004AC00107 8101AA29B18080
+4> io.fs 11: Redefine bit.  ok.
+1> trf69.fs 13:
+RF69 21EE0664050008C03E12 82034A1818A221A806218C25A79717A616B6
+RF69 21EE066605000EC03E12 82034A1818A2219606218B25BE9717A616B5
+RF69 21EE0664050024C03E12 82034A1818A2218606219025DA9717A616B5
  ok.
   ok.
 ```
