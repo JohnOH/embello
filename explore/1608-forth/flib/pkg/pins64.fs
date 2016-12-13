@@ -1,7 +1,7 @@
 \ pin definitions for chips up to 48 pins
 
-0 0  io constant PA0      1 0  io constant PB0
-0 1  io constant PA1      1 1  io constant PB1
+0 0  io constant PA0      1 0  io constant PB0      3 0  io constant PD0
+0 1  io constant PA1      1 1  io constant PB1      3 1  io constant PD1
 0 2  io constant PA2      1 2  io constant PB2
 0 3  io constant PA3      1 3  io constant PB3
 0 4  io constant PA4      1 4  io constant PB4
