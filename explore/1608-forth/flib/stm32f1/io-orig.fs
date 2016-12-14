@@ -21,30 +21,17 @@ $40010800 constant GPIO-BASE
   8 rshift  1-foldable ;
 : io-base ( pin -- addr )  \ convert pin to GPIO base address
   $F00 and 2 lshift GPIO-BASE +  1-foldable ;
-
-: 'f ( -- flags ) token find nip ;
-
-: (io@)  (   pin -- pin* addr )
-  dup io-mask swap io-base GPIO.IDR  +   1-foldable ;
-: (ioc!) (   pin -- pin* addr )
-  dup io-mask swap io-base GPIO.BRR  +   1-foldable ;
-: (ios!) (   pin -- pin* addr )
-  dup io-mask swap io-base GPIO.BSRR +   1-foldable ;
-: (iox!) (   pin -- pin* addr )
-  dup io-mask swap io-base GPIO.ODR  +   1-foldable ;
-: (io!)  ( f pin -- pin* addr )
-  swap 0= $10 and + dup io-mask swap io-base GPIO.BSRR +   2-foldable ;
-
-: io@  (   pin -- f )  (io@)  bit@ exit [ $1000 setflags 2 h, ' (io@)  ,
-  'f (io@)  h, ' bit@ , 'f bit@ h, ] ; \ get pin value (0 or -1)
-: ioc! (   pin -- )    (ioc!)    ! exit [ $1000 setflags 2 h, ' (ioc!) ,
-  'f (ioc!) h, '    ! , 'f    ! h, ] ; \ clear pin to low
-: ios! (   pin -- )    (ios!)    ! exit [ $1000 setflags 2 h, ' (ios!) ,
-  'f (ios!) h, '    ! , 'f    ! h, ] ; \ set pin to high
-: iox! (   pin -- )    (iox!) xor! exit [ $1000 setflags 2 h, ' (iox!) ,
-  'f (iox!) h, ' xor! , 'f xor! h, ] ; \ toggle pin, not interrupt safe
-: io!  ( f pin -- )    (io!)     ! exit [ $1000 setflags 2 h, ' (io!)  ,
-  'f (io!)  h, '    ! , 'f    ! h, ] ; \ set pin value
+: io@ ( pin -- u )  \ get pin value (0 or 1)
+  dup io-base GPIO.IDR + @ swap io# rshift 1 and ;
+: ioc! ( pin -- )  \ clear pin to low
+  dup io-mask swap io-base GPIO.BRR + ! ;
+: ios! ( pin -- )  \ set pin to high
+  dup io-mask swap io-base GPIO.BSRR + ! ;
+: io! ( f pin -- )  \ set pin value
+  \ use upper 16 bits in BSRR to reset with same operation
+  swap 0= $10 and + ios! ;
+: iox! ( pin -- )  \ toggle pin
+  dup io@ 0= swap io! ;
 
 %0000 constant IMODE-ADC    \ input, analog
 %0100 constant IMODE-FLOAT  \ input, floating

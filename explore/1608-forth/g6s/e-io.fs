@@ -1,7 +1,7 @@
 forgetram
 
-\ include ../flib/stm32f1/io.fs
-include nio.fs
+\ include ../flib/stm32f1/io-orig.fs
+include ../flib/stm32f1/io.fs
 
      PA0 constant PIN
   100000 constant NUM
