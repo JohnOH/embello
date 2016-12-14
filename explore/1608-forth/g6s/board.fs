@@ -1,6 +1,6 @@
 \ board definitions
 
-cr cr eraseflash
+eraseflash
 compiletoflash
 
 ( board start: ) here dup hex.
