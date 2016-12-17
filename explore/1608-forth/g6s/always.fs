@@ -8,5 +8,5 @@ compiletoflash
   <builds   begin here 2047 and while 0 h, repeat
   does> cr  begin dup  2047 and while 2+   repeat  cr eraseflashfrom ;
 
-here hex.
+( always end: ) here hex.
 cornerstone eraseflash
