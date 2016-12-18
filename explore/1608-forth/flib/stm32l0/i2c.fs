@@ -30,7 +30,7 @@ $40005400 constant I2C1
        ."    RXDR " dup @ h.2 space 4 +
          ."  TXDR " dup @ h.2 space drop ;
 
-: +i2c ( -- )  \ initialise I2C hardware
+: i2c-init ( -- )  \ initialise I2C hardware
   OMODE-AF-OD SCL io-mode!
   OMODE-AF-OD SDA io-mode!
 

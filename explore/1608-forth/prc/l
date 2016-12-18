@@ -79,7 +79,7 @@ PB5 constant WHITE-BTN
 : heat! ( n -- )  \ heater control: 0 = off, 100 = max (80% of continuous on)
   ?dup if
     ( 1..100 )  100 swap - ( 99..0 )  80 * ( 7920..0 )  2000 + ( 9920..2000 )
-    10 HEATER-PWM +pwm  HEATER-PWM pwm
+    10 HEATER-PWM pwm-init  HEATER-PWM pwm
   else
     \ setting PWM to 0 is not enough, it leaves a 10 µs on-glitch
     HEATER-PWM -pwm  HEATER-PWM ioc!  \ make sure it's completely off
@@ -89,7 +89,7 @@ PB5 constant WHITE-BTN
   \ fan will sustain a very low speed, but it needs 100% during 100ms to start
   ?dup if
     ( 1..100 )  100 swap - ( 99..0 )  80 * ( 7920..0 )
-    1000 FAN-PWM +pwm  FAN-PWM pwm
+    1000 FAN-PWM pwm-init  FAN-PWM pwm
   else
     \ setting PWM to 0 is not enough, it leaves a 100 ns on-glitch
     FAN-PWM -pwm  FAN-PWM ioc!  \ make sure it's completely off
@@ -130,7 +130,7 @@ PB5 constant WHITE-BTN
   display ;
 
 : config-pins ( -- )
-  +adc  0 heat!  100 fan!  \ initialise with safest setting
+  adc-init  0 heat!  100 fan!  \ initialise with safest setting
 
   imode-adc  HEATER-SENSE io-mode!  HEATER-SENSE ioc!
   imode-adc  POWER-SENSE  io-mode!  POWER-SENSE  ioc!

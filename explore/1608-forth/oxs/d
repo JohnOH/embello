@@ -6,8 +6,8 @@ reset
 : blink ( -- )  \ blink the on-board LED until a key is pressed
   OMODE-PP LED1 io-mode!  begin  LED1 iox!  100 ms  key? until ;
 
-: adctry ( -- )  +adc  begin  PA0 adc .  key? until ;
-: pwmtry ( -- )  1 LED2 +pwm 9900 LED2 pwm ;  \ inverted logic
+: adctry ( -- )  adc-init  begin  PA0 adc .  key? until ;
+: pwmtry ( -- )  1 LED2 pwm-init 9900 LED2 pwm ;  \ inverted logic
 
 config-pins
 quad-adc

@@ -12,7 +12,7 @@ $40005800 constant I2C2
      I2C1 $1C + constant I2C1-CCR
      I2C1 $20 + constant I2C1-TRISE
 
-: +i2c ( -- )  \ initialise I2C hardware
+: i2c-init ( -- )  \ initialise I2C hardware
   IMODE-PULL PB6 io-mode!  PB6 ios!
   IMODE-PULL PB7 io-mode!  PB7 ios!
   OMODE-AF-OD PB6 io-mode!

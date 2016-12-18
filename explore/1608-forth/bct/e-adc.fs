@@ -61,7 +61,7 @@
   measure 0 swap  1000,0 f/  0,0005 d+  3 f.n ;
 : meas.all ( -- )  cr 25 spaces  rd meas.  bk meas.  yw meas. ;
 
-+adc
+adc-init
 adc-vcc .
 
 : m ( u -- ) dup dup config-all meas.all 10 ms meas.all 10 ms meas.all ;

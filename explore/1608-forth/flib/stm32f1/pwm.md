@@ -16,8 +16,8 @@ Repetition rates which are a divisor of 7200 will be exact.
 ### API
 
 ```forth
-: +pwm ( hz pin -- )  \ set up PWM for a pin, using specified repetition rate
-: -pwm ( pin -- )  \ disable PWM, but leave timer running
+: pwm-init ( hz pin -- )  \ set up PWM for pin, using specified repetition rate
+: pwm-deinit ( pin -- )  \ disable PWM, but leave timer running
 : pwm ( u pin -- )  \ set pwm rate, 0 = full off, 10000 = full on
 ```
 
@@ -26,7 +26,7 @@ Repetition rates which are a divisor of 7200 will be exact.
 LED on PA1, blinking at 1 Hz:
 
 ```forth
-    1 PA1 +pwm      \ initialise, 1 Hz
+    1 PA1 pwm-init  \ initialise, 1 Hz
     0 PA1 pwm       \ off
    10 PA1 pwm       \ brief blip
  5000 PA1 pwm       \ blink 50%
@@ -36,7 +36,7 @@ LED on PA1, blinking at 1 Hz:
 LED on PA9, dimmable:
 
 ```forth
-  120 PA9 +pwm      \ initialise, 120 Hz
+  120 PA9 pwm-init  \ initialise, 120 Hz
     0 PA9 pwm       \ off
    10 PA9 pwm       \ very dim
  5000 PA9 pwm       \ half dimmed
@@ -46,7 +46,7 @@ LED on PA9, dimmable:
 Servo on PB0:
 
 ```forth
-   50 PB0 +pwm      \ initialise, 50 Hz = 20 ms cycle
+   50 PB0 pwm-init  \ initialise, 50 Hz = 20 ms cycle
   500 PB0 pwm       \ minimum position, 500x 2 µs = 1 ms pulses
   750 PB0 pwm       \ centre position, 750x 2 µs = 1.5 ms pulses
  1000 PB0 pwm       \ maximum position, 1000x 2 µs = 2 ms pulses

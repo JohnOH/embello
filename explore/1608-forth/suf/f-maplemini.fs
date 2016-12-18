@@ -8,15 +8,16 @@ include ../flib/any/ring.fs
 include usb.fs
 
 : init ( -- )
-\ 1000000 0 do loop  \ approx 1s delay
+  $3D RCC-APB2ENR !  \ enable AFIO and GPIOA..D clocks
   72MHz  \ this is required for USB use
-\ key? if key if exit then then  \ safety escape hatch
+
   \ board-specific way to enable USB
   %1111 4 lshift $40010C04 bic!  \ PB9: output, push-pull, 2 MHz
   %0010 4 lshift $40010C04 bis!  \ ... this affects CRH iso CRL
   9 bit $40010C0C bis!  \ set PB9 high
-  12000 0 do loop   \ approx 1 ms delay
+  100000 0 do loop
   9 bit $40010C0C bic!  \ set PB9 low
+
   usb-io  \ switch to USB as console
 ;
 

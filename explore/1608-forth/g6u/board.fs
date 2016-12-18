@@ -15,6 +15,7 @@ compiletoflash
       dup 6 + ctype space
         dictionarynext until drop ;
 
+include ../flib/mecrisp/calltrace.fs
 include ../flib/mecrisp/cond.fs
 include ../flib/mecrisp/hexdump.fs
 include ../flib/stm32f1/clock.fs
@@ -29,22 +30,16 @@ include ../flib/stm32f1/rtc.fs
 
 0 constant OLED.LARGE  \ display size: 0 = 128x32, 1 = 128x64 (default)
 
-: hello ( -- ) flash-kb . ." KB <gu6> " hwid hex.
+: hello ( -- ) flash-kb . ." KB <g6u> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -
   ." ram/flash: " . . ." free " ;
 
 : init ( -- )  \ board initialisation
   init  \ this is essential to start up USB comms!
+  ['] ct-irq irq-fault !  \ show call trace in unhandled exceptions
   -jtag  \ disable JTAG, we only need SWD
   1000 systick-hz
 \ hello ." ok." cr
-;
-
-: forgetram ( -- )  \ remove all definitions in RAM without requiring a reset
-  compiletoram
-  \ these values are build/version/arch-specific!!!
-  $4F28 @ $4F30 @ !  \ RamDictionaryAnfang  Dictionarypointer !
-  $4F38 @ $4F34 @ !  \ CoreDictionaryAnfang Fadenende !
 ;
 
 ( board end, size: ) here dup hex. swap - .

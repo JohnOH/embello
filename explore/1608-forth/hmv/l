@@ -26,14 +26,14 @@ $20006000 constant wavetable  \ 4096 2-byte ints in range 0..4095
   $1000 0 do i index>sine i 2* wavetable + h! loop ;
 
 : sinewave
-  +dac  fill-sinewave
+  dac-init  fill-sinewave
   begin
     $1000 0 do  i 2* wavetable + h@ dup 2dac!  2 +loop
   key? until
 ;
 
 : dac1-awg ( u -- )  \ generate on DAC1 via DMA with given timer period
-  6 +timer  +dac  wavetable 8192 dac1-dma  fill-sinewave ;
+  6 timer-init  dac-init  wavetable 8192 dac1-dma  fill-sinewave ;
 
 \ -----------------------------------------------------------------------------
 \ oscilloscope experiment

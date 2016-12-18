@@ -9,7 +9,7 @@
 0 variable i2c.prv
 0 variable i2c.cnt
 
-: +i2c ( -- )  \ initialise bit-banged I2C
+: i2c-init ( -- )  \ initialise bit-banged I2C
   OMODE-PP SCL io-mode!
   OMODE-OD SDA io-mode!
 ;

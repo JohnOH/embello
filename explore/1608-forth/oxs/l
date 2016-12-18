@@ -30,7 +30,7 @@ PC5 constant PULSE3
   VBAT-IN adc 3300 * 4 * 4095 / ;
 
 : config-pins
-  +adc  +uart-irq
+  adc-init  uart-irq-init
   omode-pp   VBAT-GND io-mode!  VBAT-GND ioc!
   imode-pull DCF77-IN io-mode!  DCF77-IN ioc!
   imode-pull PULSE1   io-mode!  PULSE1 ioc!
@@ -86,7 +86,7 @@ PC5 constant PULSE3
                           #abytes buffer: adata
 
 : quad-adc ( -- )  \ configure ADC and DMA for quad-channel continuous sampling
-  +adc  6 us  adc-calib 
+  adc-init  6 us  adc-calib 
   adata #abytes VAC-IN arate-clk adc1-dma
   VAC-IN adc#                 \ channel 0
   CT1    adc#  5 lshift or    \ channel 1

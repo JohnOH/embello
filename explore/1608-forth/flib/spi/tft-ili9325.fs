@@ -17,17 +17,17 @@ hex
   20 h, 0000 h, 21 h, 0000 h, 0 ,
 decimal
 
-: +tft ( u - )  \ init tft: cmd=0/data=2 + write=0/read=1
+: tft-init ( u - )  \ init tft: cmd=0/data=2 + write=0/read=1
   +spi $70 or >spi ;
 : -tft ( -- ) -spi ;
 
 : tft@ ( reg -- val )
-  0 +tft 0 >spi >spi -tft
-  3 +tft spi> 8 lshift spi> or -tft ;
+  0 tft-init 0 >spi >spi -tft
+  3 tft-init spi> 8 lshift spi> or -tft ;
 
 : tft! ( val reg -- )
-  0 +tft 0 >spi >spi -tft
-  2 +tft dup 8 rshift >spi >spi -tft ;
+  0 tft-init 0 >spi >spi -tft
+  2 tft-init dup 8 rshift >spi >spi -tft ;
 
 \ FIXME looks like SPI reads are not working...
 \ : tft. ( -- )  \ dump ILI9325 register contents

@@ -4,7 +4,7 @@
 [ifndef] BME.ADDR  $76 constant BME.ADDR  [then]
 
 : bme-init ( -- nak )
-  +i2c
+  i2c-init
   BME.ADDR i2c-addr
   $F2 >i2c %1 >i2c 
   $F4 >i2c %100111 >i2c 

@@ -44,9 +44,9 @@ $40007000 constant PWR-CR
 : snooze slow 6 1 do i . 10 ( *100 ) ms loop  fast ;  \ 450 µA
 : doze   slow only-msi   50 ( *100 ) ms       fast ;  \ 50 µA (or 210?)
 
-: do-adc slow +adc adc-vcc . adc-temp . -adc  fast ;
+: do-adc slow adc-init adc-vcc . adc-temp . -adc  fast ;
 
-\ FIXME should only run +i2c once before using these
+\ FIXME should only run i2c-init once before using these
 : do-bme bme-init bme-calib slow bme-data fast bme-calc . . . ;
 : do-tsl tsl-init slow tsl-data fast . ;
 

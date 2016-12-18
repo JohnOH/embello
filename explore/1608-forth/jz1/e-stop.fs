@@ -46,7 +46,7 @@ cr
   again ;
 
 [IFDEF] rf69-init  rf69-init rf-sleep  [THEN]
-+lptim lptim?
+lptim-init lptim?
 
 ( clock-hz    ) clock-hz    @ .
 ( PWR-CR      ) PWR-CR      @ hex.

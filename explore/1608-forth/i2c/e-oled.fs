@@ -37,7 +37,7 @@
   greeting
   hook-emit ! ;
 
-\ +i2c i2c? i2c.
+\ i2c-init i2c? i2c.
 lcd-init
 show-logo
 1234 ms go

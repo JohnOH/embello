@@ -67,7 +67,7 @@ Show GPIO info related to a specific pin:
 
 Scan the I2C bus for attached devices:
 
-    +i2c i2c. 
+    i2c-initi2c i2c. 
     00: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
     20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --

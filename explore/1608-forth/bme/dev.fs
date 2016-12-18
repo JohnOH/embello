@@ -13,7 +13,7 @@ include ../flib/any/i2c-bb.fs
 : ms 0 do 12000 0 do loop loop ;  \ assumes 72 MHz clock
 
 : bme-init ( -- )
-  +i2c
+  i2c-init
   $76 i2c-tx drop
   $F2 >i2c drop %1 >i2c drop
   $F4 >i2c drop %100111 >i2c drop

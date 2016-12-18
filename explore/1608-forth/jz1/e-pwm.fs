@@ -11,7 +11,7 @@ cr cr reset
 $00002222 PA0 io-base GPIO.AFRL + !
 
 \ various duty cycles at 2 Hz
-2 PA0 +pwm   500 PA0 pwm
-2 PA1 +pwm  3500 PA1 pwm
-2 PA2 +pwm  6500 PA2 pwm
-2 PA3 +pwm  9500 PA3 pwm
+2 PA0 pwm-init   500 PA0 pwm
+2 PA1 pwm-init  3500 PA1 pwm
+2 PA2 pwm-init  6500 PA2 pwm
+2 PA3 pwm-init  9500 PA3 pwm

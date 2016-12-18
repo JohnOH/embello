@@ -21,7 +21,7 @@
   IMODE-ADC ANA4 io-mode! ;
 
 : main
-  2.1MHz 1000 systick-hz  +lptim opamp-on adc-pins
+  2.1MHz 1000 systick-hz  lptim-init opamp-on adc-pins
 
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
   rf69-init 16 rf-power

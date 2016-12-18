@@ -10,7 +10,7 @@ omode-pp  pa0 io-mode!  pa0 ioc!
 imode-adc pa1 io-mode!
 omode-pp  pa2 io-mode!  pa2 ios!
 
-+adc adc?
+adc-init adc?
 
 : temp+vcc
   cr micros adc-temp micros rot - . ." µs: " . ." °C "

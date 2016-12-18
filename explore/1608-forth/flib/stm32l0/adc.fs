@@ -37,7 +37,7 @@ $40012400 constant ADC1
   begin 2 bit ADC-ISR bit@ until  \ wait until EOC set
   ADC-DR @ ;
 
-: +adc ( -- )  \ initialise ADC
+: adc-init ( -- )  \ initialise ADC
 \ FIXME can't call this twice, recalibration will hang!
   9 bit RCC-APB2ENR bis!  \ set ADCEN
   adc-calib  1 ADC-CR !   \ perform calibration, then set ADEN to enable ADC

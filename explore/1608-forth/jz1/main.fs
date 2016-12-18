@@ -4,36 +4,37 @@
 0 constant debug  \ 0 = send RF packets, 1 = display on serial port
 10 constant rate  \ seconds between readings
 
-: show-readings ( vprev vcc tint lux humi pres temp -- )
-  hwid hex. ." = "
-  . ." °cC, " . ." Pa, " . ." %cRH, "
-  . ." lux, "  . ." °C, " . ." => " . ." mV " ;
+: .00 ( n -- ) 0 swap 0,5 d+ 0,01 f* 2 f.n ;
 
-: send-packet ( vprev vcc tint lux humi pres temp -- )
-  2 <pkt  hwid u+>  n+> 6 0 do u+> loop  pkt>rf ;
+: show-readings ( vprev vcc tint humi pres temp -- )
+  hwid hex. ." = "
+  .00 ." °C, " .00 ." hPa, " .00 ." %RH, "
+  . ." °C, " . ." => " . ." mV " ;
+
+: send-packet ( vprev vcc tint humi pres temp -- )
+  2 <pkt  hwid u+>  n+> 5 0 do u+> loop  pkt>rf ;
 
 : low-power-sleep
   rf-sleep
   -adc \ only-msi
   rate 0 do stop1s loop
-  hsi-on +adc ;
+  hsi-on adc-init ;
 
 : main
-  2.1MHz  1000 systick-hz  +lptim +i2c +adc
+  2.1MHz  1000 systick-hz  lptim-init i2c-init adc-init
 
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
   rf69-init 16 rf-power
 
   bme-init drop bme-calib
-  tsl-init drop
 
   begin
     led-off 
 
-    adc-vcc                      ( vprev )
+    adc-vcc            ( vprev )
     low-power-sleep
-    adc-vcc adc-temp             ( vprev vcc tint )
-    tsl-data  bme-data bme-calc  ( vprev vcc tint lux humi pres temp )
+    adc-vcc adc-temp   ( vprev vcc tint )
+    bme-data bme-calc  ( vprev vcc tint humi pres temp )
 
     led-on
 

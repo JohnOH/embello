@@ -331,7 +331,7 @@ void usart1_isr(void)
                             break;
                     }
                     gpio_set_mode(GPIO_DTR, GPIO_MODE_OUTPUT_2_MHZ,
-                            GPIO_CNF_OUTPUT_PUSHPULL, pin_dtr);
+                            GPIO_CNF_OUTPUT_OPENDRAIN, pin_dtr);
                     gpio_set_mode(GPIO_RTS, GPIO_MODE_OUTPUT_2_MHZ,
                             GPIO_CNF_OUTPUT_PUSHPULL, pin_rts);
                     break;
@@ -499,8 +499,8 @@ static const struct usb_config_descriptor config = {
 static char serial_no[9];
 
 static const char *usb_strings[] = {
-    "Black Sphere Technologies",
-    "SerPlus (based on CDC-ACM Demo)",
+    "JeeLabs",
+    "SerPlus",
     serial_no,
 };
 
@@ -624,7 +624,6 @@ int main(void)
     AFIO_MAPR = (AFIO_MAPR & ~(7<<24)) | (4<<24);
 
     gpio_setup();
-    usart_setup();
     systick_setup();
 
     for (int i = 0; i < 10000000; i++)
@@ -639,6 +638,8 @@ int main(void)
 
     for (int i = 0; i < 10000000; i++)
         __asm__("");
+
+    usart_setup(); // late config to allow USB setup to complete first
 
     while (1) {
         // poll USB while waiting for 2 ms to elapse

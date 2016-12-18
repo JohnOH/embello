@@ -1,8 +1,6 @@
 \ Tiny RF node
 
-\ define some missing constants
-4 constant io-ports  \ A..D
-RCC $18 + constant RCC-APB2ENR
+forgetram
 
 include ../flib/mecrisp/cond.fs
 include ../flib/mecrisp/hexdump.fs
