@@ -13,6 +13,8 @@ to Matthias Koch's official [Mecrisp][MS] builds on SourceForge:
   effect is a full erase on startup, which then also erases this `init` itself
 * interrupts are disabled before erasing flash memory, since the code always
   ends in a software reset - this prevents some crashes during the erase process
+* adds a `forgetram` word to clear the RAM-based dictionary - this helps with
+  USB-based configurations, to reset RAM without re-enumerating the USB bus
 
 All these images use the Register Allocator (RA) variant of Mecrisp, which takes
 up the lower 20 KB of flash memory. If you have a board with this code loaded
