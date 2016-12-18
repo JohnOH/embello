@@ -11,11 +11,11 @@ include ../flib/i2c/si570.fs
   si.buf hex.
   ." rfreq: " si.mul @ .
 \ si.buf 6 dump
-  5000000 begin
+  5 begin
     cr dup .
-    dup si570-freq
+    dup si570-MHz
 \   si.buf 6 dump
-    5000000 +
+    5 +
     3000 ms
   key? until drop ;
 
