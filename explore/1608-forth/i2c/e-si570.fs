@@ -13,7 +13,7 @@ include ../flib/i2c/si570.fs
 \ si.buf 6 dump
   5 begin
     cr dup .
-    dup si570-MHz
+    dup si570-freq
 \   si.buf 6 dump
     5 +
     3000 ms

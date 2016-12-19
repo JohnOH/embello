@@ -77,7 +77,9 @@
     1+
   again ;
 
-: si570-Hz ( freq -- )
+: si570-freq ( freq -- )
+  dup 1000 < if 1000 * then
+  dup 1000000 < if 1000 * then
   dup 1000 / divisors ( freq n1 hs )
 \ 2dup ." hs " . ." n1 " .
   2dup 4 - 5 lshift over 1- 2 rshift or 7 si!
@@ -88,5 +90,7 @@
 \ 2dup hex. hex.
   freq! si-set ;
 
-: si570-KHz ( freq -- ) 1000 * si570-Hz ;
-: si570-MHz ( freq -- ) 1000000 * si570-Hz ;
+\ si570-init .
+\ 123 si570-freq ( 123 MHz )
+\ 123456 si570-freq ( 123.456 MHz )
+\ 123456789 si570-freq ( 123.456789 MHz )
