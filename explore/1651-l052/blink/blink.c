@@ -9,13 +9,13 @@
 int main (void) {
     rcc_periph_clock_enable(RCC_GPIOA);
 
-    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO15);
+    gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
 
     for (;;) {
         for (int i = 0; i < 100000; ++i)
             __asm("");
 
-        gpio_toggle(GPIOA, GPIO15);
+        gpio_toggle(GPIOB, GPIO5);
     }
 
     return 0;
