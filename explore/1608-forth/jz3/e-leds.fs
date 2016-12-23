@@ -13,9 +13,8 @@ forgetram
 
 \ blink LEDs in a loop, until new input is received from Folie
 : go
-  setup
   begin
     PA0 blip  PA1 blip  PA2 blip  PA3 blip  PA4 blip  PA5 blip
   key? until ;
 
-go  \ press <enter> to quit
+setup go  \ press <enter> to quit
