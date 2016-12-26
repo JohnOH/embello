@@ -21,7 +21,7 @@ cr
   begin
     adc-vcc
 
-    rf-sleep  -adc only-msi  rate 0 do stop1s loop  hsi-on adc-init
+    rf69-sleep  -adc only-msi  rate 0 do stop1s loop  hsi-on adc-init
 
     adc-vcc adc-temp
     tsl-data  bme-data bme-calc

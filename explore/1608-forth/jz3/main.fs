@@ -13,7 +13,7 @@
   2 <pkt  hwid u+>  n+> 6 0 do u+> loop  pkt>rf ;
 
 : low-power-sleep
-  rf-sleep
+  rf69-sleep
   -adc \ only-msi
   rate 0 do stop1s loop
   hsi-on adc-init ;
@@ -22,7 +22,7 @@
   2.1MHz  1000 systick-hz  lptim-init i2c-init adc-init
 
   8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
-  rf69-init 16 rf-power
+  rf69-init 16 rf69-power
 
   bme-init drop bme-calib
   tsl-init drop

@@ -32,7 +32,7 @@ $40007000 constant PWR-CR
 : only-msi 8 bit RCC-CR ! ;
 
 : wait-for-key begin sleep ( led iox! ) key? until ;
-: reduce rf69-init rf-sleep led-off 2.1MHz ;
+: reduce rf69-init rf69-sleep led-off 2.1MHz ;
 
 \ reduce systick at 65 KHz, else interrupts will eat up all the clock cycles
 \ this means micros/us/millis/ms will all work, but 100x slower than usual
