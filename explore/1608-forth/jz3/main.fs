@@ -1,8 +1,8 @@
 \ application setup and main loop
 \ assumes that the BME280 and TSL4531 sensors are connected to PB6..PB7
 
-0 constant debug  \ 0 = send RF packets, 1 = display on serial port
-10 constant rate  \ seconds between readings
+0 constant DEBUG  \ 0 = send RF packets, 1 = display on serial port
+10 constant RATE  \ seconds between readings
 
 : show-readings ( vprev vcc tint lux humi pres temp -- )
   hwid hex. ." = "
@@ -15,7 +15,7 @@
 : low-power-sleep
   rf69-sleep
   -adc \ only-msi
-  rate 0 do stop1s loop
+  RATE 0 do stop1s loop
   hsi-on adc-init ;
 
 : main
@@ -37,7 +37,7 @@
 
     led-on
 
-    debug if
+    DEBUG if
       show-readings cr 1 ms
     else
       send-packet
