@@ -2,10 +2,12 @@
 
 forgetram
 
+\ include ../flib/i2c/bme280.fs
+
 \ use PA13 and PA14 to supply power to the BME280 sensor
 : bme-power
-  OMODE-PP PA14 io-mode! PA14 ioc!  \ set PA14 to "0", acting as ground
-  OMODE-PP PA13 io-mode! PA13 ios!  \ set PA13 to "1", acting as +3.3V
+  OMODE-PP PA14 io-mode!  PA14 ioc!  \ set PA14 to "0", acting as ground
+  OMODE-PP PA13 io-mode!  PA13 ios!  \ set PA13 to "1", acting as +3.3V
 ;
 
 \ configure I2C and the BME280 sensor attached to it
