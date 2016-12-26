@@ -134,7 +134,7 @@ static int32_t ring_read(struct ring *ring, uint8_t *data, ring_size_t size)
 
 /*****************************************************************************/
 
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 1024
 
 struct ring input_ring, output_ring;
 uint8_t input_ring_buffer[BUFFER_SIZE], output_ring_buffer[BUFFER_SIZE];
