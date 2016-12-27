@@ -290,7 +290,7 @@ $40006000 constant USBMEM
   dup $0800 and if %1100 USB-CNTR hbis! $F7FF USB-ISTR h! then
       $1000 and if %1000 USB-CNTR hbic! $EFFF USB-ISTR h! then ;
 
-: usb-key? ( -- f )  usb-poll usb-in-ring ring# 0<> ;
+: usb-key? ( -- f )  pause usb-poll usb-in-ring ring# 0<> ;
 : usb-key ( -- c )  begin usb-key? until  usb-in-ring ring> ;
 : usb-emit? ( -- f )  usb-poll usb-out-ring ring? ;
 : usb-emit ( c -- )  begin usb-emit? until  usb-out-ring >ring usb-fill ;
