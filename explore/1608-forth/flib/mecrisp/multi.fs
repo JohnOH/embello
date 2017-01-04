@@ -6,7 +6,7 @@
 
 \ Internal stucture of task memory:
 \  0: Pointer to next task
-\  4: Task currently active ?
+\  4: Task currently active ? (-1 ACTIVE, 0 SLEEPING, 1 WAITING-FOR-INTERRUPT)
 \  8: Saved stack pointer
 \ 12: Handler for Catch/Throw
 \  Parameter stack space
@@ -30,14 +30,16 @@ boot-task variable up \ User Pointer
     save-task @ sp! rp!  \ restore pointers
     unloop ;              \ pop { r4  r5 } to restore the loop registers
 
-: wake ( task -- ) 1 cells +  true swap ! ; \ Wake a random task (IRQ safe)
-: idle ( task -- ) 1 cells + false swap ! ;  \ Idle a random task (IRQ safe)
+: wake ( task -- ) 1 cells +  true swap ! ; \ Wake a task (IRQ safe)
+: idle ( task -- ) 1 cells + false swap ! ; \ Idle a task (IRQ safe)
 
 \ -------------------------------------------------------
 \  Round-robin list task handling - do not use in IRQ !
 \ -------------------------------------------------------
 
-: stop ( -- ) false task-state ! pause ; \ Stop current task
+: stop    ( -- ) false task-state ! pause ; \ Stop current task
+: running ( -- ) true task-state ! pause ;  \ Mark current task as running
+: wfi     ( -- ) 1 task-state ! pause ;     \ Mark task as waiting-for-interrupt
 : multitask  ( -- ) ['] (pause) hook-pause ! ;
 : singletask ( -- ) [']  nop    hook-pause ! ;
 
@@ -150,12 +152,12 @@ boot-task variable up \ User Pointer
 \  Lowpower mode
 \ --------------------------------------------------
 
-: up-alone? ( -- ? ) \ Checks if all other tasks are currently in idle state
+: up-alone? ( -- ? ) \ Checks if all other tasks are currently in idle state (only counts state==1)
   next-task @ \ Current task is in UP. Start with the next one.
   begin
     dup up @ <> \ Scan the whole round-robin list until back to current task.
   while
-    dup 1 cells + @ if drop false exit then
+    dup 1 cells + @ -1 = if drop false exit then
     \ Check state of this task and exit if it is active
     @ \ Next task in list
   repeat
@@ -171,9 +173,22 @@ task: lowpower-task
     begin
       eint? if \ Only enter sleep mode if interrupts have been enabled
         dint up-alone? if ( ."  Sleep " ) sleep then eint
+        pause
       then
-      pause
     again
+;
+
+\ --------------------------------------------------
+\  Convenience fonctions
+\ --------------------------------------------------
+
+: ms ( ms_delay -- ) \ `ms` which allows other tasks to run
+  millis swap   ( start ms_delay )
+  begin
+    wfi pause running \ switch to `wfi` to let lowpower-task go to sleep
+    2dup millis rot
+  - < until
+  2drop
 ;
 
 \ --------------------------------------------------
