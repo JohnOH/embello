@@ -6,7 +6,7 @@
 
 \ Internal stucture of task memory:
 \  0: Pointer to next task
-\  4: Task currently active ? (-1 ACTIVE, 0 SLEEPING, 1 WAITING-FOR-INTERRUPT)
+\  4: Task state (-1 ACTIVE, 0 SLEEPING, 1 WAITING-FOR-INTERRUPT)
 \  8: Saved stack pointer
 \ 12: Handler for Catch/Throw
 \  Parameter stack space
@@ -30,6 +30,7 @@ boot-task variable up \ User Pointer
     save-task @ sp! rp!  \ restore pointers
     unloop ;              \ pop { r4  r5 } to restore the loop registers
 
+\ External interface to wake/sleep tasks by name
 : wake ( task -- ) 1 cells +  true swap ! ; \ Wake a task (IRQ safe)
 : idle ( task -- ) 1 cells + false swap ! ; \ Idle a task (IRQ safe)
 
@@ -37,9 +38,12 @@ boot-task variable up \ User Pointer
 \  Round-robin list task handling - do not use in IRQ !
 \ -------------------------------------------------------
 
+\ Change state of currently running task
 : stop    ( -- ) false task-state ! pause ; \ Stop current task
 : running ( -- ) true task-state ! pause ;  \ Mark current task as running
 : wfi     ( -- ) 1 task-state ! pause ;     \ Mark task as waiting-for-interrupt
+
+\ Enable/Disable Multitasking
 : multitask  ( -- ) ['] (pause) hook-pause ! ;
 : singletask ( -- ) [']  nop    hook-pause ! ;
 
@@ -98,11 +102,13 @@ boot-task variable up \ User Pointer
   r> insert
 ;
 
+\ Starts the newly prepared task in running state
 : activate ( task --   R: continue -- )
   true over 1 cells + ! \ Currently running
   r> preparetask
 ;
 
+\ Starts the newly prepared task in stopped state
 : background ( task --   R: continue -- )
   false over 1 cells + ! \ Currently idling
   r> preparetask
@@ -152,7 +158,7 @@ boot-task variable up \ User Pointer
 \  Lowpower mode
 \ --------------------------------------------------
 
-: up-alone? ( -- ? ) \ Checks if all other tasks are currently in idle state (only counts state==1)
+: up-alone? ( -- ? ) \ Checks if all other tasks are currently in stopped or waiting for next interrupt
   next-task @ \ Current task is in UP. Start with the next one.
   begin
     dup up @ <> \ Scan the whole round-robin list until back to current task.
@@ -179,10 +185,10 @@ task: lowpower-task
 ;
 
 \ --------------------------------------------------
-\  Convenience fonctions
+\  Convenience functions
 \ --------------------------------------------------
 
-: ms ( ms_delay -- ) \ `ms` which allows other tasks to run
+: ms ( ms_delay -- ) \ `ms` which allows other tasks to run - do not use in IRQ!
   millis swap   ( start ms_delay )
   begin
     wfi pause running \ switch to `wfi` to let lowpower-task go to sleep
