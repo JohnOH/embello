@@ -87,8 +87,8 @@ $40022000 constant FLASH
   3 -  \ adjust for approximate overhead of this code itself
   micros +  begin dup micros - 0< until  drop ;
 
-: ms ( n -- )  \ millisecond delay, current limit is about 2000s
-  1000 * us ;  \ TODO need to change this to support multitasking
+: ms ( n -- )  \ millisecond delay, multi-tasker aware (may switch tasks!)
+  millis +  begin millis over - 0< while pause repeat  drop ;
 
 \ : j0 micros 1000000 0 do 1 us loop micros swap - . ;
 \ : j1 micros 1000000 0 do 5 us loop micros swap - . ;
