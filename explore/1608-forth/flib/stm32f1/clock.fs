@@ -12,6 +12,8 @@
 : systick-hz ( u -- )  \ enable systick interrupt at given frequency
   ['] ++ticks irq-systick !
   clock-hz @ swap /  1- $E000E014 !  7 $E000E010 ! ;
+: systick-hz? ( -- u ) \ derive current systick frequency from clock
+  clock-hz @  $E000E014 @ 1+  / ;
 
 : micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
 \ assumes systick is running at 1000 Hz, overhead is about 1.8 us @ 72 MHz

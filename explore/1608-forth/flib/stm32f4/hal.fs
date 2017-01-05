@@ -76,6 +76,8 @@ $40023C00 constant FLASH
 : systick-hz ( u -- )  \ enable systick counter at given frequency
   ['] ++ticks irq-systick !
   clock-hz @ swap / systick ;
+: systick-hz? ( -- u ) \ derive current systick frequency from clock
+  clock-hz @  $E000E014 @ 1+  / ;
 
 : list ( -- )  \ list all words in dictionary, short form
   cr dictionarystart begin
