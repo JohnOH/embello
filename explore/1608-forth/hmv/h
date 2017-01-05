@@ -39,7 +39,7 @@ PB5 constant TFT-BL
 PB7 constant USB-EN
 
 : init ( -- )  \ board initialisation
-  -jtag  \ disable JTAG, we only need SWD
+  jtag-deinit  \ disable JTAG, we only need SWD
   6 bit RCC-APB2ENR bis!  \ enable port E
   OMODE-PP TFT-BL io-mode!  \ turns off LCD backlight
   OMODE-PP LED1 io-mode!

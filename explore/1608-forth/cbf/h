@@ -19,7 +19,6 @@ include ../flib/any/i2c-bb.fs
 PF6 constant LED
 
 : init ( -- )  \ board initialisation
-\ -jtag  \ disable JTAG, we only need SWD
   OMODE-PP LED io-mode!
   168MHz
   flash-kb . ." KB <cbf> " hwid hex. ." ok." cr

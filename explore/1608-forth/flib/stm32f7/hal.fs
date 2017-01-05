@@ -32,9 +32,6 @@ $40023800 constant RCC
 $40023C00 constant FLASH
     FLASH $0 + constant FLASH-ACR
 
-\ : -jtag ( -- )  \ disable JTAG on PB3 PB4 PA15
-\   25 bit AFIO-MAPR bis! ;
-
 \ ------------------------------------------------------------------------------
 \ adjusted for STM32F407 @ 168 MHz (original STM32F407 by Igor de om1zz, 2015)
 
