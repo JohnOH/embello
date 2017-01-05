@@ -10,3 +10,4 @@ compiletoflash
 
 ( always end: ) here hex.
 cornerstone eraseflash
+compiletoram

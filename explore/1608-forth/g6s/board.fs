@@ -35,3 +35,4 @@ include ../flib/stm32f1/rtc.fs
 
 ( board end, size: ) here dup hex. swap - .
 cornerstone <<<board>>>
+compiletoram
