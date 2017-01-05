@@ -40,12 +40,12 @@ cr
   2.1MHz  1000 systick-hz  only-msi
   begin
     led-on
-    [IFDEF] rf69-init  rf-recv drop  rf69-sleep  [ELSE]  10 ms  [THEN]
+    [IFDEF] rf-init  rf-recv drop  rf-sleep  [ELSE]  10 ms  [THEN]
     led-off
     stop10s
   again ;
 
-[IFDEF] rf69-init  rf69-init rf69-sleep  [THEN]
+[IFDEF] rf-init  rf-init rf-sleep  [THEN]
 lptim-init lptim?
 
 ( clock-hz    ) clock-hz    @ .

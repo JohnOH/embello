@@ -21,7 +21,7 @@ cr
   begin
     adc-vcc
 
-    rf69-sleep  -adc only-msi  rate 0 do stop1s loop  hsi-on adc-init
+    rf-sleep  -adc only-msi  rate 0 do stop1s loop  hsi-on adc-init
 
     adc-vcc adc-temp
     tsl-data  bme-data bme-calc
@@ -37,7 +37,7 @@ cr
 
 2.1MHz 1000 systick-hz
 
-8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid ! rf69-init
+8686 rf.freq ! 6 rf.group ! 62 rf.nodeid ! rf-init
 
 lptim-init i2c-init adc-init
 

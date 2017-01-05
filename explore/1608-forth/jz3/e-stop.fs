@@ -1,21 +1,20 @@
 \ stop mode experiment
 \ needs board.fs
 
-cr cr reset
-cr
+forgetram ."  ok." cr quit
 
 \ include ../flib/stm32l0/sleep.fs
 
 : highz-gpio
-\ this s(h)aves another 0.6 µA ...
+\ this s(h)aves another few µA ...
   IMODE-ADC PA0  io-mode!
   IMODE-ADC PA1  io-mode!
   IMODE-ADC PA2  io-mode!
   IMODE-ADC PA3  io-mode!
   IMODE-ADC PA4  io-mode!
   IMODE-ADC PA5  io-mode!
-\ IMODE-ADC PA6  io-mode!   \ MISO
-\ IMODE-ADC PA7  io-mode!   \ MOSI
+  IMODE-ADC PA6  io-mode!   \ MISO
+  IMODE-ADC PA7  io-mode!   \ MOSI
   IMODE-ADC PA8  io-mode!
   IMODE-ADC PA9  io-mode!
   IMODE-ADC PA10 io-mode!
@@ -26,9 +25,9 @@ cr
 \ IMODE-ADC PA15 io-mode!   \ SSEL
   IMODE-ADC PB0  io-mode!
   IMODE-ADC PB1  io-mode!
-\ IMODE-ADC PB3  io-mode!   \ SCLK
+  IMODE-ADC PB3  io-mode!   \ SCLK
   IMODE-ADC PB4  io-mode!
-\ IMODE-ADC PB5  io-mode!   \ LED
+  IMODE-ADC PB5  io-mode!   \ LED
   IMODE-ADC PB6  io-mode!
   IMODE-ADC PB7  io-mode!
   IMODE-ADC PC14 io-mode!
@@ -39,13 +38,10 @@ cr
   highz-gpio
   2.1MHz  1000 systick-hz  only-msi
   begin
-    led-on
-    [IFDEF] rf69-init  rf-recv drop  rf69-sleep  [ELSE]  10 ms  [THEN]
-    led-off
     stop10s
   again ;
 
-[IFDEF] rf69-init  rf69-init rf69-sleep  [THEN]
+[IFDEF] rf-init  rf-init rf-sleep  [THEN]
 lptim-init lptim?
 
 ( clock-hz    ) clock-hz    @ .

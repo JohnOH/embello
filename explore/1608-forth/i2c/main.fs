@@ -50,8 +50,8 @@ PA12 constant LED6
   16 +loop ;
 
 : radio-init ( -- )
-  8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
-  rf69-init 16 rf-power rf-sleep ;
+  8686 rf.freq ! 6 rf.group ! 62 rf.nodeid !
+  rf-init 16 rf-power rf-sleep ;
 
 : main ( -- )
   leds-pwm  lcd-init show-logo

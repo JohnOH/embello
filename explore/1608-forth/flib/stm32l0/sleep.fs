@@ -71,6 +71,6 @@ $E000ED10 constant SCR
 
 \ : lp-blink ( -- )  only-msi  begin  stop1s led iox!  again ;
 \
-\ rf69-init rf-sleep
+\ rf-init rf-sleep
 \ led-off 2.1MHz 1000 systick-hz
 \ lptim-init lp-blink

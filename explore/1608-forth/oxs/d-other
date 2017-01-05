@@ -19,7 +19,7 @@ reset
 : adctry ( -- )  adc-init  begin  PA0 adc .  key? until ;
 : uartry ( -- )  uart-init uart. ;
 : pwmtry ( -- )  1 LED2 pwm-init 9900 LED2 pwm ;  \ inverted logic
-: t69try ( n - ) 16 rf69-power  0 <# #s #> 0 rf-send ;
+: t69try ( n - ) 16 rf-power  0 <# #s #> 0 rf-send ;
 
 \ -----------------------------------------------------------------------------
 

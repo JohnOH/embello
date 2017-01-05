@@ -38,6 +38,7 @@ PA4 constant RF.SEL
 PA15 constant SMEM.SEL  \ SPI flash memory
 
 0 constant OLED.LARGE  \ display size: 0 = 128x32, 1 = 128x64 (default)
+99 constant I2C.DELAY
 
 : hello ( -- ) flash-kb . ." KB <tex> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -
