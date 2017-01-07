@@ -156,6 +156,7 @@ task: lowpower-task
 : lowpower& ( -- )
   lowpower-task activate
     begin
+      key? if boot-task wake then \ wake up boot-task if key was pressed
       eint? if \ Only enter sleep mode if interrupts have been enabled
         dint up-alone? if ( ."  Sleep " ) sleep then eint
       then
