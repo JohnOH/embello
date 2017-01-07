@@ -16,7 +16,7 @@ cr
   wfe                      \ enter standby mode
 ;
 
-[IFDEF] rf69-init  rf69-init rf69-sleep  [THEN]
+[IFDEF] rf-init  rf-init rf-sleep  [THEN]
 
 ( clock-hz    ) clock-hz    @ .
 ( PWR-CR      ) PWR-CR      @ hex.

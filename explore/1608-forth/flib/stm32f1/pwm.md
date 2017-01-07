@@ -51,3 +51,22 @@ Servo on PB0:
   750 PB0 pwm       \ centre position, 750x 2 µs = 1.5 ms pulses
  1000 PB0 pwm       \ maximum position, 1000x 2 µs = 2 ms pulses
 ```
+
+### Caveat
+
+The PWM hardware cannot keep the pin completely off with a "0" arg, there's
+always a minimal 0.01% duty cycle blip. To have a PWM implementation which
+really does completely turn off, you can re-define `pwm` as follows (thanks to
+`@tht` for this trick):
+
+```
+: pwm ( u pin -- )  \ Make sure pwm is completly off at 0
+  over if
+    \ enable pwm output on pin
+    dup dup p2cmp 4 * bit swap p2tim timer-base $20 + bis!
+    pwm
+  else
+    pwm-deinit drop
+  then
+; 
+```

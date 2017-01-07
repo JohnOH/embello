@@ -29,9 +29,6 @@ $40023800 constant RCC
 $40023C00 constant FLASH
     FLASH $0 + constant FLASH-ACR
 
-\ : -jtag ( -- )  \ disable JTAG on PB3 PB4 PA15
-\   25 bit AFIO-MAPR bis! ;
-
 \ adjusted for STM32F407 @ 168 MHz (original STM32F407 by Igor de om1zz, 2015)
 
 25000000 variable clock-hz  \ 25 MHz crystal, HSI is 16 MHz
@@ -76,6 +73,8 @@ $40023C00 constant FLASH
 : systick-hz ( u -- )  \ enable systick counter at given frequency
   ['] ++ticks irq-systick !
   clock-hz @ swap / systick ;
+: systick-hz? ( -- u ) \ derive current systick frequency from clock
+  clock-hz @  $E000E014 @ 1+  / ;
 
 : list ( -- )  \ list all words in dictionary, short form
   cr dictionarystart begin

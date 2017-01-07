@@ -27,7 +27,7 @@ PA5 constant LED1
 PA1 constant LED2
 
 : init ( -- )  \ board initialisation
-  -jtag  \ disable JTAG, we only need SWD
+  jtag-deinit  \ disable JTAG, we only need SWD
   OMODE-PP LED1 io-mode!
   OMODE-PP LED2 io-mode!
   72MHz

@@ -71,6 +71,8 @@ $40022000 constant FLASH
 : systick-hz ( u -- )  \ enable systick interrupt at given frequency
   ['] ++ticks irq-systick !
   clock-hz @ swap /  1- $E000E014 !  7 $E000E010 ! ;
+: systick-hz? ( -- u ) \ derive current systick frequency from clock
+  clock-hz @  $E000E014 @ 1+  / ;
 
 : micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
 \ assumes systick is running at 1000 Hz, overhead is about 60 us @ 16 MHz
@@ -87,8 +89,8 @@ $40022000 constant FLASH
   3 -  \ adjust for approximate overhead of this code itself
   micros +  begin dup micros - 0< until  drop ;
 
-: ms ( n -- )  \ millisecond delay, current limit is about 2000s
-  1000 * us ;  \ TODO need to change this to support multitasking
+: ms ( n -- )  \ millisecond delay, multi-tasker aware (may switch tasks!)
+  millis +  begin millis over - 0< while pause repeat  drop ;
 
 \ : j0 micros 1000000 0 do 1 us loop micros swap - . ;
 \ : j1 micros 1000000 0 do 5 us loop micros swap - . ;

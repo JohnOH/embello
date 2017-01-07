@@ -46,7 +46,7 @@ cr
 
 led-off
 
-[IFDEF] rf69-init  rf69-init rf69-sleep  [THEN]
+[IFDEF] rf-init  rf-init rf-sleep  [THEN]
 
 ( PWR-CR  ) PWR-CR @ hex.
 ( CR      ) RCC-CR @ hex.

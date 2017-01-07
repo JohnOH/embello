@@ -34,8 +34,10 @@ $40021000 constant RCC
 $40022000 constant FLASH
     FLASH $0 + constant FLASH-ACR
 
-: -jtag ( -- )  \ disable JTAG on PB3 PB4 PA15
+: jtag-deinit ( -- )  \ disable JTAG on PB3 PB4 PA15
   25 bit AFIO-MAPR bis! ;
+: swd-deinit ( -- )  \ disable JTAG as well as PA13 and PA14
+  AFIO-MAPR @ %111 24 lshift bic 26 bit or AFIO-MAPR ! ;
 
 \ adjusted for STM32F103 @ 72 MHz (original STM32F100 by Igor de om1zz, 2015)
 
@@ -95,8 +97,8 @@ $40022000 constant FLASH
   3 -  \ adjust for approximate overhead of this code itself
   micros +  begin dup micros - 0< until  drop ;
 
-: ms ( n -- )  \ millisecond delay, current limit is about 2000s
-  1000 * us ;  \ TODO need to change this to support multitasking
+: ms ( n -- )  \ millisecond delay, multi-tasker aware (may switch tasks!)
+  millis +  begin millis over - 0< while pause repeat  drop ;
 
 \ : j0 micros 1000000 0 do 1 us loop micros swap - . ;
 \ : j1 micros 1000000 0 do 5 us loop micros swap - . ;

@@ -1,7 +1,7 @@
 \ try 5x7 font on OLED
 
 \ these includes won't all fit in ram
-<<<core>>>
+\ <<<core>>>
 compiletoflash
 
 \ include ../flib/i2c/oled.fs
@@ -30,8 +30,8 @@ compiletoflash
   lcd-init show-logo
   ['] lcd-emit hook-emit !
 
-  8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
-  rf69-init 16 rf-power rf-sleep
+  8686 rf.freq ! 6 rf.group ! 62 rf.nodeid !
+  rf-init 16 rf-power rf-sleep
 
   0 begin
     500 ms

@@ -9,6 +9,6 @@ cr cr reset
 
 spi-init spi?
 
-6 rf69.group !
+6 rf.group !
 \ this causes folie to timeout on include matching, yet still starts running
-1234 ms rf69-listen
+1234 ms rf-listen

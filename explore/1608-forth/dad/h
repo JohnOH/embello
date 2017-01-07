@@ -24,7 +24,7 @@ include ../flib/any/i2c-bb.fs
 \ board definitions for generic STM32F103 boards
 
 : init ( -- )  \ board initialisation
-  -jtag  \ disable JTAG, we only need SWD
+  jtag-deinit  \ disable JTAG, we only need SWD
   72MHz
   flash-kb . ." KB <dad> " hwid hex. ." ok." cr
   1000 systick-hz
