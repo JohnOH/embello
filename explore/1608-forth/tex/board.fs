@@ -14,8 +14,8 @@ compiletoflash
 
 : list ( -- )  \ list all words in dictionary, short form
   cr dictionarystart begin
-      dup 6 + ctype space
-        dictionarynext until drop ;
+    dup 6 + ctype space
+  dictionarynext until drop ;
 
 include ../flib/mecrisp/calltrace.fs
 include ../flib/mecrisp/cond.fs
