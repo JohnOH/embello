@@ -30,7 +30,6 @@ These files implement a range of hardware drivers and other generic functions:
 
 * **`flib`** - Forth library, various modules used by the above boards
 * **`flib/mecrisp`** - Mecrisp library, copied / modified from Mecrisp code
-* **`util`** - utility code by various JeeLabs members, not yet integrated
 
 Most of the above projects use Mecrisp Forth "core" builds from this area:
 
