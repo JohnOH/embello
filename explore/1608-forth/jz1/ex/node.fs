@@ -37,7 +37,7 @@ cr
 
 2.1MHz 1000 systick-hz
 
-8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid ! rf69-init
+8686 rf.freq ! 6 rf.group ! 62 rf.nodeid ! rf-init
 
 lptim-init i2c-init adc-init
 

@@ -36,7 +36,7 @@ PA8 constant LED1
 PD2 constant LED2
 
 : init ( -- )  \ board initialisation
-  -jtag  \ disable JTAG, we only need SWD
+  jtag-deinit  \ disable JTAG, we only need SWD
   PC4 ssel !
   OMODE-PP LED1 io-mode!
   OMODE-PP LED2 io-mode!

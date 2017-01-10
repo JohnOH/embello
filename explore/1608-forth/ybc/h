@@ -27,7 +27,7 @@ include ../flib/any/i2c-bb.fs
 PD2 constant LED
 
 : init ( -- )  \ board initialisation
-  -jtag  \ disable JTAG, we only need SWD
+  jtag-deinit  \ disable JTAG, we only need SWD
   OMODE-PP LED io-mode!
   72MHz
   flash-kb . ." KB <ybc> " hwid hex. ." ok." cr

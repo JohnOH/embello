@@ -27,7 +27,7 @@ include ../flib/stm32f1/rtc.fs
 : init ( -- )  \ board initialisation
   init  \ uses new uart init convention
   ['] ct-irq irq-fault !  \ show call trace in unhandled exceptions
-  -jtag  \ disable JTAG, we only need SWD
+  jtag-deinit  \ disable JTAG, we only need SWD
   72MHz
   1000 systick-hz
   hello ." ok." cr
@@ -35,3 +35,4 @@ include ../flib/stm32f1/rtc.fs
 
 ( board end, size: ) here dup hex. swap - .
 cornerstone <<<board>>>
+compiletoram

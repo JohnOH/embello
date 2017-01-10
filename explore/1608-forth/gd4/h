@@ -20,7 +20,6 @@ include ../flib/stm32f4/hal.fs
 4 3 io constant LED3
 
 : init ( -- )  \ board initialisation
-\ -jtag  \ disable JTAG, we only need SWD
   OMODE-PP LED0 io-mode!
   OMODE-PP LED1 io-mode!
   OMODE-PP LED2 io-mode!

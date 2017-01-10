@@ -37,21 +37,20 @@
      2 bit constant RF:IRQ2_RECVD
 
    0 variable rf.mode
+   0 variable rf.last
    0 variable rf.rssi
    0 variable rf.lna
    0 variable rf.afc
-   0 variable rf.last
+  66 buffer:  rf.buf
 
-   66 buffer: rf.buf
-
-   1 variable rf69.nodeid
-  42 variable rf69.group
-8686 variable rf69.freq
+8683 variable rf.freq
+  42 variable rf.group
+  61 variable rf.nodeid
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 hex
-  0200 h, 0302 h, 048A h, 0502 h, 06E1 h, 0B20 h, 194A h, 1A42 h,
-  1E0C h, 2607 h, 29A0 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
+  0200 h, 0302 h, 048A h, 0505 h, 06C3 h, 0B20 h, 1942 h, 1A42 h,
+  1E0C h, 2607 h, 29C4 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
   3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
 decimal align
 
@@ -78,9 +77,6 @@ decimal align
 
 : rf-group ( u -- ) RF:SYN2 rf! ;  \ set the net group (1..250)
 
-: rf-power ( n -- )  \ change TX power level (0..31)
-  RF:PA rf@ $E0 and or RF:PA rf! ;
-
 : rf-check ( b -- )  \ check that the register can be accessed over SPI
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
   drop ;
@@ -105,6 +101,14 @@ decimal align
 : rf-n!spi ( addr len -- )  \ write N bytes to the FIFO
   0 do  dup c@ RF:FIFO rf! 1+  loop drop ;
 
+: rf-parity ( -- u )  \ calculate group parity bits
+  RF:SYN2 rf@ dup 4 lshift xor dup 2 lshift xor $C0 and ;
+
+\ this is the intended public API for the RF69 driver
+
+: rf-power ( n -- )  \ change TX power level (0..31)
+  RF:PA rf@ $E0 and or RF:PA rf! ;
+
 : rf-sleep ( -- ) RF:M_SLEEP rf!mode ;  \ put radio module to sleep
 
 : rf-recv ( -- b )  \ check whether a packet has been received, return #bytes
@@ -116,32 +120,27 @@ decimal align
     rf.buf over 66 max rf-n@spi
   else 0 then ;
 
-: rf-parity ( -- u )  \ calculate group parity bits
-  RF:SYN2 rf@ dup 4 lshift xor dup 2 lshift xor $C0 and ;
-
 : rf-send ( addr count hdr -- )  \ send out one packet
   RF:M_STDBY rf!mode
   over 2+ RF:FIFO rf!
   dup rf-parity or RF:FIFO rf!
-  $C0 and rf69.nodeid @ or RF:FIFO rf!
+  $C0 and rf.nodeid @ or RF:FIFO rf!
   ( addr count ) rf-n!spi
   RF:M_TX rf!mode
   begin RF:IRQ2 rf@ RF:IRQ2_SENT and until
   RF:M_STDBY rf!mode ;
 
-\ new code starts here, this is the intended public API for the RF69 driver
+: rf-init ( -- )  \ init RFM69 with current rf.group and rf.freq values
+  rf.group @ rf.freq @ rf-init ;
 
-: rf69-init ( -- )  \ init RFM69 with current rf69.group and rf69.freq values
-  rf69.group @ rf69.freq @ rf-init ;
+: rf-info ( -- )  \ display reception parameters as hex string
+  rf.freq @ h.4 rf.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4 ;
 
-: rf69-info ( -- )  \ display reception parameters as hex string
-  rf69.freq @ h.4 rf69.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4 ;
-
-: rf69-listen ( -- )  \ init RFM69 and report incoming packets until key press
-  rf69-init cr
+: rf-listen ( -- )  \ init RFM69 and report incoming packets until key press
+  rf-init cr
   begin
     rf-recv ?dup if
-      ." RF69 " rf69-info
+      ." RF69 " rf-info
       dup 0 do
         rf.buf i + c@ h.2
         i 1 = if 2- h.2 space then
@@ -149,7 +148,7 @@ decimal align
     then
   key? until ;
 
-: rf69. ( -- )  \ print out all the RF69 registers
+: rf. ( -- )  \ print out all the RF69 registers
   cr 4 spaces  base @ hex  16 0 do space i . loop  base !
   $60 $00 do
     cr
@@ -159,9 +158,9 @@ decimal align
     loop
   $10 +loop ;
 
-: rf69-txtest ( n -- )  \ send out a test packet with the number as ASCII chars
-  rf69-init  16 rf-power  0 <# #s #> 0 rf-send ;
+: rf-txtest ( n -- )  \ send out a test packet with the number as ASCII chars
+  rf-init  16 rf-power  0 <# #s #> 0 rf-send ;
 
-\ rf69.
-\ rf69-listen
-\ 12345 rf69-txtest
+\ rf.
+\ rf-listen
+\ 12345 rf-txtest

@@ -7,8 +7,10 @@ compiletoflash
 \ RCC $18 + constant RCC-APB2ENR
 \ RCC $14 + constant RCC-AHBENR
 
-: -jtag ( -- )  \ disable JTAG on PB3 PB4 PA15
+: jtag-deinit ( -- )  \ disable JTAG on PB3 PB4 PA15
   25 bit AFIO-MAPR bis! ;
+: swd-deinit ( -- )  \ disable JTAG as well as PA13 and PA14
+  AFIO-MAPR @ %111 24 lshift bic 26 bit or AFIO-MAPR ! ;
 
 : list ( -- )  \ list all words in dictionary, short form
   cr dictionarystart begin
@@ -21,7 +23,6 @@ include ../flib/mecrisp/hexdump.fs
 include ../flib/stm32f1/clock.fs
 include ../flib/stm32f1/io.fs
 include ../flib/pkg/pins64.fs
-include ../flib/any/i2c-bb.fs
 include ../flib/stm32f1/spi.fs
 include ../flib/stm32f1/timer.fs
 include ../flib/stm32f1/pwm.fs
@@ -37,7 +38,7 @@ include ../flib/stm32f1/rtc.fs
 : init ( -- )  \ board initialisation
   init  \ this is essential to start up USB comms!
   ['] ct-irq irq-fault !  \ show call trace in unhandled exceptions
-  -jtag  \ disable JTAG, we only need SWD
+  jtag-deinit  \ disable JTAG, we only need SWD
   1000 systick-hz
 \ hello ." ok." cr
 ;
