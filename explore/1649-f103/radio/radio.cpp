@@ -5,7 +5,6 @@
 #include <libopencm3/stm32/exti.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/cortex.h>
-#include <libopencm3/stm32f10x.h>
 #include <stdio.h>
 
 // defined in main.cpp
@@ -21,15 +20,9 @@ uint8_t rxBuf[71];	// :grp:dest:len:66 bytes:crc-l:crc-h:
 uint8_t txBuf[62];
 uint16_t txCnt = 0;
 
-<<<<<<< HEAD
 const int rf_freq = 8680;
 const int rf_group = 212;
 const int rf_nodeid = 28;
-=======
-const int rf_freq = 8686;
-const int rf_group = 42;
-const int rf_nodeid = 61;
->>>>>>> jeelabs/master
 
 const bool verbose = true;
 
@@ -41,11 +34,16 @@ void setup () {
             GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
 
     printf("\n[radio]\n");
+    
+      
+	exti_enable_request(2);
+	exti_set_trigger(2, EXTI_TRIGGER_RISING);
+	
 
 //  ButtonInit();
 //  LEDsInit();
-  systick_set_frequency(15000000);
-  cm_enable_interrupts();
+// systick_set_frequency(15000000);
+//  cm_enable_interrupts();
 
 
     rf.init(rf_nodeid, rf_group, rf_freq);

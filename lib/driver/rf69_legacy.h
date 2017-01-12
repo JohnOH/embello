@@ -4,6 +4,8 @@
 #define chThdYield() // FIXME should be renamed, ChibiOS leftover
 #endif
 
+#include <libopencm3/exti.h>
+
 template< typename SPI >
 class RF69 {
   public:
@@ -189,6 +191,10 @@ void RF69<SPI>::encrypt (const char* key) {
 template< typename SPI >
 void RF69<SPI>::txPower (uint8_t level) {
   writeReg(REG_PALEVEL, (readReg(REG_PALEVEL) & ~0x1F) | level);
+  
+	exti_enable_request(2);
+	exti_set_trigger(2, 2);
+	
 }
 
 template< typename SPI >
