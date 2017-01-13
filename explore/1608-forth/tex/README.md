@@ -14,6 +14,10 @@ See the EAGLE files and derived documentation:
 
 The PDF shows all the relevant pin assignments.
 
+![](text-v0-front.jpg)
+
+![](text-v0-back.jpg)
+
 Further down below is a section about a alternate board, called the Blue Pill.
 
 ### Software
