@@ -11,6 +11,7 @@ include ../flib/i2c/oled.fs
 include ../flib/mecrisp/graphics.fs
 include ../flib/any/digits.fs
 include ../flib/mecrisp/multi.fs
+include ../flib/mecrisp/quotation.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>

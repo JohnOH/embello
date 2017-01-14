@@ -1,8 +1,15 @@
+\ Pico Reflow Controller v2
+
 forgetram
 
-3400 constant VCC  \ actual Vcc value, in millivolt
-
 : adc ( pin -- value ) dup adc drop adc ; \ read twice, ignore first reading
+
+: periodic-ms ( handler var ms -- )  \ execute handler every ms milliseconds
+  over @ +  millis -  0< if millis swap ! execute else 2drop then ;
+
+\ Constants and variables ------------------------------------------------------
+
+3300 constant VCC  \ actual Vcc value, in millivolt
 
 \ up to four input buttons
 PB15 constant BTN1  \ pressed = "1", open = "0"
@@ -26,16 +33,54 @@ PA3  constant VPOWER   \ 10k + 1k = div 11
 \ heater control
 PB8  constant HEATER  \ on = "1", off = "0"
 
-: pt100-mv ( - u )  \ measure PT100 sensor voltage
+\ PT100 sensor calibration values
+ 21 variable room.temp  260 variable max.temp
+270 variable room.mV    530 variable max.mV
+
+\ Analog readings --------------------------------------------------------------
+
+: pt100-mv ( -- u )  \ measure PT100 sensor voltage
   VTEMP adc VCC 4095 */ ;
-: heater-mv ( - u )  \ measure heater voltage, almost power rail when on
+: heater-mv ( -- u )  \ measure heater voltage, just under power rail when on
   VHEATER adc 11 * VCC 4095 */ ;
-: usb-mv ( - u )  \ measure USB power rail voltage, 5V when attached to USB
+: usb-mv ( -- u )  \ measure USB power rail voltage, 5V when attached to USB
   VUSB adc 2* VCC 4095 */ ;
-: power-mv ( - u )  \ measure input power rail voltage, normally 12..24V
+: power-mv ( -- u )  \ measure input power rail voltage, normally 12..24V
   VPOWER adc 11 * VCC 4095 */ ;
 
-: app-init
+: pt100-avg ( -- u )  \ averaged millivolt reading of the PT100
+  0  100 0 do pt100-mv + loop  100 / ;
+: pt100-deg ( -- u )  \ return PT100 sensor temperature in degrees
+\ TODO assumes linear relationship between mV and deg, for now
+  pt100-avg room.mV @ -
+  max.temp @ room.temp @ -
+  max.mV @ room.mV @ - 
+  */ room.temp @ + ;
+
+\ Button handlers --------------------------------------------------------------
+
+0 variable btn.state  \ one bit for each button, remembering its last state
+0 variable btn.timer  \ passed to periodic-ms
+
+: btn-check-one ( mask pin -- f )  \ true if the button was just pressed
+  io@ 0<> over and swap ( newval mask )
+  btn.state @ and ( newval oldval )
+  2dup <> if 2dup - btn.state +! then
+  > ;
+
+: button-check
+  [: %0001 BTN1 btn-check-one if ." BTN:1! " then
+     %0010 BTN2 btn-check-one if ." BTN:2! " then
+     %0100 BTN3 btn-check-one if ." BTN:3! " then
+     %1000 BTN4 btn-check-one if ." BTN:4! " then ;]
+  btn.timer 100 periodic-ms ;
+
+\ Main application logic -------------------------------------------------------
+
+: app-setup
+  lcd-init show-logo
+  adc-init
+
   OMODE-PP   BTN-COMMON io-mode!  BTN-COMMON ios!
   IMODE-PULL BTN1       io-mode!
   IMODE-PULL BTN2       io-mode!
@@ -48,14 +93,21 @@ PB8  constant HEATER  \ on = "1", off = "0"
   OMODE-PP   LED6       io-mode!
 
   OMODE-PP   HEATER     io-mode!  HEATER ioc!
-
-  adc-init
-  lcd-init show-logo
 ;
 
-app-init
+: app-loop
+  begin
+    button-check
+  key? until ;
+
+\ Go! --------------------------------------------------------------------------
+
+app-setup
 
 (  pt100-mv: ) pt100-mv .
+( pt100-deg: ) pt100-deg .
 ( heater-mv: ) heater-mv .
 (    usb-mv: ) usb-mv .
 (  power-mv: ) power-mv .
+
+1234 ms app-loop
