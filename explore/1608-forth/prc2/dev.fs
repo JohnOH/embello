@@ -19,7 +19,7 @@ PB12 constant BTN4  \ pressed = "1", open = "0"
 PA8  constant BTN-COMMON
 
 \ up to four status LEDs
-PB11 constant LED3  \ on = "1", off = "0"
+PB11 constant LED3  \ on = "1", off = "0" - heartbeat blinker
 PB10 constant LED4  \ on = "1", off = "0"
 PB1  constant LED5  \ on = "1", off = "0"
 PB0  constant LED6  \ on = "1", off = "0"
@@ -63,7 +63,7 @@ PB8  constant HEATER  \ on = "1", off = "0"
 0 variable btn.timer  \ passed to periodic-ms
 0 variable led.timer  \ passed to periodic-ms
 
-: heartbeat [: LED3 iox! ;] led.timer 500 periodic-ms ;
+: led-blinker [: LED3 iox! ;] led.timer 500 periodic-ms ;
 
 : btn-check-one ( pin bit -- f )  \ true if the button was just pressed
   bit swap ( mask pin )
@@ -101,7 +101,7 @@ PB8  constant HEATER  \ on = "1", off = "0"
 
 : app-loop
   begin
-    heartbeat
+    led-blinker
     button-check
   key? until ;
 
