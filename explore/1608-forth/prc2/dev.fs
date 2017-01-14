@@ -62,17 +62,18 @@ PB8  constant HEATER  \ on = "1", off = "0"
 0 variable btn.state  \ one bit for each button, remembering its last state
 0 variable btn.timer  \ passed to periodic-ms
 
-: btn-check-one ( mask pin -- f )  \ true if the button was just pressed
+: btn-check-one ( pin bit -- f )  \ true if the button was just pressed
+  bit swap ( mask pin )
   io@ 0<> over and swap ( newval mask )
   btn.state @ and ( newval oldval )
-  2dup <> if 2dup - btn.state +! then
+  2dup - ?dup if btn.state +! then
   > ;
 
 : button-check
-  [: %0001 BTN1 btn-check-one if ." BTN:1! " then
-     %0010 BTN2 btn-check-one if ." BTN:2! " then
-     %0100 BTN3 btn-check-one if ." BTN:3! " then
-     %1000 BTN4 btn-check-one if ." BTN:4! " then ;]
+  [: BTN1 0 btn-check-one if ." BTN:1! " then
+     BTN2 1 btn-check-one if ." BTN:2! " then
+     BTN3 2 btn-check-one if ." BTN:3! " then
+     BTN4 3 btn-check-one if ." BTN:4! " then ;]
   btn.timer 100 periodic-ms ;
 
 \ Main application logic -------------------------------------------------------
