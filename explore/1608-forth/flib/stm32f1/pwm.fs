@@ -52,6 +52,6 @@
 
 : pwm ( u pin -- )  \ set pwm rate, 0 = full off, 10000 = full on
   over if OMODE-AF-PP else OMODE-PP then over io-mode!  \ for fully-off case
-  10000 rot - swap  \ reverse to sense of the PWM count value
+  10000 rot - swap  \ reverse the sense of the PWM count value
   dup p2cmp cells swap p2tim timer-base + $34 + !  \ save to CCR1..4
 ;
