@@ -1,5 +1,9 @@
 Pico Reflow Controller, based on a Blue Pill w/ STM32F103C8, 64K flash.
 
+    PA0  = PT100 sensor, analog in
+    PA1  = HEATER voltage, analog in
+    PA2  = USB in voltage, analog in
+    PA3  = POWER in voltage, analog in
     PA4  = SSEL, RFM69CW opt
     PA5  = SCLK, RFM69CW opt
     PA6  = MISO, RFM69CW opt
@@ -8,6 +12,7 @@ Pico Reflow Controller, based on a Blue Pill w/ STM32F103C8, 64K flash.
 
     PB0  = LED6
     PB1  = LED5
+    PB8  = HEATER on/off
     PB10 = LED4
     PB11 = LED3
     PB12 = BTN4
