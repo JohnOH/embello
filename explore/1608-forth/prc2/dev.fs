@@ -57,10 +57,13 @@ PB8  constant HEATER  \ on = "1", off = "0"
   max.mV @ room.mV @ - 
   */ room.temp @ + ;
 
-\ Button handlers --------------------------------------------------------------
+\ Periodic handlers ------------------------------------------------------------
 
 0 variable btn.state  \ one bit for each button, remembering its last state
 0 variable btn.timer  \ passed to periodic-ms
+0 variable led.timer  \ passed to periodic-ms
+
+: heartbeat [: LED3 iox! ;] led.timer 500 periodic-ms ;
 
 : btn-check-one ( pin bit -- f )  \ true if the button was just pressed
   bit swap ( mask pin )
@@ -98,6 +101,7 @@ PB8  constant HEATER  \ on = "1", off = "0"
 
 : app-loop
   begin
+    heartbeat
     button-check
   key? until ;
 
