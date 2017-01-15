@@ -1,4 +1,4 @@
-\ USB console for WaveShare-Port103Z boards
+\ USB console for Olimex P103 board
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
 cr compiletoflash
@@ -12,11 +12,11 @@ include usb.fs
   72MHz  \ this is required for USB use
 
   \ board-specific way to enable USB
-  %1111 12 lshift $40010800 bic!  \ PA3: output, push-pull, 2 MHz
-  %0010 12 lshift $40010800 bis!
-  3 bit $4001080C bis!  \ set PA3 high
+  %1111 12 lshift $40011004 bic!  \ PC11: output, push-pull, 2 MHz
+  %0010 12 lshift $40011004 bis!  \ ... this affects CRH iso CRL
+  11 bit $4001100C bis!  \ set PC11 high
   100000 0 do loop
-  3 bit $4001080C bic!  \ set PA3 low
+  11 bit $4001100C bic!  \ set PC11 low
 
   usb-io  \ switch to USB as console
 ;

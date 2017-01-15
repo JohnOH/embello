@@ -21,7 +21,7 @@ reset
 \ -----------------------------------------------------------------------------
 
 : periodic-ms ( handler var ms -- )  \ execute handler every ms milliseconds
-  over @ +  millis -  0< if  2drop  else  millis swap ! execute  then ;
+  over @ +  millis -  0< if millis swap ! execute else 2drop then ;
 
 \ a quick test of periodic-ms
 : beep 123 . ;

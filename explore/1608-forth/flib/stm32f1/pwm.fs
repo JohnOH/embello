@@ -38,7 +38,7 @@
 \ u
 
 : pwm-init ( hz pin -- )  \ set up PWM for pin, using specified repetition rate
-  >r  OMODE-AF-PP r@ io-mode!
+  >r  OMODE-PP r@ io-mode!  r@ ioc!  \ start with pwm zero, i.e. fully off
   7200 swap / 1- 16 lshift 10000 or  r@ p2tim timer-init
   $78 r@ p2cmp 1 and 8 * lshift ( $0078 or $7800 )
   r@ p2tim timer-base $18 + r@ p2cmp 2 and 2* + bis!
@@ -47,7 +47,11 @@
 : pwm-deinit ( pin -- )  \ disable PWM, but leave timer running
   dup p2cmp 4 * bit swap p2tim timer-base $20 + bic! ;
 
+\ since zero PWM generates a single blip, set the GPIO pin to normal mode and
+\ set its output to "0" - in all other cases, switch the pin to alternate mode
+
 : pwm ( u pin -- )  \ set pwm rate, 0 = full off, 10000 = full on
-  10000 rot - swap  \ reverse to sense of the PWM count value
+  over if OMODE-AF-PP else OMODE-PP then over io-mode!  \ for fully-off case
+  10000 rot - swap  \ reverse the sense of the PWM count value
   dup p2cmp cells swap p2tim timer-base + $34 + !  \ save to CCR1..4
 ;

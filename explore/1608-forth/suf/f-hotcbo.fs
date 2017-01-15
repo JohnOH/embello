@@ -1,4 +1,4 @@
-\ USB console for WaveShare-Port103Z boards
+\ USB console for HotMCU Core Board 1xx
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
 cr compiletoflash
@@ -8,15 +8,15 @@ include ../flib/any/ring.fs
 include usb.fs
 
 : init ( -- )
-  $3D RCC-APB2ENR !  \ enable AFIO and GPIOA..D clocks
+  $FD RCC-APB2ENR !  \ enable AFIO and GPIOA..F clocks
   72MHz  \ this is required for USB use
 
   \ board-specific way to enable USB
-  %1111 12 lshift $40010800 bic!  \ PA3: output, push-pull, 2 MHz
-  %0010 12 lshift $40010800 bis!
-  3 bit $4001080C bis!  \ set PA3 high
+  %1111 8 lshift $40011C04 bic!  \ PF10: output, push-pull, 2 MHz
+  %0010 8 lshift $40011C04 bis!  \ ... this affects CRH iso CRL
+  10 bit $40011C0C bis!  \ set PF10 high
   100000 0 do loop
-  3 bit $4001080C bic!  \ set PA3 low
+  10 bit $40011C0C bic!  \ set PF10 low
 
   usb-io  \ switch to USB as console
 ;
