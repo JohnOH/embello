@@ -24,9 +24,7 @@ PA7 constant M2D
   OMODE-PP M2D io-mode!
 ;
 
-: delay 1500 us ;
-
-: step ( pin -- ) dup ios! delay ioc! ;
+: step ( pin -- ) dup ios! 1000 us ioc! 1000 us ;
 
 : forward1 M1A step M1B step M1C step M1D step ;
 : forward2 M2A step M2B step M2C step M2D step ;
@@ -35,8 +33,10 @@ PA7 constant M2D
 
 : rotate
   begin
-\   forward1
-    reverse2
+    forward1
+\   512 0 do forward1 loop
+\   500 ms
+\   reverse2
   key? until ;
 
 app-setup
