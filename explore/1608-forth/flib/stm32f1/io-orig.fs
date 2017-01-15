@@ -21,8 +21,8 @@ $40010800 constant GPIO-BASE
   8 rshift  1-foldable ;
 : io-base ( pin -- addr )  \ convert pin to GPIO base address
   $F00 and 2 lshift GPIO-BASE +  1-foldable ;
-: io@ ( pin -- u )  \ get pin value (0 or 1)
-  dup io-base GPIO.IDR + @ swap io# rshift 1 and ;
+: io@ ( pin -- f )  \ get pin value (true or false)
+  dup io-base GPIO.IDR + @ swap io# rshift 1 and negate ;
 : ioc! ( pin -- )  \ clear pin to low
   dup io-mask swap io-base GPIO.BRR + ! ;
 : ios! ( pin -- )  \ set pin to high
