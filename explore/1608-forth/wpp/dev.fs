@@ -2,6 +2,8 @@ forgetram
 
 PC13 constant LED
 
+PB0 constant PEN
+
 PA0 constant M1A
 PA1 constant M1B
 PA2 constant M1C
@@ -13,7 +15,7 @@ PA6 constant M2C
 PA7 constant M2D
 
 : app-setup
-  OMODE-PP LED io-mode!
+  OMODE-PP LED io-mode!  LED ios!
   OMODE-PP M1A io-mode!
   OMODE-PP M1B io-mode!
   OMODE-PP M1C io-mode!
@@ -22,6 +24,7 @@ PA7 constant M2D
   OMODE-PP M2B io-mode!
   OMODE-PP M2C io-mode!
   OMODE-PP M2D io-mode!
+  50 PEN pwm-init  1000 PEN pwm
 ;
 
 : step ( pin -- ) dup ios! 1000 us ioc! 1000 us ;
@@ -38,5 +41,16 @@ PA7 constant M2D
 \   500 ms
 \   reverse2
   key? until ;
+
+: pen-up    500  50 0 do 10 + dup PEN pwm 10 ms loop  drop ;
+: pen-down 1000  50 0 do 10 - dup PEN pwm 10 ms loop  drop ;
+
+: pen-cycle
+  500  begin
+    pen-down
+    LED ioc!  1000 ms  LED ios!
+    pen-up
+    500 ms
+  key? until  drop ;
 
 app-setup
