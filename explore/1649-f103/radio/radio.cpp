@@ -1,7 +1,10 @@
-// SImple RF69 demo application.
+// Simple RF69 legacy demo application.
 
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
+#include <libopencm3/stm32/exti.h>
+#include <libopencm3/cm3/systick.h>
+#include <libopencm3/cm3/cortex.h>
 #include <stdio.h>
 
 // defined in main.cpp
@@ -9,17 +12,17 @@ extern int serial_getc ();
 extern uint32_t millis();
 
 #include "spi.h"
-#include "rf69.h"
+#include "rf69_legacy.h"
 
 RF69<SpiDev> rf;
 
-uint8_t rxBuf[64];
+uint8_t rxBuf[71];	// :grp:dest:len:66 bytes:crc-l:crc-h:
 uint8_t txBuf[62];
 uint16_t txCnt = 0;
 
-const int rf_freq = 8686;
-const int rf_group = 42;
-const int rf_nodeid = 61;
+const int rf_freq = 8680;
+const int rf_group = 212;
+const int rf_nodeid = 28;
 
 const bool verbose = true;
 
@@ -31,6 +34,17 @@ void setup () {
             GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
 
     printf("\n[radio]\n");
+    
+      
+	exti_enable_request(2);
+	exti_set_trigger(2, EXTI_TRIGGER_RISING);
+	
+
+//  ButtonInit();
+//  LEDsInit();
+// systick_set_frequency(15000000);
+//  cm_enable_interrupts();
+
 
     rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");
@@ -52,15 +66,24 @@ void loop () {
     }
 
     int len = rf.receive(rxBuf, sizeof rxBuf);
-    if (len >= 0) {
-        printf("rf69 %04x%02x%02x%02x%04x%02x%02x%02x ",
+    if (len >= 0 && len <= 72) {
+        printf("rf69 %04X%02X%02X%02X%04X g%u i%u l=%u %u",
                 rf_freq, rf_group, rf.rssi, rf.lna, rf.afc,
-                rxBuf[0], rxBuf[1], len - 2);
-        for (int i = 2; i < len; ++i)
-            printf("%02x", rxBuf[i]);
+                rxBuf[0], (rxBuf[1] & 0x1F), len, rxBuf[1]);
+        for (int i = 3; i < len + 3; ++i)
+            printf(" %u", rxBuf[i]);
         const char* sep = rf.afc < 0 ? "" : "+";
         if (verbose)
             printf("  (%g%s%d:%d)", rf.rssi * 0.5, sep, rf.afc, rf.lna);
         putchar('\n');
+
+        gpio_toggle(GPIOA, GPIO1);
+        gpio_toggle(GPIOC, GPIO13);
+
     }
+}
+void SysTick_Handler(void)
+{
+        gpio_toggle(GPIOA, GPIO1);
+        gpio_toggle(GPIOC, GPIO13);
 }

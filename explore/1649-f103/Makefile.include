@@ -34,7 +34,7 @@ OOCD_TARGET	?= stm32f1x
 ################################################################################
 # Black Magic Probe specific variables
 # Set the BMP_PORT to a serial port and then BMP is used for flashing
-BMP_PORT	?= /dev/cu.usbmodemD5D4C5E1
+BMP_PORT	?= /dev/cu.usbmodemDFE4A7D1
 
 ################################################################################
 # texane/stlink specific variables
