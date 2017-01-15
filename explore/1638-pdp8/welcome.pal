@@ -1,0 +1,64 @@
+/ A WELCOME MESSAGE PROGRAM FOR THE PDP-8/E SIMULATOR
+
+*10
+PTR,	MSG
+
+*200
+	CLA
+	TAD	(MSG)
+	DCA	PTR
+LOOP,	CLA
+	TAD I	PTR
+	BSW
+	DCA	TMP
+	TAD	TMP
+	TAD	(1)
+	SNA CLA
+	HLT
+	TAD	TMP
+	SZA CLA
+	JMP	REGCHAR
+	TAD	(15)
+	TLS
+	TSF
+	JMP .-1
+	TAD	(12)
+	TLS
+	TSF
+	JMP .-1
+	JMP	LOOP
+	
+TMP,	0
+	
+REGCHAR,TAD	TMP
+	JMS	PRINT
+	CLA
+	TAD	TMP
+	BSW
+	JMS	PRINT
+	JMP	LOOP
+	
+PRINT,	0
+	AND	(77)
+	DCA	PTMP
+	TAD	PTMP
+	AND	(40)
+	SNA CLA
+	TAD	(100)
+	TAD	PTMP
+	TLS
+	TSF
+	JMP .-1
+	JMP I	PRINT
+
+PTMP,	0
+
+*400
+MSG,	0
+	TEXT "*************************************** "
+	TEXT "*                                     * "
+	TEXT "*   WELCOME TO THE PDP-8 SIMULATOR!   * "
+	TEXT "*                                     * "
+	TEXT "*************************************** "
+	7777
+$

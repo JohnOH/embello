@@ -1,0 +1,138 @@
+\ load development code
+\ needs l
+
+reset
+
+: blink ( -- )  \ blink the on-board LED until a key is pressed
+  OMODE-PP LED1 io-mode!  begin  LED1 iox!  100 ms  key? until ;
+
+: tftry tft-init clear TFT-BL ios! demo ;
+
+: pwmtry ( -- )  1 LED2 pwm-init 100 LED2 pwm ;
+
+\ -----------------------------------------------------------------------------
+\ sleep mode tryout
+
+: sleep ( -- ) [ $BF30 h, ] inline ;  \ WFI Opcode, enters sleep mode
+
+      PWR $4 + constant PWR-CSR
+
+$E000ED00 constant SCB
+     SCB $14 + constant SCB-SCR
+
+: standby ( -- )  \ go into low-power standby mode
+  2 bit PWR-CR bis!  \ CWUF
+  1 bit PWR-CR bis!  \ PDDS
+  2 bit SCB-SCR bis!  \ SLEEPDEEP
+  sleep ;
+
+\ TODO not working, not even with OMODE-AF-OD PA0 io-mode!
+: ena-wup ( -- )  \ enable wakeup pin
+  8 bit PWR-CSR bis! ;
+
+\ -----------------------------------------------------------------------------
+\ µSD card tryout
+
+: s $FF >spi> h.2 space ;
+: ss
+  $CD 0            sd-cmd sd-wait s s s s s s s s s s s s s s s s  \ ACMD13
+  $49 0            sd-cmd sd-wait s s s s s s s s s s s s s s s s  \ CMD9
+;
+
+: sdblk ( sect -- ) sd.buf sd-read drop sd.buf 64 dump ;
+
+: c ( char -- )
+  dup $FF = if drop else
+    dup 32 < over 126 > or if drop [char] . then emit
+  then ;
+: e ( off1 off2 -- off1 )
+  over + sd.buf + c@ c ;
+: l ( off -- )
+  1 e 3 e 5 e 7 e 9 e
+  14 e 16 e 18 e 20 e 22 e 24 e 28 e 30 e
+  ."  #" sd.buf + c@ dup $1F and . $40 and . ;
+: f ( off -- )
+  dup sd.buf + 8 type [char] . emit dup 8 + sd.buf + 3 type
+  ."  at: " 26 + sd.buf + h@ .
+;
+
+: sdtry ( -- )
+  sd-mount
+  sd.root @ sdblk  \ read 1st block of root directory
+  512 0 do
+    i sd.buf + c@ dup 0<> swap $E5 <> and if
+      i 11 + sd.buf + c@ $0F = if
+        cr ." LFN: "  i l
+      else
+        cr ."      " i f
+      then
+    then
+  32 +loop
+;
+
+: x ( cluster -- ) sd.buf hex. sd-c>s sdblk ;
+
+\ -----------------------------------------------------------------------------
+\ attach interrupt handler to PB2 (KEYB) for both edges
+
+$E000E100 constant NVIC-EN0R \ IRQ 0 to 31 Set Enable Register
+
+AFIO $8 + constant AFIO-EXTICR1
+
+$40010400 constant EXTI
+    EXTI $00 + constant EXTI-IMR
+    EXTI $08 + constant EXTI-RTSR
+    EXTI $0C + constant EXTI-FTSR
+    EXTI $14 + constant EXTI-PR
+
+: ext2-tick ( -- )
+  2 bit EXTI-PR !  \ clear interrupt
+  millis . ." PB2=" pb2 io@ . ;
+
+: eintry ( -- )
+      ['] ext2-tick irq-exti2 !     \ install interrupt handler
+              8 bit NVIC-EN0R !     \ enable EXTI2 interrupt 8
+  %0001 8 lshift AFIO-EXTICR1 bis!  \ select P<B>2
+               2 bit EXTI-IMR bis!  \ enable PB<2>
+              2 bit EXTI-RTSR bis!  \ trigger on PB<2> rising edge
+              2 bit EXTI-FTSR bis!  \ trigger on PB<2> falling edge
+;
+
+\ -----------------------------------------------------------------------------
+\ coroutines - adapted from amforth 6.1 examples/co.frt
+
+: co 2r> swap 2>r ;
+
+: tokyo
+    cr ." Here Tokyo over" co
+    cr ." What gives? over" co
+    cr ." Yes, more? over" co
+    cr ." over and out" ;
+
+: amsterdam
+    tokyo
+    cr ." here Amsterdam over" co
+    cr ." has it arrived over" co
+    cr ." no. over" ;
+
+\ amsterdam
+
+\ generate a list of numbers, one by one
+: producer ( n -- n' n' ) begin 1+ dup co again ;
+: consumer 
+  \ setup producer
+  0 producer \ returns with a new number
+  \ now starts a ping-pong via co calls
+  \ every call to co *here* will give a new number
+  \ which has to be consumed.
+  begin dup . 10 < while co repeat 
+  \ stop producer and clean up data
+  rdrop drop
+;
+
+\ output:
+\ > consumer
+\ 0 1 2 3 4 5 6 7 8 9 10 ok
+\ >
+\ -----------------------------------------------------------------------------
+\ vim: set ft=forth :

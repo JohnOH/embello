@@ -1,0 +1,251 @@
+\ install library packages in flash
+\ needs h
+\ includes d
+
+( cornerstone ) <<<hal-oxs>>>
+cr
+compiletoflash
+
+( code-start, see code-size below ) here
+
+\ include ../flib/spi/sdcard.fs
+include ../flib/spi/rf69.fs
+include ../flib/i2c/oled.fs
+include ../flib/mecrisp/graphics.fs
+include ../flib/mecrisp/multi.fs
+
+PA0 constant VAC-IN
+PB0 constant VBAT-IN
+PB1 constant VBAT-GND
+PB5 constant DCF77-IN
+PC0 constant CT1
+PC1 constant CT2
+PC2 constant CT3
+PC3 constant PULSE1
+PC4 constant PULSE2
+PC5 constant PULSE3
+
+\ TODO this no longer works, need to switch to injecting a channel
+: vbat ( -- mvolt )
+  VBAT-IN adc 3300 * 4 * 4095 / ;
+
+: config-pins
+  adc-init  uart-irq-init
+  omode-pp   VBAT-GND io-mode!  VBAT-GND ioc!
+  imode-pull DCF77-IN io-mode!  DCF77-IN ioc!
+  imode-pull PULSE1   io-mode!  PULSE1 ioc!
+  imode-pull PULSE2   io-mode!  PULSE2 ioc!
+  imode-pull PULSE3   io-mode!  PULSE3 ioc!
+  imode-adc  VAC-IN   io-mode!
+  imode-adc  VBAT-IN  io-mode!
+  imode-adc  CT1      io-mode!
+  imode-adc  CT2      io-mode!
+  imode-adc  CT3      io-mode! ;
+
+\ -----------------------------------------------------------------------------
+\ variable-int encoding, turns 64-bit ints into 1..10 bytes
+
+: drshift ( ud|d n -- ud|d )  \ double right shift n bits
+  0 do dshr loop ;
+
+: <v ( - d ) 0 0 <# ;  \ prepare variable output
+: d#v ( d -- )  \ add one 64-bit value to output
+  over $80 or hold
+  begin
+    7 drshift
+  2dup or while
+    over $7F and hold
+  repeat 2drop ;
+: v> ( d -- caddr len ) #> ;  \ finish, then return buffer and length
+: u#v ( u -- ) 0 d#v ;  \ add one 32-bit uint to output, max 5 bytes
+
+20 cells buffer: pkt.buf
+      0 variable pkt.ptr
+
+: >pkt ( v -- ) pkt.ptr @ ! 4 pkt.ptr +! ;
+: u14>pkt ( v -- ) $3FFF and >pkt ;
+
+: <pkt ( format -- ) pkt.buf pkt.ptr ! >pkt ;
+: pkt>rf
+  <v
+    pkt.ptr @  begin  4 - dup @ u#v  dup pkt.buf u<= until  drop
+  v> 0 rf-send ;
+
+\ -----------------------------------------------------------------------------
+\ set up quad-ADC sampling via DMA
+
+    ADC1 $0C + constant ADC1-SMPR1
+    ADC1 $10 + constant ADC1-SMPR2
+
+                               4 constant #adcs
+                             800 constant #asamples
+                               2 constant #abuffers
+#adcs #asamples * #abuffers * 2* constant #abytes
+                              40 constant arate-us
+                   arate-us 72 * constant arate-clk
+                          #abytes buffer: adata
+
+: quad-adc ( -- )  \ configure ADC and DMA for quad-channel continuous sampling
+  adc-init  6 us  adc-calib 
+  adata #abytes VAC-IN arate-clk adc1-dma
+  VAC-IN adc#                 \ channel 0
+  CT1    adc#  5 lshift or    \ channel 1
+  CT2    adc# 10 lshift or    \ channel 2
+  CT3    adc# 15 lshift or    \ channel 3
+              ADC1-SQR3 !     \ set up the ADC scan channels
+  3 20 lshift ADC1-SQR1 !     \ four scan channels
+         8 bit ADC1-CR1 bis!  \ enable SCAN mode
+  \ optionally increase the ADC sampling times for all channels
+  \ %000000011011011011011011011011 ADC1-SMPR1 !
+  \ %011011011011011011011011011011 ADC1-SMPR2 !
+;
+
+: check-dma-rate ( -- )  \ report DMA-done cycle times until key hit
+  micros begin
+    begin DMA1-ISR @ until
+    micros dup rot - .
+    DMA1-ISR @ dup . DMA1-IFCR !
+  key? until drop ;
+
+: dma-sync ( -- )  \ synchronise to the ADC half-transfer flag in the DMA unit
+  DMA1-ISR @ DMA1-IFCR !
+  begin DMA1-ISR @ 2 bit and until  \ wait for half-transfer on channel 0
+;
+
+\ -----------------------------------------------------------------------------
+\ track the timing of three pulse counters via rising edge interrupts
+
+$E000E100 constant NVIC-EN0R \ IRQ 0 to 31 Set Enable Register
+
+AFIO $8 + constant AFIO-EXTICR1
+AFIO $C + constant AFIO-EXTICR2
+
+$40010400 constant EXTI
+    EXTI $00 + constant EXTI-IMR
+    EXTI $08 + constant EXTI-RTSR
+    EXTI $0C + constant EXTI-FTSR
+    EXTI $14 + constant EXTI-PR
+
+0 0 2variable pulses1  \ last millis and pulse count #1
+0 0 2variable pulses2  \ last millis and pulse count #2
+0 0 2variable pulses3  \ last millis and pulse count #3
+
+: ext3-tick ( -- )  \ interrupt handler for EXTI3
+  3 bit EXTI-PR !  \ clear interrupt
+  millis pulses1 1 over +! cell+ ! ;
+
+: ext4-tick ( -- )  \ interrupt handler for EXTI4
+  4 bit EXTI-PR !  \ clear interrupt
+  millis pulses2 1 over +! cell+ ! ;
+
+: ext5-tick ( -- )  \ interrupt handler for EXTI9_5
+  5 bit EXTI-PR !  \ clear interrupt
+  millis pulses3 1 over +! cell+ ! ;
+
+: count-pulses ( -- )  \ set up and start the external interrupts
+       ['] ext3-tick irq-exti3 !     \ install interrupt handler EXTI 3
+       ['] ext4-tick irq-exti4 !     \ install interrupt handler EXTI 4
+       ['] ext5-tick irq-exti5 !     \ install interrupt handler EXTI 5-9
+
+               9 bit NVIC-EN0R bis!  \ enable EXTI3 interrupt 9
+  %0010 12 lshift AFIO-EXTICR1 bis!  \ select P<C>3
+                3 bit EXTI-IMR bis!  \ enable PC<3>
+               3 bit EXTI-RTSR bis!  \ trigger on PC<3> rising edge
+
+              10 bit NVIC-EN0R bis!  \ enable EXTI4 interrupt 10
+            %0010 AFIO-EXTICR2 bis!  \ select P<C>4
+                4 bit EXTI-IMR bis!  \ enable PC<4>
+               4 bit EXTI-RTSR bis!  \ trigger on PC<4> rising edge
+
+              23 bit NVIC-EN0R bis!  \ enable EXTI9_5 interrupt 23
+   %0010 4 lshift AFIO-EXTICR2 bis!  \ select P<C>5
+                5 bit EXTI-IMR bis!  \ enable PC<5>
+               5 bit EXTI-RTSR bis!  \ trigger on PC<5> rising edge
+;
+
+0 0 2variable counts1  \ previous pulses1 state
+0 0 2variable counts2  \ previous pulses2 state
+0 0 2variable counts3  \ previous pulses3 state
+
+                       2000 constant pulses/kwh
+                3600 1000 * constant ms/hour
+ms/hour 1000 pulses/kwh u*/ constant pulse-factor  \ 1800000
+
+\ -----------------------------------------------------------------------------
+\ actual pulse reporting, either to console or as RF packet
+
+: pulse-to-watt ( count ms -- watt )
+  dup if pulse-factor -rot u*/ else nip then  \ avoid divide by zero
+;
+
+: pulse-diff ( pa ca -- count watt )
+  >r  dint 2@ eint  \ lock out interrupts during fetch
+  over r@ @ = if
+    rdrop 2drop 0 0
+  else
+    \ TODO horrible stack juggling, need to simplify
+    2dup r@ 2@ rot swap - -rot - 2swap r> 2!
+  then
+  pulse-to-watt ;
+
+: pulses. ( -- ) cr
+  pulses1 counts1 pulse-diff  ." P1: " dup . if counts1 @ . then
+  pulses2 counts2 pulse-diff  ." P2: " dup . if counts2 @ . then
+  pulses3 counts3 pulse-diff  ." P3: " dup . if counts3 @ . then ;
+
+: pulses.rf
+  1 <pkt
+  pulses1 counts1 pulse-diff dup >pkt if counts1 @ u14>pkt then
+  pulses2 counts2 pulse-diff dup >pkt if counts2 @ u14>pkt then
+  pulses3 counts3 pulse-diff dup >pkt if counts3 @ u14>pkt then
+  pkt>rf ;
+
+\ -----------------------------------------------------------------------------
+\ P1 serial port scanner and decoder
+
+       8 constant p1#
+p1# cells buffer: p1.buf
+       0 variable p1.type
+       0 variable p1.value
+
+: p1-clear p1.buf p1# cells 0 fill ;
+: p1-save ( pos -- ) cells p1.buf +  p1.value @ swap ! ;
+
+: p1. cr p1# 0 do i cells p1.buf + @ . loop ;
+
+: p1.rf
+  2 <pkt
+  p1# 0 do i cells p1.buf + @ >pkt loop
+  pkt>rf ;
+
+: p1-select ( type -- )  \ these values are for a Landys & Gyr E350 meter:
+  case
+      181 of 0 p1-save endof  \ cumulative electricity consumption, normal
+      182 of 1 p1-save endof  \ cumulative electricity consumption, low tariff
+      281 of 2 p1-save endof  \ cumulative electricity production normal
+      282 of 3 p1-save endof  \ cumulative electricity production low tariff
+    96140 of 4 p1-save endof  \ actual tariff
+      170 of 5 p1-save endof  \ actual consumption
+      270 of 6 p1-save endof  \ actual production
+     2420 of 7 p1-save endof  \ cumulative gas consumption
+  endcase ;
+
+: p1-next ( c -- f )
+  $7F and  \ strip out even parity bit
+  case
+    [char] / of p1-clear endof
+    [char] : of 0 p1.type ! 0 p1.value ! endof
+    [char] ( of p1.type @ 0= if p1.value @ p1.type ! then 0 p1.value ! endof
+    [char] ) of p1.type @ p1-select endof
+    [char] ! of true exit endof
+             dup digit if p1.value @ 10 * + p1.value ! then
+  endcase
+  false ;
+
+\ -----------------------------------------------------------------------------
+
+( code-size ) here swap - .
+cornerstone <<<lib-oxs>>>
+( flash-end ) here hex.
+
+\ vim: set ft=forth :

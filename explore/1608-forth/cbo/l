@@ -1,0 +1,164 @@
+\ install library packages in flash
+\ needs h
+\ includes d
+
+( cornerstone ) <<<hal-cbo>>>
+cr
+compiletoflash
+
+( code-start, see code-size below ) here
+
+include ../flib/mecrisp/multi.fs
+
+\ -----------------------------------------------------------------------------
+\ PSRAM on HY-STM32F1xxCore144 Core/Dev Board
+
+$A0000008 constant FSMC-BCR2
+$A000000C constant FSMC-BTR2
+
+: psram-pins ( -- )
+  8 bit RCC-AHBENR bis!  \ enable FSMC clock
+  OMODE-AF-PP OMODE-FAST + dup PD0 %1111111100110011 io-modes!
+                           dup PE0 %1111111111111011 io-modes!
+                           dup PF0 %1111000000111111 io-modes!
+                               PG0 %0000001000111111 io-modes! ;
+
+: psram-fsmc ( -- )
+  $80               \ keep reset value
+\                   \ FSMC_DataAddressMux_Disable
+  %01 2 lshift or   \ FSMC_MemoryType_PSRAM
+  %01 4 lshift or   \ FSMC_MemoryDataWidth_16b
+\                   \ FSMC_BurstAccessMode_Disable
+\                   \ FSMC_WaitSignalPolarity_Low
+\                   \ FSMC_WrapMode_Disable
+\                   \ FSMC_WaitSignalActive_BeforeWaitState
+  1 12 lshift or    \ FSMC_WriteOperation_Enable
+\                   \ FSMC_WaitSignal_Disable
+\                   \ FSMC_AsynchronousWait_Disable
+\                   \ FSMC_ExtendedMode_Disable
+\                   \ FSMC_WriteBurst_Disable
+  FSMC-BCR2 !
+
+\ for 72 MHz, i.e. 13.89 ns per clock cycle
+\ assuming address setup > 70 ns and data setup > 20 ns + 1 cycle
+\ started with addr/data/turn as 5/2/1, but even 1/1/0 seems to work fine...
+
+  0
+  1 0 lshift or     \ FSMC_AddressSetupTime = 6
+\                   \ FSMC_AddressHoldTime = 0
+  1 8 lshift or     \ FSMC_DataSetupTime = 3
+  0 16 lshift or    \ FSMC_BusTurnAroundDuration = 2
+\                   \ FSMC_CLKDivision = 0x00
+\                   \ FSMC_DataLatency = 0x00
+\                   \ FSMC_AccessMode_A
+  FSMC-BTR2 !
+
+  1 FSMC-BCR2 bis!  \ MBKEN:Memorybankenablebit
+;
+
+$64000000 constant PSRAM
+
+: psram-init ( -- )  \ set up FSMC access to 8 MB PSRAM in bank 2
+  psram-pins psram-fsmc ;
+
+\ see http://compgroups.net/comp.lang.forth/random-number-generator/1259025
+\ only last bit should be used, but for this purpose we can use all 32 bits
+
+123456789 variable seed
+
+: random ( -- u ) seed @ dup ror or seed @ rol xor dup seed ! ;
+
+: r 0 do random hex. loop ;
+
+: psram-test ( u -- )  \ test first N bytes of PSRAM, original data is lost
+  psram-init
+  $12345678 seed !
+  dup 0 do
+    random PSRAM i + !  \ fill it with random values
+  4 +loop
+  PSRAM $10 dump
+  $12345678 seed !
+  0 do
+    random PSRAM i + @  \ now read those values back and compare
+    <> if i . ." FAILED!" quit then
+  4 +loop ;
+
+: psram-full ( -- )  \ test entire 8 MB PSRAM, then clear its contents
+  23 bit  dup psram-test  PSRAM swap 0 fill ;
+
+\ : psram-time ( -- )  \ measure read and write times for a full scan
+\   psram-init
+\   micros  23 bit 0 do                      4 +loop  micros swap - .
+\   micros  23 bit 0 do  i             drop  4 +loop  micros swap - .
+\   micros  23 bit 0 do    PSRAM i + @ drop  4 +loop  micros swap - .
+\   micros  23 bit 0 do  i PSRAM i + !       4 +loop  micros swap - . ;
+\ sample output: 495471 641201 1486421 1369795
+
+\ -----------------------------------------------------------------------------
+\ NAND flash on HY-STM32F1xxCore144 Core/Dev Board
+
+$A0000060 constant FSMC-PCR2
+\ $A0000064 constant FSMC-SR2
+$A0000068 constant FSMC-PMEM2
+$A000006C constant FSMC-PATT2
+\ $A0000074 constant FSMC-ECCR2
+
+$70000000 constant NAND
+$70010000 constant NAND-CMD
+$70020000 constant NAND-ADR
+
+: nand-pins ( -- )
+  psram-pins  \ take advantage of existing PSRAM setup
+  OMODE-AF-PP OMODE-FAST + PD7  io-mode!
+  IMODE-PULL PG6 io-mode!  PG6 ios! ;
+
+: nand-fsmc ( -- )
+              0
+  1 17 lshift or  \ ECCPS = 512 bytes
+        6 bit or  \ ECCEN = enable
+        3 bit or  \ PTYP = NAND
+        1 bit or  \ PWAITEN = enabled
+    FSMC-PCR2 !
+                 0
+     1 24 lshift or  \ MEMHIZ = 2
+     2 16 lshift or  \ MEMHOLD = 3
+      3 8 lshift or  \ MEMWAIT = 4
+      1 0 lshift or  \ MEMSET = 2
+  dup FSMC-PMEM2 !
+      FSMC-PATT2 !
+
+  2 bit FSMC-PCR2 bis!  \ PBKEN = enabled
+;
+
+\ NAND flash pages are read/written per 512 bytes and erased per 256 pages
+\ the extra 12 bytes per block are not currently used
+
+: nand-init ( -- u )  \ init NAND flash access, return chip info: $409500F1
+  nand-pins nand-fsmc
+  $90 NAND-CMD c!  $00 NAND-ADR c!
+  NAND c@ drop  NAND @ ;
+
+: nand-wait ( -- )  begin PG6 io@ until ;
+: nand-status ( -- f )  nand-wait  $90 NAND-CMD c!  NAND c@  1 and 0= ;
+: nand-c/r ( page -- )  dup 3 and 9 lshift NAND-ADR h!  2 rshift NAND-ADR h! ;
+
+: nand-erase ( page -- f )  \ erase a block of 256 flash pages
+  $60 NAND-CMD c!  2 rshift NAND-ADR h!  $D0 NAND-CMD c!  nand-status ;
+
+: nand-write ( page addr -- f )  \ write one 512-byte flash page
+  $80 NAND-CMD c!  swap nand-c/r
+  512 0 do  dup i + c@  NAND c!  loop  drop
+  $10 NAND-CMD c!  nand-status ;
+
+: nand-read ( page addr -- )  \ read one 512-byte flash page
+  $00 NAND-CMD c!  swap nand-c/r  $30 NAND-CMD c!
+  nand-wait
+  512 0 do  NAND c@  over i + c!  loop  drop ;
+
+\ -----------------------------------------------------------------------------
+
+( code-size ) here swap - .
+cornerstone <<<lib-cbo>>>
+( flash-end ) here hex.
+include d
+\ vim: set ft=forth :

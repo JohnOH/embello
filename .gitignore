@@ -1,2 +1,14 @@
+build/obj
+*.d
 *.o
 *.elf
+*.hex
+
+.project
+.cproject
+.metadata
+.settings
+
+/tags
+/jet/jet
+/other/

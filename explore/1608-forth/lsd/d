@@ -1,0 +1,154 @@
+\ load development code
+\ needs l
+
+reset
+
+: blink ( -- )  \ blink the on-board LED until a key is pressed
+  OMODE-PP LED2 io-mode!  begin  LED2 iox!  100 ms  key? until ;
+
+\ : rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+: adctry ( -- )  adc-init  begin  PB0 adc .  key? until ;
+: uartry ( -- )  uart-init uart. ;
+: pwmtry ( -- )  1 LED1 pwm-init 100 LED1 pwm ;
+
+\ try out on-board WinBond W25Q16 2 MB flash memory
+
+256 buffer: membuf
+membuf 256 0 fill
+
+: memtry ( -- )
+  spi-init PA2 ssel ! spi-init
+  smem-id hex. 
+\ smem-wipe
+  $10 smem-erase
+  c" abcde" $10 >smem
+  c" ABCDEF" $11 >smem
+  c" ghijklm" $12 >smem
+  membuf $10 smem>  membuf count dup . type space
+  membuf $11 smem>  membuf count dup . type space
+  membuf $12 smem>  membuf count dup . type space
+;
+
+\ -----------------------------------------------------------------------------
+
+tft-init
+\ demo
+
+PA4 constant CE
+PC5 constant IRQ
+
+: +ce CE ios! ;
+: -ce CE ioc! ;
+
+: reg@ ( reg -- val ) +spi >spi $FF >spi> -spi ;
+: reg! ( val reg -- ) +spi $20 or >spi >spi -spi ;
+: tx-flush ( -- ) +spi $E1 >spi -spi ;
+: rx-flush ( -- ) +spi $E2 >spi -spi ;
+
+: reg@n ( addr n reg -- )
+  +spi >spi
+  0 do dup $FF >spi> over c! 1+ loop
+  drop -spi ;
+
+: reg!n ( addr n reg -- )
+  +spi $20 or >spi
+  0 do dup c@ >spi 1+ loop
+  drop -spi ;
+
+: rf. ( -- )
+  cr 4 spaces  base @ hex  16 0 do space i . loop  base !
+  32 0 do cr
+    i h.2 [char] : emit
+    16 0 do space i j + reg@ h.2 loop
+  16 +loop ;
+
+$123401 variable pipe0
+$567801 variable pipe1
+$567802 variable pipe2
+
+: rf24-init
+  OMODE-PP CE io-mode! +ce
+  spi-init
+\ a quick check that the radio is present
+  begin $AA $0F reg! $0F reg@ $AA = until
+  begin $55 $0F reg! $0F reg@ $55 = until
+\ configure all essential registers
+  $01 $03 reg!  \ 3-byte address
+  $12 $04 reg!  \ delay 500 us, max 2 retries
+  108 $05 reg!  \ channel 108
+  $0B $06 reg!  \ 2 MBps, -12 dBm, LNA on
+  pipe2 3 $0A reg!n  \ rx addr 0
+  pipe1 3 $0B reg!n  \ rx addr 1
+      2   $0C reg!   \ rx addr 2
+      3   $0D reg!   \ rx addr 3
+      4   $0E reg!   \ rx addr 4
+      5   $0F reg!   \ rx addr 5
+  pipe2 3 $10 reg!n  \ tx addr
+  4 $11 reg! \ TODO 4-byte payload
+  4 $12 reg! \ TODO 4-byte payload
+  4 $13 reg! \ TODO 4-byte payload
+  $3F $02 reg!  \ enable all data pipes
+;
+
+: rx %1111 $00 reg! ;
+: tx %1110 $00 reg! ;
+
+$11223344 variable data
+
+: >rf ( addr n -- )
+  +spi $A0 >spi
+  0 do dup c@ >spi 1+ loop drop
+  -spi +ce 10 us -ce ;
+
+: rf> ( addr n -- )
+  +spi $61 >spi
+  0 do spi> over c! 1+ loop drop
+  -spi ;
+
+: rftry
+  rf24-init rf.
+;
+
+32 buffer: rxbuf
+
+: rxtry ( -- )
+  rf24-init  rf. space  rx
+  begin rx-flush
+    +ce begin
+      key? if -ce quit then
+    $07 reg@ $40 and until -ce
+\   ."  RX:" $07 reg@ shr 7 and .
+\   rxbuf 32 2dup rf> dump
+\   rf.
+    $40 $07 reg!
+  again ;
+
+: txtry ( -- ) rf24-init micros tx tx-flush data 4 >rf
+  begin $07 reg@ $30 and until \ ." SENT! " $07 reg@ h.2
+  $30 $07 reg! micros cr \ rf. \ TODO use timeouts and return ack success
+  swap - space . ." us"
+;
+
+: txflood begin txtry key? until ;
+
+\ see https://arduino-info.wikispaces.com/Nrf24L01-Poor+Man%27s+2.4+GHz+Scanner
+
+128 buffer: channels
+
+: scan ( -- )
+  rf24-init  channels 128 0 fill  rx -ce
+  250 0 do
+    128 0 do
+      i $05 reg!  \ set channel
+      $00 reg@ 1 or $00 reg!  \ set PRX mode
+      +ce  130 us  $09 reg@ channels i + c+!  -ce
+    loop
+  loop
+  128 0 do
+    channels i + c@ ?dup if cr i . ." : " . then
+  loop cr ;
+
+led1 ios!  led2 ios!
+
+\ -----------------------------------------------------------------------------
+\ vim: set ft=forth :

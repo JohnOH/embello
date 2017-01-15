@@ -1,0 +1,32 @@
+\ load development code
+\ needs l
+
+reset
+
+\ : rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+: adctry ( -- )  adc-init  begin  PB0 adc .  key? until ;
+: uartry ( -- )  uart-init uart. ;
+
+
+: sleep ( -- ) [ $BF30 h, ] inline ;  \ WFI Opcode, enters sleep mode
+
+      PWR $4 + constant PWR-CSR
+
+$E000ED00 constant SCB
+     SCB $14 + constant SCB-SCR
+
+: standby ( -- )  \ go into low-power standby mode
+  2 bit PWR-CR bis!  \ CWUF
+  1 bit PWR-CR bis!  \ PDDS
+  2 bit SCB-SCR bis!  \ SLEEPDEEP
+  sleep ;
+
+\ TODO not working, not even with OMODE-AF-OD PA0 io-mode!
+: ena-wup ( -- )  \ enable wakeup pin
+  8 bit PWR-CSR bis! ;
+
+\ -----------------------------------------------------------------------------
+
+\ -----------------------------------------------------------------------------
+
+\ vim: set ft=forth :

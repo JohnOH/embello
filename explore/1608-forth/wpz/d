@@ -1,0 +1,25 @@
+\ load development code
+\ needs l
+
+reset
+
+: blink ( -- )  \ blink the on-board LED until a key is pressed
+  OMODE-PP LED1 io-mode!  begin  LED1 iox!  100 ms  key? until ;
+
+\ : rtctry ( -- )  i2c-init  0 0 rtc!  begin  0 rtc@ $FF and .  key? until ;
+: adctry ( -- )  adc-init  begin  PB0 adc .  key? until ;
+: uartry ( -- )  uart-init uart. ;
+: pwmtry ( -- )  1 LED2 pwm-init 100 LED2 pwm ;
+
+\ -----------------------------------------------------------------------------
+
+\ located above the 20K RAM area used by Mecrisp's std build for STM32F103's
+$20008000 constant adc-buffer  \ 4096 2-byte ints in range 0..4095
+
+30000 dac1-triangle
+adc-buffer 8192 PB0 36000 adc1-dma
+
+\ -----------------------------------------------------------------------------
+
+\ 10 %pwm
+\ vim: set ft=forth :

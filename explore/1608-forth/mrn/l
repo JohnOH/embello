@@ -1,0 +1,31 @@
+\ install library packages in flash
+\ needs h
+\ includes d
+
+( cornerstone ) <<<hal-mrn>>>
+cr
+compiletoflash
+
+( code-start, see code-size below ) here
+
+include ../flib/spi/rf69.fs
+include ../flib/mecrisp/multi.fs
+
+PA10 constant RF12-IRQ
+
+: rf12-spi-init ( -- )  \ set up SPI2 for use with RF12 driver
+  PB12 ssel2 ! spi2-init
+\ 9 MHz is too fast for the RFM12B, use 36/16 i.e. 2.25 MHz
+  %0000000001011100 SPI2-CR1 ! ;
+
+: >rf12> ( u -- u )  \ 16-bit SPI using two 8-bit SPI exchanges
+  +spi2 dup 8 rshift >spi2> 8 lshift swap >spi2> or -spi2 ;
+
+include ../flib/any/crc.fs
+include ../flib/spi/rf12.fs
+
+( code-size ) here swap - .
+cornerstone <<<lib-mrn>>>
+( flash-end ) here hex.
+include d
+\ vim: set ft=forth :

@@ -1,0 +1,53 @@
+\ install hardware abstractions in flash
+
+cr eraseflash
+cr
+compiletoflash
+
+5 constant io-ports  \ A..E
+
+include ../flib/mecrisp/cond.fs
+include ../flib/mecrisp/hexdump.fs
+include ../flib/stm32f1/io.fs
+include ../flib/pkg/pins100.fs
+include ../flib/stm32f1/hal.fs
+include ../flib/stm32f1/timer.fs
+include ../flib/stm32f1/pwm.fs
+include ../flib/stm32f1/adc.fs
+include ../flib/stm32f1/dac.fs
+include ../flib/stm32f1/rtc.fs
+include ../flib/any/ring.fs
+include ../flib/stm32f1/uart2.fs
+include ../flib/stm32f1/uart2-irq.fs
+include ../flib/any/i2c-bb.fs
+
+\ board definitions for Hy-MiniSTM32V
+
+PC11 variable ssel  \ can be changed at run time
+PC12 constant SCLK
+PC8  constant MISO
+PD2  constant MOSI
+include ../flib/any/spi-bb.fs
+
+PB0 constant LED1
+PB1 constant LED2
+
+PC13 constant KEYA
+PB2  constant KEYB
+
+PB5 constant TFT-BL
+PB7 constant USB-EN
+
+: init ( -- )  \ board initialisation
+  jtag-deinit  \ disable JTAG, we only need SWD
+  6 bit RCC-APB2ENR bis!  \ enable port E
+  OMODE-PP TFT-BL io-mode!  \ turns off LCD backlight
+  OMODE-PP LED1 io-mode!
+  OMODE-PP LED2 io-mode!
+  72MHz
+  flash-kb . ." KB <hmv> " hwid hex. ." ok." cr
+  1000 systick-hz
+;
+
+cornerstone <<<hal-hmv>>>
+\ vim: set ft=forth :

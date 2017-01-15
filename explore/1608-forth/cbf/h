@@ -1,0 +1,29 @@
+\ install hardware abstractions in flash
+
+\ cr eraseflash
+cr
+compiletoflash
+
+7 constant io-ports  \ A..G
+
+include ../flib/mecrisp/cond.fs
+include ../flib/mecrisp/hexdump.fs
+include ../flib/stm32f4/io.fs
+include ../flib/pkg/pins144.fs
+include ../flib/stm32f4/hal.fs
+include ../flib/any/spi-bb.fs
+include ../flib/any/i2c-bb.fs
+
+\ board definitions for Haoyu HY-STM32Core144, i.e. "Core Board Four"
+
+PF6 constant LED
+
+: init ( -- )  \ board initialisation
+  OMODE-PP LED io-mode!
+  168MHz
+  flash-kb . ." KB <cbf> " hwid hex. ." ok." cr
+  1000 systick-hz
+;
+
+\ cornerstone <<<hal-cbf>>>
+\ vim: set ft=forth :

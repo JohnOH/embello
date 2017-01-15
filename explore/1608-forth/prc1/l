@@ -1,0 +1,167 @@
+\ install library packages in flash
+\ needs h
+\ includes d
+
+( cornerstone ) <<<hal-prc>>>
+cr
+compiletoflash
+
+( code-start, see code-size below ) here
+
+include ../flib/spi/rf69.fs
+include ../flib/i2c/oled.fs
+\ include ../flib/spi/tft-ili9325.fs
+include ../flib/mecrisp/graphics.fs
+include ../flib/mecrisp/multi.fs
+
+\ -----------------------------------------------------------------------------
+\ Pico Reflow Controller, startup code
+
+PA1 constant FAN-PWM
+PA2 constant HEATER-SENSE
+PA3 constant POWER-SENSE
+PA8 constant TEMP-POWER
+PB0 constant TEMP-SENSE
+PB1 constant HEATER-PWM
+PB2 constant BUZZER-OUT
+PB4 constant BLACK-BTN
+PB5 constant WHITE-BTN
+
+: splash ( -- )
+  clear
+  64 32 58 28 ellipse
+  64 32 60 30 ellipse
+  s" Pico Reflow" 21 20 drawstring
+  s" Controller" 25 30 drawstring
+  s" v0.1" 48 47 drawstring
+  20 42 108 42 line
+  display
+;
+
+: vreading ( pin -- value )  \ take an averaged ADC reading
+  dup adc drop  \ drop first reading to give the adc mux more time to settle
+  0  100 0 do over adc + loop  100 / nip ;
+
+ 230 variable low-temp   680 variable low-pt100   \ low temp calibration
+2600 variable high-temp 1200 variable high-pt100  \ high temp calibration
+
+: read-pt100 ( -- u )  \ read out PT100 sensor
+  TEMP-POWER ios!  1 ms  TEMP-SENSE vreading  TEMP-POWER ioc! ;
+
+: temp ( -- u )  \ read PT100 sensor temperature
+  read-pt100
+  \ convert sensor reading to approximate tenths of degrees C
+  \ use linear relationship for now: t = (sens-lp)*(ht-lt)/(hp-lp)+lt
+  low-pt100 @ -
+  high-temp @ low-temp @ - *
+  high-pt100 @ low-pt100 @ - /
+  low-temp @ + ;
+
+\ power and heater dividers are 100kΩ/10kΩ, so 12V = 1350 and 24V = 2700 on ADC
+: sense-to-volt ( pin -- u )  \ read and convert ADC value to tenths of Volts
+  vreading  24 *  130 +  260 / ;
+: power-volt ( -- u ) POWER-SENSE sense-to-volt ;
+: heater-volt ( -- u ) HEATER-SENSE sense-to-volt ;
+
+: power? ( -- f )  \ true if the heater's power supply is present
+  power-volt 70 > ;
+: power-ok? ( -- f )  \ true if the power supply is between 11 and 27 Volt
+  power-volt dup 110 >= swap 270 <= and ;
+
+: heater? ( -- f ) \ true if the heater has been detected
+  \ easy to detect if power is present, else power will be around 3.7V from
+  \ being back-fed through the 7805 and zener - this can still detect a heater
+  \ we need deal with both cases: pwm currently on or off
+  heater-volt power-volt
+  \ connected if within 1V of either the power voltage or ground
+  over - 10 <=  swap 10 <= or ;
+
+: heat! ( n -- )  \ heater control: 0 = off, 100 = max (80% of continuous on)
+  ?dup if
+    ( 1..100 )  100 swap - ( 99..0 )  80 * ( 7920..0 )  2000 + ( 9920..2000 )
+    10 HEATER-PWM pwm-init  HEATER-PWM pwm
+  else
+    \ setting PWM to 0 is not enough, it leaves a 10 µs on-glitch
+    HEATER-PWM -pwm  HEATER-PWM ioc!  \ make sure it's completely off
+  then ;
+
+: fan! ( n -- )  \ fan control: 0 = off, 1 = min (i.e. 20%), 100 = max
+  \ fan will sustain a very low speed, but it needs 100% during 100ms to start
+  ?dup if
+    ( 1..100 )  100 swap - ( 99..0 )  80 * ( 7920..0 )
+    1000 FAN-PWM pwm-init  FAN-PWM pwm
+  else
+    \ setting PWM to 0 is not enough, it leaves a 100 ns on-glitch
+    FAN-PWM -pwm  FAN-PWM ioc!  \ make sure it's completely off
+  then
+  ;
+
+: black? ( -- f ) BLACK-BTN io@ 0= ;
+: white? ( -- f ) WHITE-BTN io@ 0= ;
+
+: lcd-emit ( c -- )
+  dup $0A = if drop
+    s"                 "  \ dumb way to clear a line
+    0 dup font-x !  font-y @  8 +  $38 and  dup font-y !
+    drawstring
+    0 font-x !
+  else
+    ascii>bitpattern drawcharacterbitmap
+  then ;
+
+: lcd-cr ( -- )  \ only emit a newline when output is going to the LCD
+  ['] lcd-emit hook-emit @ = if cr then ;
+
+: meas ( -- )  \ measure and show all readings
+   ." T: " temp .
+  ." ok? " power-ok?   1 and . lcd-cr
+   ." P: " power-volt        .
+   ." P? " power?      1 and . lcd-cr
+   ." H: " heater-volt       .
+   ." H? " heater?     1 and . lcd-cr
+   ." B: " black?      1 and .
+   ." W: " white?      1 and . lcd-cr ;
+
+: lcd-meas
+  clear  0 font-x !  0 font-y !
+  ['] lcd-emit hook-emit !
+  meas
+  ['] serial-emit hook-emit !
+  display ;
+
+: config-pins ( -- )
+  adc-init  0 heat!  100 fan!  \ initialise with safest setting
+
+  imode-adc  HEATER-SENSE io-mode!  HEATER-SENSE ioc!
+  imode-adc  POWER-SENSE  io-mode!  POWER-SENSE  ioc!
+  imode-adc  TEMP-SENSE   io-mode!  TEMP-SENSE   ioc!
+  omode-pp   TEMP-POWER   io-mode!  TEMP-POWER   ioc!
+  omode-pp   BUZZER-OUT   io-mode!  BUZZER-OUT   ioc!
+  imode-PULL BLACK-BTN    io-mode!  BLACK-BTN    ios!
+  imode-PULL WHITE-BTN    io-mode!  WHITE-BTN    ios! ;
+
+: main ( -- )
+  black? if exit then       \ if black pressed on init, bail out
+  config-pins
+  lcd-init splash 3000 ms   \ else: splash screen, then start report loops
+  key? if exit then         \ if key pressed on init, bail out
+  0 fan!                    \ turn fan off for now
+
+  begin                     \ start OLED-based reporting
+    black? 100 and heat!    \ now black button controls the heater
+    lcd-meas  100 ms
+  white? until              \ stop the loop when white is pressed
+  clear display  0 heat!    \ also turn off the heat, just in case
+
+  begin                     \ start serial-based reporting
+    cr meas  500 ms
+  key? until                \ stop the loop when any key is pressed
+;
+
+\ -----------------------------------------------------------------------------
+
+( code-size ) here swap - .
+cornerstone <<<lib-prc>>>
+( flash-end ) here hex.
+include d
+\ vim: set ft=forth :

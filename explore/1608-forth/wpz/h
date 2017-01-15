@@ -1,0 +1,45 @@
+\ install hardware abstractions in flash
+
+cr eraseflash
+cr
+compiletoflash
+
+7 constant io-ports  \ A..G
+
+include ../flib/mecrisp/cond.fs
+include ../flib/mecrisp/hexdump.fs
+include ../flib/stm32f1/io.fs
+include ../flib/pkg/pins144.fs
+include ../flib/stm32f1/hal.fs
+include ../flib/stm32f1/timer.fs
+include ../flib/stm32f1/pwm.fs
+include ../flib/stm32f1/adc.fs
+include ../flib/stm32f1/dac.fs
+include ../flib/stm32f1/rtc.fs
+include ../flib/any/ring.fs
+include ../flib/stm32f1/uart2.fs
+include ../flib/stm32f1/uart2-irq.fs
+include ../flib/stm32f1/spi.fs
+include ../flib/any/i2c-bb.fs
+
+\ board definitions for WaveShare Port STM32F103ZE
+
+PA4 constant LED1
+PA5 constant LED2
+PA6 constant LED3
+PA7 constant LED4
+
+: init ( -- )  \ board initialisation
+  jtag-deinit  \ disable JTAG, we only need SWD
+  %111000000 RCC-APB2ENR bis!  \ enable ports E..G
+  OMODE-PP LED1 io-mode!
+  OMODE-PP LED2 io-mode!
+  OMODE-PP LED3 io-mode!
+  OMODE-PP LED4 io-mode!
+  72MHz
+  flash-kb . ." KB <wpz> " hwid hex. ." ok." cr
+  1000 systick-hz
+;
+
+cornerstone <<<hal-wpz>>>
+\ vim: set ft=forth :

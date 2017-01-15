@@ -1,0 +1,194 @@
+\ load development code
+\ needs l
+
+reset
+
+: blink ( -- )  \ blink the on-board LED until a key is pressed
+  OMODE-PP LED1 io-mode!  begin  LED1 iox!  100 ms  key? until ;
+
+\ print out received packet info until a key is pressed
+\ format: #bytes b3..b0 b7..b4 rssi lna afc
+: r69try ( -- )
+  42 8686 rf-init
+  begin
+    rf-recv  ?dup if
+      cr . rf.buf @ hex. rf.buf 4 + @ hex. rf.rssi @ . rf.lna @ . rf.afc @ .
+    then
+  key? until ;
+
+: adctry ( -- )  adc-init  begin  PA0 adc .  key? until ;
+: uartry ( -- )  uart-init uart. ;
+: pwmtry ( -- )  1 LED2 pwm-init 9900 LED2 pwm ;  \ inverted logic
+: t69try ( n - ) 16 rf-power  0 <# #s #> 0 rf-send ;
+
+\ -----------------------------------------------------------------------------
+
+      PWR $4 + constant PWR-CSR
+
+$E000ED00 constant SCB
+     SCB $14 + constant SCB-SCR
+
+: standby ( -- )  \ go into low-power standby mode
+  2 bit PWR-CR bis!  \ CWUF
+  1 bit PWR-CR bis!  \ PDDS
+  2 bit SCB-SCR bis!  \ SLEEPDEEP
+  sleep ;
+
+\ TODO not working, not even with OMODE-AF-OD PA0 io-mode!
+: ena-wup ( -- )  \ enable wakeup pin
+  8 bit PWR-CSR bis! ;
+
+\ -----------------------------------------------------------------------------
+
+eint \ multitask
+
+0 variable seconds
+task: timetask
+
+: time& ( -- )
+  timetask background
+    begin
+      key? if boot-task wake then
+      1 seconds +!
+      seconds @ . cr
+      stop
+    again
+;
+
+\ time& ( lowpower& ) tasks
+
+: tick ( -- )
+  ++ticks
+  millis 1000 mod 0= if timetask wake then ;
+
+\ ' tick irq-systick !
+
+\ stop \ Idle the boot task
+\ -----------------------------------------------------------------------------
+\ DCF77 decoding
+
+               5 constant dcf-cycles
+dcf-cycles 100 * constant dcf-size
+         dcf-size buffer: dcf-bins
+
+: ms-wait ( -- )
+  millis  begin  millis over <> until  drop ;
+
+: dcf-clear ( -- ) dcf-bins dcf-size 0 fill ;
+
+: dcf-probe ( -- )
+  dcf-size 0 do
+    10 0 do  ms-wait  DCF77-IN io@  dcf-bins j + c+!  loop
+  loop ;
+
+: dcf-dump1 ( n -- )
+  case
+    0 of [char] - emit endof
+    10 of [char] X emit endof
+    dup [char] 0 + emit
+  endcase ;
+
+: dcf-dump100 ( addr -- ) 100 0 do  dup c@  dcf-dump1  1+  loop  drop ;
+
+: dcf-dump ( -- )
+  dcf-bins  dcf-cycles 0 do
+    cr i u.2 space  dup dcf-dump100  100 +
+  loop  drop ;
+
+: dcf-scope ( -- ) ." Capturing... " dcf-clear dcf-probe dcf-dump ;
+
+: +expo! ( 0/1 addr -- ) tuck  c@  127 * 7 rshift  swap 2* +  swap c! ;
+
+: dcf-tick
+  ++ticks
+  DCF77-IN io@
+  millis 1000 u/mod drop 10 /  dcf-bins +
+  +expo! ;
+
+: dcf. ( -- ) dcf-bins dcf-size dump ;
+: dcf.t ( -- ) 100 0 do i dcf-bins + c@ h.2 space loop ;
+
+: dcf-init
+  dcf-clear
+  ['] dcf-tick irq-systick !
+;
+
+\ -----------------------------------------------------------------------------
+
+true constant has-lcd
+
+: main ( -- )
+  has-lcd if lcd-init show-logo then
+  config-pins
+  begin
+    PULSE1 io@  PULSE2 io@ xor  PULSE3 io@ xor  LED2 io!
+  key? until key drop
+  has-lcd if clear display then
+
+  begin 1000 ms  vbat .  key? until
+;
+
+\ main
+config-pins
+
+\ -----------------------------------------------------------------------------
+\ convolution experiments to locate the segment locations
+
+adata variable ptr
+530 constant limit
+
+: ptr@i ( i -- u ) 0 max 8 * ptr @ + h@ ;  \ fetch the i'th sample
+
+: conv-max ( -- i )  \ convolve with -1 -1 -1 1 1 1 1, return first peak index
+  0 0 ptr@i dup ( result conv-last conv-curr )
+  limit 1 do
+    i 7 - ptr@i +
+    i 4 - ptr@i 2* -
+    i     ptr@i +
+    2dup > if
+      dup 4090 > if drop i -rot leave then
+    then
+    nip dup
+  loop
+  2drop ;
+
+: rconv-max ( -- i )  \ convolve with 1 1 1 1 -1 -1 -1, return first peak index
+  0 0 ptr@i dup ( result conv-last conv-curr )
+  limit 1 do
+    i 7 - ptr@i -
+    i 3 - ptr@i 2* +
+    i     ptr@i -
+    2dup > if
+      dup 4090 > if drop i -rot leave then
+    then
+    nip dup
+  loop
+  2drop ;
+
+: c ( -- n1 n2 n3 )
+  adata ptr !
+  conv-max rconv-max
+  2dup > if
+    dup 8 * ptr +! rconv-max over +
+  else
+    swap
+    dup 8 * ptr +! conv-max over +
+  then
+  adata ptr ! ;
+
+: d dma-sync micros >r c micros r> - . . . . ;
+
+\ -----------------------------------------------------------------------------
+
+: initx ( -- )
+  init  1000 ms  key? if <<<lib-oxs>>> then  \ safety escape hatch
+  uart-irq-init
+  ['] uart-emit?    hook-emit? !
+  ['] uart-emit     hook-emit  !
+  ['] uart-irq-key? hook-key?  !
+  ['] uart-irq-key  hook-key   !
+  cr init
+;
+
+\ -----------------------------------------------------------------------------
+\ vim: set ft=forth :

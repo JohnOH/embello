@@ -1,0 +1,41 @@
+\ install library packages in flash
+\ needs h
+\ includes d
+
+( cornerstone ) <<<hal-lsd>>>
+cr
+compiletoflash
+
+( code-start, see code-size below ) here
+
+include ../flib/spi/smem.fs
+include ../flib/mecrisp/graphics.fs
+include ../flib/mecrisp/multi.fs
+include ../flib/mecrisp/sine.fs
+
+: index>sine ( u -- u )
+  0 swap  \ [0..4095] as fixed-point
+  2048,0 f/ pi f*  \ [0..2pi) as fixed-point
+  widesine 1500,0 f* nip 2048 + ;
+
+\ located above the 20K RAM area used by Mecrisp's std build for STM32F103's
+$20006000 constant wavetable  \ 4096 2-byte ints in range 0..4095
+
+: fill-sinewave ( -- )
+  $1000 0 do i index>sine i 2* wavetable + h! loop ;
+
+: sinewave
+  dac-init  fill-sinewave
+  begin
+    $1000 0 do  i 2* wavetable + h@ dup 2dac!  2 +loop
+  key? until
+;
+
+: dac1-awg ( u -- )  \ generate on DAC1 via DMA with given timer period
+  6 timer-init  dac-init  wavetable 8192 dac1-dma  fill-sinewave ;
+
+( code-size ) here swap - .
+cornerstone <<<lib-lsd>>>
+( flash-end ) here hex.
+include d
+\ vim: set ft=forth :
