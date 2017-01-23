@@ -35,7 +35,7 @@ Initialize and enable PID with Kp=120, Ki=1.5 and Kd=0.0075. 100ms period, maxim
 
     120,0 1,5 0,0075 100 10000 pid-init
 
-You have to implement somewhing which calls `pid` periodically (every 100ms in the exmaple above). It does not matter how you implement this, so this part is omitted here.
+You have to implement something which calls `pid` periodically (every 100ms in the example above). It does not matter how you implement this, so this part is omitted here.
 
 Now set initial *setpoint* and start the PID:
 
