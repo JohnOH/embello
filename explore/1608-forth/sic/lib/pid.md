@@ -55,6 +55,6 @@ You do not have to change anything in the PID itself and you still have to call 
 Set a new *setpoint* and enable PID again:
 
 ```
-2000 set \ Set desired setpoint to 3100
+2000 set \ Set desired setpoint to 2000
 auto     \ enable PID
 ```
