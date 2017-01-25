@@ -81,7 +81,7 @@
 
 \ Do a PID calculation, returns correction value (aka duty-cycle)
 : pid_compute ( s_is -- s_corr )
-  CR ." SET:" set-val @ .  ." IS:"  dup . \ DEBUG
+  cr ." SET:" set-val @ .  ." IS:"  dup . \ DEBUG
 
   \ feed error in p and i, current setpoint in d, sum up results
   dup dup set-val @ swap - s2f ( s_is s_is f_error )
@@ -130,7 +130,7 @@
   interval !
   tuning
   0 out-override !         \ Make sure we're in manual mode
-  CR ." PID initialized - kp:" kp 2@ f.000 ." ki:" ki 2@ f.000 ." kd:" kd 2@ f.000
+  cr ." PID initialized - kp:" kp 2@ f.000 ." ki:" ki 2@ f.000 ." kd:" kd 2@ f.000
 ;
 
 
@@ -139,7 +139,7 @@
   out-override @ -1 = IF   \ we're in auto-mode - do PID calculation
     pid_compute
   ELSE                     \ manual-mode! store input, return override value
-    CR ." SET:" set-val @ .  ." IS:"  dup .
+    cr ." SET:" set-val @ .  ." IS:"  dup .
     last-input !
     out-override @
     ." PWM:" dup .
