@@ -12,23 +12,24 @@
 \  Configuration
 \ --------------------------------------------------
 
-8 constant max-timed \ maximum number of timers (using 4 cells each)
+\ maximum number of timers (using 4 cells each)
+[ifndef] MAX-TIMED  8 constant MAX-TIMED [then]
 
 \ --------------------------------------------------
 \  Internal Helpers
 \ --------------------------------------------------
 
 \ 4 cells per timer ( interval, last-run, callback, repeat )
-max-timed 4 * cells buffer: timed-data
+MAX-TIMED 4 * cells buffer: timed-data
 
 \ Calculate internal adresses
-: tmd-inte-addr ( timed# - addr ) timed-data swap 4 *     cells + ;
-: tmd-last-addr ( timed# - addr ) timed-data swap 4 *  1+ cells + ;
-: tmd-call-addr ( timed# - addr ) timed-data swap 4 *  2+ cells + ;
-: tmd-repe-addr ( timed# - addr ) timed-data swap 4 * 3 + cells + ;
+: tmd-inte-addr ( slot# - addr ) timed-data swap 4 *     cells + ;
+: tmd-last-addr ( slot# - addr ) timed-data swap 4 * 1+  cells + ;
+: tmd-call-addr ( slot# - addr ) timed-data swap 4 * 2+  cells + ;
+: tmd-repe-addr ( slot# - addr ) timed-data swap 4 * 3 + cells + ;
 
 \ Used by call-once/call-periodic
-: call-internal ( callback when/interval repeat timed# )
+: call-internal ( callback when/interval repeat slot# -- )
   >r     r@ tmd-repe-addr !
          r@ tmd-inte-addr !
          r@ tmd-call-addr !
@@ -36,7 +37,7 @@ max-timed 4 * cells buffer: timed-data
 ;
 
 \ Execute timer callback and clear if no repetition is required
-: timed-exec ( timed# )
+: timed-exec ( slot# -- )
   >r     r@ tmd-call-addr @ execute
   millis r@ tmd-last-addr !
   r@ tmd-repe-addr @ NOT IF
@@ -47,10 +48,10 @@ max-timed 4 * cells buffer: timed-data
 ;
 
 \ Check if a timer needs to be executed (checks if enabled and enough time passed)
-: needs-run? ( timed# )
+: needs-run? ( slot# -- flag )
   dup tmd-call-addr @ IF 
-    millis over tmd-last-addr @ -  ( timed# time_since_last_run )
-           over tmd-inte-addr @ >  ( timed# true_if_time_to_run )
+    millis over tmd-last-addr @ -  ( slot# time_since_last_run )
+           over tmd-inte-addr @ >  ( slot# true_if_time_to_run )
   ELSE
     false
   THEN nip ;
@@ -58,7 +59,7 @@ max-timed 4 * cells buffer: timed-data
 \ Check and execute all the timers
 : timed-run ( -- #exec )
   0 \ return number of executed tasks
-  max-timed 0 DO
+  MAX-TIMED 0 DO
   i needs-run? IF
     i timed-exec 1+
   THEN
@@ -85,22 +86,22 @@ task: timedtask
 \ --------------------------------------------------
 
 \ Clear timer data structure
-: clear-timed ( -- ) timed-data max-timed 4 * cells 0 fill ;
+: clear-timed ( -- ) timed-data MAX-TIMED 4 * cells 0 fill ;
 
 \ Register a callback or cancel a timer
-: call-after ( callback when     timed# ) false swap call-internal ; 
-: call-every ( callback interval timed# ) true  swap call-internal ; 
-: call-never ( timed# ) tmd-call-addr 0 swap !  ;
+: call-after ( callback when     slot# -- ) false swap call-internal ; 
+: call-every ( callback interval slot# -- ) true  swap call-internal ; 
+: call-never ( slot# -- ) tmd-call-addr 0 swap !  ;
 
 \ Show all timers
-: timed. ( -- ) CR
-  max-timed 0 do
+: timed. ( -- ) cr
+  MAX-TIMED 0 do
     ." Timer #" i .
     ." Interval: " i tmd-inte-addr @ .
     ." Last-Run: " i tmd-last-addr @ .
     ." Callback: " i tmd-call-addr @ .
     ." Repeat: "   i tmd-repe-addr @ .
-  CR loop ;
+  cr loop ;
 
 \ Initializes timed-data and starts multitasking
 : timed-init ( -- )
@@ -109,5 +110,5 @@ task: timedtask
 ;
 
 \ for testing only
-\ : ping ( -- ) CR ." PING" CR ;
+\ : ping ( -- ) cr ." PING" cr ;
 
