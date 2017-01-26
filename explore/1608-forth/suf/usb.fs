@@ -225,7 +225,7 @@ $40006000 constant USBMEM
 
 0 variable zero
 
-128 4 + buffer: usb-in-ring   \ RX ring buffer, ample room for one packet
+256 4 + buffer: usb-in-ring   \ RX ring buffer, ample for mecrisp input lines
  64 4 + buffer: usb-out-ring  \ TX ring buffer, for outbound bytes
 
 : ep-setup ( ep -- )  \ setup packets, sent from host to config this device
@@ -298,7 +298,7 @@ $40006000 constant USBMEM
 : usb-io ( -- )  \ start up USB and switch console I/O to it
   23 bit RCC-APB1ENR bis!  \ USBEN
   $0001 USB-CNTR h! ( 10 us ) $0000 USB-CNTR h!  \ FRES
-  usb-in-ring 128 init-ring
+  usb-in-ring 256 init-ring
   usb-out-ring 64 init-ring
   ['] usb-key? hook-key? !
   ['] usb-key hook-key !
