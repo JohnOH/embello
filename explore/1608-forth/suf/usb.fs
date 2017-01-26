@@ -262,7 +262,7 @@ $40006000 constant USBMEM
 : ep-out ( ep -- )  \ outgoing packets, sent from host to this device
 \ dup 2 rxstat!  \ set RX state to NAK
   dup if  \ only pick up data for endpoint 3
-    dup 3 ep-reg h@ $3F and 0 ?do
+    dup 3 ep-reg h@ $7F and 0 ?do
       i $100 + usb-pma c@ usb-recv
     loop
   then
