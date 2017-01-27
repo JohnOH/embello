@@ -223,7 +223,7 @@ $40006000 constant USBMEM
   $3003 3 ep-addr h!
   $80 USB-DADDR h! ;
 
-0 variable zero
+create zero 0 ,
 
 256 4 + buffer: usb-in-ring   \ RX ring buffer, ample for mecrisp input lines
  64 4 + buffer: usb-out-ring  \ TX ring buffer, for outbound bytes
@@ -233,16 +233,14 @@ $40006000 constant USBMEM
   $41 usb-pma c@ case
     $00 of zero 2 send-data endof
     $06 of send-desc endof
-\   $20 of usb:line 7 send-data endof
-\   $22 is baud rate?
-\   $23 is break?
-    true ?of 0 0 send-data endof
+    ( default ) 0 0 send-data
   endcase
   ep-reset-rx# send-next ;
 
 : usb-recv ( c -- ) usb-in-ring dup ring? if >ring else 2drop then ;
 
 0 variable tx.pend
+0 variable usb.ticks
 
 : usb-pma-c! ( b pos -- )  \ careful, can't write high bytes separately
   dup 1 and if
@@ -250,13 +248,10 @@ $40006000 constant USBMEM
   then usb-pma! ;
 
 : usb-fill ( -- )  \ fill the USB outbound buffer from the TX ring buffer
-  tx.pend @ 0= if
-    usb-out-ring ring#
-    ?dup if 64 min
-      dup tx.pend !
-      dup 0 do usb-out-ring ring> $C0 i + usb-pma-c!  loop
-      1 1 ep-reg h! 1 3 txstat!
-    then
+  usb-out-ring ring# ?dup if
+    dup tx.pend !
+    dup 0 do usb-out-ring ring> $C0 i + usb-pma-c!  loop
+    1 1 ep-reg h! 1 3 txstat!
   then ;
 
 : ep-out ( ep -- )  \ outgoing packets, sent from host to this device
@@ -271,7 +266,7 @@ $40006000 constant USBMEM
 
 : ep-in ( ep -- )  \ incoming polls, sent from this device to host
   dup if
-    0 tx.pend ! usb-fill
+    0 usb.ticks !  0 tx.pend !  usb-fill
   else
     $41 usb-pma c@ $05 = if $42 usb-pma@ $80 or USB-DADDR h! then
     send-next
@@ -283,15 +278,17 @@ $40006000 constant USBMEM
     dup ep-addr h@ $800 and if ep-setup else ep-out then
   else ep-in then ;
 
-0 variable usb.ticks
-
 : usb-flush
   usb-in-ring 256 init-ring
   usb-out-ring 64 init-ring ;
 
 : usb-poll
-  tx.pend @ 0= if 0 usb.ticks ! then
-  usb.ticks @ 100000 > if usb-flush else 1 usb.ticks +! then
+  \ clear ring buffers if pending output is not getting sent to host
+  tx.pend @ if
+    1 usb.ticks +!
+    usb.ticks @ 10000 > if usb-flush then
+  then
+  \ main USB driver polling
   USB-ISTR h@
   dup $8000 and if dup usb-ctr                            then
   dup $0400 and if usb-reset            $FBFF USB-ISTR h! then
@@ -301,7 +298,8 @@ $40006000 constant USBMEM
 : usb-key? ( -- f )  pause usb-poll usb-in-ring ring# 0<> ;
 : usb-key ( -- c )  begin usb-key? until  usb-in-ring ring> ;
 : usb-emit? ( -- f )  usb-poll usb-out-ring ring? ;
-: usb-emit ( c -- )  begin usb-emit? until  usb-out-ring >ring usb-fill ;
+: usb-emit ( c -- )  begin usb-emit? until  usb-out-ring >ring
+                     tx.pend @ 0= if usb-fill then ;
 
 : usb-io ( -- )  \ start up USB and switch console I/O to it
   23 bit RCC-APB1ENR bis!  \ USBEN
@@ -313,4 +311,4 @@ $40006000 constant USBMEM
   ['] usb-emit? hook-emit? !
   ['] usb-emit hook-emit !  ;
 
-\ : init ( -- ) init 2000 ms key? 0= if usb-io then ;  \ safety escape hatch
+\ : init ( -- ) init usb-io ;
