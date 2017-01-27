@@ -283,7 +283,15 @@ $40006000 constant USBMEM
     dup ep-addr h@ $800 and if ep-setup else ep-out then
   else ep-in then ;
 
+0 variable usb.ticks
+
+: usb-flush
+  usb-in-ring 256 init-ring
+  usb-out-ring 64 init-ring ;
+
 : usb-poll
+  tx.pend @ 0= if 0 usb.ticks ! then
+  usb.ticks @ 100000 > if usb-flush else 1 usb.ticks +! then
   USB-ISTR h@
   dup $8000 and if dup usb-ctr                            then
   dup $0400 and if usb-reset            $FBFF USB-ISTR h! then
@@ -298,8 +306,7 @@ $40006000 constant USBMEM
 : usb-io ( -- )  \ start up USB and switch console I/O to it
   23 bit RCC-APB1ENR bis!  \ USBEN
   $0001 USB-CNTR h! ( 10 us ) $0000 USB-CNTR h!  \ FRES
-  usb-in-ring 256 init-ring
-  usb-out-ring 64 init-ring
+  usb-flush
   ['] usb-key? hook-key? !
   ['] usb-key hook-key !
   1000000 0 do usb-poll loop
