@@ -237,6 +237,7 @@ create zero 0 ,
   endcase
   ep-reset-rx# send-next ;
 
+\ TODO throws input away if ring buffer is full, better would be to NAK on USB
 : usb-recv ( c -- ) usb-in-ring dup ring? if >ring else 2drop then ;
 
 0 variable tx.pend
@@ -286,7 +287,7 @@ create zero 0 ,
   \ clear ring buffers if pending output is not getting sent to host
   tx.pend @ if
     1 usb.ticks +!
-    usb.ticks @ 10000 > if usb-flush then
+    usb.ticks @ 10000 u> if usb-flush then
   then
   \ main USB driver polling
   USB-ISTR h@
