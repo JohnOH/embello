@@ -225,7 +225,7 @@ $40006000 constant USBMEM
 
 create zero 0 ,
 
-256 4 + buffer: usb-in-ring   \ RX ring buffer, ample for mecrisp input lines
+128 4 + buffer: usb-in-ring   \ RX ring buffer, ample for mecrisp input lines
  64 4 + buffer: usb-out-ring  \ TX ring buffer, for outbound bytes
 
 : ep-setup ( ep -- )  \ setup packets, sent from host to config this device
@@ -236,9 +236,6 @@ create zero 0 ,
     ( default ) 0 0 send-data
   endcase
   ep-reset-rx# send-next ;
-
-\ TODO throws input away if ring buffer is full, better would be to NAK on USB
-: usb-recv ( c -- ) usb-in-ring dup ring? if >ring else 2drop then ;
 
 0 variable tx.pend
 0 variable usb.ticks
@@ -258,8 +255,9 @@ create zero 0 ,
 : ep-out ( ep -- )  \ outgoing packets, sent from host to this device
 \ dup 2 rxstat!  \ set RX state to NAK
   dup if  \ only pick up data for endpoint 3
+    usb-in-ring ring# 60 > if drop exit then  \ reject if no room in ring
     dup 3 ep-reg h@ $7F and 0 ?do
-      i $100 + usb-pma c@ usb-recv
+      i $100 + usb-pma c@ usb-in-ring >ring
     loop
   then
   dup rxclear
@@ -280,7 +278,7 @@ create zero 0 ,
   else ep-in then ;
 
 : usb-flush
-  usb-in-ring 256 init-ring
+  usb-in-ring 128 init-ring
   usb-out-ring 64 init-ring ;
 
 : usb-poll
