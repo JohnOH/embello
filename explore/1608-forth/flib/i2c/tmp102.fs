@@ -12,8 +12,9 @@
 : tmp102-init ( -- )  \ initialise the TMP102, assuming it's powered by IO pins
   tmp102-power  50 ms  i2c-init ;
 
-: tmp102  ( -- i )                           \ returns temp * 10 on the stack
-  TMP.ADDR i2c-addr  0 >i2c  2 i2c-xfer drop  i2c>h   \ sensor read out
-  dup $FF and swap 8 rshift swap 8 lshift + 4 rshift  \ calculate temp
-  dup $800 and if $7FF and negate then
-  625 * 1000 / ;
+: tmp102 ( -- i )  \ returns temp in steps of 0.1 °C
+  TMP.ADDR i2c-addr  0 >i2c  2 i2c-xfer drop  \ sensor read out
+  i2c> 24 lshift 16 arshift  \ sign extend
+  i2c> or \ bits 31..4 now have the temperature, signed
+  5 + 10 * 8 arshift  \ convert to rounded tenths of degrees centigrade
+;
