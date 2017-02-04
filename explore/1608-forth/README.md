@@ -3,6 +3,7 @@ A collection of files for use with Mecrisp Stellaris Forth on STM32 boards:
 * **`aia`** - ARMinARM, Raspberry add-on w/ STM32F103RE
 * **`bct`** - Blue Pill Component Tester, explores the ADC & GPIO pins
 * **`bme`** - BME280 sensor exploration using the Olimexino-STM32
+* **`cag`** - Console Access Gateway w/ STM32F103, acting as central RF console
 * **`cbf`** - Haoyu Core Board Four board w/ STM32F407ZG and lots of RAM+flash
 * **`cbo`** - Haoyu Core Board One board w/ STM32F103ZE and lots of RAM+flash
 * **`dad`** - Dime-A-Dozen, for all those cheap eBay STM32F103C8 boards
