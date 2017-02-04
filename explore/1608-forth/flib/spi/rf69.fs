@@ -12,7 +12,7 @@
        $27 constant RF:IRQ1
        $28 constant RF:IRQ2
        $2F constant RF:SYN1
-       $30 constant RF:SYN2
+       $32 constant RF:SYN4
        $39 constant RF:ADDR
        $3A constant RF:BCAST
        $3C constant RF:THRESH
@@ -43,16 +43,19 @@
    0 variable rf.afc
   66 buffer:  rf.buf
 
-8683 variable rf.freq
-  42 variable rf.group
-  61 variable rf.nodeid
+8680 variable rf.freq
+ 212 variable rf.group
+   4 variable rf.nodeid
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 hex
-  0200 h, 0302 h, 048A h, 0505 h, 06C3 h, 0B20 h, 1942 h, 1A42 h,
-  1E0C h, 2607 h, 29C4 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
-  3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
+  0200 h, 0302 h, 048A h, 0505 h, 06C3 h, 0B20 h, 19E2 h, 1AF7 h,
+  1E00 h, 2500 h, 2607 h, 2810 h, 2E98 h, 2FAA h, 30AA h, 312D h, 
+  32D4 h, 29C4 h, 2D05 h, 37D0 h,
+  3800 h, 3C8F h, 3D10 h, 582D h, 6F30 h, 0 h,  \ sentinel
 decimal align
+
+
 
 \ r/w access to the RF registers
 : rf!@ ( b reg -- b ) +spi >spi >spi> -spi ;
@@ -75,7 +78,7 @@ decimal align
   ( u ) 6 lshift RF:FRF 2+ rf!
 ;
 
-: rf-group ( u -- ) RF:SYN2 rf! ;  \ set the net group (1..250)
+: rf-group ( u -- ) RF:SYN4 rf! ;  \ set the net group (1..250)
 
 : rf-check ( b -- )  \ check that the register can be accessed over SPI
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
@@ -102,7 +105,7 @@ decimal align
   0 do  dup c@ RF:FIFO rf! 1+  loop drop ;
 
 : rf-parity ( -- u )  \ calculate group parity bits
-  RF:SYN2 rf@ dup 4 lshift xor dup 2 lshift xor $C0 and ;
+  RF:SYN4 rf@ dup 4 lshift xor dup 2 lshift xor $C0 and ;
 
 \ this is the intended public API for the RF69 driver
 
