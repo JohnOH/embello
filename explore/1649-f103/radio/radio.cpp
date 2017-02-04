@@ -28,7 +28,7 @@ const int rf_nodeid = 28;
 const bool verbose = true;
 volatile int external;
 
-void NVIC_GPIOA_IRQ(void)           	//ISR function 
+void exti2_isr(void)           			//ISR function 
 {
       if((EXTI_PR & EXTI2) != 0)   		//Check if PA2 has triggered the interrupt
       {                                 
@@ -53,13 +53,12 @@ void setup () {
     printf("\n[radio]\n");
 
 	rcc_periph_clock_enable(RCC_GPIOA);
-	exti_enable_request(EXTI2);
-	exti_select_source(EXTI2, GPIOA);      
-	exti_set_trigger(EXTI2, EXTI_TRIGGER_RISING);
+	exti_select_source(EXTI2, GPIOA);				// set the AFIO_EXTICR1 register     
+	exti_set_trigger(EXTI2, EXTI_TRIGGER_RISING);	// set the EXTI_RTSR register
+	exti_enable_request(EXTI2);						// set the EXTI_IMR & EXTI_EMR register
+
 	nvic_enable_irq(EXTI2);
 	
-//	_enable_interrupts();
-
     rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");
     rf.txPower(16); // 0 = min .. 31 = max
@@ -76,7 +75,10 @@ void setup () {
 //	printf("AFIO_EXTICR2=0x%04X\n", AFIO_EXTICR2);
 //	printf("AFIO_EXTICR3=0x%04X\n", AFIO_EXTICR3);
 //	printf("AFIO_EXTICR4=0x%04X\n", AFIO_EXTICR4);
-//	printf("RCC_APB2ENR=0x%04X\n", RCC_APB2ENR);
+	printf("EXTI_RTSR=0x%05X\n", EXTI_RTSR);
+	printf("EXTI_FTSR=0x%05X\n", EXTI_FTSR);
+	printf("EXTI_IMR=0x%05X\n", EXTI_IMR);
+	printf("EXTI_EMR=0x%05X\n", EXTI_EMR);
 
     for (int i = 0; i < (int) sizeof txBuf; ++i)
         txBuf[i] = i;
