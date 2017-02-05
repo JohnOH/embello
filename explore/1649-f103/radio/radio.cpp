@@ -28,7 +28,16 @@ const int rf_nodeid = 28;
 const bool verbose = true;
 volatile int external;
 
-void exti2_isr(void)           			//ISR function 
+extern "C" void exti2_isr(void)			//ISR function 
+/*
+File github/libopencm3/lib/stm32/f1/vector_nvic.c has a weak link to a blocking handler:
+#pragma weak exti2_isr = blocking_handler
+The above weak link is by default built into the IRQ_HANDLERS table by
+    [NVIC_EXTI2_IRQ] = exti2_isr, \
+this effectively handles the interrupt with the blocking handler.
+The extern "C" definition above overrides the weak link and thereby causes our
+our interrupt handler below to be linked into the IRQ_HANDLERS table:
+*/
 {
       if((EXTI_PR & EXTI2) != 0)   		//Check if PA2 has triggered the interrupt
       {                                 
