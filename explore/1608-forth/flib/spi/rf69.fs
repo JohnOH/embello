@@ -51,12 +51,6 @@
   61 variable rf.nodeid
 
 \ jcw version
-\ create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
-\ hex
-\   0200 h, 0302 h, 048A h, 0502 h, 06E1 h, 0B20 h, 194A h, 1A42 h,
-\   1E0C h, 2607 h, 29A0 h, 2B40 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
-\   3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
-\ newer version:
 \  0200 h, 0302 h, 048A h, 0505 h, 06C3 h, 0B20 h, 1942 h, 1A42 h,
 \  1E0C h, 2607 h, 29C4 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
 \  3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
@@ -67,18 +61,18 @@ hex
   0100 h, \ opmode: sleep
   0200 h, \ packet mode, fsk
   0302 h, 048A h, \ bit rate 49,261 hz
-  0502 h, 06E1 h, \ 45Khz Fdev
+  0502 h, 06E1 h, \ 45Khz Fdev   *** 2E1->5C3=45.1khz->90.3khz
   0B20 h, \ low M
-  194A h, 1A42 h, \ RxBw 100khz, AFCBw 125khz
+  194A h, 1A42 h, \ RxBw 100khz, AFCBw 125khz *** RxBw 100->125Khz
   1E0C h, \ AFC auto-clear, auto-on
   2607 h, \ disable clkout
-  29A0 h, \ RSSI thres -80dB
+  29C4 h, \ RSSI thres -98dB
   2B40 h, \ RSSI timeout after 128 bytes
   2D05 h, \ Preamble 5 bytes
   2E88 h, \ sync size 2 bytes
   2F2D h, \ sync1: 0x2D
   302A h, \ sync2: network group
-  37D8 h, \ deliver even if CRC fails
+  37D0 h, \ drop pkt if CRC fails
   3842 h, \ max 62 byte payload
   3C8F h, \ fifo thres
   3D12 h, \ PacketConfig2, interpkt = 1, autorxrestart on
