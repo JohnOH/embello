@@ -1,17 +1,19 @@
 The **embello** repository on [GitHub](https://github.com/jeelabs/embello/)
-collects the files of most of the projects mentioned on the JeeLabs weblog since
-mid-2015, and various bits and pieces needed to make them work. It's a
-hodgepodge of code, snippets, libraries, and documents, because the weblog
-covers such a wide range of topics - it has always done so, and probably always
-will.
+collects the files of most of the projects mentioned on the [JeeLabs
+weblog](http://jeelabs.org/) since mid-2015, and various bits and pieces needed
+to make them work. It's a hodgepodge of code, snippets, libraries, and
+documents, because the weblog covers such a wide range of topics - it has always
+done so, and probably always will.
+
+### explore/
 
 The [explore/](https://github.com/jeelabs/embello/tree/master/explore/) folder
 contains most of the files. Its subdirectories are named as follows:
 
     <last-two-digits-of-year> <week-number> "-" <some-tag>
 
-This corresponds to the weblog article series, which use a similar naming
-convention.
+This corresponds to the weblog article series, which use a similar 4-digit
+naming convention.
 
 The
 [explore/1608-forth/](https://github.com/jeelabs/embello/tree/master/explore/1608-forth/)
@@ -26,15 +28,27 @@ The
 area is structured as a _library_, with its files includes in numerous other
 subdirectories.
 
+### lib/
+
 The [lib/](https://github.com/jeelabs/embello/tree/master/lib/) subdirectory is
 a bit older, and was intended to play a similar role as `flib/`, but for th
 C/C++ code written for NXP's LPC810 and LPC8xx µCs.
+
+### projects/
 
 The [projects/](https://github.com/jeelabs/embello/tree/master/projects/)
 directory holds a variety of (older) projects, both software- and
 hardware-related. See the
 [projects/README.md](https://github.com/jeelabs/embello/tree/master/projects/README.md)
 file for a brief list.
+
+### tools/
+
+The [tools/](https://github.com/jeelabs/embello/tree/master/tools/) area
+contains the source code for a number of tools, also described on the weblog.
+See the respective `README.md` files in each subdirecrory for details.
+
+### Some more links
 
 For all background information and documentation, see the weblog at
 <http://jeelabs.org/>.
