@@ -83,6 +83,7 @@ class RF69 {
       DIO0_PACKETSENT   = 0x00,
       // RX Mode
       DIO0_RSSI         = 0xC0,
+      DIO0_SYNCADDRESS  = 0x80
     };
 
     void setMode (uint8_t newMode);
@@ -216,7 +217,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
 	if (mode != MODE_RECEIVE) {
 		setMode(MODE_SLEEP);
 		writeReg(REG_IRQFLAGS2, IRQ2_FIFOOVERRUN);  	// Clear FIFO
-		writeReg(REG_DIOMAPPING1, (DIO0_RSSI /*| DIO3_RSSI  DIO0_SYNCADDRESS*/));// Interrupt triggers
+		writeReg(REG_DIOMAPPING1, (DIO0_SYNCADDRESS /*| DIO3_RSSI  DIO0_SYNCADDRESS*/));// Interrupt triggers
     	setMode(MODE_RECEIVE);
     } else {
 		static uint8_t lastFlag;
