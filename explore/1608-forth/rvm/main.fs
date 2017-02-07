@@ -23,13 +23,13 @@
 : main
   2.1MHz 1000 systick-hz  lptim-init opamp-on adc-pins
 
-  8686 rf69.freq ! 6 rf69.group ! 62 rf69.nodeid !
-  rf69-init 16 rf69-power
+  8686 rf.freq ! 6 rf.group ! 62 rf.nodeid !
+  rf-init 16 rf-power
 
   mcp-init if ." can't find MCP3424" exit then
 
   begin
-    led-off rf69-sleep
+    led-off rf-sleep
 
     0 mcp-data 2 mcp-data 3 mcp-data  \ op-amp on chan #1 is not working!
 

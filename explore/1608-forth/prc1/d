@@ -1,0 +1,37 @@
+\ load development code
+\ needs l
+
+reset
+
+: blink ( -- )  \ blink the on-board LED until a key is pressed
+  OMODE-PP LED io-mode!  begin  LED iox!  100 ms  key? until ;
+
+\ print out received packet info until a key is pressed
+\ format: #bytes b3..b0 b7..b4 rssi lna afc
+: r69try ( -- )
+  42 8686 rf-init
+  begin
+    rf-recv  ?dup if
+      cr . rf.buf @ hex. rf.buf 4 + @ hex. rf.rssi @ . rf.lna @ . rf.afc @ .
+    then
+  key? until ;
+
+: t69try ( n - ) 16 rf-power  0 <# #s #> 0 rf-send ;
+
+\ -----------------------------------------------------------------------------
+
+: periodic-ms ( handler var ms -- )  \ execute handler every ms milliseconds
+  over @ +  millis -  0< if millis swap ! execute else 2drop then ;
+
+\ a quick test of periodic-ms
+: beep 123 . ;
+0 variable beep-last
+: beep-poll ['] beep beep-last 1000 periodic-ms ;
+: t begin beep-poll key? until ;
+
+\ main
+
+\ enter this line manually once main works and has a verified escape hatch:
+\ compiletoflash  : init ( -- ) init main ;
+\ -----------------------------------------------------------------------------
+\ vim: set ft=forth :

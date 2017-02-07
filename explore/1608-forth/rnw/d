@@ -31,7 +31,7 @@ reset
 : uartry ( -- ) uart-init uart. ;
 : pwmtry ( -- ) 1 LED pwm-init 100 LED pwm ;
 : r12try ( -- ) 5 868 rf12-init ." +" cr rf12-start begin rf12-poll key? until ;
-: t69try ( n - ) 16 rf69-power  0 <# #s #> 0 rf-send ;
+: t69try ( n - ) 16 rf-power  0 <# #s #> 0 rf-send ;
 
 \ -----------------------------------------------------------------------------
 

@@ -7,12 +7,16 @@ and female FTDI host header (i.e. to talk to and program a JeeNode Zero, etc).
 
 See the EAGLE files and derived documentation:
 
-* `tex-v1.sch` - EAGLE 7.6 schematic
-* `tex-v1.pdf` - EAGLE 7.6 schematic, as PDF
-* `tex-v1.brd` - EAGLE 7.6 board layout
-* `tex-v1.png` - EAGLE 7.6 board layout, as image
+* `tex-v0.sch` - EAGLE 7.6 schematic
+* `tex-v0.pdf` - EAGLE 7.6 schematic, as PDF
+* `tex-v0.brd` - EAGLE 7.6 board layout
+* `tex-v0.png` - EAGLE 7.6 board layout, as image
 
 The PDF shows all the relevant pin assignments.
+
+![](text-v0-front.jpg)
+
+![](text-v0-back.jpg)
 
 Further down below is a section about a alternate board, called the Blue Pill.
 

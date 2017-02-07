@@ -150,12 +150,12 @@ func sendByte(b uint8) {
 }
 
 func send2bytes(v int) {
-	sendByte(uint8(v>>8))
+	sendByte(uint8(v >> 8))
 	sendByte(uint8(v))
 }
 
 func send4bytes(v int) {
-	send2bytes(v>>16)
+	send2bytes(v >> 16)
 	send2bytes(v)
 }
 
@@ -198,7 +198,7 @@ func massErase(size int) {
 		// ... so erase a list of segments instead, 1 more than needed
 		n := (size+127)/128 + 1 // really? always 128 bytes per segment?
 		n = 200
-		send2bytes(n-1)
+		send2bytes(n - 1)
 		for i := 0; i < n; i++ {
 			send2bytes(i)
 		}

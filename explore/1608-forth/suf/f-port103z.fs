@@ -21,5 +21,6 @@ include usb.fs
   usb-io  \ switch to USB as console
 ;
 
-here hex.
+( usb end: ) here hex.
 cornerstone eraseflash
+compiletoram

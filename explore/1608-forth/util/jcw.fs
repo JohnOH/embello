@@ -1,3 +1,0 @@
-\ Jean-Claude Wippler's code snippets...
-\
-\ eh... nothing here yet - coming soon!

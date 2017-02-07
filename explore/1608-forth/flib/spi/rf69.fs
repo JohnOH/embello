@@ -56,7 +56,7 @@
 \   0200 h, 0302 h, 048A h, 0502 h, 06E1 h, 0B20 h, 194A h, 1A42 h,
 \   1E0C h, 2607 h, 29A0 h, 2B40 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
 \   3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
-
+\ newer version:
 \  0200 h, 0302 h, 048A h, 0505 h, 06C3 h, 0B20 h, 1942 h, 1A42 h,
 \  1E0C h, 2607 h, 29C4 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
 \  3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
