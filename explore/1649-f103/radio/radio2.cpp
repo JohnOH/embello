@@ -28,7 +28,7 @@ const int rf_nodeid = 28;
 const bool verbose = true;
 volatile int external;
 
-extern "C" void exti9_5_isr(void)			//ISR function 
+extern "C" void exti2_isr(void)			//ISR function 
 /*
 File github/libopencm3/lib/stm32/f1/vector_nvic.c has a weak link to a blocking handler:
 #pragma weak exti2_isr = blocking_handler
@@ -39,9 +39,9 @@ The extern "C" definition above overrides the weak link and thereby causes our
 our interrupt handler below to be linked into the IRQ_HANDLERS table:
 */
 {
-      if((EXTI_PR & EXTI9) != 0)   		//Check if PB9 has triggered the interrupt
+      if((EXTI_PR & EXTI2) != 0)   		//Check if PA2 has triggered the interrupt
       {                                 
-          EXTI_PR |= EXTI9;				//Clear PB9
+          EXTI_PR |= EXTI2;				//Clear PA2
           external++;
       }
 
@@ -57,15 +57,15 @@ void setup () {
 
     printf("\n[radio]\n");
 
-	rcc_periph_clock_enable(RCC_GPIOB);				// Enable GPIOB clock
+	rcc_periph_clock_enable(RCC_GPIOA);				// Enable GPIOA clock
 	rcc_periph_clock_enable(RCC_AFIO);				// Enable AFIO clock
-	nvic_enable_irq(NVIC_EXTI9_5_IRQ);				// Enable EXTI9_5 interrupt
-    gpio_set_mode(GPIOB, GPIO_MODE_INPUT,			// PB9/DIO3 Interrupt
-            GPIO_CNF_INPUT_PULL_UPDOWN, GPIO9);	
-	exti_select_source(EXTI9, GPIOB);				// Set the AFIO_EXTICR1 register     
+	nvic_enable_irq(NVIC_EXTI2_IRQ);				// Enable EXTI9 interrupt
+    gpio_set_mode(GPIOA, GPIO_MODE_INPUT,			// PA8/DIO3 Interrupt
+            GPIO_CNF_INPUT_PULL_UPDOWN, GPIO2);	
+	exti_select_source(EXTI2, GPIOA);				// Set the AFIO_EXTICR1 register     
 //	exti_direction = 1;								// RISING
-	exti_set_trigger(EXTI9, EXTI_TRIGGER_RISING);	// Set the EXTI_RTSR register
-	exti_enable_request(EXTI9);						// Set the EXTI_IMR & EXTI_EMR register
+	exti_set_trigger(EXTI2, EXTI_TRIGGER_RISING);	// Set the EXTI_RTSR register
+	exti_enable_request(EXTI2);						// Set the EXTI_IMR & EXTI_EMR register
 	
     rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");

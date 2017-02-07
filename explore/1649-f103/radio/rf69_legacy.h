@@ -46,6 +46,7 @@ class RF69 {
       REG_FEIMSB        = 0x21,
       REG_FEILSB        = 0x22,
       REG_RSSIVALUE     = 0x24,
+	  REG_DIOMAPPING1   = 0x25,
       REG_IRQFLAGS1     = 0x27,
       REG_IRQFLAGS2     = 0x28,
       REG_SYNCVALUE1    = 0x2F,
@@ -77,6 +78,11 @@ class RF69 {
       IRQ2_FIFOOVERRUN  = 1<<4,
       IRQ2_PACKETSENT   = 1<<3,
       IRQ2_PAYLOADREADY = 1<<2,
+      
+      // TX Mode
+      DIO0_PACKETSENT   = 0x00,
+      // RX Mode
+      DIO0_RSSI         = 0xC0,
     };
 
     void setMode (uint8_t newMode);
@@ -210,6 +216,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
 	if (mode != MODE_RECEIVE) {
 		setMode(MODE_SLEEP);
 		writeReg(REG_IRQFLAGS2, IRQ2_FIFOOVERRUN);  	// Clear FIFO
+		writeReg(REG_DIOMAPPING1, (DIO0_RSSI /*| DIO3_RSSI  DIO0_SYNCADDRESS*/));// Interrupt triggers
     	setMode(MODE_RECEIVE);
     } else {
 		static uint8_t lastFlag;
@@ -316,8 +323,8 @@ uint RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
 #if RF69_SPI_BULK
 	spi.enable();
 	spi.transfer(REG_FIFO | 0x80);
-	spi.transfer(myId);
-	crc = crc_ccitt_update(crc, myId);
+	spi.transfer(myId | 32); //Ack
+	crc = crc_ccitt_update(crc, myId | 32);
 	spi.transfer(len);
 	crc = crc_ccitt_update(crc, len);
 	for (int i = 0; i < len; i++) {
@@ -328,8 +335,8 @@ uint RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
 	spi.transfer((const uint8_t) crc >> 8);
 	spi.disable();
 #else
-	writeReg(REG_FIFO, myId);
-	crc = crc_ccitt_update(crc, myId);
+	writeReg(REG_FIFO, myId | 32);
+	crc = crc_ccitt_update(crc, myId | 32);
 	writeReg(REG_FIFO, len);
 	crc = crc_ccitt_update(crc, len);
 	for (int i = 0; i < len; i++) {
@@ -339,7 +346,7 @@ uint RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
 	writeReg(REG_FIFO, (const uint8_t) crc);
 	writeReg(REG_FIFO, (const uint8_t) (crc >> 8));
 #endif
-
+	writeReg(REG_DIOMAPPING1, (DIO0_PACKETSENT));// Interrupt triggers
 	setMode(MODE_TRANSMIT);
 	while ((readReg(REG_IRQFLAGS2) & IRQ2_PACKETSENT) == 0)
 		chThdYield();
