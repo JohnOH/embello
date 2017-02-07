@@ -50,20 +50,14 @@
   42 variable rf.group
   61 variable rf.nodeid
 
-\ jcw version
-\  0200 h, 0302 h, 048A h, 0505 h, 06C3 h, 0B20 h, 1942 h, 1A42 h,
-\  1E0C h, 2607 h, 29C4 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
-\  3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
-
-\ tve version copied from Go driver
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 hex
   0100 h, \ opmode: sleep
   0200 h, \ packet mode, fsk
   0302 h, 048A h, \ bit rate 49,261 hz
-  0502 h, 06E1 h, \ 45Khz Fdev   *** 2E1->5C3=45.1khz->90.3khz
+  0505 h, 06C3 h, \ 90.3kHzFdev -> modulation index = 2
   0B20 h, \ low M
-  194A h, 1A42 h, \ RxBw 100khz, AFCBw 125khz *** RxBw 100->125Khz
+  1942 h, 1A42 h, \ RxBw 125khz, AFCBw 125khz
   1E0C h, \ AFC auto-clear, auto-on
   2607 h, \ disable clkout
   29C4 h, \ RSSI thres -98dB
