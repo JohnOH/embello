@@ -25,6 +25,12 @@ Each I2C transaction consists of the following steps:
 
 ```
 
+### Constants
+
+The `SCL` and `SDA` constants can be defined _before_ including this driver, if
+you want to use I2C on other pins than the default `PB6` and `PB7`,
+respectively.
+
 ### Examples
 
 T.B.D.
