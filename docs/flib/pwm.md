@@ -1,7 +1,7 @@
 # Pulse Width Modulation
 
-* Code: `pwm-stm32fs1.fs`
-* Needs `io-stm32f1.fs`, `timer-stm32f1.fs`
+* Code: `stm32f1/pwm.fs`
+* Needs `stm32f1/io.fs`, `stm32f1/timer.fs`
 
 The following pins are supported for PWM setup on STM32F1xx:
 
