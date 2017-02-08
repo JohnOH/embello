@@ -1,5 +1,7 @@
 \ test long input lines, i.e. more than one 64-byte USB packet
 
+forgetram
+
 : a ." abcdefghijabcdefghijabcdefghijabcdefghijabcdefghij" ;
 a
 : b ." abcdefghijabcdefghijabcdefghijabcdefghij"

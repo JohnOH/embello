@@ -1,5 +1,5 @@
 \ application setup and main loop
-\ assumes that the BME280 sensor is connected to PB6..PB7
+\ assumes that the BME280 and TSL4531 sensors are connected to PB6..PB7
 
 0 constant DEBUG  \ 0 = send RF packets, 1 = display on serial port
 10 constant RATE  \ seconds between readings

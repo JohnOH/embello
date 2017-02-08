@@ -27,7 +27,7 @@
   ticks @ ;
 
 : us ( n -- )  \ microsecond delay using a busy loop, this won't switch tasks
-  3 -  \ adjust for approximate overhead of this code itself
+  2 -  \ adjust for approximate overhead of this code itself
   micros +  begin dup micros - 0< until  drop ;
 
 : ms ( n -- )  \ millisecond delay, multi-tasker aware (may switch tasks!)
