@@ -31,7 +31,7 @@ subdirectories.
 ### lib/
 
 The [lib/](https://github.com/jeelabs/embello/tree/master/lib/) subdirectory is
-a bit older, and was intended to play a similar role as `flib/`, but for th
+a bit older, and was intended to play a similar role as `flib/`, but for the
 C/C++ code written for NXP's LPC810 and LPC8xx µCs.
 
 ### projects/
