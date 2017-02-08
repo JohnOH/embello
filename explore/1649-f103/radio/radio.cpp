@@ -32,9 +32,9 @@ extern "C" void exti2_isr(void)			//ISR function
 /*
 
 File github/libopencm3/lib/stm32/f1/vector_nvic.c has a weak link to a blocking handler:
-#pragma weak exti9_5_isr = blocking_handler
+#pragma weak exti2_isr = blocking_handler
 The above weak link is by default built into the IRQ_HANDLERS table by
-    [NVIC_EXTI9_5_IRQ] = exti9_5_isr, \
+    [NVIC_EXTI2_IRQ] = exti2_isr, \
 this effectively handles the interrupt with the blocking handler.
 The extern "C" definition above overrides the weak link and thereby causes our
 our interrupt handler below to be linked into the IRQ_HANDLERS table:
@@ -59,13 +59,12 @@ void setup () {
 
     printf("\n[radio]\n");
 
-	rcc_periph_clock_enable(RCC_GPIOA);				// Enable GPIOB clock
+	rcc_periph_clock_enable(RCC_GPIOA);				// Enable GPIOA clock
 	rcc_periph_clock_enable(RCC_AFIO);				// Enable AFIO clock
-	nvic_enable_irq(NVIC_EXTI2_IRQ);				// Enable EXTI9_5 interrupt
-    gpio_set_mode(GPIOA, GPIO_MODE_INPUT,			// PB9/DIO3 Interrupt
+	nvic_enable_irq(NVIC_EXTI2_IRQ);				// Enable EXTI2 interrupt
+    gpio_set_mode(GPIOA, GPIO_MODE_INPUT,			// PA2/DIO3 Interrupt
             GPIO_CNF_INPUT_PULL_UPDOWN, GPIO2);	
 	exti_select_source(EXTI2, GPIOA);				// Set the AFIO_EXTICR1 register     
-//	exti_direction = 1;								// RISING
 	exti_set_trigger(EXTI2, EXTI_TRIGGER_RISING);	// Set the EXTI_RTSR register
 	exti_enable_request(EXTI2);						// Set the EXTI_IMR & EXTI_EMR register
 	
@@ -82,9 +81,9 @@ void setup () {
 	printf("GPIOA_BSRR=0x%08X\n", GPIOA_BSRR);
 	printf("GPIOA_BRR=0x%04X\n", GPIOA_BRR);
 	printf("AFIO_EXTICR1=0x%04X\n", AFIO_EXTICR1);
-	printf("AFIO_EXTICR2=0x%04X\n", AFIO_EXTICR2);
-	printf("AFIO_EXTICR3=0x%04X\n", AFIO_EXTICR3);
-	printf("AFIO_EXTICR4=0x%04X\n", AFIO_EXTICR4);
+//	printf("AFIO_EXTICR2=0x%04X\n", AFIO_EXTICR2);
+//	printf("AFIO_EXTICR3=0x%04X\n", AFIO_EXTICR3);
+//	printf("AFIO_EXTICR4=0x%04X\n", AFIO_EXTICR4);
 	printf("EXTI_RTSR=0x%05X\n", EXTI_RTSR);
 	printf("EXTI_FTSR=0x%05X\n", EXTI_FTSR);
 	printf("EXTI_IMR=0x%05X\n", EXTI_IMR);
