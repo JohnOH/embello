@@ -1,8 +1,9 @@
 \ Simple support for unit tests.
 
 -1 variable tests-OK
-: fail-tests 0 tests-OK ! ;
-: test-summary 
+: fail-tests 0 tests-OK ! ; \ used by assertions
+
+: test-summary ( -- ) \ print a summary of tests
   tests-OK @ not if ." ** TESTS FAILED! **" else
   depth 0<> if ." ** TESTS OK but stack not empty: " .v else
   ." ** ALL OK **" then then cr ;
@@ -18,7 +19,7 @@
     ." FAIL: got " f. ." expected " f. fail-tests
   else 2drop 2drop then ;
 
-: always ( f -- )
+: always ( f -- ) \ assert that the flag on TOS is true
   0= if
     ." FAIL!" fail-tests
   else ." OK!" then ;
