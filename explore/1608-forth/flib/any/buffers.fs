@@ -8,5 +8,8 @@
   drop 2r>
   ;
 
+: buffer-cpy ( c-addr1 c-addr2 len -- c-addr1 len ) \ c-addr1 is dest c-addr2 is src
+  swap 2 pick 2 pick move ;
+
 : buffer. ( c-addr len -- ) \ print buffer like @<adr> <len> [ <c1> <c2> ... <cLen> ]
   ." @" over . dup . ." [ " 255 and 0 ?do dup i + c@ . loop drop ." ]" ;
