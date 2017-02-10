@@ -7,6 +7,8 @@
 Design files (Eagle v7): [schematic](jnz-rev4.sch) ([PDF](jnz-rev4.pdf)) +
 [board](jnz-rev4.brd) ([PNG](jnz-rev4.png)).
 
+----
+
 ## JNZ revision 3
 
 This is the second iteration (revision 2 never made it to an actual PCB). It has
@@ -30,6 +32,8 @@ DIO pin connections: DIO0: PB0, DIO1: PB1, DIO2: PB4.
 
 Design files (Eagle v7): [schematic](jnz-rev3.sch) ([PDF](jnz-rev3.pdf)) +
 [board](jnz-rev3.brd) ([PNG](jnz-rev3.png)).
+
+----
 
 ## JNZ revision 1
 
