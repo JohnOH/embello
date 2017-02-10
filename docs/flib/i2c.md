@@ -1,6 +1,7 @@
 # I2C communication driver
 
 * Code: `any/i2c-bb.fs`
+* Needs: `io`
 
 This describes the portable _bit-banged_ version of the I2C driver.
 
@@ -27,8 +28,8 @@ Each I2C transaction consists of the following steps:
 
 ### Constants
 
-The `SCL` and `SDA` constants can be defined _before_ including this driver, if
-you want to use I2C on other pins than the default `PB6` and `PB7`,
+The `SCL` and `SDA` constants should be defined _before_ including this driver,
+if you want to use I2C on other pins than the default `PB6` and `PB7`,
 respectively.
 
 ### Examples

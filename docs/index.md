@@ -48,7 +48,7 @@ The [tools/](https://github.com/jeelabs/embello/tree/master/tools/) area
 contains the source code for a number of tools, also described on the weblog.
 See the respective `README.md` files in each subdirectory for details.
 
-### Some more links
+## Some more links
 
 For all background info and docs, see the weblog at <http://jeelabs.org/>.
 
@@ -58,8 +58,8 @@ tracker](https://github.com/jeelabs/embello/issues) on GitHub.
 For general discussion and help, there's a forum at <http://jeelabs.net/>.  You
 have to [register](http://jeelabs.net/account/register) and jump through a few
 [hoops](http://jeelabs.net/boards/11/topics/5690) to be able to post and
-participate in the discussions, due to some anti-spam measures - _probably
-because of this, the forum is more or less noise-free._
+participate in the discussions, due to some anti-spam measures - _but as a
+result, the forum is more or less noise-free._
 
 Everything in the embello repository is Open Source, see the
 "[unlicense](https://github.com/jeelabs/embello/blob/master/UNLICENSE)".  To
