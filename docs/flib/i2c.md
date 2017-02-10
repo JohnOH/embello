@@ -1,5 +1,6 @@
 # I2C communication driver
 
+[code]: any/i2c-bb.fs (io)
 * Code: `any/i2c-bb.fs`
 * Needs: `io`
 
@@ -16,6 +17,7 @@ Each I2C transaction consists of the following steps:
 
 ### API
 
+[defs]: <> (i2c-init i2c-addr i2c-xfer >i2c i2c> i2c.)
 ```
 : i2c-init ( -- )  \ initialise bit-banged I2C
 : i2c-addr ( u -- )  \ start a new I2C transaction
