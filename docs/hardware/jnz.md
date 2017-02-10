@@ -4,6 +4,8 @@
 
 ![](jnz-rev4-pinout.png)
 
+The LED is on PA8, "0" is on.
+
 Design files (Eagle v7): [schematic](jnz-rev4.sch) ([PDF](jnz-rev4.pdf)) +
 [board](jnz-rev4.brd) ([PNG](jnz-rev4.png)).
 

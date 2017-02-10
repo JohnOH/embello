@@ -4,6 +4,8 @@ The "HyTiny" is an STMF103-based board sold by [Haoyu](http://www.hotmcu.com/stm
 
 ![](hytiny-pinout.png)
 
+The LED is on PA1, "0" is on.
+
 ### Known issues:
 
 * The "SWCLK" and "SWDIO" labels are mixed up on the silkscreen.

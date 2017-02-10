@@ -1,13 +1,13 @@
 # Blue (and Red) Pill
 
 These boards have been available for quite some time from eBay and AliExpress.
-Just search for "STM32F103C8T6 board" on these sites.
+Just search for "STM32F103C8T6 board" on those sites.
 
 ![](bluepill-pinout.gif)
 
-This diagram is from an excellent page about the [Blue
+(this diagram is from an excellent page about the [Blue
 Pill](http://wiki.stm32duino.com/index.php?title=Blue_Pill) on
-[STM32duino](http://wiki.STM32duino.com).
+[STM32duino](http://wiki.STM32duino.com))
 
 ### Known issues:
 
