@@ -2,6 +2,7 @@
 
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/timer.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/exti.h>
 #include <libopencm3/cm3/systick.h>
@@ -27,6 +28,8 @@ const int rf_nodeid = 28;
 
 const bool verbose = true;
 volatile int external;
+volatile int timer;
+volatile uint32_t time;
 
 extern "C" void exti2_isr(void)			//ISR function 
 /*
@@ -45,8 +48,15 @@ our interrupt handler below to be linked into the IRQ_HANDLERS table:
       {                                 
           EXTI_PR |= EXTI2;				//Clear PB9
           external++;
+//          time = HAL_GetTick():
       }
 
+}
+
+extern "C" void tim2_isr(void)
+{
+	TIM_SR(TIM2) &= ~TIM_SR_UIF;
+	timer++;
 }
 
 void setup () {
@@ -67,6 +77,11 @@ void setup () {
 	exti_select_source(EXTI2, GPIOA);				// Set the AFIO_EXTICR1 register     
 	exti_set_trigger(EXTI2, EXTI_TRIGGER_RISING);	// Set the EXTI_RTSR register
 	exti_enable_request(EXTI2);						// Set the EXTI_IMR & EXTI_EMR register
+
+	rcc_periph_clock_enable(RCC_TIM2);
+	nvic_enable_irq(NVIC_TIM2_IRQ);
+	timer_enable_irq(TIM2, TIM_DIER_UIE);
+//	timer_enable_counter(TIM2);
 	
     rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");
@@ -121,6 +136,15 @@ void loop () {
         rf.send(0, txBuf, txCnt);
         txCnt = (txCnt + 1) % sizeof txBuf;
     }
+    
+    if (external) {
+    	printf("Interrupted %u\n", external);
+    	external = 0;
+    }
+    if (timer) {
+    	printf("Timer Interrupted %u\n", timer);
+    	timer = 0;
+    }
 
     int len = rf.receive(rxBuf, sizeof rxBuf);
     if (len >= 0 && len <= 72) {
@@ -131,16 +155,12 @@ void loop () {
             printf(" %u", rxBuf[i]);
         const char* sep = rf.afc < 0 ? "" : "+";
         if (verbose)
-            printf("  (%g%s%d:%d)", rf.rssi * 0.5, sep, rf.afc, rf.lna);
+            printf("  (%g %s%d %d)", rf.rssi * 0.5, sep, rf.afc, rf.lna);
         putchar('\n');
 
         gpio_toggle(GPIOA, GPIO1);
         gpio_toggle(GPIOC, GPIO13);
 
-    }
-    if (external) {
-    	printf("Interrupted %u\n", external);
-    	external = 0;
     }
 }
 void SysTick_Handler(void)

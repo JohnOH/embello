@@ -83,7 +83,8 @@ class RF69 {
       DIO0_PACKETSENT   = 0x00,
       // RX Mode
       DIO0_RSSI         = 0xC0,
-      DIO0_SYNCADDRESS  = 0x80
+      DIO0_SYNCADDRESS  = 0x80,
+      DIO3_RSSI         = 0x01
     };
 
     void setMode (uint8_t newMode);
@@ -135,6 +136,7 @@ void RF69<SPI>::configure (const uint8_t* p) {
 
 static const uint8_t configRegs [] = {
 // POR value is better for first rf_sleep  0x01, 0x00, // OpMode = sleep
+  0x25, 0x00, // Set DIOMAPPING1 to POR value
   0x02, 0x00, // DataModul = packet mode, fsk
   0x03, 0x02, // BitRateMsb, data rate = 49,261 khz
   0x04, 0x8A, // BitRateLsb, divider = 32 MHz / 650 == 49,230 khz
@@ -150,19 +152,21 @@ static const uint8_t configRegs [] = {
 
   0x26, 0x07, // disable clkout
 
-  0x29, 0xFF, // RssiThresh ... -127.5dB
+  0x29, 0xD2, // RssiThresh ... -110dB
 
   0x2E, 0x98, // SyncConfig = sync on, sync size = 4
   0x2F, 0xAA, // SyncValue1 = 0xAA
   0x30, 0xAA, // SyncValue2 = 0xAA
   0x31, 0x2D, // SyncValue3 = 0x2D
   0x32, 0xD4, // SyncValue4 = 212, Group
+  0x33, 0x00, // SyncValue5
   
   0x37, 0x00, // PacketConfig1 = fixed, no crc, filt off
   0x38, 0x00, // PayloadLength = 0, unlimited
   0x3C, 0x85, // at least four bytes in the FIFO :id:len=0:crc-l:crc-h:
   0x3D, 0x10, // PacketConfig2, interpkt = 1, autorxrestart off
-  0x6F, 0x20, // TestDagc ...
+  0x58, 0x2D, // High sensitivity mode
+  0x6F, 0x30, // TestDagc ...
   0
 };
 
@@ -217,7 +221,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
 	if (mode != MODE_RECEIVE) {
 		setMode(MODE_SLEEP);
 		writeReg(REG_IRQFLAGS2, IRQ2_FIFOOVERRUN);  	// Clear FIFO
-		writeReg(REG_DIOMAPPING1, (DIO0_SYNCADDRESS /*| DIO3_RSSI  DIO0_SYNCADDRESS*/));// Interrupt triggers
+		writeReg(REG_DIOMAPPING1, (DIO0_SYNCADDRESS | DIO3_RSSI));// Interrupt triggers
     	setMode(MODE_RECEIVE);
     } else {
 		static uint8_t lastFlag;
