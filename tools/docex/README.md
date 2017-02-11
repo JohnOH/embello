@@ -7,17 +7,20 @@ The directives are in a format which will be ignored by Markdown:
 * `"[code]:" <source-file> "(" <dependency-list> ")"`
 
     This needs to be the first directive in the documentation file, it loads the
-    specified _source file_, and generates a few documentation lines. Example:
+    specified _source-file_, and generates a few documentation lines. Example:
 
         [code]: rf69.fs (spi)
       
 * `"[defs]:" <source-file> "(" <word-list> ")"`
 
-    This inserts word definitions found in the source code, in the order
-    specified in the _word list_. _Source file_ can be "<>" if it's the same as
+    Insert word definitions found in the source code, in the order
+    specified in the _word-list_. The _source-file_ can be `<>` if it's the same as
     in the previous directive. Example:
 
         [defs]: <> (rf-init rf-recv rf-send)
+
+* all directives _must_ be followed by an empty line for the expander to work
+  properly!
 
 Usage: `docex docfile...`
 
