@@ -25,10 +25,13 @@ include ../flib/stm32l0/spi.fs
 
 PB5 constant LED
 
+PB4 constant DIO2
+
+
 : led-on LED ioc! ;
 : led-off LED ios! ;
 
-: hello ( -- ) flash-kb . ." KB <jnz> " hwid hex.
+: hello ( -- ) flash-kb . ." KB <jz3> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -
   ." ram/flash: " . . ." free " ;
 
