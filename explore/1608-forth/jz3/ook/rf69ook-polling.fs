@@ -6,9 +6,9 @@
 \ until micros slowness bug is fixed.
 5 constant R.2^MSBEATS
 1 R.2^MSBEATS lshift constant R.MSBEATS \ power of two for fast millis function
-: millis ticks @ R.2^MSBEATS rshift ;
+\ : millis ticks @ R.2^MSBEATS rshift ;
 \ for tsample = 32us a fast, but low resolution micros (for the time being)
-: micros ticks @ R.2^MSBEATS lshift ;
+\ : micros ticks @ R.2^MSBEATS lshift ;
 
 
 1000 / R.MSBEATS constant R.TSAMPLE
@@ -16,9 +16,9 @@
 
 
 : setup
-  \ 16MHz 1000 dup systick-hz ." systick-hz: " . cr
+  16MHz 1000 dup systick-hz ." systick-hz: " . cr
   \ due to slowness bug in micros, use non-standard systick.
-  16MHz 1000000 R.TSAMPLE / dup systick-hz ." systick-hz: " . cr
+  \ 16MHz 1000000 R.TSAMPLE / dup systick-hz ." systick-hz: " . cr
   IMODE-FLOAT DIO2 io-mode!
   868280 ook-init
   micros ook.ts ! ;
@@ -80,7 +80,8 @@
     r.rssi   \ RSSI statistics and auto threshold
     r.report
     r.flush
-    micros swap - R.TSAMPLE < if sleep then
+    \ \ micros swap - R.TSAMPLE < if sleep then
+    micros swap - dup R.TSAMPLE < if R.TSAMPLE swap - us else drop then
     1 r.cnt +!
   key? until 
   ;
@@ -89,7 +90,4 @@
   setup
   receiver
   ;
-
-\ : tt millis 100000 0 do ook-rssi@ 255 swap - >rssi loop millis swap - . ;
-\ : tb millis 31250 0 do sleep loop millis swap - . ;
 
