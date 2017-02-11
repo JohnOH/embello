@@ -9,7 +9,7 @@ The directives are in a format which will be ignored by Markdown:
     This needs to be the first directive in the documentation file, it loads the
     specified _source file_, and generates a few documentation lines. Example:
 
-      [code]: rf69.fs (spi)
+        [code]: rf69.fs (spi)
       
 * `"[defs]:" <source-file> "(" <word-list> ")"`
 
@@ -17,7 +17,7 @@ The directives are in a format which will be ignored by Markdown:
     specified in the _word list_. _Source file_ can be "<>" if it's the same as
     in the previous directive. Example:
 
-      [defs]: <> (rf-init rf-recv rf-send)
+        [defs]: <> (rf-init rf-recv rf-send)
 
 Usage: `docex docfile...`
 
