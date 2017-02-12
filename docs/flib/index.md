@@ -3,6 +3,7 @@
 * JeeNode Zero - STM32L0xx µC (Cortex M0+)
     * [ADC](adc-l0.md) - Analog to digital converter
     * [GPIO](gpio-l0.md) - General Purpose I/O for STM32L0xx µCs
+    * [SLEEP](sleep-l0.md) - Low-power sleep utilities
 * STM32F103 µC (Cortex M3)
     * [GPIO](gpio-f1.md) - General Purpose I/O for STM32F1xx µCs
     * [PWM](pwm-f1.md) - Pulse Width Modulation

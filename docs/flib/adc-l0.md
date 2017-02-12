@@ -26,7 +26,7 @@ This interfaces to the built-in 1 Msps ADC of the STM32L0xx µC.
 : adc-temp ( -- degc )  \ measure chip temperature
 ```
 
-### Example
+### Examples
 
     adc-init
     adc .
