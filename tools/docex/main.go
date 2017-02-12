@@ -33,7 +33,23 @@ func main() {
 	}
 }
 
-func transformAndReplace(filename string) error {
+func transformAndReplace(docFile string) error {
+	fp, err := os.Open(docFile)
+	if err != nil {
+		return err
+	}
+	result, err := transformDoc(fp)
+	if err != nil {
+		return err
+	}
+	fp.Close()
+	fp, err = os.Create(docFile)
+	if err != nil {
+		return err // this might mean we've lost the file contents...
+	}
+	for _, line := range result {
+		fmt.Fprintln(fp, line)
+	}
 	return nil
 }
 
