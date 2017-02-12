@@ -1,8 +1,8 @@
 # I2C communication driver
 
 [code]: any/i2c-bb.fs (io)
-* Code: `any/i2c-bb.fs`
-* Needs: `io`
+* Code: any/i2c-bb.fs
+* Needs: io
 
 This describes the portable _bit-banged_ version of the I2C driver.
 
@@ -25,6 +25,7 @@ Each I2C transaction consists of the following steps:
 : >i2c ( u -- )  \ send one byte out to the I2C bus
 : i2c> ( -- u )  \ read one byte back from the I2C bus
 : i2c. ( -- )  \ scan and report all I2C devices on the bus
+```
 
 ```
 

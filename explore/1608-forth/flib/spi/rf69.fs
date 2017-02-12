@@ -41,14 +41,14 @@
 
    0 variable rf.mode
    0 variable rf.last
-   0 variable rf.rssi
-   0 variable rf.lna
-   0 variable rf.afc
-  66 buffer:  rf.buf
+   0 variable rf.rssi  \ RSSI signal strength of last reception
+   0 variable rf.lna   \ Low Noise Amplifier setting (set by AGC)
+   0 variable rf.afc   \ Auto Frequency Control offset
+  66 buffer:  rf.buf   \ buffer with last received packet data
 
-8683 variable rf.freq
-  42 variable rf.group
-  61 variable rf.nodeid
+8683 variable rf.freq    \ frequency (auto-scaled to 100..999 MHz)
+  42 variable rf.group   \ network group (1..250)
+  61 variable rf.nodeid  \ node ID of this node (1..63)
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 hex
@@ -143,7 +143,8 @@ decimal align
 : rf-power ( n -- )  \ change TX power level (0..31)
   RF:PA rf@ $E0 and or RF:PA rf! ;
 
-: rf-sleep ( -- ) RF:M_SLEEP rf!mode ;  \ put radio module to sleep
+: rf-sleep ( -- )  \ put radio module to sleep
+  RF:M_SLEEP rf!mode ;
 
 : rf-recv ( -- b )  \ check whether a packet has been received, return #bytes
   rf.mode @ RF:M_RX <> if
