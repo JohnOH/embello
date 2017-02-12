@@ -13,6 +13,7 @@ import (
 
 var (
 	root  = flag.String("d", ".", "root directory of source files")
+	url   = flag.String("u", "", "base URL of source files on the web")
 	quiet = flag.Bool("q", false, "quiet, omit progress output")
 )
 
@@ -92,10 +93,14 @@ func transformDoc(inFile *os.File) ([]string, error) {
 
 			case "code":
 				if dpath != "" {
-					add("* Code: " + dpath)
+					s := dpath
+					if *url != "" {
+						s = fmt.Sprintf("<a href=\"%s\">%s</a>", *url+s, s)
+					}
+					add("* Code: " + s)
 				}
 				if len(dargs) > 0 {
-					add("* Needs: " + strings.Join(dargs, " "))
+					add("* Needs: " + strings.Join(dargs, ", "))
 				}
 
 			case "defs":
