@@ -16,7 +16,7 @@ These primitives are for using General Purpose I/O pins on STM32L0xx.
 
 [defs]: <> (io@ ioc! ios! iox! io!)
 ```
-: io@ ( pin -- u )  \ get pin value (0 or 1)
+: io@ ( pin -- u )  \ get pin value (0 or -1)
 : ioc! ( pin -- )  \ clear pin to low
 : ios! ( pin -- )  \ set pin to high
 : iox! ( pin -- )  \ toggle pin
