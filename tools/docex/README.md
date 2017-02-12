@@ -14,7 +14,7 @@ The directives are in a format which will be ignored by Markdown:
     This needs to be the first directive in the documentation file, it loads the
     specified _source-file_, and generates a few documentation lines. Example:
 
-        [code]: rf69.fs (spi)
+        [code]: spi/rf69.fs (spi)
       
 * `"[defs]:" <source-file> "(" <word-list> ")"`
 
