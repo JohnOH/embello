@@ -27,8 +27,6 @@ Each I2C transaction consists of the following steps:
 : i2c. ( -- )  \ scan and report all I2C devices on the bus
 ```
 
-```
-
 ### Constants
 
 The `SCL` and `SDA` constants should be defined _before_ including this driver,
