@@ -43,7 +43,8 @@ $40012400 constant ADC1
   adc-calib  1 ADC-CR !   \ perform calibration, then set ADEN to enable ADC
   adc-once drop ;
 
-: -adc ( -- ) 1 bit ADC-CR bis! 9 bit RCC-APB2ENR bic! ;
+: adc-deinit ( -- )  \ de-initialise ADC
+  1 bit ADC-CR bis! 9 bit RCC-APB2ENR bic! ;
 
 : adc ( pin -- u )  \ read ADC value, repeated twice to avoid chip erratum
 \ IMODE-ADC over io-mode!
