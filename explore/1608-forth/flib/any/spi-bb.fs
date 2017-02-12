@@ -1,6 +1,7 @@
 \ bit-banged SPI driver
 
-[ifndef] ssel  PA4 variable ssel  [then]  \ can be changed at run time
+PA4 variable ssel  \ can be changed at run time
+
 [ifndef] SCLK  PA5 constant SCLK  [then]
 [ifndef] MISO  PA6 constant MISO  [then]
 [ifndef] MOSI  PA7 constant MOSI  [then]
