@@ -152,8 +152,8 @@ This is a transcript of loading "h" and then "l" into the system with the
         <<<<<<<<<<< ../flib/spi/rf69.fs (164 lines)
         >>> include ../flib/any/i2c-bb.fs
         <<<<<<<<<<< ../flib/any/i2c-bb.fs (49 lines)
-        >>> include ../flib/i2c/oled.fs
-        <<<<<<<<<<< ../flib/i2c/oled.fs (93 lines)
+        >>> include ../flib/i2c/ssd1306.fs
+        <<<<<<<<<<< ../flib/i2c/ssd1306.fs (93 lines)
         >>> include ../flib/mecrisp/graphics.fs
         <<<<<<<<<<< ../flib/mecrisp/graphics.fs (247 lines)
         >>> include ../flib/mecrisp/multi.fs
