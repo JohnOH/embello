@@ -2,6 +2,11 @@ This is a documentation expander for Embello. It parses a Markdown file for
 _directives_ and inserts word definitions copied from source files referenced in
 those directives.
 
+**Usage: `docex [-d <dir>] docfile...`**
+
+* _dir_ is the root directory where source files are read from (default ".")
+* expand from stdin to stdout if no docfiles are passed in)
+
 The directives are in a format which will be ignored by Markdown:
 
 * `"[code]:" <source-file> "(" <dependency-list> ")"`
@@ -19,10 +24,13 @@ The directives are in a format which will be ignored by Markdown:
 
         [defs]: <> (rf-init rf-recv rf-send)
 
-* all directives _must_ be followed by an empty line for the expander to work
-  properly!
+**WARNING #1:** be sure to always add an _empty line_ after each directive,
+because the expander will _replace_ everything up to that next empty line with
+updated information.
 
-Usage: `docex docfile...`
+**WARNING #2:** all files passed as argument will be _overwritten_ by their
+expanded versions.
 
-> Note that these files will be _overwritten_ by their expanded versions, and
-> that the documentation files can be updated by running docex again.
+To update the documentation at a later date, run the expander again on the same
+files. Due to the way it is set up, all existing expansions will be replaced by
+updated ones.

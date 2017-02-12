@@ -6,12 +6,17 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 )
 
+var (
+	root  = flag.String("d", ".", "root directory of source files")
+	quiet = flag.Bool("q", false, "quiet, omit progress output")
+)
+
 func main() {
-	_ = flag.String("p", ".", "directory path of source files")
 	flag.Parse()
 
 	if flag.NArg() == 0 {
@@ -24,7 +29,9 @@ func main() {
 		}
 	} else {
 		for _, filename := range flag.Args() {
-			fmt.Println("Processing:", filename)
+			if !*quiet {
+				fmt.Fprintln(os.Stderr, "  processing:", filename)
+			}
 			err := transformAndReplace(filename)
 			if err != nil {
 				log.Fatal(err)
@@ -85,10 +92,10 @@ func transformDoc(inFile *os.File) ([]string, error) {
 
 			case "code":
 				if dpath != "" {
-					add("Code: " + dpath)
+					add("* Code: " + dpath)
 				}
 				if len(dargs) > 0 {
-					add("Needs: " + strings.Join(dargs, " "))
+					add("* Needs: " + strings.Join(dargs, " "))
 				}
 
 			case "defs":
@@ -125,7 +132,10 @@ func parseDirective(line string) (string, string, []string) {
 }
 
 func loadSource(srcFile string) ([]string, error) {
-	fp, err := os.Open(srcFile)
+	if !*quiet {
+		fmt.Fprintln(os.Stderr, " source file:", srcFile)
+	}
+	fp, err := os.Open(path.Join(*root, srcFile))
 	if err != nil {
 		return nil, err
 	}
