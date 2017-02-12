@@ -1,7 +1,7 @@
 # GPIO for STM32L0xx µCs
 
 [code]: stm32l0/io.fs (hal)
-* Code: stm32l0/io.fs
+* Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/stm32l0/io.fs">stm32l0/io.fs</a>
 * Needs: hal
 
 These primitives are for using General Purpose I/O pins on STM32L0xx.

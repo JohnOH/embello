@@ -1,7 +1,7 @@
 # SPI communication driver
 
 [code]: any/spi-bb.fs (io)
-* Code: any/spi-bb.fs
+* Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/any/spi-bb.fs">any/spi-bb.fs</a>
 * Needs: io
 
 This describes the portable _bit-banged_ version of the SPI driver.
@@ -57,4 +57,4 @@ additional slave select:
 
     PB0 ios!  OMODE-PP PB0 io-mode!
 
-Once configured, this will let you switch to that slave using `PB0 ssel !`.
+Once configured, this will let you switch to that slave using "`PB0 ssel !`".

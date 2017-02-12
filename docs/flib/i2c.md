@@ -1,7 +1,7 @@
 # I2C communication driver
 
 [code]: any/i2c-bb.fs (io)
-* Code: any/i2c-bb.fs
+* Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/any/i2c-bb.fs">any/i2c-bb.fs</a>
 * Needs: io
 
 This describes the portable _bit-banged_ version of the I2C driver.

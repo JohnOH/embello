@@ -1,8 +1,8 @@
 # Pulse Width Modulation
 
 [code]: stm32f1/pwm.fs (io timer)
-* Code: stm32f1/pwm.fs
-* Needs: io timer
+* Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/stm32f1/pwm.fs">stm32f1/pwm.fs</a>
+* Needs: io, timer
 
 The following pins are supported for PWM setup on STM32F1xx:
 
