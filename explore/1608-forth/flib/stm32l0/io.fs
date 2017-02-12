@@ -54,9 +54,9 @@ $50000000 constant GPIO-BASE
 %0000110 constant OMODE-PP     \ output, push-pull
 %1000110 constant OMODE-OD     \ output, open drain
 
-      -2 constant OMODE-WEAK   \ add to OMODE-* for 400 KHz iso 10 MHz drive
-      -1 constant OMODE-SLOW   \ add to OMODE-* for 2 MHz iso 10 MHz drive
-       1 constant OMODE-FAST   \ add to OMODE-* for 35 MHz iso 10 MHz drive
+-2 constant OMODE-WEAK  \ add to OMODE-* for 400 KHz iso 10 MHz drive
+-1 constant OMODE-SLOW  \ add to OMODE-* for 2 MHz iso 10 MHz drive
+ 1 constant OMODE-FAST  \ add to OMODE-* for 35 MHz iso 10 MHz drive
 
 
 : io-config ( bits pin offset -- )  \ replace 2 bits in specified h/w register

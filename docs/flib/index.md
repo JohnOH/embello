@@ -1,5 +1,7 @@
 # Forth Library Documentation
 
+* [GPIO-F1](gpio-f1.md) - General Purpose I/O for STM32F1xx µCs
+* [GPIO-L0](gpio-l0.md) - General Purpose I/O for STM32L0xx µCs
 * [I2C](i2c.md) - I2C communication driver
 * [PWM](pwm.md) - Pulse Width Modulation
 * [SPI](spi.md) - SPI communication driver
