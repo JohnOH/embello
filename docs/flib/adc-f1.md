@@ -3,7 +3,7 @@
 [code]: stm32f1/adc.fs ()
 * Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/stm32f1/adc.fs">stm32f1/adc.fs</a>
 
-This interfaces to the built-in 1 Msps ADC of the STM32F1xx µC.
+This interfaces to the built-in 1 Msps 12-bit ADC of the STM32F1xx µC.
 
 ### API
 
