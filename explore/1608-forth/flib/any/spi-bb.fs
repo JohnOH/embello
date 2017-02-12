@@ -1,6 +1,6 @@
 \ bit-banged SPI driver
 
-PA4 variable ssel  \ can be changed at run time
+PA4 variable ssel  \ pin used as slave select
 
 [ifndef] SCLK  PA5 constant SCLK  [then]
 [ifndef] MISO  PA6 constant MISO  [then]

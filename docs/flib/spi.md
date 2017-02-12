@@ -34,9 +34,11 @@ hardware device.
 : >spi> ( c -- c )  \ bit-banged SPI, 8 bits
 ```
 
+### Variables
+
 [defs]: <> (ssel)
 ```
-PA4 variable ssel  \ can be changed at run time
+PA4 variable ssel  \ pin used as slave select
 ```
 
 ### Constants
@@ -54,3 +56,5 @@ need to initialise the other pins yourself, e.g. to use `PB0` as
 additional slave select:
 
     PB0 ios!  OMODE-PP PB0 io-mode!
+
+Once configured, this will let you switch to that slave using `PB0 ssel !`.
