@@ -40,7 +40,7 @@ $40022000 constant FLASH
 : baud ( u -- u )  \ calculate baud rate divider, based on current clock rate
   clock-hz @ swap / ;
 
-: hsi-on
+: hsi-on ( -- )  \ turn on internal 16 MHz clock, needed by ADC
   0 bit RCC-CR bis!               \ set HSI16ON
   begin 2 bit RCC-CR bit@ until   \ wait for HSI16RDYF
 ;
