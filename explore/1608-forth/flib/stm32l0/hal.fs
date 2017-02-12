@@ -45,7 +45,8 @@ $40022000 constant FLASH
   begin 2 bit RCC-CR bit@ until   \ wait for HSI16RDYF
 ;
 
-: only-msi 8 bit RCC-CR ! ;  \ turn off HSI16, this'll disable the console UART
+: only-msi ( -- )  \ turn off HSI16, this disables the console UART
+  8 bit RCC-CR ! ;
 
 : 65KHz ( -- )  \ set the main clock to 65 KHz, assuming it was set to 2.1 MHz
   %111 13 lshift RCC-ICSCR bic!  65536 clock-hz ! ;

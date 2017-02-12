@@ -1,9 +1,9 @@
-# HAL for STM32L0xx µCs
+# HAL for STM32L0
 
 [code]: stm32l0/hal.fs ()
 * Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/stm32l0/hal.fs">stm32l0/hal.fs</a>
 
-The Hardware Abstraction Layer for STM32L0xx microcontrollers defines
+The Hardware Abstraction Layer for STM32L0 microcontrollers defines
 utilities to make code more portable across several architecture
 variations.
 
@@ -15,7 +15,7 @@ variations.
 : 2.1MHz ( -- )  \ set the main clock to 2.1 MHz
 : 65KHz ( -- )  \ set the main clock to 65 KHz, assuming it was set to 2.1 MHz
 : hsi-on ( -- )  \ turn on internal 16 MHz clock, needed by ADC
-: only-msi 8 bit RCC-CR ! ;  \ turn off HSI16, this'll disable the console UART
+: only-msi ( -- )  \ turn off HSI16, this disables the console UART
 ```
 
 [defs]: <> (systick-hz micros millis us ms)

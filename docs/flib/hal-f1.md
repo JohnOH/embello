@@ -1,9 +1,9 @@
-# HAL for STM32F1xx µCs
+# HAL for STM32F1
 
 [code]: stm32f1/hal.fs ()
 * Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/stm32f1/hal.fs">stm32f1/hal.fs</a>
 
-The Hardware Abstraction Layer for STM32F1xx microcontrollers defines
+The Hardware Abstraction Layer for STM32F1 microcontrollers defines
 utilities to make code more portable across several architecture
 variations.
 
