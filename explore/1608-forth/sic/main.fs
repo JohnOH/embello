@@ -134,7 +134,7 @@ IMODE-ADC ADC-IN io-mode!
       endof
     2 of \ == 2 -> do the work (measure, protect opamp, calculate pid)
       measure opamp-prot pid heatmon PWM-OUT pwm
-      output-is
+      output-is ." °C"
       0 90 next \ next step in 90 ms
       endof
     endcase
@@ -148,6 +148,7 @@ IMODE-ADC ADC-IN io-mode!
 
 \ enable the new ++ticks implementation 
 : enable-systick-pid ( -- )
+  1020 ms \ wait a bit for folie to time out
   ['] ++ticks irq-systick !
 ;
 
