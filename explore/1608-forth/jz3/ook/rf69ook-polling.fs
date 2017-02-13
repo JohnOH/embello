@@ -82,7 +82,7 @@
     r.report
     r.flush
     \ \ micros swap - R.TSAMPLE < if sleep then
-    micros swap - dup R.TSAMPLE < if R.TSAMPLE swap - us else drop then
+    micros swap - 8 + dup R.TSAMPLE < if R.TSAMPLE swap - us else drop then
     1 r.cnt +!
   key? until 
   ;
@@ -91,4 +91,7 @@
   setup
   receiver
   ;
+
+: t1 micros 20 us micros swap - . ;
+
 
