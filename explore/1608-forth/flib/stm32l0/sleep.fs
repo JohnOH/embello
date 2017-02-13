@@ -29,7 +29,7 @@ $40010400 constant EXTI
 \                       43-system-control-block/436-system-control-register
 $E000ED10 constant SCR
 
-: lptim? ( -- )
+: lptim? ( -- )  \ dump the low-power timer registers
   LPTIM1
   cr  ." ISR " dup @ h.2 space 4 +
       ." ICR " dup @ h.2 space 4 +
@@ -53,7 +53,8 @@ $E000ED10 constant SCR
   %1000000101 PWR-CR bis!         \ set ULP, CWUF, and LPSDSR
 ;
 
-: wfe ( -- ) [ $BF20 h, ] inline ; \ WFE Opcode, enters sleep mode
+: wfe ( -- )  \ WFE Opcode, enters sleep mode
+  [ $BF20 h, ] inline ;
 
 : stop-freq ( u -- )  \ enter stop mode, will resume when LPTIMER fires
   64 + 128 / LPTIM-ARR !                \ round and set LPTIMER count
@@ -65,9 +66,12 @@ $E000ED10 constant SCR
   2 bit SCR bic!                        \ clear SLEEPDEEP
 ;
 
-: stop100ms ( -- ) 3700   stop-freq ;
-: stop1s    ( -- ) 37000  stop-freq ;
-: stop10s   ( -- ) 370000 stop-freq ;
+: stop100ms ( -- )  \ sleep in low-power for 100 ms
+  3700   stop-freq ;
+: stop1s    ( -- )  \ sleep in low-power for 1 sec
+  37000  stop-freq ;
+: stop10s   ( -- )  \ sleep in low-power for 10 sec
+  370000 stop-freq ;
 
 \ : lp-blink ( -- )  only-msi  begin  stop1s led iox!  again ;
 \

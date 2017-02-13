@@ -25,7 +25,7 @@ PB3     DIO1
 PB4     DIO2
 PB5     DIO0
 
-PC13    LED
+PC13    LED  (PA1 for HyTiny)
 ```
 
 ### Example of use
@@ -36,11 +36,12 @@ As entered:
 folie -r        <= start the Folie utility from the command line
 2               <= select the second serial port
 ...             <= connection is lost, but folie automatically recovers
-!s trf69.fs     <= last command entered, radio listening starts automatically
+!s dev.fs       <= last command entered, radio listening starts automatically
+                <= hitting <enter> after three packets have been received
 
 ```
 
-Sample output transcript:
+Sample output transcript (assumes `board.fs` and `core.fs` already loaded):
 
 ```text
 $ folie -r
@@ -50,9 +51,8 @@ Select the serial port:
 ? 2
 Enter '!help' for additional help, or ctrl-d to quit.
 [connected to /dev/cu.usbmodemC920C931]
-!s trf69.fs
-4> io.fs 11: Redefine bit.  ok.
-1> trf69.fs 13:
+!s dev.fs
+1> dev.fs 7: rf-listen
 RF69 21EE0664050008C03E12 82034A1818A221A806218C25A79717A616B6
 RF69 21EE066605000EC03E12 82034A1818A2219606218B25BE9717A616B5
 RF69 21EE0664050024C03E12 82034A1818A2218606219025DA9717A616B5

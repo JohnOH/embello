@@ -30,8 +30,8 @@ $50000000 constant GPIO-BASE
   8 rshift  1-foldable ;
 : io-base ( pin -- addr )  \ convert pin to GPIO base address
   $F00 and 2 lshift GPIO-BASE +  1-foldable ;
-: io@ ( pin -- u )  \ get pin value (0 or 1)
-  dup io-base GPIO.IDR + @ swap io# rshift 1 and ;
+: io@ ( pin -- u )  \ get pin value (0 or -1)
+  dup io-base GPIO.IDR + @ swap io# rshift 1 and negate ;
 : ios! ( pin -- )  \ set pin to high
   dup io-mask swap io-base GPIO.BSRR + ! ;
 : ioc! ( pin -- )  \ clear pin to low
@@ -54,9 +54,9 @@ $50000000 constant GPIO-BASE
 %0000110 constant OMODE-PP     \ output, push-pull
 %1000110 constant OMODE-OD     \ output, open drain
 
-      -2 constant OMODE-WEAK   \ add to OMODE-* for 400 KHz iso 10 MHz drive
-      -1 constant OMODE-SLOW   \ add to OMODE-* for 2 MHz iso 10 MHz drive
-       1 constant OMODE-FAST   \ add to OMODE-* for 35 MHz iso 10 MHz drive
+-2 constant OMODE-WEAK  \ add to OMODE-* for 400 KHz iso 10 MHz drive
+-1 constant OMODE-SLOW  \ add to OMODE-* for 2 MHz iso 10 MHz drive
+ 1 constant OMODE-FAST  \ add to OMODE-* for 35 MHz iso 10 MHz drive
 
 
 : io-config ( bits pin offset -- )  \ replace 2 bits in specified h/w register

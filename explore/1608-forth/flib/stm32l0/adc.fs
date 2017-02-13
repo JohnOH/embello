@@ -43,18 +43,19 @@ $40012400 constant ADC1
   adc-calib  1 ADC-CR !   \ perform calibration, then set ADEN to enable ADC
   adc-once drop ;
 
-: -adc ( -- ) 1 bit ADC-CR bis! 9 bit RCC-APB2ENR bic! ;
+: adc-deinit ( -- )  \ de-initialise ADC
+  1 bit ADC-CR bis! 9 bit RCC-APB2ENR bic! ;
 
-: adc ( pin -- u )  \ read ADC value, repeated twice to avoid chip erratum
+: adc ( pin -- u )  \ read ADC value 2x to avoid chip erratum
 \ IMODE-ADC over io-mode!
   io# bit ADC-CHSELR !  adc-once drop adc-once ;
 
-: adc-vcc ( -- mv )
+: adc-vcc ( -- mv )  \ measure current Vcc
   22 bit ADC-CCR bis!  ADC-SMPR @  %111 ADC-SMPR !
   $1FF80078 h@ 3000 * 17 adc /
   swap  22 bit ADC-CCR bic!  ADC-SMPR ! ;
 
-: adc-temp ( -- degc )
+: adc-temp ( -- degc )  \ measure chip temperature
   23 bit ADC-CCR bis!  ADC-SMPR @  %111 ADC-SMPR !
   18 adc  swap  23 bit ADC-CCR bic!  ADC-SMPR !
   adc-vcc 3000 */ $1FF8007A h@ - 100 $1FF8007E h@ $1FF8007A h@ - */ 30 + ;

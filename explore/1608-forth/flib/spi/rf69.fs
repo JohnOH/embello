@@ -21,6 +21,7 @@
 
 0 2 lshift constant RF:M_SLEEP
 1 2 lshift constant RF:M_STDBY
+2 2 lshift constant RF:M_FS
 3 2 lshift constant RF:M_TX
 4 2 lshift constant RF:M_RX
 
@@ -30,6 +31,8 @@
 
      7 bit constant RF:IRQ1_MRDY
      6 bit constant RF:IRQ1_RXRDY
+     3 bit constant RF:IRQ1_RSSI
+     2 bit constant RF:IRQ1_TIMEOUT
      0 bit constant RF:IRQ1_SMATCH
 
      6 bit constant RF:IRQ2_FIFO_NE
@@ -38,20 +41,38 @@
 
    0 variable rf.mode
    0 variable rf.last
-   0 variable rf.rssi
-   0 variable rf.lna
-   0 variable rf.afc
-  66 buffer:  rf.buf
+   0 variable rf.rssi  \ RSSI signal strength of last reception
+   0 variable rf.lna   \ Low Noise Amplifier setting (set by AGC)
+   0 variable rf.afc   \ Auto Frequency Control offset
+  66 buffer:  rf.buf   \ buffer with last received packet data
 
-8683 variable rf.freq
-  42 variable rf.group
-  61 variable rf.nodeid
+8683 variable rf.freq    \ frequency (auto-scaled to 100..999 MHz)
+  42 variable rf.group   \ network group (1..250)
+  61 variable rf.nodeid  \ node ID of this node (1..63)
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 hex
-  0200 h, 0302 h, 048A h, 0505 h, 06C3 h, 0B20 h, 1942 h, 1A42 h,
-  1E0C h, 2607 h, 29C4 h, 2D05 h, 2E88 h, 2F2D h, 302A h, 37D0 h,
-  3842 h, 3C8F h, 3D12 h, 6F20 h, 7102 h, 0 h,  \ sentinel
+  0100 h, \ opmode: sleep
+  0200 h, \ packet mode, fsk
+  0302 h, 048A h, \ bit rate 49,261 hz
+  0505 h, 06C3 h, \ 90.3kHzFdev -> modulation index = 2
+  0B20 h, \ low M
+  1942 h, 1A42 h, \ RxBw 125khz, AFCBw 125khz
+  1E0C h, \ AFC auto-clear, auto-on
+  2607 h, \ disable clkout
+  29C4 h, \ RSSI thres -98dB
+  2B40 h, \ RSSI timeout after 128 bytes
+  2D05 h, \ Preamble 5 bytes
+  2E88 h, \ sync size 2 bytes
+  2F2D h, \ sync1: 0x2D
+  302A h, \ sync2: network group
+  37D0 h, \ drop pkt if CRC fails
+  3842 h, \ max 62 byte payload
+  3C8F h, \ fifo thres
+  3D12 h, \ PacketConfig2, interpkt = 1, autorxrestart on
+  6F20 h, \ Test DAGC
+  7102 h, \ RegTestAfc
+  0 h,  \ sentinel
 decimal align
 
 \ r/w access to the RF registers
@@ -73,7 +94,7 @@ decimal align
   ( u ) dup 10 rshift  RF:FRF rf!
   ( u ) dup 2 rshift  RF:FRF 1+ rf!
   ( u ) 6 lshift RF:FRF 2+ rf!
-;
+  ;
 
 : rf-group ( u -- ) RF:SYN2 rf! ;  \ set the net group (1..250)
 
@@ -81,12 +102,25 @@ decimal align
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
   drop ;
 
-: rf-init ( group freq -- )  \ init the RFM69 radio module
+: rf-ini ( group freq -- )  \ internal init of the RFM69 radio module
   spi-init
   $AA rf-check  $55 rf-check  \ will hang if there is no radio!
   rf:init rf-config!
   rf-freq rf-group ;
 
+\ rf-rssi checks whether the rssi bit is set in IRQ1 reg and sets the LED to match.
+\ It also checks whether there is an rssi timeout and restarts the receiver if so.
+: rf-rssi ( -- )
+  RF:IRQ1 rf@
+  dup RF:IRQ1_RSSI and 3 rshift 1 swap - LED io!
+  dup RF:IRQ1_TIMEOUT and if
+      RF:M_FS rf!mode
+    then
+  drop ;
+
+\ rf-status fetches the IRQ1 reg, checks whether rx_ready is set and was not set
+\ in rf.last. If so, it saves rssi, lna, and afc values; and then updates rf.last.
+\ rf.last ensures that the info is grabbed only once per packet.
 : rf-status ( -- )  \ update status values on RXRDY
   RF:IRQ1 rf@  RF:IRQ1_RXRDY and  rf.last @ <> if
     rf.last  RF:IRQ1_RXRDY over xor!  @ if
@@ -109,15 +143,16 @@ decimal align
 : rf-power ( n -- )  \ change TX power level (0..31)
   RF:PA rf@ $E0 and or RF:PA rf! ;
 
-: rf-sleep ( -- ) RF:M_SLEEP rf!mode ;  \ put radio module to sleep
+: rf-sleep ( -- )  \ put radio module to sleep
+  RF:M_SLEEP rf!mode ;
 
 : rf-recv ( -- b )  \ check whether a packet has been received, return #bytes
   rf.mode @ RF:M_RX <> if
     RF:M_RX rf!mode
-  else rf-status then
+  else rf-rssi rf-status then
   RF:IRQ2 rf@  RF:IRQ2_RECVD and if
     RF:FIFO rf@
-    rf.buf over 66 max rf-n@spi
+    rf.buf over 66 min rf-n@spi
   else 0 then ;
 
 : rf-send ( addr count hdr -- )  \ send out one packet
@@ -131,13 +166,14 @@ decimal align
   RF:M_STDBY rf!mode ;
 
 : rf-init ( -- )  \ init RFM69 with current rf.group and rf.freq values
-  rf.group @ rf.freq @ rf-init ;
+  rf.group @ rf.freq @ rf-ini ;
 
 : rf-info ( -- )  \ display reception parameters as hex string
   rf.freq @ h.4 rf.group @ h.2 rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4 ;
 
 : rf-listen ( -- )  \ init RFM69 and report incoming packets until key press
   rf-init cr
+  0 rf.last !
   begin
     rf-recv ?dup if
       ." RF69 " rf-info

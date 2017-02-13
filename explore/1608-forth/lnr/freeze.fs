@@ -1,6 +1,6 @@
 \ burn the final application in flash for self-contained use
 
-include always.fs
+include ../jz3/always.fs
 include board.fs
 include core.fs
 

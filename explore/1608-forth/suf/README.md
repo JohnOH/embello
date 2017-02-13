@@ -8,3 +8,5 @@ Serial USB driver for Forth - see <http://jeelabs.org/2016/06/standalone-usb-fir
 * **olimexino** - LeafLabs Maple and similar, for example [Olimex](https://www.olimex.com/Products/Duino/STM32/OLIMEXINO-STM32/) - PC12 low enables USB
 * **port103z** - Port103Z, see [WaveShare](http://www.waveshare.com/wiki/Port103Z) -
   PA3 low enables USB
+
+> Note: `generic` and `hytiny` have now been combined into a single `common` image, which determines the board type at run time, and inits the USB re-enumeration pin logic accordingly.
