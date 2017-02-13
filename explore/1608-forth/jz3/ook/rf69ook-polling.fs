@@ -73,6 +73,7 @@
   millis r.ts !
   millis rssi.ts !
   millis rssi.tss !
+  0 r.cnt !
 
   begin
     micros
