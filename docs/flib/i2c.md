@@ -1,8 +1,8 @@
 # I2C communication driver
 
 [code]: any/i2c-bb.fs (io)
-* Code: `any/i2c-bb.fs`
-* Needs: `io`
+* Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/any/i2c-bb.fs">any/i2c-bb.fs</a>
+* Needs: io
 
 This describes the portable _bit-banged_ version of the I2C driver.
 
@@ -25,7 +25,6 @@ Each I2C transaction consists of the following steps:
 : >i2c ( u -- )  \ send one byte out to the I2C bus
 : i2c> ( -- u )  \ read one byte back from the I2C bus
 : i2c. ( -- )  \ scan and report all I2C devices on the bus
-
 ```
 
 ### Constants
@@ -33,7 +32,3 @@ Each I2C transaction consists of the following steps:
 The `SCL` and `SDA` constants should be defined _before_ including this driver,
 if you want to use I2C on other pins than the default `PB6` and `PB7`,
 respectively.
-
-### Examples
-
-T.B.D.
