@@ -9,8 +9,9 @@ variations.
 
 ## API
 
-[defs]: <> (16MHz 2.1MHz 65KHz hsi-on only-msi)
+[defs]: <> (32MHz 16MHz 2.1MHz 65KHz hsi-on only-msi)
 ```
+: 32MHz ( -- )  \ set the main clock to 32 MHz
 : 16MHz ( -- )  \ set the main clock to 16 MHz
 : 2.1MHz ( -- )  \ set the main clock to 2.1 MHz
 : 65KHz ( -- )  \ set the main clock to 65 KHz, assuming it was set to 2.1 MHz
@@ -21,7 +22,7 @@ variations.
 [defs]: <> (systick-hz micros millis us ms)
 ```
 : systick-hz ( u -- )  \ enable systick interrupt at given frequency
-: micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
+: micros ( -- u )  \ return elapsed microseconds, this wraps after some 2000s
 : millis ( -- u )  \ return elapsed milliseconds, this wraps after 49 days
 : us ( n -- )  \ microsecond delay using a busy loop, this won't switch tasks
 : ms ( n -- )  \ millisecond delay, multi-tasker aware (may switch tasks!)
@@ -45,5 +46,5 @@ variations.
 
 [defs]: <> (clock-hz)
 ```
-16000000 variable clock-hz  \ the system clock is 16 MHz after reset
+16000000  variable clock-hz  \ the system clock is 16 MHz after reset
 ```
