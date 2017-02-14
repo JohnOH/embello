@@ -2,7 +2,7 @@
 
 | Name | |
 | --- | --- |
-| [JeeNode Zero](jnz.html) | ![](jnz-small.png) |
+| [JeeNode Zero](jnz.html) | ![](jnz-small.jpg) |
 
 | Other | Vendor |
 | --- | --- | --- |
