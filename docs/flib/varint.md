@@ -23,7 +23,7 @@ the absolute value in the remaining 31 bits.
 | -2,147,483,648 .. +2,147,483,647 | 5 |
 
 A varint will never start with a zero byte, but zeros can still occur _inside_
-a varint. Zero is reserved to support future encoding of other data types.
+a varint. The zero byte is reserved for future encoding of other data types.
 
 ## API
 
