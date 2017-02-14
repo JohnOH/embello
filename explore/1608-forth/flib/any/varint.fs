@@ -45,7 +45,8 @@
 : +pkt ( n -- )  \ append 32-bit signed value to packet
   pkt.ptr @ ! 4 pkt.ptr +! ;
 
-: <pkt ( format -- ) pkt.buf pkt.ptr ! +pkt ;  \ start collecting values
+: <pkt ( format -- )  \ start collecting values
+  pkt.buf pkt.ptr ! +pkt ;
 : pkt>rf ( -- )  \ broadcast the collected values as RF packet
   <v
     pkt.ptr @  begin  4 - dup @ >var  dup pkt.buf u<= until  drop
