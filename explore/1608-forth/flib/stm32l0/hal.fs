@@ -33,9 +33,12 @@ $40021000 constant RCC
      RCC $4C + constant RCC-CCIPR
 
 $40022000 constant FLASH
-\   FLASH $0 + constant FLASH-ACR
+   FLASH $00 + constant FLASH-ACR
 
-16000000 variable clock-hz  \ the system clock is 16 MHz after reset
+16000000  variable clock-hz  \ the system clock is 16 MHz after reset
+
+4096      variable us/cycle*2^16
+: us/cycl-factor 65536 1000000 um* clock-hz @ um/mod us/cycle*2^16 ! ;
 
 : baud ( u -- u )  \ calculate baud rate divider, based on current clock rate
   clock-hz @ swap / ;
@@ -49,7 +52,8 @@ $40022000 constant FLASH
   8 bit RCC-CR ! ;
 
 : 65KHz ( -- )  \ set the main clock to 65 KHz, assuming it was set to 2.1 MHz
-  %111 13 lshift RCC-ICSCR bic!  65536 clock-hz ! ;
+  %111 13 lshift RCC-ICSCR bic!  65536 clock-hz ! 
+  us/cycl-factor ;
 
 : 2.1MHz ( -- )  \ set the main clock to 2.1 MHz
   RCC-ICSCR dup @  %111 13 lshift bic  %101 13 lshift or  swap !  \ range 5
@@ -57,13 +61,34 @@ $40022000 constant FLASH
   begin 9 bit RCC-CR bit@ until   \ wait for MSIRDY
   %00 RCC-CFGR !                  \ revert to MSI @ 2.1 MHz, no PLL
   $101 RCC-CR !                   \ turn off HSE, and PLL
-  2097000 clock-hz ! ;
+  2097000 clock-hz ! 
+  us/cycl-factor ;
 
 : 16MHz ( -- )  \ set the main clock to 16 MHz
   hsi-on
   %01 RCC-CFGR !                  \ revert to HSI16, no PLL
   1 RCC-CR !                      \ turn off MSI, HSE, and PLL
-  16000000 clock-hz ! ;
+  0 bit FLASH-ACR bic!            \ Set the flash latency to 0 WS
+  16000000 clock-hz ! 
+  us/cycl-factor ;
+
+: 32MHz ( -- )  \ set the main clock to 32 MHz
+  hsi-on
+  %01 RCC-CFGR !                           \ revert to HSI16, no PLL, no prescalers
+  1 RCC-CR !                               \ turn off MSI, HSE, and PLL
+  \ brute force already set to zero two lines above!
+  RCC-CFGR dup @ %1111 4 lshift bic swap ! \ RCC_CFGR_HPRE_NODIV
+  24 bit RCC-CR bic!                       \ clear RCC_CR_PLLON
+  begin 25 bit RCC-CR bit@ not until       \ wait for PLLRDY to clear
+  0 bit FLASH-ACR bis!                     \ Set the flash latency to 1 WS
+  16 bit RCC-CFGR bic!                     \ set PLL src HSI16
+  RCC-CFGR dup @ %1111 18 lshift bic %0001 18 lshift or swap ! \ set PLL mulitplier 4
+  RCC-CFGR dup @ %11 22 lshift bic %01 22 lshift or swap !     \ set PLL divisor 2
+  24 bit RCC-CR bis!                       \ set RCC_CR_PLLON
+  begin 25 bit RCC-CR bit@ until           \ wait for PLLRDY
+  RCC-CFGR dup @ %11 or swap !             \ set system clk source PLL
+  32000000 clock-hz ! 
+  us/cycl-factor ;
 
 0 variable ticks
 
@@ -75,12 +100,12 @@ $40022000 constant FLASH
 : systick-hz? ( -- u ) \ derive current systick frequency from clock
   clock-hz @  $E000E014 @ 1+  / ;
 
-: micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
-\ assumes systick is running at 1000 Hz, overhead is about 60 us @ 16 MHz
-\ get current ticks and systick, spinloops if ticks changed while we looked
+: micros ( -- u )  \ return elapsed microseconds, this wraps after some 2000s
+  \ get current ticks and systick, spinloops if ticks changed while we looked
   begin ticks @ $E000E018 @ over ticks @ <> while 2drop repeat
+  \ ticks @ $E000E018 @
   $E000E014 @ 1+ swap -  \ convert down-counter to remaining
-  1000000 clock-hz @ */ ( ticks systicks-as-us )
+  us/cycle*2^16 @ * 16 rshift
   swap 1000 * + ;
 
 : millis ( -- u )  \ return elapsed milliseconds, this wraps after 49 days

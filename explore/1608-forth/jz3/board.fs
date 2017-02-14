@@ -25,6 +25,9 @@ include ../flib/stm32l0/spi.fs
 
 PB5 constant LED
 
+PB4 constant DIO2
+
+
 : led-on LED ioc! ;
 : led-off LED ios! ;
 
