@@ -26,7 +26,7 @@ file.
 The
 [explore/1608-forth/flib/](https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/)
 area is structured as a _library_, with its files included in numerous other
-subdirectories.
+subdirectories. See the [documentation area](/flib/).
 
 ### lib/
 
