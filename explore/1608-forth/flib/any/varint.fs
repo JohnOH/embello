@@ -42,9 +42,10 @@
 20 cells buffer: pkt.buf  \ room to collect up to 20 values for sending
       0 variable pkt.ptr  \ current position in this packet buffer
 
-: >+pkt ( n -- ) pkt.ptr @ ! 4 pkt.ptr +! ;  \ append 32-bit signed value to packet
+: +pkt ( n -- )  \ append 32-bit signed value to packet
+  pkt.ptr @ ! 4 pkt.ptr +! ;
 
-: <pkt ( format -- ) pkt.buf pkt.ptr ! >+pkt ;  \ start collecting values
+: <pkt ( format -- ) pkt.buf pkt.ptr ! +pkt ;  \ start collecting values
 : pkt>rf ( -- )  \ broadcast the collected values as RF packet
   <v
     pkt.ptr @  begin  4 - dup @ >var  dup pkt.buf u<= until  drop
@@ -58,7 +59,7 @@
 0 variable var.ptr
 0 variable var.end
 
-: var-init ( addr cnt -- )
+: var-init ( addr cnt -- )  \ initialise the varint decoder
   over + var.end ! var.ptr ! ;
 
 : var> ( -- 0 | n 1 ) \ extract a signed number from the var buffer

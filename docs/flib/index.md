@@ -16,6 +16,7 @@ area on GitHub.
 | --- | --- |
 | [i2c](i2c.md) | Bit-banged I2C communication driver |
 | [spi](spi.md) | Bit-banged SPI communication driver |
+| [varint](varint.md) | Efficient variable-sized integer encoding |
 
 | Devices | |
 | --- | --- |
