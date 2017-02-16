@@ -81,6 +81,7 @@ class RF69 {
       
       // TX Mode
       DIO0_PACKETSENT   = 0x00,
+      DIO0_NONE			= 0x02,
       // RX Mode
       DIO0_RSSI         = 0xC0,
       DIO0_SYNCADDRESS  = 0x80,
@@ -152,7 +153,8 @@ static const uint8_t configRegs [] = {
 
   0x26, 0x07, // disable clkout
 
-  0x29, 0xD2, // RssiThresh ... -110dB
+//  0x29, 0xD2, // RssiThresh ... -110dB
+  0x29, 0xA0, // RssiThresh ... -80dB
 
   0x2E, 0x98, // SyncConfig = sync on, sync size = 4
   0x2F, 0xAA, // SyncValue1 = 0xAA
@@ -351,7 +353,8 @@ uint RF69<SPI>::send (uint8_t header, const void* ptr, int len) {
 	writeReg(REG_FIFO, (const uint8_t) crc);
 	writeReg(REG_FIFO, (const uint8_t) (crc >> 8));
 #endif
-	writeReg(REG_DIOMAPPING1, (DIO0_PACKETSENT));// Interrupt triggers
+//	writeReg(REG_DIOMAPPING1, (DIO0_PACKETSENT));// Interrupt triggers
+	writeReg(REG_DIOMAPPING1, (DIO0_NONE));		// Interrupt triggers
 	setMode(MODE_TRANSMIT);
 	while ((readReg(REG_IRQFLAGS2) & IRQ2_PACKETSENT) == 0)
 		chThdYield();

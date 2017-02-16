@@ -27,7 +27,10 @@ const int rf_group = 212;
 const int rf_nodeid = 28;
 
 const bool verbose = true;
-volatile int external;
+volatile int external2;
+volatile int external3;
+volatile int millis2;
+volatile int millis3;
 volatile int timer;
 volatile uint32_t time;
 
@@ -47,8 +50,18 @@ our interrupt handler below to be linked into the IRQ_HANDLERS table:
       if((EXTI_PR & EXTI2) != 0)   		//Check if PB9 has triggered the interrupt
       {                                 
           EXTI_PR |= EXTI2;				//Clear PB9
-          external++;
-//          time = HAL_GetTick():
+          external2++;
+          millis2 = millis();
+      }
+
+}
+extern "C" void exti3_isr(void)			//ISR function 
+{
+      if((EXTI_PR & EXTI3) != 0)   		//Check if PB9 has triggered the interrupt
+      {                                 
+          EXTI_PR |= EXTI3;				//Clear PB9
+          external3++;
+          millis3 = millis(); //- millis2;
       }
 
 }
@@ -77,6 +90,13 @@ void setup () {
 	exti_select_source(EXTI2, GPIOA);				// Set the AFIO_EXTICR1 register     
 	exti_set_trigger(EXTI2, EXTI_TRIGGER_RISING);	// Set the EXTI_RTSR register
 	exti_enable_request(EXTI2);						// Set the EXTI_IMR & EXTI_EMR register
+
+	nvic_enable_irq(NVIC_EXTI3_IRQ);				// Enable EXTI3 interrupt
+    gpio_set_mode(GPIOA, GPIO_MODE_INPUT,			// PA3/DIO0 Interrupt
+            GPIO_CNF_INPUT_PULL_UPDOWN, GPIO3);	
+	exti_select_source(EXTI3, GPIOA);				// Set the AFIO_EXTICR1 register     
+	exti_set_trigger(EXTI3, EXTI_TRIGGER_RISING);	// Set the EXTI_RTSR register
+	exti_enable_request(EXTI3);						// Set the EXTI_IMR & EXTI_EMR register
 
 	rcc_periph_clock_enable(RCC_TIM2);
 	nvic_enable_irq(NVIC_TIM2_IRQ);
@@ -137,9 +157,13 @@ void loop () {
         txCnt = (txCnt + 1) % sizeof txBuf;
     }
     
-    if (external) {
-    	printf("Interrupted %u\n", external);
-    	external = 0;
+    if (external2) {
+    	printf("Interrupt 2 %u micros=%u\n", external2, millis2);
+    	external2 = 0;
+    }
+    if (external3) {
+    	printf("Interrupt 3 %u micros=%u, %u\n", external3, millis3, (millis3-millis2));
+    	external3 = 0;
     }
     if (timer) {
     	printf("Timer Interrupted %u\n", timer);
@@ -163,8 +187,10 @@ void loop () {
 
     }
 }
+/*
 void SysTick_Handler(void)
 {
         gpio_toggle(GPIOA, GPIO1);
         gpio_toggle(GPIOC, GPIO13);
 }
+*/
