@@ -7,5 +7,5 @@ include core.fs
 compiletoflash
 include dev.fs
 
-\ run tests, even when connected (esepcially so, in fact!)
+\ run tests, even when connected (especially so, in fact!)
 : init init ( unattended ) blip ;
