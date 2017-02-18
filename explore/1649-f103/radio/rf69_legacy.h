@@ -172,6 +172,17 @@ static const uint8_t configRegs [] = {
   0
 };
 
+/* Packet format
+Group				212
+HDR					 47
+Len					 66
+66 byte max payload ...
+2 CRC			   ....
+
+Minimum packet is 4 or 5 bytes, depending on group setting, group is always transmitted
+but only occupies RX buffer space if receiver is set to group 0.
+*/
+
 template< typename SPI >
 void RF69<SPI>::init (uint8_t id, uint8_t groupid, int freq) {
   myId = id;

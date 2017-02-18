@@ -32,7 +32,9 @@ volatile int external3;
 volatile int millis2;
 volatile int millis3;
 volatile int timer;
+volatile bool flagT;
 volatile uint32_t time;
+volatile uint16_t RssiSync;
 
 extern "C" void exti2_isr(void)			//ISR function 
 /*
@@ -49,26 +51,32 @@ our interrupt handler below to be linked into the IRQ_HANDLERS table:
 {
       if((EXTI_PR & EXTI2) != 0)   		//Check if PB9 has triggered the interrupt
       {                                 
-          EXTI_PR |= EXTI2;				//Clear PB9
-          external2++;
-          millis2 = millis();
+        EXTI_PR |= EXTI2;				//Clear PA2
+		timer_enable_counter(TIM3);
+        external2++;
       }
 
 }
 extern "C" void exti3_isr(void)			//ISR function 
 {
-      if((EXTI_PR & EXTI3) != 0)   		//Check if PB9 has triggered the interrupt
+      if((EXTI_PR & EXTI3) != 0)   		//Check if PA3 has triggered the interrupt
       {                                 
-          EXTI_PR |= EXTI3;				//Clear PB9
-          external3++;
-          millis3 = millis(); //- millis2;
+        EXTI_PR |= EXTI3;				//Clear PA3
+		timer_disable_counter(TIM3);
+		RssiSync = timer_get_counter(TIM3);
+		timer_set_counter(TIM3, 0);
+        external3++;
       }
 
 }
 
-extern "C" void tim2_isr(void)
+extern "C" void tim3_isr(void)
 {
-	TIM_SR(TIM2) &= ~TIM_SR_UIF;
+	TIM_SR(TIM3) &= ~TIM_SR_UIF;
+	flagT = true;
+	timer_disable_counter(TIM3);
+	RssiSync = timer_get_counter(TIM3);
+	timer_set_counter(TIM3, 0);
 	timer++;
 }
 
@@ -98,15 +106,16 @@ void setup () {
 	exti_set_trigger(EXTI3, EXTI_TRIGGER_RISING);	// Set the EXTI_RTSR register
 	exti_enable_request(EXTI3);						// Set the EXTI_IMR & EXTI_EMR register
 
-	rcc_periph_clock_enable(RCC_TIM2);
-	nvic_enable_irq(NVIC_TIM2_IRQ);
-	timer_enable_irq(TIM2, TIM_DIER_UIE);
-//	timer_enable_counter(TIM2);
+	rcc_periph_clock_enable(RCC_TIM3);
+	timer_reset(TIM3);
+	timer_set_period(TIM3, 9500);		
+	timer_enable_irq(TIM3, TIM_DIER_UIE);			// Interrupt at set_period end
+	nvic_enable_irq(NVIC_TIM3_IRQ);
 	
     rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");
     rf.txPower(16); // 0 = min .. 31 = max
-	
+/*	
 	printf("RCC_APB2ENR=0x%04X\n", RCC_APB2ENR);
 	printf("GPIOA_CRL=0x%08X\n", GPIOA_CRL);
 	printf("GPIOA_CRH=0x%08X\n", GPIOA_CRH);
@@ -123,7 +132,7 @@ void setup () {
 	printf("EXTI_FTSR=0x%05X\n", EXTI_FTSR);
 	printf("EXTI_IMR=0x%05X\n", EXTI_IMR);
 	printf("EXTI_EMR=0x%05X\n", EXTI_EMR);
-
+*/
     for (int i = 0; i < (int) sizeof txBuf; ++i)
         txBuf[i] = i;
 
@@ -158,16 +167,16 @@ void loop () {
     }
     
     if (external2) {
-    	printf("Interrupt 2 %u micros=%u\n", external2, millis2);
+    	printf("RSSI, ");
     	external2 = 0;
     }
     if (external3) {
-    	printf("Interrupt 3 %u micros=%u, %u\n", external3, millis3, (millis3-millis2));
+    	printf("Sync in %u\n", RssiSync);
     	external3 = 0;
     }
-    if (timer) {
-    	printf("Timer Interrupted %u\n", timer);
-    	timer = 0;
+    if (flagT) {
+    	printf("Timeout %u %u\n\n", timer, RssiSync);
+    	flagT = false;
     }
 
     int len = rf.receive(rxBuf, sizeof rxBuf);
