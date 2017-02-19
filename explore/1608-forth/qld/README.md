@@ -1,7 +1,2 @@
-These files are for the Blue Pill and similar boards, running over USB-console.
-
-The pin definitions for up to 64-pin chips (Tx, Cx, and Rx) are included.
-
-Definitions for LED and other board-specific pins must be added on top of this.
-
-The `core.fs` file only includes OLED + graphics and multi-tasker support.
+This is a Blue Pill, connected to a JeeNode Zero with DTR, RTS and 4x SPI.
+The purpose is to measure the performance of re-flashing over SPI iso USART.
