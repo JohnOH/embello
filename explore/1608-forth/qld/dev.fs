@@ -9,7 +9,7 @@ PA1 constant BOOT0-PIN
 
 : boot-init
   spi2-init  +spi2  \ permanently held low
-  %0000000001010100 SPI2-CR1 !  \ clk/8, i.e. 4.5 MHz, master
+\ %0000000001010100 SPI2-CR1 !  \ clk/8, i.e. 4.5 MHz, master
   uart-irq-init
   RESET-PIN ioc!  OMODE-PP RESET-PIN io-mode!
   BOOT0-PIN ios!  OMODE-PP BOOT0-PIN io-mode!
@@ -39,10 +39,8 @@ PA1 constant BOOT0-PIN
   $79 >spi2
   $79 = ;
 
-: x 1 0 do usb-poll pause loop ;
-
 : check-ack ( -- )
-  wait-ack not if ."  NAK?" x reset then ;
+  wait-ack not if ."  NAK?" usb-poll reset then ;
 
 : send ( b -- )  dup >spi2  xsum @ xor xsum ! ;
 : send2 ( n -- )  dup 8 rshift send  send ;
@@ -74,14 +72,15 @@ PA1 constant BOOT0-PIN
   millis
   boot-mode
   sof check-ack
-  get-cmd hex.
-\ get-version hex.
-  get-id hex.
+  get-cmd hex . decimal
+\ get-version hex . decimal
+  get-id hex . decimal
   rd-unp
   wr-unp
+  key? drop  \ forces flushing if using USB
   512 erase
   320 0 do ( [char] + emit ) 0 i 128 * $08000000 + pgm loop
-  millis swap - .
+  cr millis swap - . ." ms "
 ;
 
 boot-init
