@@ -13,6 +13,7 @@ structure of these directories, and how source files should be loaded:
 * **`prc`** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
 * **`rvm`** - Remote voltmeter w/ STM32L052 and a 4-chan Analog Plug
 * **`suf`** - Serial USB driver for Forth, routes console I/O over USB
+* **`ten`** - Test Echo Node, used for testing JeeNode Zero boards
 * **`tex`** - Tiny Extender, a HyTiny w/ extender board for RFM69 + SPI flash
 * **`trf`** - Tiny RF node, a bridge from RFM69 to USB serial
 * **`zeb`** - STM32F103ZE "Basic" board w/ µSD and two 2x32-pin headers

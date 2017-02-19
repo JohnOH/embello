@@ -35,10 +35,10 @@
 : i2c-flush ( -- )
   i2c.prv @ x>i2c  ?dup if i2c.nak ! then ;
 
-: >i2c ( u -- )
+: >i2c ( u -- )  \ send one byte out to the I2C bus
   i2c-flush  i2c.prv ! ;
 
-: i2c> ( -- u )
+: i2c> ( -- u )  \ read one byte back from the I2C bus
   i2c.cnt @ dup if
     1- dup i2c.cnt !
     0= xi2c>
@@ -46,10 +46,10 @@
 
 : i2c>h ( -- u )  i2c> i2c> 8 lshift or ;
 
-: i2c-addr ( u -- )
+: i2c-addr ( u -- )  \ start a new I2C transaction
   shl  dup i2c.adr !  i2c.prv !  0 i2c.nak !  i2c-start ;
 
-: i2c-xfer ( u -- nak )
+: i2c-xfer ( u -- nak )  \ prepare for the reply
   i2c-flush
   dup i2c.cnt !  if
     i2c-start i2c.adr @ 1+ i2c.prv ! i2c-flush

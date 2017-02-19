@@ -16,7 +16,7 @@
 
 : low-power-sleep
   rf-sleep
-  -adc \ only-msi
+  adc-deinit \ only-msi
   rate 0 do stop1s loop
   hsi-on adc-init ;
 

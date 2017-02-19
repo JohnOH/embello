@@ -37,7 +37,8 @@
            dup c@  4 lshift swap 1+
                c@  4 rshift  or or ;
 
-: bme-data ( -- )  values  8 $F7 bme-rd drop ;
+: bme-data ( -- )  \ get a sensor reading from the BME280
+  values  8 $F7 bme-rd drop ;
 
 : bme-hpt ( -- rawh rawp rawt )
   values 6 + dup c@ 8 lshift swap 1+ c@ or  0 bme-u20be  3 bme-u20be ;
@@ -86,7 +87,8 @@
   100 * 512 + 10 arshift  \ convert 1/1024's to 1/100's, w/ rounding
 ;
 
-: bme-calc ( -- h p t ) bme-hpt tcalc -rot pcalc -rot hcalc -rot ;
+: bme-calc ( -- h p t )  \ convert reading to calibrated values
+  bme-hpt tcalc -rot pcalc -rot hcalc -rot ;
 
 \ bme-init .
 \ bme-calib params 32 dump

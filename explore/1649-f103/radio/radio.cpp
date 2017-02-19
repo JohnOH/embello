@@ -108,7 +108,7 @@ void setup () {
 
 	rcc_periph_clock_enable(RCC_TIM3);
 	timer_reset(TIM3);
-	timer_set_period(TIM3, 9500);		
+	timer_set_period(TIM3, 9370);		
 	timer_enable_irq(TIM3, TIM_DIER_UIE);			// Interrupt at set_period end
 	nvic_enable_irq(NVIC_TIM3_IRQ);
 	
@@ -171,11 +171,11 @@ void loop () {
     	external2 = 0;
     }
     if (external3) {
-    	printf("Sync in %u\n", RssiSync);
+    	printf("Sync in %ux(10-4)s\n", RssiSync);
     	external3 = 0;
     }
     if (flagT) {
-    	printf("Timeout %u %u\n\n", timer, RssiSync);
+    	printf("Timeout %u\n", timer);
     	flagT = false;
     }
 

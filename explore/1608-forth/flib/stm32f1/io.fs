@@ -35,16 +35,21 @@ $40010800 constant GPIO-BASE
 : (io!)  ( f pin -- pin* addr )
   swap 0= $10 and + dup io-mask swap io-base GPIO.BSRR +   2-foldable ;
 
-: io@  (   pin -- f )  (io@)  bit@ exit [ $1000 setflags 2 h, ' (io@)  ,
-  'f (io@)  h, ' bit@ , 'f bit@ h, ] ; \ get pin value (0 or -1)
-: ioc! (   pin -- )    (ioc!)    ! exit [ $1000 setflags 2 h, ' (ioc!) ,
-  'f (ioc!) h, '    ! , 'f    ! h, ] ; \ clear pin to low
-: ios! (   pin -- )    (ios!)    ! exit [ $1000 setflags 2 h, ' (ios!) ,
-  'f (ios!) h, '    ! , 'f    ! h, ] ; \ set pin to high
-: iox! (   pin -- )    (iox!) xor! exit [ $1000 setflags 2 h, ' (iox!) ,
-  'f (iox!) h, ' xor! , 'f xor! h, ] ; \ toggle pin, not interrupt safe
-: io!  ( f pin -- )    (io!)     ! exit [ $1000 setflags 2 h, ' (io!)  ,
-  'f (io!)  h, '    ! , 'f    ! h, ] ; \ set pin value
+: io@ ( pin -- f )  \ get pin value (0 or -1)
+  (io@)  bit@ exit [ $1000 setflags 2 h, ' (io@)  ,
+  'f (io@)  h, ' bit@ , 'f bit@ h, ] ;
+: ioc! ( pin -- )  \ clear pin to low
+  (ioc!)    ! exit [ $1000 setflags 2 h, ' (ioc!) ,
+  'f (ioc!) h, '    ! , 'f    ! h, ] ;
+: ios! ( pin -- )  \ set pin to high
+  (ios!)    ! exit [ $1000 setflags 2 h, ' (ios!) ,
+  'f (ios!) h, '    ! , 'f    ! h, ] ;
+: iox! ( pin -- )  \ toggle pin, not interrupt safe
+  (iox!) xor! exit [ $1000 setflags 2 h, ' (iox!) ,
+  'f (iox!) h, ' xor! , 'f xor! h, ] ;
+: io! ( f pin -- )  \ set pin value
+  (io!)     ! exit [ $1000 setflags 2 h, ' (io!)  ,
+  'f (io!)  h, '    ! , 'f    ! h, ] ;
 
 %0000 constant IMODE-ADC    \ input, analog
 %0100 constant IMODE-FLOAT  \ input, floating
@@ -55,8 +60,8 @@ $40010800 constant GPIO-BASE
 %1001 constant OMODE-AF-PP  \ alternate function, push-pull
 %1101 constant OMODE-AF-OD  \ alternate function, open drain
 
-  %01 constant OMODE-SLOW   \ add to OMODE-* for 2 MHz iso 10 MHz drive
-  %10 constant OMODE-FAST   \ add to OMODE-* for 50 MHz iso 10 MHz drive
+%01 constant OMODE-SLOW  \ add to OMODE-* for 2 MHz iso 10 MHz drive
+%10 constant OMODE-FAST  \ add to OMODE-* for 50 MHz iso 10 MHz drive
 
 : io-mode! ( mode pin -- )  \ set the CNF and MODE bits for a pin
   dup io-base GPIO.CRL + over 8 and shr + >r ( R: crl/crh )
