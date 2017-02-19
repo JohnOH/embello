@@ -11,6 +11,7 @@ structure of these directories, and how source files should be loaded:
 * **`i2c`** - I2C test setup with lots of breakout boards and JeeLabs plugs
 * **`lnr`** - Led Node Revisited - using a JeeNode Zero to drive LEDs via PWM
 * **`prc`** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
+* **`qld`** - Quick Loader -  using a Blue Pill to  re-flash a JNZ via SPI
 * **`rvm`** - Remote voltmeter w/ STM32L052 and a 4-chan Analog Plug
 * **`suf`** - Serial USB driver for Forth, routes console I/O over USB
 * **`ten`** - Test Echo Node, used for testing JeeNode Zero boards
