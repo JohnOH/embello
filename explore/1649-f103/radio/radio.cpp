@@ -27,58 +27,6 @@ const int rf_group = 212;
 const int rf_nodeid = 28;
 
 const bool verbose = true;
-volatile int external2;
-volatile int external3;
-volatile int millis2;
-volatile int millis3;
-volatile int timer;
-volatile bool flagT;
-volatile uint32_t time;
-volatile uint16_t RssiSync;
-
-extern "C" void exti2_isr(void)			//ISR function 
-/*
-
-File github/libopencm3/lib/stm32/f1/vector_nvic.c has a weak link to a blocking handler:
-#pragma weak exti2_isr = blocking_handler
-The above weak link is by default built into the IRQ_HANDLERS table by
-    [NVIC_EXTI2_IRQ] = exti2_isr, \
-this effectively handles the interrupt with the blocking handler.
-The extern "C" definition above overrides the weak link and thereby causes our
-our interrupt handler below to be linked into the IRQ_HANDLERS table:
-
-*/
-{
-      if((EXTI_PR & EXTI2) != 0)   		//Check if PB9 has triggered the interrupt
-      {                                 
-        EXTI_PR |= EXTI2;				//Clear PA2
-		timer_enable_counter(TIM3);
-        external2++;
-      }
-
-}
-extern "C" void exti3_isr(void)			//ISR function 
-{
-      if((EXTI_PR & EXTI3) != 0)   		//Check if PA3 has triggered the interrupt
-      {                                 
-        EXTI_PR |= EXTI3;				//Clear PA3
-		timer_disable_counter(TIM3);
-		RssiSync = timer_get_counter(TIM3);
-		timer_set_counter(TIM3, 0);
-        external3++;
-      }
-
-}
-
-extern "C" void tim3_isr(void)
-{
-	TIM_SR(TIM3) &= ~TIM_SR_UIF;
-	flagT = true;
-	timer_disable_counter(TIM3);
-	RssiSync = timer_get_counter(TIM3);
-	timer_set_counter(TIM3, 0);
-	timer++;
-}
 
 void setup () {
     // LED on HyTiny F103 is PA1, LED on BluePill F103 is PC13
@@ -106,11 +54,11 @@ void setup () {
 	exti_set_trigger(EXTI3, EXTI_TRIGGER_RISING);	// Set the EXTI_RTSR register
 	exti_enable_request(EXTI3);						// Set the EXTI_IMR & EXTI_EMR register
 
-	rcc_periph_clock_enable(RCC_TIM3);
-	timer_reset(TIM3);
-	timer_set_period(TIM3, 9370);		
-	timer_enable_irq(TIM3, TIM_DIER_UIE);			// Interrupt at set_period end
-	nvic_enable_irq(NVIC_TIM3_IRQ);
+	rcc_periph_clock_enable(RCC_TIM3);				// Power up timer 3
+	timer_reset(TIM3);								// Default timer 3
+	timer_set_period(TIM3, 9400);					// Approximately 940.0μs
+	timer_enable_irq(TIM3, TIM_DIER_UIE);			// Interrupt each time count met
+	nvic_enable_irq(NVIC_TIM3_IRQ);					// Enable timer 3 interrupts
 	
     rf.init(rf_nodeid, rf_group, rf_freq);
     //rf.encrypt("mysecret");
@@ -125,9 +73,9 @@ void setup () {
 	printf("GPIOA_BSRR=0x%08X\n", GPIOA_BSRR);
 	printf("GPIOA_BRR=0x%04X\n", GPIOA_BRR);
 	printf("AFIO_EXTICR1=0x%04X\n", AFIO_EXTICR1);
-//	printf("AFIO_EXTICR2=0x%04X\n", AFIO_EXTICR2);
-//	printf("AFIO_EXTICR3=0x%04X\n", AFIO_EXTICR3);
-//	printf("AFIO_EXTICR4=0x%04X\n", AFIO_EXTICR4);
+	printf("AFIO_EXTICR2=0x%04X\n", AFIO_EXTICR2);
+	printf("AFIO_EXTICR3=0x%04X\n", AFIO_EXTICR3);
+	printf("AFIO_EXTICR4=0x%04X\n", AFIO_EXTICR4);
 	printf("EXTI_RTSR=0x%05X\n", EXTI_RTSR);
 	printf("EXTI_FTSR=0x%05X\n", EXTI_FTSR);
 	printf("EXTI_IMR=0x%05X\n", EXTI_IMR);
