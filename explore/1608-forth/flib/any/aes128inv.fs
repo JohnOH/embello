@@ -4,9 +4,7 @@
 \ 
 \ Description:
 \ AES128 block cipher decryption
-\ Implementation is optimized on (low) memory usage.
-\ For AES-CTR and AES-CMAC as used in LoraWAN, this module is NOT needed.
-\ A testmodule is provided in the file aes128invtest.fs
+\ Implementation is optimized for (low) memory usage.
 \ 
 \ Requires : aes128.fs
 \ 
@@ -14,27 +12,25 @@
 \ With     : c-addr : input data in a 16-byte buffer
 \            key    : the orignal encryption key in 16-bytes 
 \ Output   : Decryption is in-situ so the 16-byte input data buffer contains the decrypted output.
-\ 
-\ 
 
-hex
 create s.box.inv
-  52 C, 09 C, 6A C, D5 C, 30 C, 36 C, A5 C, 38 C, BF C, 40 C, A3 C, 9E C, 81 C, F3 C, D7 C, FB C,
-  7C C, E3 C, 39 C, 82 C, 9B C, 2F C, FF C, 87 C, 34 C, 8E C, 43 C, 44 C, C4 C, DE C, E9 C, CB C,
-  54 C, 7B C, 94 C, 32 C, A6 C, C2 C, 23 C, 3D C, EE C, 4C C, 95 C, 0B C, 42 C, FA C, C3 C, 4E C,
-  08 C, 2E C, A1 C, 66 C, 28 C, D9 C, 24 C, B2 C, 76 C, 5B C, A2 C, 49 C, 6D C, 8B C, D1 C, 25 C,
-  72 C, F8 C, F6 C, 64 C, 86 C, 68 C, 98 C, 16 C, D4 C, A4 C, 5C C, CC C, 5D C, 65 C, B6 C, 92 C,
-  6C C, 70 C, 48 C, 50 C, FD C, ED C, B9 C, DA C, 5E C, 15 C, 46 C, 57 C, A7 C, 8D C, 9D C, 84 C,
-  90 C, D8 C, AB C, 00 C, 8C C, BC C, D3 C, 0A C, F7 C, E4 C, 58 C, 05 C, B8 C, B3 C, 45 C, 06 C,
-  D0 C, 2C C, 1E C, 8F C, CA C, 3F C, 0F C, 02 C, C1 C, AF C, BD C, 03 C, 01 C, 13 C, 8A C, 6B C,
-  3A C, 91 C, 11 C, 41 C, 4F C, 67 C, DC C, EA C, 97 C, F2 C, CF C, CE C, F0 C, B4 C, E6 C, 73 C,
-  96 C, AC C, 74 C, 22 C, E7 C, AD C, 35 C, 85 C, E2 C, F9 C, 37 C, E8 C, 1C C, 75 C, DF C, 6E C,
-  47 C, F1 C, 1A C, 71 C, 1D C, 29 C, C5 C, 89 C, 6F C, B7 C, 62 C, 0E C, AA C, 18 C, BE C, 1B C,
-  FC C, 56 C, 3E C, 4B C, C6 C, D2 C, 79 C, 20 C, 9A C, DB C, C0 C, FE C, 78 C, CD C, 5A C, F4 C,
-  1F C, DD C, A8 C, 33 C, 88 C, 07 C, C7 C, 31 C, B1 C, 12 C, 10 C, 59 C, 27 C, 80 C, EC C, 5F C,
-  60 C, 51 C, 7F C, A9 C, 19 C, B5 C, 4A C, 0D C, 2D C, E5 C, 7A C, 9F C, 93 C, C9 C, 9C C, EF C,
-  A0 C, E0 C, 3B C, 4D C, AE C, 2A C, F5 C, B0 C, C8 C, EB C, BB C, 3C C, 83 C, 53 C, 99 C, 61 C,
-  17 C, 2B C, 04 C, 7E C, BA C, 77 C, D6 C, 26 C, E1 C, 69 C, 14 C, 63 C, 55 C, 21 C, 0C C, 7D C,
+hex
+  52 c, 09 c, 6A c, D5 c, 30 c, 36 c, A5 c, 38 c, BF c, 40 c, A3 c, 9E c, 81 c, F3 c, D7 c, FB c,
+  7C c, E3 c, 39 c, 82 c, 9B c, 2F c, FF c, 87 c, 34 c, 8E c, 43 c, 44 c, C4 c, DE c, E9 c, CB c,
+  54 c, 7B c, 94 c, 32 c, A6 c, C2 c, 23 c, 3D c, EE c, 4C c, 95 c, 0B c, 42 c, FA c, C3 c, 4E c,
+  08 c, 2E c, A1 c, 66 c, 28 c, D9 c, 24 c, B2 c, 76 c, 5B c, A2 c, 49 c, 6D c, 8B c, D1 c, 25 c,
+  72 c, F8 c, F6 c, 64 c, 86 c, 68 c, 98 c, 16 c, D4 c, A4 c, 5C c, CC c, 5D c, 65 c, B6 c, 92 c,
+  6C c, 70 c, 48 c, 50 c, FD c, ED c, B9 c, DA c, 5E c, 15 c, 46 c, 57 c, A7 c, 8D c, 9D c, 84 c,
+  90 c, D8 c, AB c, 00 c, 8C c, BC c, D3 c, 0A c, F7 c, E4 c, 58 c, 05 c, B8 c, B3 c, 45 c, 06 c,
+  D0 c, 2C c, 1E c, 8F c, CA c, 3F c, 0F c, 02 c, C1 c, AF c, BD c, 03 c, 01 c, 13 c, 8A c, 6B c,
+  3A c, 91 c, 11 c, 41 c, 4F c, 67 c, DC c, EA c, 97 c, F2 c, CF c, CE c, F0 c, B4 c, E6 c, 73 c,
+  96 c, AC c, 74 c, 22 c, E7 c, AD c, 35 c, 85 c, E2 c, F9 c, 37 c, E8 c, 1C c, 75 c, DF c, 6E c,
+  47 c, F1 c, 1A c, 71 c, 1D c, 29 c, C5 c, 89 c, 6F c, B7 c, 62 c, 0E c, AA c, 18 c, BE c, 1B c,
+  FC c, 56 c, 3E c, 4B c, C6 c, D2 c, 79 c, 20 c, 9A c, DB c, C0 c, FE c, 78 c, CD c, 5A c, F4 c,
+  1F c, DD c, A8 c, 33 c, 88 c, 07 c, C7 c, 31 c, B1 c, 12 c, 10 c, 59 c, 27 c, 80 c, EC c, 5F c,
+  60 c, 51 c, 7F c, A9 c, 19 c, B5 c, 4A c, 0D c, 2D c, E5 c, 7A c, 9F c, 93 c, C9 c, 9C c, EF c,
+  A0 c, E0 c, 3B c, 4D c, AE c, 2A c, F5 c, B0 c, C8 c, EB c, BB c, 3C c, 83 c, 53 c, 99 c, 61 c,
+  17 c, 2B c, 04 c, 7E c, BA c, 77 c, D6 c, 26 c, E1 c, 69 c, 14 c, 63 c, 55 c, 21 c, 0C c, 7D c,
 decimal
 
 \ lookup byte in s.box
@@ -100,11 +96,10 @@ decimal
   ~sh-bytes
   ~s.b-all@
   ( round ) round-key-lut
-  round-key+
-  ;
+  round-key+ ;
 
 \ decrypt block
-: ~aes ( c-addr key -- ) \ aes128 decrypt block
+: aes-inv ( c-addr key -- ) \ aes128 decrypt block
   \ key-in
   expand-key
   dup >aes
@@ -113,6 +108,3 @@ decimal
   1 10 do i ~one-round -1 +loop
   \ input block is dechiphered in-situ
   ( data ) aes> ;
-
-: -aes ( c-addr key -- ) \ aes128 decrypt block (identical to ~aes)
-  ~aes ;

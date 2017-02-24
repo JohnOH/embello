@@ -1,39 +1,34 @@
-\ 128-bit AES
+\ 128-bit AES Encryption
 \ Author: SevenW from sevenwatt.com
 \ Date  : 2017-Feb-21
 \ 
 \ Description:
 \ AES128 block cipher encryption
 \ Implementation is optimized on (low) memory usage.
-\ For AES-CTR and AES-CMAC as used in LoraWAN, only AES-encryption is needed.
-\ Decryption is suported in the separate file: aes128inv.fs
-\ A testmodule is provided in the file aes128test.fs
 \ 
 \ Usage    : ( c-addr key ) +aes
 \ With     : c-addr : input data in a 16-byte buffer
 \            key    : the encryption key in 16-bytes 
 \ Output   : Encryption is in-situ so the 16-byte input data buffer contains the encrypted output.
-\ 
-\ 
 
-hex
 create s.box
-  63 C, 7C C, 77 C, 7B C, F2 C, 6B C, 6F C, C5 C, 30 C, 01 C, 67 C, 2B C, FE C, D7 C, AB C, 76 C,
-  CA C, 82 C, C9 C, 7D C, FA C, 59 C, 47 C, F0 C, AD C, D4 C, A2 C, AF C, 9C C, A4 C, 72 C, C0 C,
-  B7 C, FD C, 93 C, 26 C, 36 C, 3F C, F7 C, CC C, 34 C, A5 C, E5 C, F1 C, 71 C, D8 C, 31 C, 15 C,
-  04 C, C7 C, 23 C, C3 C, 18 C, 96 C, 05 C, 9A C, 07 C, 12 C, 80 C, E2 C, EB C, 27 C, B2 C, 75 C,
-  09 C, 83 C, 2C C, 1A C, 1B C, 6E C, 5A C, A0 C, 52 C, 3B C, D6 C, B3 C, 29 C, E3 C, 2F C, 84 C,
-  53 C, D1 C, 00 C, ED C, 20 C, FC C, B1 C, 5B C, 6A C, CB C, BE C, 39 C, 4A C, 4C C, 58 C, CF C,
-  D0 C, EF C, AA C, FB C, 43 C, 4D C, 33 C, 85 C, 45 C, F9 C, 02 C, 7F C, 50 C, 3C C, 9F C, A8 C,
-  51 C, A3 C, 40 C, 8F C, 92 C, 9D C, 38 C, F5 C, BC C, B6 C, DA C, 21 C, 10 C, FF C, F3 C, D2 C,
-  CD C, 0C C, 13 C, EC C, 5F C, 97 C, 44 C, 17 C, C4 C, A7 C, 7E C, 3D C, 64 C, 5D C, 19 C, 73 C,
-  60 C, 81 C, 4F C, DC C, 22 C, 2A C, 90 C, 88 C, 46 C, EE C, B8 C, 14 C, DE C, 5E C, 0B C, DB C,
-  E0 C, 32 C, 3A C, 0A C, 49 C, 06 C, 24 C, 5C C, C2 C, D3 C, AC C, 62 C, 91 C, 95 C, E4 C, 79 C,
-  E7 C, C8 C, 37 C, 6D C, 8D C, D5 C, 4E C, A9 C, 6C C, 56 C, F4 C, EA C, 65 C, 7A C, AE C, 08 C,
-  BA C, 78 C, 25 C, 2E C, 1C C, A6 C, B4 C, C6 C, E8 C, DD C, 74 C, 1F C, 4B C, BD C, 8B C, 8A C,
-  70 C, 3E C, B5 C, 66 C, 48 C, 03 C, F6 C, 0E C, 61 C, 35 C, 57 C, B9 C, 86 C, C1 C, 1D C, 9E C,
-  E1 C, F8 C, 98 C, 11 C, 69 C, D9 C, 8E C, 94 C, 9B C, 1E C, 87 C, E9 C, CE C, 55 C, 28 C, DF C,
-  8C C, A1 C, 89 C, 0D C, BF C, E6 C, 42 C, 68 C, 41 C, 99 C, 2D C, 0F C, B0 C, 54 C, BB C, 16 C,
+hex
+  63 c, 7C c, 77 c, 7B c, F2 c, 6B c, 6F c, C5 c, 30 c, 01 c, 67 c, 2B c, FE c, D7 c, AB c, 76 c,
+  CA c, 82 c, C9 c, 7D c, FA c, 59 c, 47 c, F0 c, AD c, D4 c, A2 c, AF c, 9C c, A4 c, 72 c, C0 c,
+  B7 c, FD c, 93 c, 26 c, 36 c, 3F c, F7 c, CC c, 34 c, A5 c, E5 c, F1 c, 71 c, D8 c, 31 c, 15 c,
+  04 c, C7 c, 23 c, C3 c, 18 c, 96 c, 05 c, 9A c, 07 c, 12 c, 80 c, E2 c, EB c, 27 c, B2 c, 75 c,
+  09 c, 83 c, 2C c, 1A c, 1B c, 6E c, 5A c, A0 c, 52 c, 3B c, D6 c, B3 c, 29 c, E3 c, 2F c, 84 c,
+  53 c, D1 c, 00 c, ED c, 20 c, FC c, B1 c, 5B c, 6A c, CB c, BE c, 39 c, 4A c, 4C c, 58 c, CF c,
+  D0 c, EF c, AA c, FB c, 43 c, 4D c, 33 c, 85 c, 45 c, F9 c, 02 c, 7F c, 50 c, 3C c, 9F c, A8 c,
+  51 c, A3 c, 40 c, 8F c, 92 c, 9D c, 38 c, F5 c, BC c, B6 c, DA c, 21 c, 10 c, FF c, F3 c, D2 c,
+  CD c, 0C c, 13 c, EC c, 5F c, 97 c, 44 c, 17 c, C4 c, A7 c, 7E c, 3D c, 64 c, 5D c, 19 c, 73 c,
+  60 c, 81 c, 4F c, DC c, 22 c, 2A c, 90 c, 88 c, 46 c, EE c, B8 c, 14 c, DE c, 5E c, 0B c, DB c,
+  E0 c, 32 c, 3A c, 0A c, 49 c, 06 c, 24 c, 5C c, C2 c, D3 c, AC c, 62 c, 91 c, 95 c, E4 c, 79 c,
+  E7 c, C8 c, 37 c, 6D c, 8D c, D5 c, 4E c, A9 c, 6C c, 56 c, F4 c, EA c, 65 c, 7A c, AE c, 08 c,
+  BA c, 78 c, 25 c, 2E c, 1C c, A6 c, B4 c, C6 c, E8 c, DD c, 74 c, 1F c, 4B c, BD c, 8B c, 8A c,
+  70 c, 3E c, B5 c, 66 c, 48 c, 03 c, F6 c, 0E c, 61 c, 35 c, 57 c, B9 c, 86 c, C1 c, 1D c, 9E c,
+  E1 c, F8 c, 98 c, 11 c, 69 c, D9 c, 8E c, 94 c, 9B c, 1E c, 87 c, E9 c, CE c, 55 c, 28 c, DF c,
+  8C c, A1 c, 89 c, 0D c, BF c, E6 c, 42 c, 68 c, 41 c, 99 c, 2D c, 0F c, B0 c, 54 c, BB c, 16 c,
 decimal
 
 \ allocate working memory in RAM
@@ -178,6 +173,129 @@ decimal
   \ input block is chiphered in-situ
   ( c-addr ) aes> ;
 
-\ alias
-: +aes ( c-addr key -- ) \ aes128 encrypt block (identical to aes)
-  aes ; 
+\ 128-bit AES CTR and AES CMAC as used in LoraWAN
+\ Author: SevenW from sevenwatt.com
+\ Date  : 2017-Feb-23
+\ 
+\ Description:
+\ AES128 CTR en- and de-cryption of a stream buffer
+\ AES128 CMAC hash key calculation
+\ 
+\ Requires : aes128.fs
+\ 
+\ Usage    : ( buf len key iv -- ) aes-ctr
+\ With     : buf        : c-addr input data in a byte buffer
+\            len        : the length of the encrypted data
+\            key        : c-addr of the encryption key
+\            iv         : c-addr of the initialization vector
+\ Output   : Encryption is in-situ so the input data buffer contains the encrypted output.
+\ Note     : Decryption is achieved by calling the encrypted data with the same IV and key.
+\ 
+\ Usage    : ( buf len key iv -- mic ) aes-cmac
+\ With     : buf        : c-addr input data in a byte buffer
+\            len        : the length of the encrypted data
+\            key        : c-addr of the encryption key
+\            iv         : c-addr of the initialization vector
+\ Output   : mic        : c-addr of the mac. Lora uses the first four bytes as 32-bit mic
+
+16 buffer: AESkey
+16 buffer: AESaux
+
+\ AES-CTR
+
+16 buffer: ctr
+0 variable buf-addr
+0 variable buf-seg
+
+: xor-buf-key+1 ( buf key -- buf+1 key+1 )
+    ( buf key ) over c@ ( buf key val ) over c@ xor ( buf key val2 ) rot ( key val2 buf ) tuck ( key buf val2 buf ) c! 
+    ( key buf ) 1+ swap 1+ \ increment pointers
+    ( buf key ) ;
+
+: aes-ctr-int ( buf-addr buf-len -- ) \ AES-CTR encrypt buffer.
+  ctr swap
+  ( buf ctr len ) 0 do
+    i $0F and 0= if
+      ( buf ctr ) drop ctr              \ reset ctr to bit 0
+      ( buf ctr ) AESaux over 16 move   \ copy AESaux to ctr
+      ( buf ctr ) dup AESkey aes        \ get exncrypted ctr
+      ( buf ctr ) 1 AESaux 15 + c+!     \ used to be at end of loop but ctr contains the right key
+    then
+    ( buf ctr ) xor-buf-key+1
+    ( buf+1 ctr+1 )
+  loop drop drop ;
+
+: aes-ctr ( buf len key iv )              \ AES-CTR encrypt buffer. Encryption is in-situ.
+                                          \ buf: c-addr of buffer to be encrypted
+                                          \ len: encryption length
+                                          \ key: c-addr of 128-bit encryption key
+                                          \ iv : c-addr of 16-byte initialization vector
+  ( iv  ) AESaux 16 move
+  ( key ) AESkey 16 move
+  ( buf len ) aes-ctr-int ;
+
+\ AES-CMAC
+
+16 buffer: final.key
+false variable padding
+0 variable carry
+
+: xor-key ( buf key len -- )
+  ( len ) 0 do xor-buf-key+1 loop drop drop ;
+
+: buf<<1 ( c-addr len )
+  ( buf len )             0 swap \ initialise carry bit
+  ( buf carry len )       0 swap 1- do \ loop from len to 0
+  ( buf carry )           over i + tuck c@
+  ( buf buf+i carry val ) tuck shl or ( buf  buf+i val val2 ) rot c!
+  ( buf val )             $80 and if 1 else 0 then
+  ( buf carry )           -1 +loop 
+  drop drop ;
+
+: cmac-calc-kn ( c-addr-fkey -- c-addr-fkey )
+  ( fkey ) dup c@ $80 and 0<> \ if first bit of first byte is set
+  ( fkey flag ) over 16 buf<<1
+  ( fkey flag ) if dup 15 + dup c@ $87 xor swap c! then
+  ( fkey ) ;
+
+: cmac-xor-k1k2
+  final.key
+  ( fkey ) dup 16 0 fill
+  ( fkey ) dup AESkey aes
+  ( fkey ) cmac-calc-kn \ calc K1
+  ( fkey ) padding @ if cmac-calc-kn then \ calc K2
+  ( fkey ) AESaux swap 16 xor-key 
+  ;
+
+: cmac-calc ( buf len -- )
+  padding over $0F and 0<> swap ! \ padding if len is not mulitple of 16.
+  dup 1+ 0 do 
+  ( buf+i len-i ) over AESaux i $0F and + tuck ( . . auxaddr buf+i auxaddr ) c@ swap c@ xor swap c! \ xor aux and buf
+  ( buf+i len-i ) dup 0= if
+  ( buf+i len-i )   AESaux i $0F and +  dup c@ $80 xor swap c! \ xor last byte with $80
+  ( buf+i len-i )   cmac-xor-k1k2 \ perform this for last byte in buffer
+  ( buf+i len-i )   AESaux AESkey aes
+  ( buf+i len-i ) else 
+  ( buf+i len-i )   i 1+ $0F and 0= if AESaux AESkey aes then \ mulitples of 16 bytes
+  ( buf+i len-i ) then
+  ( buf+i len-i ) 1- swap 1+ swap \ decrement len, increment pointer
+  loop drop drop ;
+
+: aes-cmac-noaux ( buf len )
+  AESaux 16 0 fill
+  cmac-calc ;
+
+: aes-cmac-int ( buf-addr buf-len -- )  \ AES-CMAC hash key (mic) calculation
+  AESaux AESkey aes
+  cmac-calc ;
+
+: aes-cmac ( buf len key iv -- mic )      \ AES-CMAC hash key calculation
+                                          \ buf: c-addr of buffer to be encrypted
+                                          \ len: encryption length
+                                          \ key: c-addr of 128-bit encryption key
+                                          \ iv : c-addr of 16-byte initialization vector
+                                          \ mic: c-addr of message integrity check
+  ( iv  ) AESaux 16 move
+  ( key ) AESkey 16 move
+  ( buf len ) aes-cmac-int
+  AESaux ; \ put on stack as mic address
