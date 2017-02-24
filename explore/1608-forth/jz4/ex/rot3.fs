@@ -1,4 +1,4 @@
-\ basic quadrature pulse decoder
+\ basic quadrature pulse decoder with OLED readout
 
 compiletoram? [if]  forgetram  [then]
 
@@ -6,19 +6,29 @@ PA3 constant ENC-A
 PA5 constant ENC-B
 PA4 constant ENC-C  \ common
 
-IMODE-HIGH ENC-A io-mode!
-IMODE-HIGH ENC-B io-mode!
-OMODE-PP   ENC-C io-mode!  ENC-C ioc!
-
 1000 variable counter
 
 : ab-pins ( -- n )  \ read current A & B pin state as bits 1 and 0
   ENC-A io@ %10 and  ENC-B io@ %01 and  or ;
 
+: showdigit ( n x -- )
+  swap 256 * digits + 64 0 do
+    32 0 do
+      i $1F xor bit over bit@ if over i + j putpixel then
+    loop
+    4 +
+  loop 2drop ;
+
+: shownum ( u -- )
+  clear
+  10 /mod 10 /mod 10 /mod
+  0 showdigit 32 showdigit 64 showdigit 96 showdigit
+  display ;
+
 : step ( n -- )
   ?dup if
     counter +!
-    cr counter @ .
+    counter @ shownum
   then ;
 
 : read-enc
@@ -41,4 +51,9 @@ OMODE-PP   ENC-C io-mode!  ENC-C ioc!
     endcase
   again ;
 
+IMODE-HIGH ENC-A io-mode!
+IMODE-HIGH ENC-B io-mode!
+OMODE-PP   ENC-C io-mode!  ENC-C ioc!
+
+lcd-init clear display
 read-enc
