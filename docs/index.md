@@ -26,7 +26,7 @@ file.
 The
 [explore/1608-forth/flib/](https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/)
 area is structured as a _library_, with its files included in numerous other
-subdirectories.
+subdirectories. See the [documentation area](/flib/).
 
 ### lib/
 
@@ -48,9 +48,9 @@ The [tools/](https://github.com/jeelabs/embello/tree/master/tools/) area
 contains the source code for a number of tools, also described on the weblog.
 See the respective `README.md` files in each subdirectory for details.
 
-## Some more links
+## More links
 
-For all background info and docs, see the weblog at <http://jeelabs.org/>.
+For all background info and articles, see the weblog at <http://jeelabs.org/>.
 
 For reporting problems and bugs, please use the [issue
 tracker](https://github.com/jeelabs/embello/issues) on GitHub.

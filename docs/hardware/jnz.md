@@ -6,8 +6,14 @@
 
 The LED is on PA8, "0" is on.
 
-Design files (Eagle v7): [schematic](jnz-rev4.sch) ([PDF](jnz-rev4.pdf)) +
+**Design files:** (Eagle v7): [schematic](jnz-rev4.sch) ([PDF](jnz-rev4.pdf)) +
 [board](jnz-rev4.brd) ([PNG](jnz-rev4.png)).
+
+For other ways of creating ARM-based nodes with an RFM69, see these articles,
+which can be useful for testing RF communication to/from a JNZ:
+
+* [Hooking up an RFM69 radio](http://jeelabs.org/article/1649e/) - Dec, 2016
+* [Adding the RFM69 module](http://jeelabs.org/article/1613c/) - Apr, 2016
 
 ----
 
@@ -32,7 +38,7 @@ DIO pin connections: DIO0: PB0, DIO1: PB1, DIO2: PB4.
 
 ![](jnz-rev3-bottom.jpg)
 
-Design files (Eagle v7): [schematic](jnz-rev3.sch) ([PDF](jnz-rev3.pdf)) +
+**Design files:** (Eagle v7): [schematic](jnz-rev3.sch) ([PDF](jnz-rev3.pdf)) +
 [board](jnz-rev3.brd) ([PNG](jnz-rev3.png)).
 
 ----
@@ -60,5 +66,5 @@ The RFM69 is on PA4..7, with DIO0: PA8, DIO1: PB1, DIO2: PB0.
 
 ![](jnz-rev1-bottom.jpg)
 
-Design files (Eagle v7): [schematic](jnz-rev1.sch) ([PDF](jnz-rev1.pdf)) +
+**Design files:** (Eagle v7): [schematic](jnz-rev1.sch) ([PDF](jnz-rev1.pdf)) +
 [board](jnz-rev1.brd) ([PNG](jnz-rev1.png)).

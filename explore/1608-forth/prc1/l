@@ -9,7 +9,7 @@ compiletoflash
 ( code-start, see code-size below ) here
 
 include ../flib/spi/rf69.fs
-include ../flib/i2c/oled.fs
+include ../flib/i2c/ssd1306.fs
 \ include ../flib/spi/tft-ili9325.fs
 include ../flib/mecrisp/graphics.fs
 include ../flib/mecrisp/multi.fs

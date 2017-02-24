@@ -1,5 +1,11 @@
 # Hardware Documentation
 
-* [Blue Pill](bluepill.html) - STM32F103C8 (several variants)
-* [HyTiny](hytiny.html) - STM32F103T by Haoyu
-* [JeeNode Zero](jnz.html) - STM32L052 + RFM69CW by JeeLabs
+| Name | |
+| --- | --- |
+| [JeeNode Zero](jnz.html) | ![](jnz-small.jpg) |
+
+| STM32F103 | Vendor |
+| --- | --- | --- |
+| [Blue Pill](bluepill.html) | (various) | ![](bluepill-small.png)  |
+| [HyCore144](hycore144.html) | Haoyu  | ![](hycore144-small.jpg) |
+| [HyTiny](hytiny.html) | Haoyu  | ![](hytiny-small.jpg) |

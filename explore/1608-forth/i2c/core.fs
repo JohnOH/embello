@@ -10,7 +10,7 @@ include ../flib/i2c/bme280.fs
 include ../flib/i2c/tsl4531.fs
 include ../flib/i2c/veml6040.fs
 include ../flib/i2c/mag3110.fs
-include ../flib/i2c/oled.fs
+include ../flib/i2c/ssd1306.fs
 include ../flib/mecrisp/graphics.fs
 
 ( core end, size: ) here dup hex. swap - .
