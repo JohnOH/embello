@@ -13,25 +13,29 @@ The decryption code is located in a separate `aes128inv.fs` file.
 
 [defs]: <> (aes)
 ```
-: aes ( c-addr key -- ) \ aes128 encrypt block
+: aes ( c-addr key -- )  \ aes128 encrypt block
 ```
 
 [defs]: <> (aes-ctr aes-cmac)
 ```
-: aes-ctr ( buf len key iv )              \ AES-CTR encrypt buffer. Encryption is in-situ.
-: aes-cmac ( buf len key iv -- mic )      \ AES-CMAC hash key calculation
+: aes-ctr ( buf len key iv )  \ AES-CTR encrypt buffer, encryption is in-situ
+: aes-cmac ( buf len key iv -- mic )  \ AES-CMAC hash key calculation
 ```
 
 ## Examples
 
-Encrypt
+Encrypt a 16-byte buffer with a 16-byte key
 
-    buf16 key aes
+    16 buffer: mybuf
+    16 buffer: mykey
+    \ set contents of mybuf and mykey here ...
+    mybuf mykey aes
+    mybuf 16 dump
 
-CTR
+Block cipher counter mode
 
     buf-n len-n key initvector aes-ctr
 
-CMAC
+Cipher-based Message Authentication Code
 
     buf-n len-n key initvector aes-cmac

@@ -99,7 +99,7 @@ decimal
   round-key+ ;
 
 \ decrypt block
-: aes-inv ( c-addr key -- ) \ aes128 decrypt block
+: aes-inv ( c-addr key -- )  \ aes128 decrypt block
   \ key-in
   expand-key
   dup >aes

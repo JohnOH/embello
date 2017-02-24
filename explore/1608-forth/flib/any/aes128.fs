@@ -165,7 +165,7 @@ decimal
   round-key+ ;
 
 \ encrypt block
-: aes ( c-addr key -- ) \ aes128 encrypt block
+: aes ( c-addr key -- )  \ aes128 encrypt block
   key-in
   dup >aes
   round-key+
@@ -225,11 +225,11 @@ decimal
     ( buf+1 ctr+1 )
   loop drop drop ;
 
-: aes-ctr ( buf len key iv )              \ AES-CTR encrypt buffer. Encryption is in-situ.
-                                          \ buf: c-addr of buffer to be encrypted
-                                          \ len: encryption length
-                                          \ key: c-addr of 128-bit encryption key
-                                          \ iv : c-addr of 16-byte initialization vector
+: aes-ctr ( buf len key iv )  \ AES-CTR encrypt buffer, encryption is in-situ
+                              \ buf: c-addr of buffer to be encrypted
+                              \ len: encryption length
+                              \ key: c-addr of 128-bit encryption key
+                              \ iv : c-addr of 16-byte initialization vector
   ( iv  ) AESaux 16 move
   ( key ) AESkey 16 move
   ( buf len ) aes-ctr-int ;
@@ -289,12 +289,12 @@ false variable padding
   AESaux AESkey aes
   cmac-calc ;
 
-: aes-cmac ( buf len key iv -- mic )      \ AES-CMAC hash key calculation
-                                          \ buf: c-addr of buffer to be encrypted
-                                          \ len: encryption length
-                                          \ key: c-addr of 128-bit encryption key
-                                          \ iv : c-addr of 16-byte initialization vector
-                                          \ mic: c-addr of message integrity check
+: aes-cmac ( buf len key iv -- mic )  \ AES-CMAC hash key calculation
+                                      \ buf: c-addr of buffer to be encrypted
+                                      \ len: encryption length
+                                      \ key: c-addr of 128-bit encryption key
+                                      \ iv : c-addr of 16-byte initialization vector
+                                      \ mic: c-addr of message integrity check
   ( iv  ) AESaux 16 move
   ( key ) AESkey 16 move
   ( buf len ) aes-cmac-int
