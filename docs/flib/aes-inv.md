@@ -17,8 +17,7 @@ This package implements AES-128 decryption of 16-byte blocks.
 
 Decrypt a 16-byte buffer with a 16-byte key
 
-    16 buffer: mybuf
-    16 buffer: mykey
-    \ set contents of mybuf and mykey here ...
+    $675105CA $E72CAE5E $C5E63682 $B2F79167 4 nvariable mybuf
+    11 22 33 44 4 nvariable mykey
     mybuf mykey aes-inv
-    mybuf 16 dump
+    : t 4 0 do mybuf i cells + @ . loop ; t

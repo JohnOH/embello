@@ -26,11 +26,10 @@ The decryption code is located in a separate `aes128inv.fs` file.
 
 Encrypt a 16-byte buffer with a 16-byte key
 
-    16 buffer: mybuf
-    16 buffer: mykey
-    \ set contents of mybuf and mykey here ...
+    12 34 56 78 4 nvariable mybuf
+    11 22 33 44 4 nvariable mykey
     mybuf mykey aes
-    mybuf 16 dump
+    : t 4 0 do mybuf i cells + @ hex. loop ; t
 
 Block cipher counter mode
 
