@@ -21,3 +21,4 @@ Decrypt a 16-byte buffer with a 16-byte key
     11 22 33 44 4 nvariable mykey
     mybuf mykey aes-inv
     : t 4 0 do mybuf i cells + @ . loop ; t
+    \ expected output: 78 56 34 12

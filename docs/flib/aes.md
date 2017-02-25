@@ -30,6 +30,7 @@ Encrypt a 16-byte buffer with a 16-byte key
     11 22 33 44 4 nvariable mykey
     mybuf mykey aes
     : t 4 0 do mybuf i cells + @ hex. loop ; t
+    \ expected output: B2F79167 C5E63682 E72CAE5E 675105CA
 
 Block cipher counter mode
 
