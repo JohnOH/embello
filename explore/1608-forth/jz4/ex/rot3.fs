@@ -25,11 +25,7 @@ PA4 constant ENC-C  \ common
   0 showdigit 32 showdigit 64 showdigit 96 showdigit
   display ;
 
-: step ( n -- )
-  ?dup if
-    counter +!
-    counter @ shownum
-  then ;
+: step ( n -- )  counter +!  counter @ shownum ;
 
 : read-enc
   %11  \ previous state, stays on the stack

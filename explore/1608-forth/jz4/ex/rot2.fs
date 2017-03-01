@@ -15,11 +15,7 @@ OMODE-PP   ENC-C io-mode!  ENC-C ioc!
 : ab-pins ( -- n )  \ read current A & B pin state as bits 1 and 0
   ENC-A io@ %10 and  ENC-B io@ %01 and  or ;
 
-: step ( n -- )
-  ?dup if
-    counter +!
-    cr counter @ .
-  then ;
+: step ( n -- )  counter +!  cr counter @ . ;
 
 : read-enc
   %11  \ previous state, stays on the stack
