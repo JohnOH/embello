@@ -38,7 +38,7 @@ $40022000 constant FLASH
 16000000  variable clock-hz  \ the system clock is 16 MHz after reset
 
 4096      variable us/cycle*2^16
-: us/cycl-factor 65536 1000000 um* clock-hz @ um/mod us/cycle*2^16 ! ;
+: us/cycl-factor 65536 1000000 um* clock-hz @ um/mod us/cycle*2^16 ! drop ;
 
 : baud ( u -- u )  \ calculate baud rate divider, based on current clock rate
   clock-hz @ swap / ;
