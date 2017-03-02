@@ -13,12 +13,14 @@ include ../flib/mecrisp/hexdump.fs
 include ../flib/stm32f1/io.fs
 include ../flib/pkg/pins64.fs
 include ../flib/stm32f1/hal.fs
-include ../flib/any/i2c-bb.fs
 include ../flib/stm32f1/spi.fs
 include ../flib/stm32f1/timer.fs
 include ../flib/stm32f1/pwm.fs
 include ../flib/stm32f1/adc.fs
 include ../flib/stm32f1/rtc.fs
+
+99 constant I2C.DELAY
+include ../flib/any/i2c-bb.fs
 
 : hello ( -- ) flash-kb . ." KB <g6s> " hwid hex.
   $10000 compiletoflash here -  flashvar-here compiletoram here -

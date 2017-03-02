@@ -1,5 +1,8 @@
 \ bit-banged i2c driver
 \ adapted from http://excamera.com/sphinx/article-forth-i2c.html
+\
+\ This driver is master-only and won't support clock stretching.
+\ There has to be a 1..10 kΩ resistor on SDA to pull it up in idle state.
 
 [ifndef] SCL  PB6 constant SCL  [then]
 [ifndef] SDA  PB7 constant SDA  [then]
