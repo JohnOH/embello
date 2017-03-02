@@ -22,12 +22,10 @@ AFIO $C + constant AFIO-EXTICR2
 0 variable count5
 
 : ext3-tick ( -- )  \ interrupt handler for EXTI3
-  3 bit EXTI-PR !  \ clear interrupt
-  1 count3 +! ;
+  1 count3 +!  3 bit EXTI-PR ! ;
 
 : ext5-tick ( -- )  \ interrupt handler for EXTI9_5
-  5 bit EXTI-PR !  \ clear interrupt
-  1 count5 +! ;
+  1 count5 +!  5 bit EXTI-PR ! ;
 
 : count-pulses ( -- )  \ set up and start the external interrupts
      ['] ext3-tick irq-exti2_3 !     \ install interrupt handler EXTI 2-3
