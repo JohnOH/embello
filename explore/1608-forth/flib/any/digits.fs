@@ -650,3 +650,17 @@ binary
   0111110000000000000000000000 ,
   0110000000000000000000000000 ,
 decimal
+
+: showdigit ( n x -- )
+  swap 256 * digits + 64 0 do
+    32 0 do
+      i $1F xor bit over bit@ if over i + j putpixel then
+    loop
+    4 +
+  loop 2drop ;
+
+: shownum ( u -- )
+  clear
+  10 /mod 10 /mod 10 /mod
+  0 showdigit 32 showdigit 64 showdigit 96 showdigit
+  display ;

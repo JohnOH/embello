@@ -11,20 +11,6 @@ PA4 constant ENC-C  \ common
 : ab-pins ( -- n )  \ read current A & B pin state as bits 1 and 0
   ENC-A io@ %10 and  ENC-B io@ %01 and  or ;
 
-: showdigit ( n x -- )
-  swap 256 * digits + 64 0 do
-    32 0 do
-      i $1F xor bit over bit@ if over i + j putpixel then
-    loop
-    4 +
-  loop 2drop ;
-
-: shownum ( u -- )
-  clear
-  10 /mod 10 /mod 10 /mod
-  0 showdigit 32 showdigit 64 showdigit 96 showdigit
-  display ;
-
 : step ( n -- )  counter +!  counter @ shownum ;
 
 : read-enc
