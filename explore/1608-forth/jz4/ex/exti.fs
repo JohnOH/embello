@@ -36,12 +36,12 @@ AFIO $C + constant AFIO-EXTICR2
                6 bit NVIC-EN0R bis!  \ enable EXTI2_3 interrupt 6
   %0001 12 lshift AFIO-EXTICR1 bis!  \ select P<A>3
                 3 bit EXTI-IMR bis!  \ enable PA<3>
-               3 bit EXTI-RTSR bis!  \ trigger on PA<3> rising edge
+               3 bit EXTI-FTSR bis!  \ trigger on PA<3> falling edge
 
                7 bit NVIC-EN0R bis!  \ enable EXTI4_15 interrupt 7
    %0001 4 lshift AFIO-EXTICR2 bis!  \ select P<A>5
                 5 bit EXTI-IMR bis!  \ enable PA<5>
-               5 bit EXTI-RTSR bis!  \ trigger on PA<5> rising edge
+               5 bit EXTI-FTSR bis!  \ trigger on PA<5> falling edge
 ;
 
 IMODE-HIGH ENC-A io-mode!
