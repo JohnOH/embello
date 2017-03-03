@@ -42,16 +42,12 @@ AFIO $C + constant AFIO-EXTICR2
                5 bit EXTI-FTSR bis!  \ trigger on PA<5> falling edge
 ;
 
-: hsi-wakeup ( -- )  \ wake up using the 16 MHz clock
-  15 bit RCC-CFGR bis! ;
-
 : read-enc
   IMODE-HIGH ENC-A io-mode!
   IMODE-HIGH ENC-B io-mode!
   OMODE-PP   ENC-C io-mode!  ENC-C ioc!
   rf-init
   led-off 2.1MHz only-msi 1000 systick-hz lptim-init
-\ led-off hsi-wakeup lptim-init
 
   count-pulses
   begin

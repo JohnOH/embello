@@ -9,13 +9,14 @@ variations.
 
 ## API
 
-[defs]: <> (32MHz 16MHz 2.1MHz 65KHz hsi-on only-msi)
+[defs]: <> (32MHz 16MHz 2.1MHz 65KHz hsi-on hsi-wakeup only-msi)
 ```
-: 32MHz ( -- )  \ set the main clock to 32 MHz
-: 16MHz ( -- )  \ set the main clock to 16 MHz
-: 2.1MHz ( -- )  \ set the main clock to 2.1 MHz
-: 65KHz ( -- )  \ set the main clock to 65 KHz, assuming it was set to 2.1 MHz
+: 32MHz ( -- )  \ set the main clock to 32 MHz, using the PLL
+: 16MHz ( -- )  \ set the main clock to 16 MHz (HSI)
+: 2.1MHz ( -- )  \ set the main clock to 2.1 MHz (MSI)
+: 65KHz ( -- )  \ set main clock to 65 KHz, assuming it was set to 2.1 MHz
 : hsi-on ( -- )  \ turn on internal 16 MHz clock, needed by ADC
+: hsi-wakeup ( -- )  \ wake up using the 16 MHz clock
 : only-msi ( -- )  \ turn off HSI16, this disables the console UART
 ```
 

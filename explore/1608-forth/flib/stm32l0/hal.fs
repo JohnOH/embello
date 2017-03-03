@@ -48,14 +48,17 @@ $40022000 constant FLASH
   begin 2 bit RCC-CR bit@ until   \ wait for HSI16RDYF
 ;
 
+: hsi-wakeup ( -- )  \ wake up using the 16 MHz clock
+  15 bit RCC-CFGR bis! ;
+
 : only-msi ( -- )  \ turn off HSI16, this disables the console UART
   8 bit RCC-CR ! ;
 
-: 65KHz ( -- )  \ set the main clock to 65 KHz, assuming it was set to 2.1 MHz
+: 65KHz ( -- )  \ set main clock to 65 KHz, assuming it was set to 2.1 MHz
   %111 13 lshift RCC-ICSCR bic!  65536 clock-hz ! 
   us/cycl-factor ;
 
-: 2.1MHz ( -- )  \ set the main clock to 2.1 MHz
+: 2.1MHz ( -- )  \ set the main clock to 2.1 MHz (MSI)
   RCC-ICSCR dup @  %111 13 lshift bic  %101 13 lshift or  swap !  \ range 5
   8 bit RCC-CR bis!               \ set MSION
   begin 9 bit RCC-CR bit@ until   \ wait for MSIRDY
@@ -64,7 +67,7 @@ $40022000 constant FLASH
   2097000 clock-hz ! 
   us/cycl-factor ;
 
-: 16MHz ( -- )  \ set the main clock to 16 MHz
+: 16MHz ( -- )  \ set the main clock to 16 MHz (HSI)
   hsi-on
   %01 RCC-CFGR !                  \ revert to HSI16, no PLL
   1 RCC-CR !                      \ turn off MSI, HSE, and PLL
@@ -72,7 +75,7 @@ $40022000 constant FLASH
   16000000 clock-hz ! 
   us/cycl-factor ;
 
-: 32MHz ( -- )  \ set the main clock to 32 MHz
+: 32MHz ( -- )  \ set the main clock to 32 MHz, using the PLL
   hsi-on
   %01 RCC-CFGR !                           \ revert to HSI16, no PLL, no prescalers
   1 RCC-CR !                               \ turn off MSI, HSE, and PLL
