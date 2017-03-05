@@ -16,10 +16,14 @@ area on GitHub.
 | --- | --- |
 | [i2c](i2c.md) | Bit-banged I2C communication driver |
 | [spi](spi.md) | Bit-banged SPI communication driver |
-| [varint](varint.md) | Efficient variable-sized integer encoding |
 
 | Devices | |
 | --- | --- |
 | [bme280](bme280.md) | BME280 temp/humidity/pressure sensor |
 | [rf69](rf69.md) | RFM69 MHz radio for 434/868/915 MHz |
 | [ssd1306](ssd1306.md) | OLED driver for 128x64 and 128x32 displays |
+
+| Utilities | |
+| --- | --- |
+| [aes](aes.md) | AES-128 encryption (and [decryption](aes-inv.md)) |
+| [varint](varint.md) | Efficient variable-sized integer encoding |
