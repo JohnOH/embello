@@ -134,7 +134,7 @@ static int32_t ring_read(struct ring *ring, uint8_t *data, ring_size_t size)
 
 /*****************************************************************************/
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 256
 
 struct ring input_ring, output_ring;
 uint8_t input_ring_buffer[BUFFER_SIZE], output_ring_buffer[BUFFER_SIZE];
@@ -180,11 +180,13 @@ static void gpio_setup(void)
     gpio_set_mode(gpio_usb, GPIO_MODE_OUTPUT_2_MHZ,
             GPIO_CNF_OUTPUT_PUSHPULL, pin_usb);
 
-    /* start with DTR and RTS floating, set only when telnet configures them */
-    gpio_set_mode(GPIO_DTR, GPIO_MODE_INPUT,
-            GPIO_CNF_INPUT_FLOAT, pin_dtr);
-    gpio_set_mode(GPIO_RTS, GPIO_MODE_INPUT,
-            GPIO_CNF_INPUT_FLOAT, pin_rts);
+    /* start with DTR and RTS in their default state: DTR high, RTS low */
+    gpio_set(GPIO_DTR, pin_dtr);
+    gpio_set_mode(GPIO_DTR, GPIO_MODE_OUTPUT_2_MHZ,
+            GPIO_CNF_OUTPUT_OPENDRAIN, pin_dtr);
+    gpio_clear(GPIO_RTS, pin_rts);
+    gpio_set_mode(GPIO_RTS, GPIO_MODE_OUTPUT_2_MHZ,
+            GPIO_CNF_OUTPUT_PUSHPULL, pin_rts);
 }
 
 static void usart_setup(void)
@@ -330,10 +332,6 @@ void usart1_isr(void)
                             gpio_set(GPIO_RTS, pin_rts);
                             break;
                     }
-                    gpio_set_mode(GPIO_DTR, GPIO_MODE_OUTPUT_2_MHZ,
-                            GPIO_CNF_OUTPUT_OPENDRAIN, pin_dtr);
-                    gpio_set_mode(GPIO_RTS, GPIO_MODE_OUTPUT_2_MHZ,
-                            GPIO_CNF_OUTPUT_PUSHPULL, pin_rts);
                     break;
             }
         }

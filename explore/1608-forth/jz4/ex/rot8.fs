@@ -19,13 +19,18 @@ AFIO $C + constant AFIO-EXTICR2
     EXTI $0C + constant EXTI-FTSR
 \   EXTI $14 + constant EXTI-PR
 
+   0 variable idle
 1000 variable counter
 
+: step ( n -- )  counter +!  0 idle ! ;
+
+: if-send ( f -- )  if 7 <pkt counter @ +pkt pkt>rf rf-sleep then ;
+
 : encA-tick ( -- )  \ interrupt handler for EXTI2_3
-  ENC-B io@ if 1 else -1 then counter +!  3 bit EXTI-PR ! ;
+  ENC-B io@ if 1 else -1 then step  3 bit EXTI-PR ! ;
 
 : encB-tick ( -- )  \ interrupt handler for EXTI4-15
-  ENC-A io@ if -1 else 1 then counter +!  5 bit EXTI-PR ! ;
+  ENC-A io@ if -1 else 1 then step  5 bit EXTI-PR ! ;
 
 : count-pulses ( -- )  \ set up and start the external interrupts
      ['] encA-tick irq-exti2_3 !     \ install interrupt handler EXTI 2-3
@@ -50,9 +55,14 @@ AFIO $C + constant AFIO-EXTICR2
   led-off 2.1MHz only-msi 1000 systick-hz lptim-init
   count-pulses
 
+  0  \ keep previous counter value on the stack
   begin
-    7 <pkt counter @ +pkt pkt>rf rf-sleep
-    stop10s
+    idle @ if
+      counter @ tuck <> if-send  \ send a packet if counter changed
+    then
+    1 idle +!
+    idle @ 100 mod 0= if-send  \ send a heartbeat packet every 10 s
+    stop100ms
   again ;
 
 : init init unattended read-enc ;
