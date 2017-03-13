@@ -2,21 +2,25 @@
 
 compiletoram? [if]  forgetram  [then]
 
+PB0 constant XIN
+PB1 constant RST
 PB4 constant ZCL
 PB5 constant ZDA
 
 : ez80-8MHz ( -- )
-  7200 pb0 pwm-init   \ first set up pwm correctly
+  7200 XIN pwm-init   \ first set up pwm correctly
   8 3 timer-init      \ then mess with the timer divider, i.e. ÷9
-  9998 pb0 pwm        \ finally, set the pwm to still toggle
-;
+  9998 XIN pwm        \ finally, set the pwm to still toggle
+  RST ios!  OMODE-OD RST io-mode! ;
+
+: ez80-reset ( -- )  RST ioc! 1 ms RST ios! ;
 
 : zdi-init ( -- )
   ZDA ios!  OMODE-OD ZDA io-mode!
   ZCL ios!  OMODE-PP ZCL io-mode! ;
 
-: zcl-lo  10 us ZCL ioc!  10 us ;
-: zcl-hi  10 us ZCL ios!  10 us ;
+: zcl-lo  3 us ZCL ioc!  3 us ;
+: zcl-hi  3 us ZCL ios!  3 us ;
 
 : zdi! ( f -- )  zcl-lo  ZDA io!  zcl-hi  ZDA ios! ;
 
@@ -59,12 +63,31 @@ PB5 constant ZDA
 : r  ." FA" 0 r1  ." BC" 1 r1  ." DE" 2 r1  ." HL" 3 r1
      ." IX" 4 r1  ." IY" 5 r1  ." SP" 6 r1  ." PC" 7 r1 ;
 
+: pc> ( -- u )  $07 $16 >zdi   $11 zdi> 8 lshift  $10 zdi>  or ;
+: >pc ( u -- )  dup 8 rshift $14 >zdi  $13 >zdi  $87 $16 >zdi   ;
+
+: m
+  pc>  8 0 do
+    $20 zdi> h.2 space
+    1+ dup >pc
+  loop
+  8 - >pc ;
+
+: w ( u -- )  $30 >zdi ;
+
+: x  $08 $16 >zdi  $FF $13 >zdi  $80 $16 >zdi  
+     $6D $24 >zdi  $ED $25 >zdi  $09 $16 >zdi  $E000 >pc ;
+
 : ?
   cr ." z = show chip info "
   cr ." s = show processor status "
   cr ." b = break next "
   cr ." c = continue "
   cr ." r = show registers "
-;
+  cr ." m = read memory "
+  cr ." w = write arg to memory "
+  cr ." x = reset pc "
+  cr ." ? = this help "
+  cr ;
 
-ez80-8MHz  zdi-init  100 ms  ?
+ez80-8MHz  zdi-init  100 ms  cr ? cr z b s cr r
