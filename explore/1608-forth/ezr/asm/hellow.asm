@@ -1,4 +1,4 @@
-	org $0000
+	org $0080
 
 pd_alt2:    equ $A5
 uart0_thr:  equ $C0

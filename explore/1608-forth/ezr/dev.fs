@@ -48,7 +48,7 @@ PB5 constant ZDA
   loop  drop
   zcl-lo ZDA ios! zcl-hi ;
 
-: z  0 zdi> h.2 space  1 zdi> h.2 space  2 zdi> h.2 space ;
+: v  0 zdi> h.2 space  1 zdi> h.2 space  2 zdi> h.2 space ;
 
 : s  3 zdi>
   dup 7 bit and if ." zdi " then
@@ -78,49 +78,48 @@ PB5 constant ZDA
 
 : w ( u -- )  $30 >zdi ;
 
+                512 buffer: page
+page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
+
+: d ( u -- )
+  drop \ TODO get 128 bytes into sect
+  sect 128 dump ;
+
 : x  $08 $16 >zdi  $FF $13 >zdi  $80 $16 >zdi  
      $6D $24 >zdi  $ED $25 >zdi  $09 $16 >zdi  $E000 >pc ;
 
 : ?
-  cr ." z = show chip info "
-  cr ." s = show processor status "
-  cr ." b = break next "
-  cr ." c = continue "
+  cr ." v = show chip version         b = break next "
+  cr ." s = show processor state      c = continue "
   cr ." r = show registers "
-  cr ." m = read memory "
-  cr ." w = write arg to memory "
-  cr ." x = reset pc bank "
+  cr ." m = read memory               pc> = get PC ( -- u ) "
+  cr ." w = write memory ( b -- )     >pc = set PC ( u -- ) "
+  cr ." d = disk read ( u -- )        x = reset pc bank "
   cr ." ? = this help "
   cr ;
 
 : ez80-hello  \ send greeting over serial, see asm/hello.asm
   b x
-  $06 w $00 w $0e w $a5 w $3e w $03 w $ed w $79 w $0e w $c3 w $3e w $80 w
-  $ed w $79 w $0e w $c0 w $3e w $1a w $ed w $79 w $0e w $c3 w $3e w $03 w
-  $ed w $79 w $0e w $c2 w $3e w $06 w $ed w $79 w $21 w $39 w $e0 w $7e w
-  $a7 w $28 w $10 w $0e w $c5 w $ed w $78 w $e6 w $20 w $28 w $f8 w $0e w
-  $c0 w $7e w $ed w $79 w $23 w $18 w $ec w $18 w $fe w $48 w $65 w $6c w
-  $6c w $6f w $20 w $77 w $6f w $72 w $6c w $64 w $21 w $0a w $0d w $00 w
+include asm/hello.fs
   x c ;
 
 : ez80-hellow  \ send greeting over serial, see asm/hellow.asm, in low mem
-  b x 0 >pc
-  $06 w $00 w $0e w $a5 w $3e w $03 w $ed w $79 w $0e w $c3 w $3e w $80 w
-  $ed w $79 w $0e w $c0 w $3e w $1a w $ed w $79 w $0e w $c3 w $3e w $03 w
-  $ed w $79 w $0e w $c2 w $3e w $06 w $ed w $79 w $21 w $39 w $00 w $7e w
-  $a7 w $28 w $10 w $0e w $c5 w $ed w $78 w $e6 w $20 w $28 w $f8 w $0e w
-  $c0 w $7e w $ed w $79 w $23 w $18 w $ec w $18 w $fe w $48 w $65 w $6c w
-  $6c w $6f w $20 w $57 w $6f w $72 w $6c w $64 w $21 w $0a w $0d w $00 w
-  x 0 >pc c ;
+  b x $0080 >pc
+include asm/hellow.fs
+  x $0080 >pc c ;
 
 : serial-pass ( -- )  \ pass all I/O to/from USART2
   uart-init  9600 baud 2/ USART2-BRR !
   begin
     uart-key? if uart-key emit then
-    key? if key uart-emit then
-  again ;
+  key? until ;
 
 : serial-test ez80-hello serial-pass ;
 : serial-testw ez80-hellow serial-pass ;
 
-ez80-4MHz  zdi-init  100 ms  cr ? cr z b s cr r
+: ez80-flash ( n -- ) \ perform step N of flash setup (n ≥ 0)
+  b x
+include asm/flash.fs
+  x  3 * $E080 + >pc  c ;
+
+ez80-4MHz  zdi-init  100 ms  cr ? cr v b s cr r

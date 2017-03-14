@@ -1,19 +1,15 @@
-all: hello.fs hellow.fs powerup.fs
+subst = -e 's/0x/$$/g' -e 's/,/ w/g' -e 's/[^w]$$/& w/' -e '1d' -e '$$d'
+
+all: hello.fs hellow.fs flash.fs
 
 hello.fs: hello.asm
-	z80asm -o hello.bin hello.asm
-	xxd -i hello.bin | \
-	  sed -e 's/0x/$$/g' -e 's/,/ w/g' -e 's/0$$/0 w/' -e '1d' -e '$$d' | \
-	    sed '$$d' >hello.fs && rm hello.bin
+	z80asm -l -o hello.bin hello.asm 2>hello.lst
+	@xxd -i hello.bin | sed $(subst) | sed '$$d' >$@ && rm hello.bin
 
 hellow.fs: hellow.asm
-	z80asm -o hellow.bin hellow.asm
-	xxd -i hellow.bin | \
-	  sed -e 's/0x/$$/g' -e 's/,/ w/g' -e 's/0$$/0 w/' -e '1d' -e '$$d' | \
-	    sed '$$d' >hellow.fs && rm hellow.bin
+	z80asm -l -o hellow.bin hellow.asm 2>hellow.lst
+	@xxd -i hellow.bin | sed $(subst) | sed '$$d' >$@ && rm hellow.bin
 
-powerup.fs: powerup.asm
-	z80asm -o powerup.bin powerup.asm
-	xxd -i powerup.bin | \
-	  sed -e 's/0x/$$/g' -e 's/,/ w/g' -e 's/0$$/0 w/' -e '1d' -e '$$d' | \
-	    sed '$$d' >powerup.fs && rm powerup.bin
+flash.fs: flash.asm
+	z80asm -l -o flash.bin flash.asm 2>flash.lst
+	@xxd -i flash.bin | sed $(subst) | sed '$$d' >$@ && rm flash.bin

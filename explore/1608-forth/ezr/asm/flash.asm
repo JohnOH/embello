@@ -1,6 +1,6 @@
 	org $E000
 
-POWER: ; ##### power-up initialisation #####
+POWER: ; <<<<< POWER-UP INITIALISATION >>>>>
 
 	ld  bc, $00B4 ; RAM_CTL
 	ld  a, $80 ; enable SRAM, disable ERAM
@@ -26,24 +26,28 @@ POWER: ; ##### power-up initialisation #####
 	db  $5B,$C3 ; jp.lil {$24,reloc}
 	dw  reloc
 	db  $24
-reloc:	; set bank to $24 (in a)
+reloc:	; set bank to $24 (still in a)
 	db  $ED,$6D ; ld  mb, a
-	db  $40,$C3 ; jp.sis $E040
-	dw  $E040
-	; ready for use, running in Z80 mode at $24E040
+	db  $40,$C3 ; jp.sis $E080
+	dw  $E080
+	; ready for use, running in Z80 mode at $24E080
 
-	org $E040
+	ds  $E080-$
+	jp  CPU2R ; flash cmd # 0
+	jp  ERASE ; flash cmd # 1
+	jp  RAM2F ; flash cmd # 2
+	jp  F2RAM ; flash cmd # 3
 
-PUPCP: ; ##### copy power-up code to RAM disk #####
+CPU2R: ; <<<<< COPY POWER-UP CODE TO RAM DISK >>>>>
 
 	db  $5B,$21,$00,$E0,$FF ; ld.lil hl, $FFE000
 	db  $5B,$11,$00,$00,$20 ; ld.lil de, $200000
-	db  $5B,$01,$40,$00,$00 ; ld.lil bc, $000040
+	db  $5B,$01,$80,$00,$00 ; ld.lil bc, $000080
 	db  $49,$ED,$B0		; ldir.l
 
-	jr  $
+	halt
 
-ERASE: ; ##### erase flash memory #####
+ERASE: ; <<<<< ERASE FLASH MEMORY >>>>>
 
 	ld  bc, $00F5 ; FLASH_KEY
 	ld  a, $B6 ; key 1
@@ -69,9 +73,9 @@ ERASE: ; ##### erase flash memory #####
 	ld  a, $01 ; start mass erase
 	out (c), a
 
-	jr  $
+	halt
 
-FLASH: ; ##### copy 256K RAM disk to init flash #####
+RAM2F: ; <<<<< COPY 256K RAM DISK TO EMPTY FLASH >>>>>
 
 	db  $5B,$21,$00,$00,$20 ; ld.lil hl, $200000
 	db  $5B,$11,$00,$00,$00 ; ld.lil de, $000000
@@ -82,4 +86,13 @@ FLASH: ; ##### copy 256K RAM disk to init flash #####
 	ld  a, $FF ; protect all 8 blocks
 	out (c), a
 
-	jr  $
+	halt
+
+F2RAM: ; <<<<< COPY 256K FLASH TO RAM DISK >>>>>
+
+	db  $5B,$21,$00,$00,$00 ; ld.lil hl, $000000
+	db  $5B,$11,$00,$00,$20 ; ld.lil de, $200000
+	db  $5B,$01,$00,$00,$04 ; ld.lil bc, $040000
+	db  $49,$ED,$B0		; ldir.l
+
+	halt
