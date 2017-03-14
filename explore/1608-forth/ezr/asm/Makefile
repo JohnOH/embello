@@ -1,4 +1,4 @@
-all: hello.fs hellow.fs
+all: hello.fs hellow.fs powerup.fs
 
 hello.fs: hello.asm
 	z80asm -o hello.bin hello.asm
@@ -11,3 +11,9 @@ hellow.fs: hellow.asm
 	xxd -i hellow.bin | \
 	  sed -e 's/0x/$$/g' -e 's/,/ w/g' -e 's/0$$/0 w/' -e '1d' -e '$$d' | \
 	    sed '$$d' >hellow.fs && rm hellow.bin
+
+powerup.fs: powerup.asm
+	z80asm -o powerup.bin powerup.asm
+	xxd -i powerup.bin | \
+	  sed -e 's/0x/$$/g' -e 's/,/ w/g' -e 's/0$$/0 w/' -e '1d' -e '$$d' | \
+	    sed '$$d' >powerup.fs && rm powerup.bin

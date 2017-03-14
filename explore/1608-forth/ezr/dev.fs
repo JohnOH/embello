@@ -10,7 +10,7 @@ PB1 constant RST
 PB4 constant ZCL
 PB5 constant ZDA
 
-: ez80-8MHz ( -- )
+: ez80-4MHz ( -- )
   7200 XIN pwm-init   \ first set up pwm correctly
   17 3 timer-init      \ then mess with the timer divider, i.e. ÷18
   9998 XIN pwm        \ finally, set the pwm to still toggle
@@ -123,4 +123,4 @@ PB5 constant ZDA
 : serial-test ez80-hello serial-pass ;
 : serial-testw ez80-hellow serial-pass ;
 
-ez80-8MHz  zdi-init  100 ms  cr ? cr z b s cr r
+ez80-4MHz  zdi-init  100 ms  cr ? cr z b s cr r
