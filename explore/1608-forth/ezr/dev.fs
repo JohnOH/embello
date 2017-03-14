@@ -1,4 +1,7 @@
-\ try out ZDI access to EZ80
+\ Control an eZ80 microcontroller from a Blue Pill via ZDI
+
+\ compiletoflash
+\ include ../flib/stm32f1/uart2.fs
 
 compiletoram? [if]  forgetram  [then]
 
@@ -9,7 +12,7 @@ PB5 constant ZDA
 
 : ez80-8MHz ( -- )
   7200 XIN pwm-init   \ first set up pwm correctly
-  8 3 timer-init      \ then mess with the timer divider, i.e. ÷9
+  17 3 timer-init      \ then mess with the timer divider, i.e. ÷18
   9998 XIN pwm        \ finally, set the pwm to still toggle
   RST ios!  OMODE-OD RST io-mode! ;
 
@@ -19,8 +22,8 @@ PB5 constant ZDA
   ZDA ios!  OMODE-OD ZDA io-mode!
   ZCL ios!  OMODE-PP ZCL io-mode! ;
 
-: zcl-lo  3 us ZCL ioc!  3 us ;
-: zcl-hi  3 us ZCL ios!  3 us ;
+: zcl-lo  10 us ZCL ioc!  10 us ;
+: zcl-hi  10 us ZCL ios!  10 us ;
 
 : zdi! ( f -- )  zcl-lo  ZDA io!  zcl-hi  ZDA ios! ;
 
@@ -86,8 +89,38 @@ PB5 constant ZDA
   cr ." r = show registers "
   cr ." m = read memory "
   cr ." w = write arg to memory "
-  cr ." x = reset pc "
+  cr ." x = reset pc bank "
   cr ." ? = this help "
   cr ;
+
+: ez80-hello  \ send greeting over serial, see asm/hello.asm
+  b x
+  $06 w $00 w $0e w $a5 w $3e w $03 w $ed w $79 w $0e w $c3 w $3e w $80 w
+  $ed w $79 w $0e w $c0 w $3e w $1a w $ed w $79 w $0e w $c3 w $3e w $03 w
+  $ed w $79 w $0e w $c2 w $3e w $06 w $ed w $79 w $21 w $39 w $e0 w $7e w
+  $a7 w $28 w $10 w $0e w $c5 w $ed w $78 w $e6 w $20 w $28 w $f8 w $0e w
+  $c0 w $7e w $ed w $79 w $23 w $18 w $ec w $18 w $fe w $48 w $65 w $6c w
+  $6c w $6f w $20 w $77 w $6f w $72 w $6c w $64 w $21 w $0a w $0d w $00 w
+  x c ;
+
+: ez80-hellow  \ send greeting over serial, see asm/hellow.asm, in low mem
+  b x 0 >pc
+  $06 w $00 w $0e w $a5 w $3e w $03 w $ed w $79 w $0e w $c3 w $3e w $80 w
+  $ed w $79 w $0e w $c0 w $3e w $1a w $ed w $79 w $0e w $c3 w $3e w $03 w
+  $ed w $79 w $0e w $c2 w $3e w $06 w $ed w $79 w $21 w $39 w $00 w $7e w
+  $a7 w $28 w $10 w $0e w $c5 w $ed w $78 w $e6 w $20 w $28 w $f8 w $0e w
+  $c0 w $7e w $ed w $79 w $23 w $18 w $ec w $18 w $fe w $48 w $65 w $6c w
+  $6c w $6f w $20 w $57 w $6f w $72 w $6c w $64 w $21 w $0a w $0d w $00 w
+  x 0 >pc c ;
+
+: serial-pass ( -- )  \ pass all I/O to/from USART2
+  uart-init  9600 baud 2/ USART2-BRR !
+  begin
+    uart-key? if uart-key emit then
+    key? if key uart-emit then
+  again ;
+
+: serial-test ez80-hello serial-pass ;
+: serial-testw ez80-hellow serial-pass ;
 
 ez80-8MHz  zdi-init  100 ms  cr ? cr z b s cr r
