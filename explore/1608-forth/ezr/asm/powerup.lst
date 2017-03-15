@@ -1,0 +1,63 @@
+# File powerup.asm
+0000			; Power-up initialisation code for eZ80 
+0000			 
+0000			SRAM: equ 0E000h ; starting address of common SRAM 
+0000			SIZE: equ 00080h ; size of the power-up init code 
+0000			DEST: equ 0E400h ; load and jump to this address 
+0000			 
+0000			BANK: equ 24h	 ; SRAM and MBASE are set to this bank 
+0000			SAVE: equ 25h	 ; original SRAM contents is this bank 
+0000			FROM: equ 20h	 ; bank from which to copy everything 
+0000			 
+0000			    org SRAM 
+e000			 
+e000			; 1) disable ERAM and move SRAM to BANK 
+e000 01 b4 00		    ld  bc,00B4h ; RAM_CTL 
+e003 3e 80		    ld  a,80h ; enable SRAM, disable ERAM 
+e005 ed 79		    out (c),a 
+e007 0c			    inc c ; RAM_ADDR_U 
+e008 3e 24		    ld  a,BANK ; map SRAM to BANK 
+e00a ed 79		    out (c),a 
+e00c			 
+e00c			; 2) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM} 
+e00c 5b 21		    db 5Bh,21h ; ld.lil hl,{BANK,SRAM} 
+e00e 00 e0		    dw SRAM 
+e010 24			    db BANK 
+e011 5b 11		    db 5Bh,11h ; ld.lil de,{SAVE,SRAM} 
+e013 00 e0		    dw SRAM 
+e015 25			    db SAVE 
+e016 5b 01		    db 5Bh,01h ; ld.lil bc,002000h 
+e018 00 20		    dw 2000h 
+e01a 00			    db 00h 
+e01b 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
+e01e			 
+e01e			; 3) copy 6.5K {FROM,0000h} to {BANK,0E380h..0FD80h} 
+e01e 5b 21		    db 5Bh,21h ; ld.lil hl,{FROM,0000h} 
+e020 00 00		    dw 0000h 
+e022 20			    db FROM 
+e023 5b 11		    db 5Bh,11h ; ld.lil de,{BANK,DEST-SIZE} 
+e025 80 e3		    dw DEST-SIZE 
+e027 24			    db BANK 
+e028 5b 01		    db 5Bh,01h ; ld.lil bc,001A00h 
+e02a 00 1a		    dw 1A00h 
+e02c 00			    db 00h 
+e02d 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
+e030			 
+e030			; 4) room to add more setup code here... 
+e030			 
+e030			; 5) jump to SRAM before changing MBASE (still in A) 
+e030 5b c3		    db 5Bh,0C3h ; jp.lil {BANK,DEST-6} (enters ADL mode) 
+e032 fa e3		    dw DEST-6 ; running 0380h higher now, from new copy! 
+e034 24			    db BANK 
+e035			 
+e035 00...		    ds  SRAM+SIZE-$-6 ; take up slack space 
+e07a			 
+e07a			; 6) change MBASE from ADL mode and fall through to dest 
+e07a ed 6d		    db 0EDh,6Dh ; ld  mb,a 
+e07c 40 c3		    db 40h,0C3h ; jp.sis DEST (this also exits ADL mode) 
+e07e 00 e4		    dw DEST 
+e080			 
+e080			; ready for use, now running in Z80 mode at {BANK,DEST} 
+e080			    end 
+# End of file powerup.asm
+e080

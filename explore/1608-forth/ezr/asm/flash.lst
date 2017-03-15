@@ -1,101 +1,70 @@
 # File flash.asm
-0000				org $E000 
-e000			 
-e000			POWER: ; <<<<< POWER-UP INITIALISATION >>>>> 
-e000			 
-e000 01 b4 00			ld  bc, $00B4 ; RAM_CTL 
-e003 3e 80			ld  a, $80 ; enable SRAM, disable ERAM 
-e005 ed 79			out (c), a 
-e007			 
-e007 0c				inc c ; RAM_ADDR_U 
-e008 3e 24			ld  a, $24 ; map SRAM to bank $24 
-e00a ed 79			out (c), a 
-e00c			 
-e00c				; copy 8K SRAM $24E000 to $25E000 to stash SRAM 
-e00c 5b 21 00 e0 24		db  $5B,$21,$00,$E0,$24 ; ld.lil hl, $24E000 
-e011 5b 11 00 e0 25		db  $5B,$11,$00,$E0,$25 ; ld.lil de, $25E000 
-e016 5b 01 00 20 00		db  $5B,$01,$00,$20,$00 ; ld.lil bc, $002000 
-e01b 49 ed b0			db  $49,$ED,$B0		; ldir.l 
-e01e			 
-e01e				; copy 8K flash $000000 to $24E000 to init SRAM 
-e01e 5b 21 00 00 00		db  $5B,$21,$00,$00,$00 ; ld.lil hl, $000000 
-e023 5b 11 00 e0 24		db  $5B,$11,$00,$E0,$24 ; ld.lil de, $24E000 
-e028 5b 01 00 20 00		db  $5B,$01,$00,$20,$00 ; ld.lil bc, $002000 
-e02d 49 ed b0			db  $49,$ED,$B0		; ldir.l 
-e030			 
-e030				; long jump to $240000+reloc 
-e030 5b c3			db  $5B,$C3 ; jp.lil {$24,reloc} 
-e032 35 e0			dw  reloc 
-e034 24				db  $24 
-e035			reloc:	; set bank to $24 (still in a) 
-e035 ed 6d			db  $ED,$6D ; ld  mb, a 
-e037 40 c3			db  $40,$C3 ; jp.sis $E080 
-e039 80 e0			dw  $E080 
-e03b				; ready for use, running in Z80 mode at $24E080 
-e03b			 
-e03b 00...			ds  $E080-$ 
+0000				org $E080 
+e080			 
 e080 c3 8c e0			jp  PUP2R ; flash cmd # 0 
-e083 c3 9f e0			jp  ERASE ; flash cmd # 1 
-e086 c3 c7 e0			jp  RAM2F ; flash cmd # 2 
-e089 c3 e1 e0			jp  F2RAM ; flash cmd # 3 
+e083 c3 a0 e0			jp  ERASE ; flash cmd # 1 
+e086 c3 c9 e0			jp  RAM2F ; flash cmd # 2 
+e089 c3 e4 e0			jp  F2RAM ; flash cmd # 3 
 e08c			 
 e08c			PUP2R: ; <<<<< COPY POWER-UP CODE TO RAM DISK >>>>> 
 e08c			 
-e08c 5b 21 00 e0 ff		db  $5B,$21,$00,$E0,$FF ; ld.lil hl, $FFE000 
-e091 5b 11 00 00 20		db  $5B,$11,$00,$00,$20 ; ld.lil de, $200000 
-e096 5b 01 80 00 00		db  $5B,$01,$80,$00,$00 ; ld.lil bc, $000080 
-e09b 49 ed b0			db  $49,$ED,$B0		; ldir.l 
+e08c 5b 21 00 e0 ff		db $5B,$21,$00,$E0,$FF ; ld.lil hl,$FFE000 
+e091 5b 11 00 00 20		db $5B,$11,$00,$00,$20 ; ld.lil de,$200000 
+e096 5b 01 80 00 00		db $5B,$01,$80,$00,$00 ; ld.lil bc,$000080 
+e09b 49 ed b0			db $49,$ED,$B0		; ldir.l 
 e09e			 
-e09e 76				halt 
-e09f			 
-e09f			ERASE: ; <<<<< ERASE FLASH MEMORY >>>>> 
-e09f			 
-e09f 01 f5 00			ld  bc, $00F5 ; FLASH_KEY 
-e0a2 3e b6			ld  a, $B6 ; key 1 
-e0a4 ed 79			out (c), a 
-e0a6 3e 49			ld  a, $49 ; key 2 
-e0a8 ed 79			out (c), a 
-e0aa			 
-e0aa 0e f9			ld  c, $F9 ; FLASH_FDIV 
-e0ac 3e 15			ld  a, 21  ; ceil[mhz*5.1], i.e. 21 for 4 MHz 
-e0ae ed 79			out (c), a 
-e0b0			 
-e0b0 0e f5			ld  c, $F5 ; FLASH_KEY 
-e0b2 3e b6			ld  a, $B6 ; key 1 
-e0b4 ed 79			out (c), a 
-e0b6 3e 49			ld  a, $49 ; key 2 
-e0b8 ed 79			out (c), a 
-e0ba			 
-e0ba 0e fa			ld  c, $FA ; FLASH_PROT 
-e0bc 3e 00			ld  a, $00 ; unprotect all 8 blocks 
-e0be ed 79			out (c), a 
-e0c0			 
-e0c0 0e ff			ld  c, $FF ; FLASH_PGCTL 
-e0c2 3e 01			ld  a, $01 ; start mass erase 
-e0c4 ed 79			out (c), a 
-e0c6			 
-e0c6 76				halt 
+e09e 18 fe			jr $ 
+e0a0			 
+e0a0			ERASE: ; <<<<< ERASE FLASH MEMORY >>>>> 
+e0a0			 
+e0a0 01 f5 00			ld  bc,$00F5 ; FLASH_KEY 
+e0a3 3e b6			ld  a,$B6 ; key 1 
+e0a5 ed 79			out (c),a 
+e0a7 3e 49			ld  a,$49 ; key 2 
+e0a9 ed 79			out (c),a 
+e0ab			 
+e0ab 0e f9			ld  c,$F9 ; FLASH_FDIV 
+e0ad 3e 15			ld  a,21  ; ceil[mhz*5.1], i.e. 21 for 4 MHz 
+e0af ed 79			out (c),a 
+e0b1			 
+e0b1 0e f5			ld  c,$F5 ; FLASH_KEY 
+e0b3 3e b6			ld  a,$B6 ; key 1 
+e0b5 ed 79			out (c),a 
+e0b7 3e 49			ld  a,$49 ; key 2 
+e0b9 ed 79			out (c),a 
+e0bb			 
+e0bb 0e fa			ld  c,$FA ; FLASH_PROT 
+e0bd 3e 00			ld  a,$00 ; unprotect all 8 blocks 
+e0bf ed 79			out (c),a 
+e0c1			 
+e0c1 0e ff			ld  c,$FF ; FLASH_PGCTL 
+e0c3 3e 01			ld  a,$01 ; start mass erase 
+e0c5 ed 79			out (c),a 
 e0c7			 
-e0c7			RAM2F: ; <<<<< COPY 256K RAM DISK TO EMPTY FLASH >>>>> 
-e0c7			 
-e0c7 5b 21 00 00 20		db  $5B,$21,$00,$00,$20 ; ld.lil hl, $200000 
-e0cc 5b 11 00 00 00		db  $5B,$11,$00,$00,$00 ; ld.lil de, $000000 
-e0d1 5b 01 00 00 04		db  $5B,$01,$00,$00,$04 ; ld.lil bc, $040000 
-e0d6 49 ed b0			db  $49,$ED,$B0		; ldir.l 
-e0d9			 
-e0d9 01 fa 00			ld  bc, $00FA ; FLASH_PROT 
-e0dc 3e ff			ld  a, $FF ; protect all 8 blocks 
-e0de ed 79			out (c), a 
-e0e0			 
-e0e0 76				halt 
-e0e1			 
-e0e1			F2RAM: ; <<<<< COPY 256K FLASH TO RAM DISK >>>>> 
-e0e1			 
-e0e1 5b 21 00 00 00		db  $5B,$21,$00,$00,$00 ; ld.lil hl, $000000 
-e0e6 5b 11 00 00 20		db  $5B,$11,$00,$00,$20 ; ld.lil de, $200000 
-e0eb 5b 01 00 00 04		db  $5B,$01,$00,$00,$04 ; ld.lil bc, $040000 
-e0f0 49 ed b0			db  $49,$ED,$B0		; ldir.l 
-e0f3			 
-e0f3 76				halt 
+e0c7 18 fe			jr $ 
+e0c9			 
+e0c9			RAM2F: ; <<<<< COPY 256K RAM DISK TO EMPTY FLASH >>>>> 
+e0c9			 
+e0c9 5b 21 00 00 20		db $5B,$21,$00,$00,$20 ; ld.lil hl,$200000 
+e0ce 5b 11 00 00 00		db $5B,$11,$00,$00,$00 ; ld.lil de,$000000 
+e0d3 5b 01 00 00 04		db $5B,$01,$00,$00,$04 ; ld.lil bc,$040000 
+e0d8 49 ed b0			db $49,$ED,$B0	       ; ldir.l 
+e0db			 
+e0db 01 fa 00			ld  bc,$00FA ; FLASH_PROT 
+e0de 3e ff			ld  a,$FF ; protect all 8 blocks 
+e0e0 ed 79			out (c),a 
+e0e2			 
+e0e2 18 fe			jr $ 
+e0e4			 
+e0e4			F2RAM: ; <<<<< COPY 256K FLASH TO RAM DISK >>>>> 
+e0e4			 
+e0e4 5b 21 00 00 00		db $5B,$21,$00,$00,$00 ; ld.lil hl,$000000 
+e0e9 5b 11 00 00 20		db $5B,$11,$00,$00,$20 ; ld.lil de,$200000 
+e0ee 5b 01 00 00 04		db $5B,$01,$00,$00,$04 ; ld.lil bc,$040000 
+e0f3 49 ed b0			db $49,$ED,$B0	       ; ldir.l 
+e0f6			 
+e0f6 18 fe			jr $ 
+e0f8			 
+e0f8				end 
 # End of file flash.asm
-e0f4
+e0f8

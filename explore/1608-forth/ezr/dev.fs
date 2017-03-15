@@ -94,6 +94,8 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
     uart-key? if uart-key emit then
   key? until ;
 
+: x  RST ioc! 1 ms RST ios! ;
+
 : h  \ send greeting over serial, see asm/hello.asm
   b u
 include asm/hello.fs
@@ -107,10 +109,7 @@ include asm/hellow.fs
 : q ( n -- ) \ perform step N of flash setup (n ≥ 0)
   b u
 include asm/flash.fs
-  u  3 * $E080 + a  c ;
-
-: x  RST ioc! 1 ms RST ios! ;
-
+  u  3 * $E000 + a  c ;
 
 : ?
   cr ." v = show chip version           b = break next "
@@ -125,3 +124,4 @@ include asm/flash.fs
   cr ;
 
 ez80-4MHz  zdi-init  100 ms  cr ? cr v b s cr r
+\ include cpm/disk.fs
