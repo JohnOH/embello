@@ -33,12 +33,12 @@ reloc:	; set bank to $24 (still in a)
 	; ready for use, running in Z80 mode at $24E080
 
 	ds  $E080-$
-	jp  CPU2R ; flash cmd # 0
+	jp  PUP2R ; flash cmd # 0
 	jp  ERASE ; flash cmd # 1
 	jp  RAM2F ; flash cmd # 2
 	jp  F2RAM ; flash cmd # 3
 
-CPU2R: ; <<<<< COPY POWER-UP CODE TO RAM DISK >>>>>
+PUP2R: ; <<<<< COPY POWER-UP CODE TO RAM DISK >>>>>
 
 	db  $5B,$21,$00,$E0,$FF ; ld.lil hl, $FFE000
 	db  $5B,$11,$00,$00,$20 ; ld.lil de, $200000

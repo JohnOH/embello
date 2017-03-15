@@ -34,12 +34,12 @@ e039 80 e0			dw  $E080
 e03b				; ready for use, running in Z80 mode at $24E080 
 e03b			 
 e03b 00...			ds  $E080-$ 
-e080 c3 8c e0			jp  CPU2R ; flash cmd # 0 
+e080 c3 8c e0			jp  PUP2R ; flash cmd # 0 
 e083 c3 9f e0			jp  ERASE ; flash cmd # 1 
 e086 c3 c7 e0			jp  RAM2F ; flash cmd # 2 
 e089 c3 e1 e0			jp  F2RAM ; flash cmd # 3 
 e08c			 
-e08c			CPU2R: ; <<<<< COPY POWER-UP CODE TO RAM DISK >>>>> 
+e08c			PUP2R: ; <<<<< COPY POWER-UP CODE TO RAM DISK >>>>> 
 e08c			 
 e08c 5b 21 00 e0 ff		db  $5B,$21,$00,$E0,$FF ; ld.lil hl, $FFE000 
 e091 5b 11 00 00 20		db  $5B,$11,$00,$00,$20 ; ld.lil de, $200000 
