@@ -12,45 +12,42 @@
 0000			    org SRAM 
 e000			 
 e000			; 1) disable ERAM and move SRAM to BANK 
-e000 01 b4 00		    ld  bc,00B4h ; RAM_CTL 
-e003 3e 80		    ld  a,80h ; enable SRAM, disable ERAM 
-e005 ed 79		    out (c),a 
-e007 0c			    inc c ; RAM_ADDR_U 
-e008 3e 24		    ld  a,BANK ; map SRAM to BANK 
-e00a ed 79		    out (c),a 
-e00c			 
-e00c			; 2) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM} 
-e00c 5b 21		    db 5Bh,21h ; ld.lil hl,{BANK,SRAM} 
-e00e 00 e0		    dw SRAM 
-e010 24			    db BANK 
-e011 5b 11		    db 5Bh,11h ; ld.lil de,{SAVE,SRAM} 
-e013 00 e0		    dw SRAM 
-e015 25			    db SAVE 
-e016 5b 01		    db 5Bh,01h ; ld.lil bc,002000h 
-e018 00 20		    dw 2000h 
-e01a 00			    db 00h 
-e01b 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
-e01e			 
-e01e			; 3) copy 6.5K {FROM,0000h} to {BANK,0E380h..0FD80h} 
-e01e 5b 21		    db 5Bh,21h ; ld.lil hl,{FROM,0000h} 
-e020 00 00		    dw 0000h 
-e022 20			    db FROM 
-e023 5b 11		    db 5Bh,11h ; ld.lil de,{BANK,DEST-SIZE} 
-e025 80 e3		    dw DEST-SIZE 
-e027 24			    db BANK 
-e028 5b 01		    db 5Bh,01h ; ld.lil bc,001A00h 
-e02a 00 1a		    dw 1A00h 
-e02c 00			    db 00h 
-e02d 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
-e030			 
-e030			; 4) room to add more setup code here... 
-e030			 
-e030			; 5) jump to SRAM before changing MBASE (still in A) 
-e030 5b c3		    db 5Bh,0C3h ; jp.lil {BANK,DEST-6} (enters ADL mode) 
-e032 fa e3		    dw DEST-6 ; running 0380h higher now, from new copy! 
-e034 24			    db BANK 
-e035			 
-e035 00...		    ds  SRAM+SIZE-$-6 ; take up slack space 
+e000 21 24 80		    ld hl,$8000+BANK 
+e003 ed 21 b4		    db 0EDh,21h,0B4h ; out0 (RAM_CTL),h ; disable ERAM 
+e006 ed 29 b5		    db 0EDh,29h,0B5h ; out0 (RAM_BANK),l ; SRAM to BANK 
+e009			 
+e009			; 2) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM} 
+e009 5b 21		    db 5Bh,21h ; ld.lil hl,{BANK,SRAM} 
+e00b 00 e0		    dw SRAM 
+e00d 24			    db BANK 
+e00e 5b 11		    db 5Bh,11h ; ld.lil de,{SAVE,SRAM} 
+e010 00 e0		    dw SRAM 
+e012 25			    db SAVE 
+e013 5b 01		    db 5Bh,01h ; ld.lil bc,002000h 
+e015 00 20		    dw 2000h 
+e017 00			    db 00h 
+e018 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
+e01b			 
+e01b			; 3) copy 6.5K {FROM,0000h} to {BANK,0E380h..0FD80h} 
+e01b 5b 21		    db 5Bh,21h ; ld.lil hl,{FROM,0000h} 
+e01d 00 00		    dw 0000h 
+e01f 20			    db FROM 
+e020 5b 11		    db 5Bh,11h ; ld.lil de,{BANK,DEST-SIZE} 
+e022 80 e3		    dw DEST-SIZE 
+e024 24			    db BANK 
+e025 5b 01		    db 5Bh,01h ; ld.lil bc,001A00h 
+e027 00 1a		    dw 1A00h 
+e029 00			    db 00h 
+e02a 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
+e02d			 
+e02d			; 4) room to add more setup code here... 
+e02d			 
+e02d			; 5) jump to SRAM before changing MBASE (still in A) 
+e02d 5b c3		    db 5Bh,0C3h ; jp.lil {BANK,DEST-6} (enters ADL mode) 
+e02f fa e3		    dw DEST-6 ; running 0380h higher now, from new copy! 
+e031 24			    db BANK 
+e032			 
+e032 00...		    ds  SRAM+SIZE-$-6 ; take up slack space 
 e07a			 
 e07a			; 6) change MBASE from ADL mode and fall through to dest 
 e07a ed 6d		    db 0EDh,6Dh ; ld  mb,a 

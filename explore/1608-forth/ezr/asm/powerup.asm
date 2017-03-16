@@ -11,12 +11,9 @@ FROM: equ 20h	 ; bank from which to copy everything
     org SRAM
 
 ; 1) disable ERAM and move SRAM to BANK
-    ld  bc,00B4h ; RAM_CTL
-    ld  a,80h ; enable SRAM, disable ERAM
-    out (c),a
-    inc c ; RAM_ADDR_U
-    ld  a,BANK ; map SRAM to BANK
-    out (c),a
+    ld hl,$8000+BANK
+    db 0EDh,21h,0B4h ; out0 (RAM_CTL),h ; disable ERAM
+    db 0EDh,29h,0B5h ; out0 (RAM_BANK),l ; SRAM to BANK
 
 ; 2) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM}
     db 5Bh,21h ; ld.lil hl,{BANK,SRAM}

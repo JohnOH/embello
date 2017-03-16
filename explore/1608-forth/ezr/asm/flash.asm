@@ -1,18 +1,8 @@
 	org $E000
 
-	jp  PUP2R ; flash cmd # 0
-	jp  ERASE ; flash cmd # 1
-	jp  RAM2F ; flash cmd # 2
-	jp  F2RAM ; flash cmd # 3
-
-PUP2R: ; <<<<< COPY POWER-UP CODE TO RAM DISK >>>>>
-
-	db $5B,$21,$00,$E0,$FF ; ld.lil hl,$FFE000
-	db $5B,$11,$00,$00,$20 ; ld.lil de,$200000
-	db $5B,$01,$80,$00,$00 ; ld.lil bc,$000080
-	db $49,$ED,$B0		; ldir.l
-
-	jr $
+	jp  ERASE ; flash cmd # 0
+	jp  RAM2F ; flash cmd # 1
+	jp  F2RAM ; flash cmd # 2
 
 ERASE: ; <<<<< ERASE FLASH MEMORY >>>>>
 
