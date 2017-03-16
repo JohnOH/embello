@@ -56,9 +56,8 @@ PB5 constant ZDA
   dup 2 bit and if ." ief1 " then
              0= if ." <run> " then ;
 
-: b  7 bit $10 >zdi ;
-
-: c  0 $10 >zdi ;
+: b  $80 $10 >zdi ;
+: c  $00 $10 >zdi ;
 
 : r1 ( u -- )  $16 >zdi  [char] : emit  $11 zdi> h.2  $10 zdi> h.2  space ;
 : r  ." FA" 0 r1  ." BC" 1 r1  ." DE" 2 r1  ." HL" 3 r1
@@ -75,21 +74,50 @@ PB5 constant ZDA
   16 - a ;
 
 : w ( u -- )  $30 >zdi ;
-
-: f ( addr u -- )  0 do dup c@ w 1+ loop drop ;
+: f ( addr size -- )  0 do dup c@ w 1+ loop drop ;
 
                 512 buffer: page
 page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
 
-: d ( u -- )
-  drop \ TODO get 128 bytes into sect
-  sect 128 dump ;
+: ins1 ( u1 -- )              $25 >zdi ;
+: ins2 ( u1 u2 -- )           $24 >zdi ins1 ;
+: ins3 ( u1 u2 u3 -- )        $23 >zdi ins2 ;
+: ins4 ( u1 u2 u3 u4 -- )     $22 >zdi ins3 ;
+: ins5 ( u1 u2 u3 u4 u5 -- )  $21 >zdi ins4 ;
 
-: u  $08 $16 >zdi  $FF $13 >zdi  $80 $16 >zdi  
-     $6D $24 >zdi  $ED $25 >zdi  $09 $16 >zdi  $E000 a ;
+: sram> ( -- u )  \ get SRAM bank
+  $08 $16 >zdi            \ set adl mode
+  $00 $16 >zdi  $12 zdi>  \ mbase => <u>
+  $09 $16 >zdi ;          \ set z80 mode
+
+: >sram ( u -- )  \ set SRAM bank
+  $21 swap $80 ins3    \ ld hl,8000h+<u>
+  $25 $21 $B4  ins3    \ out0 (RAM_CTL),h
+  $25 $29 $B5  ins3 ;  \ out0 (RAM_BANK),l
+
+: mb> ( -- u )            \ get MBASE
+  $08 $16 >zdi            \ set adl mode
+  $00 $16 >zdi  $12 zdi>  \ mbase => <u>
+  $09 $16 >zdi ;          \ set z80 mode
+
+: >mb ( u -- )  \ set MBASE
+  $08 $16 >zdi            \ set adl mode
+  $13 >zdi  $80 $16 >zdi  \ ld a,<u>
+  $ED $6D ins2            \ ld mb,a
+  $09 $16 >zdi ;          \ set z80 mode
+
+: d ( u -- )
+  dup 16 rshift >mb  a
+  8 0 do
+    cr m
+    p 16 + a
+  loop
+  p 128 - a ;
+
+: u  $FF >mb  $E000 a ;
 
 : serial-show ( -- )  \ show output from USART2
-  uart-init  9600 baud 2/ USART2-BRR !
+  cr uart-init  9600 baud 2/ USART2-BRR !
   begin
     uart-key? if uart-key emit then
   key? until ;
@@ -99,17 +127,19 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
 : h  \ send greeting over serial, see asm/hello.asm
   b u
 include asm/hello.fs
-  u c serial-show ;
+  u c serial-show b r ;
 
 : l  \ send greeting over serial, see asm/hellow.asm, in low mem
-  b u $0080 a
+  b u $0100 a
 include asm/hellow.fs
-  u $0080 a c serial-show ;
+  u $0100 a c serial-show b r ;
 
 : q ( n -- ) \ perform step N of flash setup (n ≥ 0)
   b u
 include asm/flash.fs
-  u  3 * $E000 + a  c ;
+  u  3 * $E000 + a  c 500 ms b r ;
+
+: z $3A6000 d c serial-show b r ;
 
 : ?
   cr ." v = show chip version           b = break next "
@@ -120,8 +150,48 @@ include asm/flash.fs
   cr ." f = fill memory ( addr n -- )   h = high serial test ($E000) "
   cr ." d = disk dump ( u -- )          l = low serial test ($0080) "
   cr ." x = hardware reset              q = flash request ( u --) "
-  cr ." ? = this help "
+  cr ." z = start running at $3A6000    ? = this help "
   cr ;
 
-ez80-4MHz  zdi-init  100 ms  cr ? cr v b s cr r
-\ include cpm/disk.fs
+: g1
+  x b
+  s mb> hex. cr r ;
+
+: g2
+  $21 $20 $80 ins3  \ ld hl,8000h+BANK 
+  $ED $21 $B4 ins3  \ out0 (RAM_CTL),h ; disable ERAM 
+  $ED $29 $B5 ins3  \ out0 (RAM_BANK),l ; SRAM to BANK 
+  s mb> hex. cr r ;
+
+: g3
+  $5B $21 $00 $E0 $20 ins5  \ ld.lil hl,{BANK,SRAM} 
+  $5B $11 $00 $E0 $21 ins5  \ ld.lil de,{SAVE,SRAM} 
+  $5B $01 $00 $20 $00 ins5  \ ld.lil bc,002000h 
+  $49 $ED $B0         ins3  \ ldir.l 
+  s mb> hex. cr r ;
+
+: g4
+  $5B $21 $00 $60 $3A ins5  \ ld.lil hl,{FROM,FOFF} 
+  $5B $11 $80 $E3 $20 ins5  \ ld.lil de,{BANK,DEST}
+  $5B $01 $00 $1A $00 ins5  \ ld.lil bc,2*26*80h 
+  $49 $ED $B0         ins3  \ ldir.l 
+  s mb> hex. cr r ;
+
+: g5
+  $20E380 d
+  $20FA00 d
+  c serial-show b r ;
+
+: s2
+  begin
+    uart-key? if uart-key emit then
+    key? if key uart-emit then
+  again ;
+
+: wr
+  $3A >mb $6000 a disk.data disk.size f ;
+: go
+\ g1 g2 g3 g4 g5
+  $3A >mb $6000 a c cr s2 ;
+
+ez80-4MHz  zdi-init  100 ms  cr x b v s cr r

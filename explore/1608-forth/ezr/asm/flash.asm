@@ -32,9 +32,9 @@ ERASE: ; <<<<< ERASE FLASH MEMORY >>>>>
 
 	jr $
 
-RAM2F: ; <<<<< COPY 256K RAM DISK TO EMPTY FLASH >>>>>
+RAM2F: ; <<<<< COPY FIRST 256K OF RAM DISK TO EMPTY FLASH >>>>>
 
-	db $5B,$21,$00,$00,$20 ; ld.lil hl,$200000
+	db $5B,$21,$00,$60,$3A ; ld.lil hl,$3A6000
 	db $5B,$11,$00,$00,$00 ; ld.lil de,$000000
 	db $5B,$01,$00,$00,$04 ; ld.lil bc,$040000
 	db $49,$ED,$B0	       ; ldir.l
@@ -45,10 +45,10 @@ RAM2F: ; <<<<< COPY 256K RAM DISK TO EMPTY FLASH >>>>>
 
 	jr $
 
-F2RAM: ; <<<<< COPY 256K FLASH TO RAM DISK >>>>>
+F2RAM: ; <<<<< COPY 256K FLASH TO START OF RAM DISK >>>>>
 
 	db $5B,$21,$00,$00,$00 ; ld.lil hl,$000000
-	db $5B,$11,$00,$00,$20 ; ld.lil de,$200000
+	db $5B,$11,$00,$60,$3A ; ld.lil de,$3A6000
 	db $5B,$01,$00,$00,$04 ; ld.lil bc,$040000
 	db $49,$ED,$B0	       ; ldir.l
 
