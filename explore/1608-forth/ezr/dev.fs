@@ -10,18 +10,20 @@ PB1 constant RST
 PB4 constant ZCL
 PB5 constant ZDA
 
-: ez80-4MHz ( -- )
+: ez80-8MHz ( -- )
   7200 XIN pwm-init   \ first set up pwm correctly
-  17 3 timer-init     \ then mess with the timer divider, i.e. ÷18
-  9998 XIN pwm        \ finally, set the pwm to still toggle
-  RST ios!  OMODE-OD RST io-mode! ;
+  8 3 timer-init     \ then mess with the timer divider, i.e. ÷9
+  9998 XIN pwm ;      \ finally, set the pwm to still toggle
 
 : zdi-init ( -- )
+  RST ios!  OMODE-OD RST io-mode!
   ZDA ios!  OMODE-OD ZDA io-mode!
-  ZCL ios!  OMODE-PP ZCL io-mode! ;
+  ZCL ios!  OMODE-PP ZCL io-mode!
+  ez80-8MHz ;
 
-: zcl-lo  10 us ZCL ioc!  10 us ;
-: zcl-hi  10 us ZCL ios!  10 us ;
+: delay 5 0 do loop ;
+: zcl-lo  delay ZCL ioc!  delay ;
+: zcl-hi  delay ZCL ios!  delay ;
 
 : zdi! ( f -- )  zcl-lo  ZDA io!  zcl-hi  ZDA ios! ;
 
@@ -116,30 +118,32 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
 
 : u  $FF >mb  $E000 a ;
 
-: serial-show ( -- )  \ show output from USART2
-  cr uart-init  9600 baud 2/ USART2-BRR !
+: s1 ( -- )  \ show output from USART2
+  ." Hit return to exit serial mode:" cr
+  uart-init  19200 baud 2/ USART2-BRR !
+  c
   begin
     uart-key? if uart-key emit then
-  key? until ;
+  key? until b r ;
 
 : x  RST ioc! 1 ms RST ios! ;
 
 : h  \ send greeting over serial, see asm/hello.asm
   b u
 include asm/hello.fs
-  u c serial-show b r ;
+  u s1 ;
 
 : l  \ send greeting over serial, see asm/hellow.asm, in low mem
   b u $0100 a
 include asm/hellow.fs
-  u $0100 a c serial-show b r ;
+  u $0100 a s1 ;
 
 : q ( n -- ) \ perform step N of flash setup (n ≥ 0)
   b u
 include asm/flash.fs
   u  3 * $E000 + a  c 500 ms b r ;
 
-: z $3A6000 d c serial-show b r ;
+: z $3A6000 d s1 ;
 
 : ?
   cr ." v = show chip version           b = break next "
@@ -153,45 +157,23 @@ include asm/flash.fs
   cr ." z = start running at $3A6000    ? = this help "
   cr ;
 
-: g1
-  x b
-  s mb> hex. cr r ;
-
-: g2
-  $21 $20 $80 ins3  \ ld hl,8000h+BANK 
-  $ED $21 $B4 ins3  \ out0 (RAM_CTL),h ; disable ERAM 
-  $ED $29 $B5 ins3  \ out0 (RAM_BANK),l ; SRAM to BANK 
-  s mb> hex. cr r ;
-
-: g3
-  $5B $21 $00 $E0 $20 ins5  \ ld.lil hl,{BANK,SRAM} 
-  $5B $11 $00 $E0 $21 ins5  \ ld.lil de,{SAVE,SRAM} 
-  $5B $01 $00 $20 $00 ins5  \ ld.lil bc,002000h 
-  $49 $ED $B0         ins3  \ ldir.l 
-  s mb> hex. cr r ;
-
-: g4
-  $5B $21 $00 $60 $3A ins5  \ ld.lil hl,{FROM,FOFF} 
-  $5B $11 $80 $E3 $20 ins5  \ ld.lil de,{BANK,DEST}
-  $5B $01 $00 $1A $00 ins5  \ ld.lil bc,2*26*80h 
-  $49 $ED $B0         ins3  \ ldir.l 
-  s mb> hex. cr r ;
-
-: g5
-  $20E380 d
-  $20FA00 d
-  c serial-show b r ;
-
 : s2
+  cr uart-init  19200 baud 2/ USART2-BRR !
+  c
   begin
     uart-key? if uart-key emit then
     key? if key uart-emit then
   again ;
 
-: wr
-  $3A >mb $6000 a disk.data disk.size f ;
-: go
-\ g1 g2 g3 g4 g5
-  $3A >mb $6000 a c cr s2 ;
+: go  $3A >mb $6000 a s2 ;
 
-ez80-4MHz  zdi-init  100 ms  cr x b v s cr r
+: w4 ( u -- )
+  dup 24 rshift w
+  dup 16 rshift w
+  dup  8 rshift w
+                w ;
+: w32 ( u7..u0 -- )
+  >r >r >r >r >r >r >r 
+  w4 r> w4 r> w4 r> w4 r> w4 r> w4 r> w4 r> w4 ;
+
+zdi-init  cr x b v s cr r

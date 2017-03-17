@@ -3,7 +3,6 @@
 \ <<<core>>>
 compiletoflash
 include ../flib/stm32f1/uart2.fs
-include cpm/disk.fs
 compiletoram
 hello
 

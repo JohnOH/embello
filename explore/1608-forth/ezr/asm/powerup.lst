@@ -2,9 +2,8 @@
 0000			; Power-up initialisation code for eZ80 
 0000			 
 0000			SRAM: equ 0E000h ; starting address of common SRAM 
-0000			SIZE: equ 00080h ; size of the power-up init code 
-0000			DEST: equ 0E380h ; load to this address 
-0000			JUMP: equ 0FA00h ; finish with a jump to this address 
+0000			DEST: equ 0E780h ; load to this address 
+0000			BIOS: equ 0FE00h ; finish with jump to BIOS cold boot 
 0000			 
 0000			BANK: equ 20h	 ; SRAM and MBASE are set to this bank 
 0000			SAVE: equ 21h	 ; original SRAM contents is this bank 
@@ -19,54 +18,53 @@
 0000			 
 0000			; 1) on power-up, this code initially run at 0000h! 
 0000			    org DEST 
-e380			 
-e380			; 2) disable ERAM and move SRAM to BANK 
-e380 21 20 80		    ld hl,8000h+BANK 
-e383 ed 21 b4		    db 0EDh,21h,0B4h ; out0 (RAM_CTL),h ; disable ERAM 
-e386 ed 29 b5		    db 0EDh,29h,0B5h ; out0 (RAM_BANK),l ; SRAM to BANK 
-e389			 
-e389			; 3) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM} 
-e389 5b 21		    db 5Bh,21h ; ld.lil hl,{BANK,SRAM} 
-e38b 00 e0		    dw SRAM 
-e38d 20			    db BANK 
-e38e 5b 11		    db 5Bh,11h ; ld.lil de,{SAVE,SRAM} 
-e390 00 e0		    dw SRAM 
-e392 21			    db SAVE 
-e393 5b 01		    db 5Bh,01h ; ld.lil bc,002000h 
-e395 00 20		    dw 2000h 
-e397 00			    db 00h 
-e398 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
-e39b			 
-e39b			; 4) copy 6.5K {FROM,FOFF} to {BANK,0E380h..0FD80h} 
-e39b 5b 21		    db 5Bh,21h ; ld.lil hl,{FROM,FOFF} 
-e39d 00 60		    dw FOFF 
-e39f 3a			    db FROM 
-e3a0 5b 11		    db 5Bh,11h ; ld.lil de,{BANK,DEST} 
-e3a2 80 e3		    dw DEST 
-e3a4 20			    db BANK 
-e3a5 5b 01		    db 5Bh,01h ; ld.lil bc,2*26*80h 
-e3a7 00 1a		    dw 2*26*80h 
-e3a9 00			    db 00h 
-e3aa 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
-e3ad			 
-e3ad			; 5) jump to SRAM before changing MBASE 
-e3ad 5b c3		    db 5Bh,0C3h ; jp.lil {BANK,reloc1} (enters ADL mode) 
-e3af b2 e3		    dw reloc1 ; continue running at correct origin 
-e3b1 20			    db BANK 
-e3b2			reloc1: 
-e3b2			 
-e3b2			; 6) change MBASE while in ADL mode 
-e3b2 3e 20		    ld a,BANK 
-e3b4 ed 6d		    db 0EDh,6Dh ; ld  mb,a 
-e3b6 40 c3		    db 40h,0C3h ; jp.sis reloc2 (this exits ADL mode) 
-e3b8 ba e3		    dw reloc2 
-e3ba			reloc2: ; now running in Z80 mode at {BANK,reloc2} 
-e3ba			 
-e3ba			; 7) set up PLL and switch system clock to 50 MHz 
-e3ba			    ; TODO ... 
-e3ba c3 00 fa		    jp JUMP 
-e3bd			 
-e3bd 00...		    ds  DEST+SIZE-$ ; take up slack space 
-e400			    end 
+e780			 
+e780			; 2) disable ERAM and move SRAM to BANK 
+e780 21 20 80		    ld hl,8000h+BANK 
+e783 ed 21 b4		    db 0EDh,21h,0B4h ; out0 (RAM_CTL),h ; disable ERAM 
+e786 ed 29 b5		    db 0EDh,29h,0B5h ; out0 (RAM_BANK),l ; SRAM to BANK 
+e789			 
+e789			; 3) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM} 
+e789 5b 21		    db 5Bh,21h ; ld.lil hl,{BANK,SRAM} 
+e78b 00 e0		    dw SRAM 
+e78d 20			    db BANK 
+e78e 5b 11		    db 5Bh,11h ; ld.lil de,{SAVE,SRAM} 
+e790 00 e0		    dw SRAM 
+e792 21			    db SAVE 
+e793 5b 01		    db 5Bh,01h ; ld.lil bc,002000h 
+e795 00 20		    dw 2000h 
+e797 00			    db 00h 
+e798 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
+e79b			 
+e79b			; 4) copy 6.5K {FROM,FOFF} to {BANK,0E380h..0FD80h} 
+e79b 5b 21		    db 5Bh,21h ; ld.lil hl,{FROM,FOFF} 
+e79d 00 60		    dw FOFF 
+e79f 3a			    db FROM 
+e7a0 5b 11		    db 5Bh,11h ; ld.lil de,{BANK,DEST} 
+e7a2 80 e7		    dw DEST 
+e7a4 20			    db BANK 
+e7a5 5b 01		    db 5Bh,01h ; ld.lil bc,2*26*80h 
+e7a7 00 1a		    dw 2*26*80h 
+e7a9 00			    db 00h 
+e7aa 49 ed b0		    db 49h,0EDh,0B0h ; ldir.l 
+e7ad			 
+e7ad			; 5) jump to SRAM before changing MBASE 
+e7ad 5b c3		    db 5Bh,0C3h ; jp.lil {BANK,reloc1} (enters ADL mode) 
+e7af b2 e7		    dw reloc1 ; continue running at correct origin 
+e7b1 20			    db BANK 
+e7b2			reloc1: 
+e7b2			 
+e7b2			; 6) change MBASE while in ADL mode 
+e7b2 3e 20		    ld a,BANK 
+e7b4 ed 6d		    db 0EDh,6Dh ; ld  mb,a 
+e7b6 40 c3		    db 40h,0C3h ; jp.sis reloc2 (this exits ADL mode) 
+e7b8 ba e7		    dw reloc2 
+e7ba			reloc2: ; now running in Z80 mode at {BANK,reloc2} 
+e7ba			 
+e7ba			; 7) set up PLL and switch system clock to 50 MHz 
+e7ba			    ; TODO ... 
+e7ba c3 00 fe		    jp BIOS 
+e7bd			 
+e7bd			    end 
 # End of file powerup.asm
-e400
+e7bd

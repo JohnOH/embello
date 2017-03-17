@@ -1,9 +1,8 @@
 ; Power-up initialisation code for eZ80
 
 SRAM: equ 0E000h ; starting address of common SRAM
-SIZE: equ 00080h ; size of the power-up init code
-DEST: equ 0E380h ; load to this address
-JUMP: equ 0FA00h ; finish with a jump to this address
+DEST: equ 0E780h ; load to this address
+BIOS: equ 0FE00h ; finish with jump to BIOS cold boot
 
 BANK: equ 20h	 ; SRAM and MBASE are set to this bank
 SAVE: equ 21h	 ; original SRAM contents is this bank
@@ -63,7 +62,6 @@ reloc2: ; now running in Z80 mode at {BANK,reloc2}
 
 ; 7) set up PLL and switch system clock to 50 MHz
     ; TODO ...
-    jp JUMP
+    jp BIOS
 
-    ds  DEST+SIZE-$ ; take up slack space
     end

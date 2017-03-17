@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	PERLINE = 16
+	PERLINE = 32
 	FROM    = "disk.img"
 	TO      = "disk.fs"
 )
@@ -37,18 +37,20 @@ func main() {
 	}
 	fmt.Printf("  %s: %d => %d bytes\n", TO, origLen, len(data))
 
-	fmt.Fprintln(fout, "create DISK.DATA")
+	fmt.Fprintln(fout, "$3A >mb  $6000 a  hex")
 	for i := 0; i < len(data); i += PERLINE {
-		for j := 0; j < PERLINE; j++ {
-			switch j {
-			case 0:
-				fmt.Fprint(fout, "  $")
-			case 4, 8, 12:
-				fmt.Fprint(fout, " , $")
-			}
-			fmt.Fprintf(fout, "%02X", data[(i+j)^3])
+		if i%1024 == 0 {
+			fmt.Fprint(fout, "p . ")
+		} else {
+			fmt.Fprint(fout, "    ")
 		}
-		fmt.Fprintln(fout, " ,")
+		for j := 0; j < PERLINE; j++ {
+			fmt.Fprintf(fout, "%02X", data[i+j])
+			if j%4 == 3 {
+				fmt.Fprint(fout, " ")
+			}
+		}
+		fmt.Fprintln(fout, "w32")
 	}
-	fmt.Fprintf(fout, "%d constant DISK.SIZE\n", len(data))
+	fmt.Fprintf(fout, "p .  decimal  $6000 a  \\ $%04X bytes\n", len(data))
 }
