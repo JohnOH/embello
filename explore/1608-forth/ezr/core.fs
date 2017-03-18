@@ -1,0 +1,16 @@
+\ core definitions
+
+\ <<<board>>>
+cr compiletoflash
+( core start: ) here dup hex.
+
+include ../flib/stm32f1/uart2.fs
+
+\ 9 constant I2C.DELAY
+\ include ../flib/any/i2c-bb.fs
+
+include ../flib/mecrisp/multi.fs
+
+( core end, size: ) here dup hex. swap - .
+cornerstone <<<core>>>
+compiletoram
