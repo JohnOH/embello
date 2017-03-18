@@ -37,7 +37,7 @@ func main() {
 	}
 	fmt.Printf("  %s: %d => %d bytes\n", TO, origLen, len(data))
 
-	fmt.Fprintln(fout, "$3A >mb  $6000 a  hex")
+	fmt.Fprintln(fout, "$00 >mb  $0000 a  hex")
 	for i := 0; i < len(data); i += PERLINE {
 		if i%1024 == 0 {
 			fmt.Fprint(fout, "p . ")
