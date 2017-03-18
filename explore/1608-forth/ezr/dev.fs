@@ -21,7 +21,7 @@ PB5 constant ZDA
   ZCL ios!  OMODE-PP ZCL io-mode!
   ez80-8MHz ;
 
-: delay 5 0 do loop ;
+: delay 50 0 do loop ;
 : zcl-lo  delay ZCL ioc!  delay ;
 : zcl-hi  delay ZCL ios!  delay ;
 
@@ -118,13 +118,12 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
 
 : u  $FF >mb  $E000 a ;
 
-: s1 ( -- )  \ show output from USART2
-  ." Hit return to exit serial mode:" cr
+: s1  \ show output from USART2
   uart-init  19200 baud 2/ USART2-BRR !
   c
-  begin
+  1000000 0 do
     uart-key? if uart-key emit then
-  key? until b r ;
+  loop cr b r ;
 
 : x  RST ioc! 1 ms RST ios! ;
 
@@ -138,10 +137,10 @@ include asm/hello.fs
 include asm/hellow.fs
   u $0100 a s1 ;
 
-: q ( n -- ) \ perform step N of flash setup (n ≥ 0)
+: euf ( -- ) \ unlock and erase flash
   b u
 include asm/flash.fs
-  u  3 * $E000 + a  c 500 ms b r ;
+  u  $E000 a  c 500 ms b r ;
 
 : z $3A6000 d s1 ;
 
@@ -153,11 +152,11 @@ include asm/flash.fs
   cr ." w = write memory ( b -- )       a = set PC address ( u -- ) "
   cr ." f = fill memory ( addr n -- )   h = high serial test ($E000) "
   cr ." d = disk dump ( u -- )          l = low serial test ($0080) "
-  cr ." x = hardware reset              q = flash request ( u --) "
+  cr ." x = hardware reset              euf = erase and unlock flash "
   cr ." z = start running at $3A6000    ? = this help "
   cr ;
 
-: s2
+: s2  \ switch to permanent USART2 pass-through
   cr uart-init  19200 baud 2/ USART2-BRR !
   c
   begin

@@ -1,60 +1,34 @@
 # File flash.asm
+0000			; Erase and unlock flash memory 
+0000			 
 0000				org $E000 
 e000			 
-e000 c3 09 e0			jp  ERASE ; flash cmd # 0 
-e003 c3 32 e0			jp  RAM2F ; flash cmd # 1 
-e006 c3 4d e0			jp  F2RAM ; flash cmd # 2 
-e009			 
-e009			ERASE: ; <<<<< ERASE FLASH MEMORY >>>>> 
-e009			 
-e009 01 f5 00			ld  bc,$00F5 ; FLASH_KEY 
-e00c 3e b6			ld  a,$B6 ; key 1 
-e00e ed 79			out (c),a 
-e010 3e 49			ld  a,$49 ; key 2 
-e012 ed 79			out (c),a 
-e014			 
-e014 0e f9			ld  c,$F9 ; FLASH_FDIV 
-e016 3e 15			ld  a,21  ; ceil[mhz*5.1], i.e. 21 for 4 MHz 
-e018 ed 79			out (c),a 
-e01a			 
-e01a 0e f5			ld  c,$F5 ; FLASH_KEY 
-e01c 3e b6			ld  a,$B6 ; key 1 
-e01e ed 79			out (c),a 
-e020 3e 49			ld  a,$49 ; key 2 
-e022 ed 79			out (c),a 
-e024			 
-e024 0e fa			ld  c,$FA ; FLASH_PROT 
-e026 3e 00			ld  a,$00 ; unprotect all 8 blocks 
-e028 ed 79			out (c),a 
-e02a			 
-e02a 0e ff			ld  c,$FF ; FLASH_PGCTL 
-e02c 3e 01			ld  a,$01 ; start mass erase 
-e02e ed 79			out (c),a 
-e030			 
-e030 18 fe			jr $ 
-e032			 
-e032			RAM2F: ; <<<<< COPY FIRST 256K OF RAM DISK TO EMPTY FLASH >>>>> 
-e032			 
-e032 5b 21 00 60 3a		db $5B,$21,$00,$60,$3A ; ld.lil hl,$3A6000 
-e037 5b 11 00 00 00		db $5B,$11,$00,$00,$00 ; ld.lil de,$000000 
-e03c 5b 01 00 00 04		db $5B,$01,$00,$00,$04 ; ld.lil bc,$040000 
-e041 49 ed b0			db $49,$ED,$B0	       ; ldir.l 
-e044			 
-e044 01 fa 00			ld  bc,$00FA ; FLASH_PROT 
-e047 3e ff			ld  a,$FF ; protect all 8 blocks 
-e049 ed 79			out (c),a 
-e04b			 
-e04b 18 fe			jr $ 
-e04d			 
-e04d			F2RAM: ; <<<<< COPY 256K FLASH TO START OF RAM DISK >>>>> 
-e04d			 
-e04d 5b 21 00 00 00		db $5B,$21,$00,$00,$00 ; ld.lil hl,$000000 
-e052 5b 11 00 60 3a		db $5B,$11,$00,$60,$3A ; ld.lil de,$3A6000 
-e057 5b 01 00 00 04		db $5B,$01,$00,$00,$04 ; ld.lil bc,$040000 
-e05c 49 ed b0			db $49,$ED,$B0	       ; ldir.l 
-e05f			 
-e05f 18 fe			jr $ 
-e061			 
-e061				end 
+e000 01 f5 00			ld  bc,$00F5 ; FLASH_KEY 
+e003 3e b6			ld  a,$B6 ; key 1 
+e005 ed 79			out (c),a 
+e007 3e 49			ld  a,$49 ; key 2 
+e009 ed 79			out (c),a 
+e00b			 
+e00b 0e f9			ld  c,$F9 ; FLASH_FDIV 
+e00d 3e 15			ld  a,21  ; ceil[mhz*5.1], i.e. 21 for 4 MHz 
+e00f ed 79			out (c),a 
+e011			 
+e011 0e f5			ld  c,$F5 ; FLASH_KEY 
+e013 3e b6			ld  a,$B6 ; key 1 
+e015 ed 79			out (c),a 
+e017 3e 49			ld  a,$49 ; key 2 
+e019 ed 79			out (c),a 
+e01b			 
+e01b 0e fa			ld  c,$FA ; FLASH_PROT 
+e01d 3e 00			ld  a,$00 ; unprotect all 8 blocks 
+e01f ed 79			out (c),a 
+e021			 
+e021 0e ff			ld  c,$FF ; FLASH_PGCTL 
+e023 3e 01			ld  a,$01 ; start mass erase 
+e025 ed 79			out (c),a 
+e027			 
+e027 18 fe			jr $ 
+e029			 
+e029				end 
 # End of file flash.asm
-e061
+e029
