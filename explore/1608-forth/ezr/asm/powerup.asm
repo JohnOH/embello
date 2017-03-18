@@ -1,17 +1,14 @@
 ; Power-up initialisation code for eZ80
 
 SRAM: equ 0E000h ; starting address of common SRAM
-DEST: equ 0E780h ; load to this address
-BIOS: equ 0FE00h ; finish with jump to BIOS cold boot
+DEST: equ 0E600h ; load to this address
+BIOS: equ 0FD00h ; finish with jump to BIOS cold boot
+LAST: equ 0FFFFh ; last address loaded on power-up
 
 BANK: equ 20h	 ; SRAM and MBASE are set to this bank
 SAVE: equ 21h	 ; original SRAM contents is this bank
 
-; when booting from flash disk:
-;FROM: equ 00h    ; bank from which to copy everything
-;FOFF: equ 0000h  ; starting page offset in FROM area
-
-; when booting from RAM disk:
+; location of RAM disk:
 FROM: equ 3Ah	 ; bank from which to copy everything
 FOFF: equ 6000h	 ; starting page offset in FROM area
 
@@ -35,15 +32,15 @@ FOFF: equ 6000h	 ; starting page offset in FROM area
     db 00h
     db 49h,0EDh,0B0h ; ldir.l
 
-; 4) copy 6.5K {FROM,FOFF} to {BANK,0E380h..0FD80h}
+; 4) copy 6K {FROM,FOFF} to {BANK,DEST..LAST}
     db 5Bh,21h ; ld.lil hl,{FROM,FOFF}
     dw FOFF
     db FROM
     db 5Bh,11h ; ld.lil de,{BANK,DEST}
     dw DEST
     db BANK
-    db 5Bh,01h ; ld.lil bc,2*26*80h
-    dw 2*26*80h
+    db 5Bh,01h ; ld.lil bc,LAST-DEST+1
+    dw LAST-DEST+1
     db 00h
     db 49h,0EDh,0B0h ; ldir.l
 
@@ -64,4 +61,5 @@ reloc2: ; now running in Z80 mode at {BANK,reloc2}
     ; TODO ...
     jp BIOS
 
+    ds DEST+0100h-$
     end
