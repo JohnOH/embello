@@ -10,7 +10,7 @@ e007 3e 49			ld  a,$49 ; key 2
 e009 ed 79			out (c),a 
 e00b			 
 e00b 0e f9			ld  c,$F9 ; FLASH_FDIV 
-e00d 3e 15			ld  a,21  ; ceil[mhz*5.1], i.e. 21 for 4 MHz 
+e00d 3e 29			ld  a,41  ; ceil[mhz*5.1], i.e. 41 for 8 MHz 
 e00f ed 79			out (c),a 
 e011			 
 e011 0e f5			ld  c,$F5 ; FLASH_KEY 

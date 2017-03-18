@@ -9,7 +9,7 @@
 	out (c),a
 
 	ld  c,$F9 ; FLASH_FDIV
-	ld  a,21  ; ceil[mhz*5.1], i.e. 21 for 4 MHz
+	ld  a,41  ; ceil[mhz*5.1], i.e. 41 for 8 MHz
 	out (c),a
 
 	ld  c,$F5 ; FLASH_KEY
