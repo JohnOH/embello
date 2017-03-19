@@ -1,0 +1,267 @@
+Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   1
+MINBIOS Z80
+
+    2                   
+    3                   ; memory map -------------------------------------------------------------------
+    4                   
+    5         E700      CCP     equ 0E700h
+    6         EF06      BDOS    equ CCP + 0806h
+    7         FD00      BIOS    equ CCP + 1600h
+    8                   
+    9         0020      BANK	equ 20h     ; SRAM and MBASE are set to this bank
+   10         003A      FROM	equ 3Ah     ; bank from which to copy everything
+   11         6000      FOFF	equ 6000h   ; starting page offset in FROM area
+   12                   
+   13                   ; low memory -------------------------------------------------------------------
+   14                   
+   15         0003      iobyte  equ 03h     ; Intel standard I/O definition byte
+   16         0004      usrdrv  equ 04h     ; Current user number and drive
+   17         0080      tpabuf  equ 0080h   ; Default I/O buffer and command line storage
+   18                   
+   19         FD00               org BIOS
+   20                   
+   21                   ; BIOS jump table --------------------------------------------------------------
+   22                   
+   23 FD00  C3 FD71     	jp boot     ;  0 Initialize
+   24 FD03  C3 FD99     wboote: jp wboot    ;  1 Warm boot
+   25 FD06  C3 FDD0     	jp conist   ;  2 Console status
+   26 FD09  C3 FDD8     	jp conin    ;  3 Console input
+   27 FD0C  C3 FDE1     	jp conout   ;  4 Console OUTput
+   28 FD0F  C3 FE47     	jp list     ;  5 List OUTput
+   29 FD12  C3 FE47     	jp punch    ;  6 punch OUTput
+   30 FD15  C3 FDEC     	jp reader   ;  7 Reader input
+   31 FD18  C3 FE0D     	jp home     ;  8 Home disk
+   32 FD1B  C3 FDEF     	jp seldsk   ;  9 Select disk
+   33 FD1E  C3 FE0F     	jp settrk   ; 10 Select track
+   34 FD21  C3 FE14     	jp setsec   ; 11 Select sector
+   35 FD24  C3 FE19     	jp setdma   ; 12 Set DMA ADDress
+   36 FD27  C3 FE21     	jp read     ; 13 Read 128 bytes
+   37 FD2A  C3 FE31     	jp write    ; 14 Write 128 bytes
+   38 FD2D  C3 FE47     	jp listst   ; 15 List status
+   39 FD30  C3 FE1E     	jp sectrn   ; 16 Sector translate
+   40                   
+   41                   ; Disk Parameter Headers -------------------------------------------------------
+   42                   
+   43 FD33  0000  0000  dpbase:	dw 0,0,0,0,dirbuf,dpb0,0,alv0
+   44 FD43  0000  0000  	dw 0,0,0,0,dirbuf,dpb1,0,alv1
+   45                   
+   46 FD53  001A        dpb0:	dw 26  ; SPT - sectors per track
+   47 FD55  03          	db 3   ; BSH - block shift factor
+   48 FD56  07          	db 7   ; BLM - block mask
+   49 FD57  00          	db 0   ; EXM - Extent mask
+   50 FD58  00F8        	dw 248 ; DSM - Storage size (blocks - 1)
+   51 FD5A  003F        	dw 63  ; DRM - Number of directory entries - 1
+   52 FD5C  C0          	db 192 ; AL0 - 1 bit set per directory block
+   53 FD5D  00          	db 0   ; AL1 - ... 8 more bits
+   54 FD5E  0000        	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+   55 FD60  0002        	dw 2   ; OFF - Reserved tracks
+   56                   
+   57 FD62  001A        dpb1:	dw 26  ; SPT - sectors per track
+   58 FD64  03          	db 3   ; BSH - block shift factor
+   59 FD65  07          	db 7   ; BLM - block mask
+Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   2
+MINBIOS Z80
+
+   60 FD66  00          	db 0   ; EXM - Extent mask
+   61 FD67  00F8        	dw 248 ; DSM - Storage size (blocks - 1)
+   62 FD69  003F        	dw 63  ; DRM - Number of directory entries - 1
+   63 FD6B  C0          	db 192 ; AL0 - 1 bit set per directory block
+   64 FD6C  00          	db 0   ; AL1 - ... 8 more bits
+   65 FD6D  0000        	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+   66 FD6F  0002        	dw 2   ; OFF - Reserved tracks
+   67                   
+   68                   ; Cold boot --------------------------------------------------------------------
+   69                   
+   70 FD71  F3          boot:	di
+   71 FD72  31 0100     	ld sp,0100h
+   72 FD75  21 FD00     	ld hl,BIOS
+   73 FD78  22 FFFE     	ld (0FFFEh),hl
+   74                   
+   75                   	; initialise UART0 to 9600 baud
+   76                   
+   77 FD7B  21 0380     	ld hl,0380h
+   78 FD7E  11 1A06     	ld de,1A06h
+   79 FD81  ED 21 A5    	db 0EDh,21h,0A5h        ; out0 (0A5h),h = 03h
+   80 FD84  ED 29 C3    	db 0EDh,29h,0C3h        ; out0 (0C3h),l = 80h
+   81 FD87  ED 11 C0    	db 0EDh,11h,0C0h        ; out0 (0C0h),d = 1Ah
+   82 FD8A  ED 21 C3    	db 0EDh,21h,0C3h        ; out0 (0C3h),h = 03h
+   83 FD8D  ED 19 C2    	db 0EDh,19h,0C2h        ; out0 (0C2h),e = 06h
+   84                   
+   85 FD90  AF          	xor a
+   86 FD91  32 0003     	ld (iobyte),a
+   87 FD94  32 0004     	ld (usrdrv),a
+   88 FD97  18 16       	jr gocpm
+   89                   
+   90                   ; Warm boot --------------------------------------------------------------------
+   91                   
+   92 FD99  F3          wboot:	di
+   93 FD9A  31 0100     	ld sp,0100h
+   94                   
+   95                   	; copy 5.5K from {FROM,FOFF+0100h} to {BANK,CCP} to reload CCP
+   96                   
+   97 FD9D  5B 21       	db 5Bh,21h              ; ld.lil hl,{FROM,FOFF+0100h}
+   98 FD9F  6100        	dw FOFF+0100h
+   99 FDA1  3A          	db FROM
+  100 FDA2  5B 11       	db 5Bh,11h              ; ld.lil de,{BANK,CCP}
+  101 FDA4  E700        	dw CCP
+  102 FDA6  20          	db BANK
+  103 FDA7  5B 01       	db 5Bh,01h              ; ld.lil bc,BIOS-CCP
+  104 FDA9  1600        	dw BIOS-CCP
+  105 FDAB  00          	db 0
+  106 FDAC  49 ED B0    	db 49h,0EDh,0B0h        ; ldir.l
+  107                   
+  108                   ; Common code for cold and warm boot
+  109                   
+  110 FDAF  21 0080     gocpm:	ld hl,tpabuf            ; Address of BIOS DMA buffer
+  111 FDB2  22 FE6D     	ld (dmaadr),hl
+  112 FDB5  3E C3       	ld a,0C3h               ; Opcode for 'JP'
+  113 FDB7  32 0000     	LD (00h),a              ; Load at start of RAM
+  114 FDBA  21 FD03     	ld hl,wboote            ; Address of jump for a warm boot
+  115 FDBD  22 0001     	ld (01h),hl
+  116 FDC0  32 0005     	ld (05h),a              ; Opcode for 'JP'
+  117 FDC3  21 EF06     	ld hl,BDOS              ; Address of jump for the BDOS
+Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   3
+MINBIOS Z80
+
+  118 FDC6  22 0006     	ld (06h),hl
+  119 FDC9  3A 0004     	ld a,(usrdrv)           ; Save new drive number (0)
+  120 FDCC  4F          	ld c,a                  ; Pass drive number in C
+  121 FDCD  C3 E700     	jp CCP                  ; Start CP/M by jumping to the CCP
+  122                   
+  123                   ; Console I/O ------------------------------------------------------------------
+  124                   
+  125 FDD0  ED 38 C5    conist:	db 0EDh,38h,0C5h ; in0 a,(0C5h)
+  126 FDD3  E6 01       	and 01h
+  127 FDD5  ED 44       	neg
+  128 FDD7  C9          	ret
+  129                   
+  130 FDD8  CD FDD0     conin:	call conist
+  131 FDDB  28 FB       	jr z,conin
+  132 FDDD  ED 38 C0    	db 0EDh,38h,0C0h        ; in0 a,(0C0h)
+  133 FDE0  C9          	ret
+  134                   
+  135 FDE1  ED 38 C5    conout:	db 0EDh,38h,0C5h        ; in0 a,(0C5h)
+  136 FDE4  E6 20       	and 20h
+  137 FDE6  28 F9       	jr z,conout
+  138 FDE8  ED 09 C0    	db 0EDh,09h,0C0h        ; out0 (0C0h),c
+  139 FDEB  C9          	ret
+  140                   
+  141 FDEC  3E 1A       reader:	ld a,1Ah
+  142 FDEE  C9          	ret
+  143                   
+  144                   ; Disk I/O ---------------------------------------------------------------------
+  145                   
+  146 FDEF  79          seldsk: ld a,c
+  147 FDF0  FE 02       	cp 2
+  148 FDF2  30 0C               jr nc,baddsk
+  149 FDF4  06 10               ld b,16
+  150 FDF6  ED 4C       	db 0EDh,4Ch ; mlt bc
+  151 FDF8  21 FD33             ld hl,dpbase
+  152 FDFB  09                  add hl,bc
+  153 FDFC  32 FE73     savdsk:	ld (sekdsk),a
+  154 FDFF  C9                  ret
+  155                   
+  156 FE00  21 0000     baddsk: ld hl,0
+  157 FE03  3A 0004             ld a,(usrdrv)
+  158 FE06  91                  sub a,c
+  159 FE07  C0                  ret nz
+  160 FE08  32 0004             ld (usrdrv),a
+  161 FE0B  18 EF               jr savdsk
+  162                   
+  163 FE0D  0E 00       home:	ld c,0
+  164 FE0F  79          settrk: ld a,c
+  165 FE10  32 FE74     	ld (sektrk),a
+  166 FE13  C9                  ret
+  167                   
+  168 FE14  ED 43 FE75  setsec: ld (seksec),bc
+  169 FE18  C9                  ret
+  170                   
+  171 FE19  ED 43 FE6D  setdma: ld (dmaadr),bc
+  172 FE1D  C9                  ret
+  173                   
+  174 FE1E  69          sectrn: ld l,c
+  175 FE1F  60          	ld h,b
+Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   4
+MINBIOS Z80
+
+  176 FE20  C9                  ret
+  177                   
+  178 FE21  CD FE49     read:	call rwaddr
+  179                   
+  180 FE24  5B 2A       	db 5Bh,2Ah              ; ld.lil hl,({BANK,dskadr})
+  181 FE26  FE70        	dw dskadr
+  182 FE28  20          	db BANK
+  183 FE29  5B ED 5B    	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dmaadr})
+  184 FE2C  FE6D        	dw dmaadr
+  185 FE2E  20          	db BANK
+  186                   
+  187 FE2F  18 0E       	jr rwop
+  188                   
+  189 FE31  CD FE49     write:	call rwaddr
+  190                   
+  191 FE34  5B 2A       	db 5Bh,2Ah              ; ld.lil hl,({BANK,dmaadr})
+  192 FE36  FE6D        	dw dmaadr
+  193 FE38  20          	db BANK
+  194 FE39  5B ED 5B    	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dskadr})
+  195 FE3C  FE70        	dw dskadr
+  196 FE3E  20          	db BANK
+  197                   
+  198 FE3F  5B 01 80 00 rwop:	db 5Bh,01h,80h,00h,00h  ; ld.lil bc,000080h
+  199 FE44  49 ED B0    	db 49h,0EDh,0B0h        ; ldir.l
+  200                   
+  201 FE47              listst:
+  202 FE47              list:
+  203 FE47              punch:
+  204 FE47  AF          	xor a
+  205 FE48  C9          	ret
+  206                   
+  207                   ; Convert selected disk+track+sector to a memory address
+  208                   
+  209 FE49  ED 4B FE74  rwaddr:	ld bc,(sektrk)
+  210 FE4D  06 1A       	ld b,26
+  211 FE4F  ED 4C       	db 0EDh,4Ch ; mlt bc
+  212                   	; BC = track, converted to linear sector offset
+  213 FE51  2A FE75     	ld hl,(seksec)
+  214 FE54  09          	add hl,bc
+  215                   	; HL = bits 30..23 of the requested disk block address
+  216 FE55  AF          	xor a
+  217 FE56  CB 1C       	rr h
+  218 FE58  CB 1D       	rr l
+  219 FE5A  CB 1F       	rr a
+  220                   	; A = bits 7..0 of the 24-bit disk-block address
+  221 FE5C  32 FE70     	ld (dskadr),a
+  222                   	; add the disk base to bits 23..16, if drive A:
+  223 FE5F  3A FE73             ld a,(sekdsk)
+  224 FE62  B7                  or a
+  225 FE63  20 04               jr nz,rwflsh
+  226 FE65  01 3A60     	ld bc,FROM*256+(FOFF/256)
+  227 FE68  09          	add hl,bc
+  228 FE69              rwflsh: ; HL = bits 23..8 of the 24-bit disk-block address
+  229 FE69  22 FE71     	ld (dskadr+1),hl
+  230 FE6C  C9          	ret
+  231                   
+  232                   ; Data area --------------------------------------------------------------------
+  233                   
+Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   5
+MINBIOS Z80
+
+  234 FE6D  80 00 20    dmaadr: db 80h,00h,BANK ; last dma address + bank
+  235                   
+  236                   ; End of initialised data
+  237                   
+  238 FE70    0003      dskadr: ds 3   ; disk address + bank
+  239                   
+  240 FE73    0001      sekdsk: ds 1   ; seek disk number
+  241 FE74    0001      sektrk: ds 1   ; seek track number
+  242 FE75    0002      seksec: ds 2   ; seek sector number
+  243                   
+  244 FE77    0080      dirbuf: ds 128 ; scratch directory area
+  245 FEF7    0020      alv0:   ds 32  ; allocation vector 0 (max 255 blocks)
+  246 FF17    0020      alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
+  247                   
+  248         FF37      biosEnd equ $ ; ----------------------------------------------------------------
+  249                   
+  250                           end
+ 0 Error(s) Detected.
+ 567 Absolute Bytes. 45 Symbols Detected.
+

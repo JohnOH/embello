@@ -1,0 +1,163 @@
+title Save Intel HEX to file -jcw, 2017-03-18
+
+; Usage: hexsave myfile.dat
+;
+; Sample data:
+;
+; :2000000021CC013E3CCDC001CDB101FE3A20F9CD8D01474FCD8D01CD8D01CD8D01FE0128F1
+; :2000200018CD8D01772310F9CD8D0179ED443E2B28D332CB013E3F18CCCD8D013ACB01B7CA
+; :200040003E2D203D11B3FE19CB15CB1444C53E3ECDC0010E13CD87010E16CD8701AF327CDF
+; :200060000021CC01C1C5E5EB0E1ACD05000E15CD8701E1C11180001910EB0E10CD87013ED2
+; :2000800021CDC001C30000115C00C30500D5CDA401CB07CB07CB07CB0757CDA401B2D1F5E9
+; :2000A000814FF1C9CDB101FE40FAAE01D607E60FC9C5E51EFF0E06CD0500B728F6E1C1C9C8
+; :2000C000C5E55F0E02CD0500E1C1C9000000000000000000000000000000000000000000CA
+; :2000E000000000000000000000000000000000000000000000000000000000000000000000
+; :00000001FF
+
+WSTART	equ	0000h
+BDOS	equ	0005h
+FCB	equ	005Ch
+
+CONINP	equ	1
+CONOUT	equ	2
+CONIO	equ	6
+PSTRING	equ	9
+CLOSEF	equ	16
+DELF	equ	19
+WRITES	equ	21
+MAKEF	equ	22
+SETDMA  equ     26
+
+	org 100h
+
+        ld hl,buf
+        ld a,'<'
+prompt: call putch
+skip:   call getch
+        cp ':'
+        jr nz,skip
+        call getbyte
+        ld b,a          ; length
+        ld c,a          ; running checksum
+        call getbyte    ; ignore addr hi
+        call getbyte    ; ignore addr lo
+        call getbyte    ; record type
+        cp 1            ; eof marker?
+        jr z, done
+        ld a,b          ; 0-length record also marks end
+        or a
+        jr z,done
+loop:   call getbyte
+        ld (hl),a
+        inc hl
+        djnz loop
+        call getbyte    ; checksum
+        ld a,c
+        neg
+        ld a,'+'
+        jr z,prompt
+        ld (error),a
+        ld a,'?'
+        jr prompt
+
+done:   call getbyte
+        ld a,(error)
+        or a
+        ld a,'-'
+        jr nz,quit
+
+        ld de,127-buf   ; round up to a multiple of 128
+        add hl,de
+        rl l
+        rl h
+        ld b,h          ; max 256 sect, i.e. 32 KB data
+        push bc
+
+        ld a,'>'
+        call putch
+
+        ld c,DELF
+        call fileop
+
+        ld c,MAKEF
+        call fileop
+
+        xor a
+        ld (FCB+32),a
+        ld hl,buf
+
+        pop bc
+sloop:  push bc
+        push hl
+
+        ex de,hl
+        ld c,SETDMA
+        call BDOS
+
+        ld c,WRITES
+        call fileop
+
+        pop hl
+        pop bc
+
+        ld de,128
+        add hl,de
+        djnz sloop
+
+        ld c,CLOSEF
+        call fileop
+
+        ld a,'!'
+quit:   call putch
+        jp WSTART
+
+fileop: ld de,FCB
+        jp BDOS
+       
+getbyte push de
+        call gethex
+        rlc a
+        rlc a
+        rlc a
+        rlc a
+        ld d,a
+        call gethex
+        or d
+        pop de
+        push af
+        add c           ; update checksum
+        ld c,a
+        pop af
+        ret
+
+gethex: call getch
+        cp '@'
+        jp m,gh1        ; jr c,gh1 ?????
+        sub 7
+gh1:    and 0Fh
+        ret
+
+getch:  push bc
+        push hl
+gc1:    ld e,0FFh       ; no echo
+        ld c,CONIO
+        call BDOS
+        or a
+        jr z,gc1
+        pop hl
+        pop bc
+        ret
+
+putch:  push bc
+        push hl
+        ld e,a
+        ld c,CONOUT
+        call BDOS
+        pop hl
+        pop bc
+        ret
+
+error:  db 0
+buf:    equ $
+
+        end

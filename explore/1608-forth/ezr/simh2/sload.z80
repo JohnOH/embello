@@ -1,0 +1,85 @@
+title Startup loader for eZ80 -jcw, 2017-03-17
+
+VERS equ 19h	 ; version, stored at end of this code
+
+SRAM equ 0E000h  ; starting address of common SRAM
+DEST equ 0E600h  ; load to this address
+BIOS equ 0FD00h  ; finish with jump to BIOS cold boot
+LAST equ 0FFFFh  ; last address loaded on power-up
+
+BANK equ 20h	 ; SRAM and MBASE are set to this bank
+SAVE equ 21h	 ; original SRAM contents is this bank
+
+; location of RAM disk:
+FROM equ 3Ah	 ; bank from which to copy everything
+FOFF equ 6000h	 ; starting page offset in FROM area
+
+; 1) on power-up, this code starts off at 0000h!
+    org DEST
+
+; 2) init FROM area if its version byte doesn't match
+    db 5Bh,3Ah ; ld.lil a,({FROM,FOFF+version-DEST})
+    dw FOFF+version-DEST
+    db FROM
+    cp a,VERS
+    jr z,inited
+
+    db 5Bh,21h ; ld.lil hl,000000h
+    dw 0000h
+    db 00h
+    db 5Bh,11h ; ld.lil de,{FROM,FOFF}
+    dw FOFF
+    db FROM
+    db 5Bh,01h ; ld.lil bc,040000h
+    dw 0000h
+    db 04h
+    db 49h,0EDh,0B0h ; ldir.l
+
+; 3) enter ADL mode to switch to 24-bit addressing
+inited:
+    db 5Bh,0C3h ; jp.lil {0h,$+3}
+    dw FOFF+$-DEST+3 ; careful, not relocated yet!
+    db FROM
+
+; ADL=1, PC={FROM,FOFF+...}, RAM_BANK=0FFh, MBASE=00h
+
+; 4) set MBASE now that we're in ADL mode
+    ld a,BANK
+    db 0EDh,6Dh ; ld  mb,a
+
+; 5) disable ERAM and move SRAM to BANK
+    ld h,80
+    db 0EDh,21h,0B4h ; out0 (RAM_CTL),h ; disable ERAM
+    db 0EDh,39h,0B5h ; out0 (RAM_BANK),a ; SRAM to BANK
+
+; 6) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM}
+    ld hl,SRAM
+    db BANK
+    ld de,SRAM
+    db SAVE
+    ld bc,2000h
+    db 00h
+    ldir
+
+; 7) copy 6K {FROM,FOFF} to {BANK,DEST..LAST}
+    ld hl,FOFF
+    db FROM
+    ld de,DEST
+    db BANK
+    ld bc,LAST-DEST+1
+    db 00h
+    ldir
+
+; 8) switch from ADL mode to Z80 mode
+    db 40h,0C3h ; jp.sis z80mode (this exits ADL mode)
+    dw z80mode
+
+z80mode: ; now running in Z80 mode at {FROM,z80mode}
+; 9) set up PLL and switch system clock to 50 MHz
+    ; TODO ...
+    jp BIOS
+
+    ds DEST+0100h-$-1
+version:
+    db VERS
+    end

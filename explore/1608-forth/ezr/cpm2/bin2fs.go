@@ -7,20 +7,25 @@ import (
 	"os"
 )
 
-const (
-	PERLINE = 32
-	FROM    = "disk.img"
-	TO      = "disk.fs"
-)
+const PERLINE = 32
 
 func main() {
-	fin, err := os.Open(FROM)
+	iname := "disk.img"
+	if len(os.Args) > 1 {
+		iname = os.Args[1]
+	}
+	oname := "disk.fs"
+	if len(os.Args) > 2 {
+		oname = os.Args[2]
+	}
+
+	fin, err := os.Open(iname)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer fin.Close()
 
-	fout, err := os.Create(TO)
+	fout, err := os.Create(oname)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +40,7 @@ func main() {
 	for len(data)%PERLINE != 0 {
 		data = append(data, 0xFF)
 	}
-	fmt.Printf("  %s: %d => %d bytes\n", TO, origLen, len(data))
+	fmt.Printf("  %s: %d => %d bytes\n", oname, origLen, len(data))
 
 	fmt.Fprintln(fout, "$00 >mb  $0000 a  hex")
 	for i := 0; i < len(data); i += PERLINE {

@@ -12,7 +12,7 @@ PB5 constant ZDA
 
 : ez80-8MHz ( -- )
   7200 XIN pwm-init   \ first set up pwm correctly
-  8 3 timer-init     \ then mess with the timer divider, i.e. ÷9
+  8 3 timer-init      \ then mess with the timer divider, i.e. ÷9
   9998 XIN pwm ;      \ finally, set the pwm to still toggle
 
 : zdi-init ( -- )
@@ -125,6 +125,14 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
     uart-key? if uart-key emit then
   loop cr b r ;
 
+: s2  \ switch to permanent USART2 pass-through
+  cr uart-init  19200 baud 2/ USART2-BRR !
+  c
+  begin
+    uart-key? if uart-key emit then
+    key? if key uart-emit then
+  again ;
+
 : x  RST ioc! 1 ms RST ios! ;
 
 : h  \ send greeting over serial, see asm/hello.asm
@@ -142,7 +150,8 @@ include asm/hellow.fs
 include asm/flash.fs
   u  $E000 a  c 500 ms b r ;
 
-: z $3A6000 d s1 ;
+\ : z $3A6000 d s1 ;
+: z zdi-init s2 ;
 
 : ?
   cr ." v = show chip version           b = break next "
@@ -153,16 +162,8 @@ include asm/flash.fs
   cr ." f = fill memory ( addr n -- )   h = high serial test ($E000) "
   cr ." d = disk dump ( u -- )          l = low serial test ($0080) "
   cr ." x = hardware reset              euf = erase and unlock flash "
-  cr ." z = start running at $3A6000    ? = this help "
+  cr ." z = start zdi and serial        ? = this help "
   cr ;
-
-: s2  \ switch to permanent USART2 pass-through
-  cr uart-init  19200 baud 2/ USART2-BRR !
-  c
-  begin
-    uart-key? if uart-key emit then
-    key? if key uart-emit then
-  again ;
 
 : go  $3A >mb $6000 a s2 ;
 
@@ -175,4 +176,4 @@ include asm/flash.fs
   >r >r >r >r >r >r >r 
   w4 r> w4 r> w4 r> w4 r> w4 r> w4 r> w4 r> w4 ;
 
-zdi-init  cr x b v s cr r
+\ zdi-init  cr x b v s cr r
