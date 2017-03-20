@@ -14,7 +14,7 @@ disk:
 disk2:
 	@rm -f disk2.img
 	@mkfs.cpm -f memotech-type50 $(boot) disk2.img
-	@for i in $(coms) utils/*; do \
+	@for i in $(coms) "utils/*"; do \
 	    cpmcp -f memotech-type50 disk2.img $(simh)/$$i 0: ; done
 	@cpmcp -f memotech-type50 -t disk2.img XMODEM.CFG 0:
 	@ go run bin2fs.go disk2.img disk2.fs
