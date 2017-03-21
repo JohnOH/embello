@@ -49,25 +49,21 @@ boot-task variable up \ User Pointer
     2dup = if 2drop true exit then
     @ dup next-task = \ Stop when end of circular list is reached
   until
-  2drop false
-;
+  2drop false ;
 
 : previous ( task -- addr-of-task-before )
   \ Find the task that has the desired one in its next field
-  >r next-task begin dup @ r@ <> while @ repeat rdrop
-;
+  >r next-task begin dup @ r@ <> while @ repeat rdrop ;
 
 : insert ( task -- ) \ Insert a task into the round-robin list
   dup task-in-list?  \ Is the desired task currently linked into ?
-  if drop else next-task @ over ! next-task ! then
-;
+  if drop else next-task @ over ! next-task ! then ;
 
 : remove ( task -- ) \ Remove a task from the round-robin list
   dup task-in-list?  \ Is the desired task currently linked into ?
   if dup @ ( task next )
      swap previous ( next previous ) !
-  else drop then
-;
+  else drop then ;
 
 \ -----------------------------------------
 \ Create a new task - do not use in IRQ !
@@ -92,19 +88,15 @@ boot-task variable up \ User Pointer
 \ Store the adjusted return stack pointer into the parameter stack
     !
 \ Store the desired entry address at top of the tasks return stack
-
-  r> insert
-;
+  r> insert ;
 
 : activate ( task --   R: continue -- )
   true over 1 cells + ! \ Currently running
-  r> preparetask
-;
+  r> preparetask ;
 
 : background ( task --   R: continue -- )
   false over 1 cells + ! \ Currently idling
-  r> preparetask
-;
+  r> preparetask ;
 
 \ --------------------------------------------------
 \  Multitasking insight
@@ -112,22 +104,18 @@ boot-task variable up \ User Pointer
 
 : tasks ( -- ) \ Show tasks currently in round-robin list
   hook-pause @ singletask \ Stop multitasking as this list may be changed during printout.
-
   \ Start with current task.
   next-task cr
-
   begin
     ( Task-Address )
-    dup             ." Task Address: " hex.
-    dup           @ ." Next Task: " hex.
+    dup             ." Task @ " hex.
+    dup           @ ." Next: " hex.
     dup 1 cells + @ ." State: " hex.
     dup 2 cells + @ ." Stack: " hex.
     dup 3 cells + @ ." Handler: " hex. cr
-
     @ dup next-task = \ Stop when end of circular list is reached
   until
   drop
-
   hook-pause ! \ Restore old state of multitasking
 ;
 
@@ -159,8 +147,7 @@ boot-task variable up \ User Pointer
     \ Check state of this task and exit if it is active
     @ \ Next task in list
   repeat
-  drop true
-;
+  drop true ;
 
 : sleep ( -- ) [ $BF30 h, ] inline ; \ WFI Opcode, enters sleep mode
 
@@ -173,8 +160,7 @@ task: lowpower-task
         dint up-alone? if ( ."  Sleep " ) sleep then eint
       then
       pause
-    again
-;
+    again ;
 
 \ --------------------------------------------------
 \  Examples
@@ -192,8 +178,7 @@ task: lowpower-task
 \       1 seconds +!
 \       seconds @ . cr
 \       stop
-\     again
-\ ;
+\     again ;
 
 \ time& lowpower& tasks
 
