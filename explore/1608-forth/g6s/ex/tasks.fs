@@ -1,4 +1,4 @@
-\ try out the multitasker on a HyTiny with 6 LEDs attached
+\ try out the multitasker on a HyTiny with some LEDs attached
 
 singletask forgetram
 

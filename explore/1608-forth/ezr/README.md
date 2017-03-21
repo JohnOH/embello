@@ -19,3 +19,10 @@ External 512 KB RAM:
     CEN = EZ80 CS0, pin 33
     OEN = EZ80 RDN, pin 51
     WEN = EZ80 WRN, pin 52
+
+Micro SD card:
+ 
+    PA4 = µSD SSEL (CS)
+    PA5 = µSD SCLK (CK)
+    PA6 = µSD MISO (DO)
+    PA7 = µSD MOSI (DI)
