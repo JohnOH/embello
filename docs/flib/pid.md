@@ -1,7 +1,7 @@
 # PID Control Library
 
-* Code: `pid.fs`
-* Needs: *no external requirements*
+[code]: any/pid.fs ()
+* Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/any/pid.fs">any/pid.fs</a>
 
 > A proportional–integral–derivative controller (PID controller) is a control loop feedback mechanism (controller) commonly used in industrial control systems. A PID controller continuously calculates an error value as the difference between a desired setpoint and a measured process variable and applies a correction based on proportional, integral, and derivative terms (sometimes denoted P, I, and D respectively) which give their name to the controller type. (Source: Wikipedia)
 

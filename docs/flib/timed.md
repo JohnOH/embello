@@ -1,7 +1,8 @@
 # Callback Timer Library
 
-* Code: `timed.fs`
-* Needs: `multi.fs`
+[code]: any/timed.fs (multi)
+* Code: <a href="https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib/any/timed.fs">any/timed.fs</a>
+* Needs: multi
 
 This library implements callback style timers using the Mecrisp multitasking module. Every task in the multitasker needs its own stacks which consumes a lot of memory. Using `timed` you can register multiple callbacks in the same timer task and reduce the memory overhead significantly.
 

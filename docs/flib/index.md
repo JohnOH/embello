@@ -26,4 +26,6 @@ area on GitHub.
 | Utilities | |
 | --- | --- |
 | [aes](aes.md) | AES-128 encryption (and [decryption](aes-inv.md)) |
+| [pid](pid.md) | PID control loop for temperature control |
+| [timed](timed.md) | One-shot and periodic timers |
 | [varint](varint.md) | Efficient variable-sized integer encoding |
