@@ -46,6 +46,17 @@ $40022000 constant FLASH
 : baud ( u -- u )  \ calculate baud rate divider, based on current clock rate
   clock-hz @ swap / ;
 
+0 variable ticks
+
+: ++ticks ( -- ) 1 ticks +! ;  \ for use as systick irq handler
+
+: systick-hz ( u -- )  \ enable systick interrupt at given frequency
+  ['] ++ticks irq-systick !
+  clock-hz @ swap /  1- $E000E014 !  7 $E000E010 ! ;
+
+: systick-hz? ( -- u )
+  clock-hz @ $E000E014 @ / ;
+
 : 72MHz ( -- )  \ set the main clock to 72 MHz, keep baud rate at 115200
   $12 FLASH-ACR !                 \ two flash mem wait states
   16 bit RCC-CR bis!              \ set HSEON
@@ -57,25 +68,19 @@ $40022000 constant FLASH
             2 or  RCC-CFGR !      \ PLL is the system clock
   24 bit RCC-CR bis!              \ set PLLON
   begin 25 bit RCC-CR bit@ until  \ wait for PLLRDY
+  systick-hz?                     \ push systick-hz on stack for later use
   72000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
+  systick-hz                      \ consume systick-hz here
 ;
 
 : 8MHz ( -- )  \ set the main clock back to 8 MHz, keep baud rate at 115200
   0 RCC-CFGR !                    \ revert to HSI @ 8 MHz, no PLL
   $81 RCC-CR !                    \ turn off HSE and PLL, power-up value
   $18 FLASH-ACR !                 \ zero flash wait, enable half-cycle access
+  systick-hz?                     \ push systick-hz on stack for later use
   8000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
+  systick-hz                      \ consume systick-hz here
 ;
-
-0 variable ticks
-
-: ++ticks ( -- ) 1 ticks +! ;  \ for use as systick irq handler
-
-: systick-hz ( u -- )  \ enable systick interrupt at given frequency
-  ['] ++ticks irq-systick !
-  clock-hz @ swap /  1- $E000E014 !  7 $E000E010 ! ;
-: systick-hz? ( -- u ) \ derive current systick frequency from clock
-  clock-hz @  $E000E014 @ 1+  / ;
 
 : micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
 \ assumes systick is running at 1000 Hz, overhead is about 1.8 us @ 72 MHz
