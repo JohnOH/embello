@@ -10,8 +10,9 @@ include ../flib/any/digits.fs
 
 \ tht specifics (modified multi.fs!)
 include ../flib/mecrisp/multi.fs
-include lib/timed.fs
-include lib/pid.fs
+
+include ../flib/any/timed.fs
+include ../flib/any/pid.fs
 
 ( core end, size: ) here dup hex. swap - .
 cornerstone <<<core>>>
