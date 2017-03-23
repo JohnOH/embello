@@ -6,8 +6,8 @@ forgetram
 
 : sd-wait ( -- )  begin $FF >spi> ( dup . ) $FF = until ;
 
-: sd-cmd ( cmd arg crc -- u )
-  -rot swap
+: sd-cmd ( cmd arg -- u )
+  swap
 \ cr millis . ." CMD" dup . 
   -spi 2 us +spi
             $FF >spi
@@ -16,30 +16,30 @@ forgetram
   dup 16 rshift >spi
    dup 8 rshift >spi
                 >spi
-         $01 or >spi
+            $95 >spi
   begin $FF >spi> dup $80 and while drop repeat ;
 
 : sd-init ( -- )
   spi-init  sd-slow  10 0 do $FF >spi loop
   0 ticks !
   begin
-    0 0 $95 sd-cmd  \ CMD0 go idle
+    0 0 sd-cmd  \ CMD0 go idle
 \   dup .
   $01 = until
 
-\ 1 0 $00 sd-cmd . sd-wait
+\ 1 0 sd-cmd . sd-wait
   begin
     10 ms
-    55 0 $01 sd-cmd drop sd-wait
-    41 0 $01 sd-cmd
+    55 0 sd-cmd drop sd-wait
+    41 0 sd-cmd
   0= until
 
 \ cr millis . ." FAST "
   spi-init
 
-\ 59 0 $00 sd-cmd . sd-wait
-\ 8 $1AA $87 sd-cmd . sd-wait
-\ 16 $200 $00 sd-cmd . sd-wait
+\ 59 0 sd-cmd . sd-wait
+\ 8 $1AA sd-cmd . sd-wait
+\ 16 $200 sd-cmd . sd-wait
 ;
 
 512 buffer: sd.buf
@@ -55,7 +55,7 @@ forgetram
 \ 007F00325B5A83D3F6DBFF81968000E7772B  SanDisk 2GB
 
 : sd-size ( -- n )  \ return card size in 512-byte blocks
-  9 0 $00 sd-cmd  16 sd-copy
+  9 0 sd-cmd  16 sd-copy
 \ http://www.avrfreaks.net/forum/how-determine-mmc-card-size
 \ https://members.sdcard.org/downloads/pls/simplified_specs/archive/part1_301.pdf
 \ TODO bytes 6 and 8 may be reversed...
@@ -66,10 +66,10 @@ forgetram
   sd.buf 8 + c@ 6 rshift or ;
 
 : sd-read ( page -- )  \ read one 512-byte page from sdcard
-  9 lshift  17 swap $00 sd-cmd  512 sd-copy ;
+  9 lshift  17 swap sd-cmd  512 sd-copy ;
 
 : sd-write ( page -- )  \ write one 512-byte page to sdcard
-  9 lshift  24 swap $00 sd-cmd drop
+  9 lshift  24 swap sd-cmd drop
   $FF >spi $FE >spi
   512 0 do  sd.buf i + c@ >spi  loop
   $FF dup >spi >spi  sd-wait ;
