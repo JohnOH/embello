@@ -42,20 +42,20 @@ $40010400 constant EXTI
     DMA1 $60 + constant DMA1-CPAR5
     DMA1 $64 + constant DMA1-CMAR5
 
-\ 513 buffer: frdbuf
+\ 514 buffer: frdbuf
 520 buffer: frdbuf
 516 buffer: fwrbuf
+0 variable freply
 
 : led-setup  LED ioc!  OMODE-PP LED io-mode! ;
 
 : dma-reload
+  $00FF0000 DMA1-IFCR !  \ clear interrupt flags
   \ restart outbound feed to SPI2 TX
-\ 513 DMA1-CNDTR5 !
-  150 DMA1-CNDTR5 !
+  516 DMA1-CNDTR5 !
   0 bit DMA1-CCR5 bis!
   \ restart incoming feed from SPI2 RX
-\ 516 DMA1-CNDTR4 !
-  150 DMA1-CNDTR4 !
+  516 DMA1-CNDTR4 !
   0 bit DMA1-CCR4 bis! ;
 
 : dma-setup
@@ -79,20 +79,17 @@ $40010400 constant EXTI
 
   dma-reload ;
 
-: spi2-slave ( -- )  \ set up hardware SPI for slave mode
-  14 bit RCC-APB1ENR bis!  \ set SPI2EN
-  %11 SPI2-CR2 !  \ enable TX and RX DMA
-  6 bit SPI2-CR1 !  \ clk/2, slave mode, enable
-;
-
 : spi2-setup
-\ frdbuf 514 $E5 fill  \ testing: read buffer starts off with all $E5's
-  0 frdbuf c!  \ reply byte is zero, i.e. idle
   IMODE-PULL ssel2 @ io-mode! -spi2
   IMODE-FLOAT SCLK2 io-mode!
   OMODE-AF-PP MISO2 io-mode!
   IMODE-FLOAT MOSI2 io-mode!
-  spi2-slave ;
+  14 bit RCC-APB1ENR bis!  \ set SPI2EN
+  %11 SPI2-CR2 !  \ enable TX and RX DMA
+  6 bit SPI2-CR1 !  \ clk/2, slave mode, enable
+  0 freply c!  \ reply byte is zero, i.e. idle
+  $FF SPI2-DR !  \ prime the SPI status reply
+;
 
 task: disktask
 
@@ -101,11 +98,13 @@ task: disktask
   begin
     stop
     LED iox!
-    ." <!>" frdbuf c@ . fwrbuf @ hex.
-    fwrbuf @ 8 rshift
-    dup 9 rshift dup . cr drop 13 sd-read
-    $180 and sd.buf + frdbuf 1+ 128 move
-    0 frdbuf c!
+    ." <!>" freply @ . fwrbuf @ hex.
+\   fwrbuf @ 8 rshift
+\   dup 9 rshift dup . cr drop 13 sd-read
+\   $180 and sd.buf + frdbuf 128 move
+    13 sd-read
+    sd.buf frdbuf 128 move
+    0 freply !
     LED iox!
   again ;
 
@@ -114,21 +113,19 @@ task: disktask
 
 : firq ( -- )
   12 bit EXTI-PR !
-  DMA1-CCR4 @
   0 bit DMA1-CCR5 bic!
   0 bit DMA1-CCR4 bic!
 \ SPI2-DR @ drop SPI2-SR @ drop  \ clear SPI2 buffers and errors
   0 SPI2-CR1 !  \ disable
   6 bit SPI2-CR1 !  \ clk/2, slave mode, enable
-\ spi2-slave
-  fwrbuf c@ if dup frdbuf c! disktask wake then
-  drop
+  fwrbuf c@ ?dup if freply ! disktask wake then
+  freply @ SPI2-DR c!  \ prime the SPI status reply
   dma-reload
 \ dma-setup
   LED iox!
 ;
 
-: req-setup  \ set up pin interrupt on rising spi2 slave select on PB12
+: firq-setup  \ set up pin interrupt on rising spi2 slave select on PB12
   ['] firq irq-exti10 !
 
      8 bit NVIC-EN1R bis!  \ enable EXTI15_10 interrupt 40
@@ -148,7 +145,7 @@ task: disktask
   ZCL ios!  OMODE-PP ZCL io-mode!
   ez80-8MHz ;
 
-: init-all task-setup zdi-init led-setup dma-setup spi2-setup req-setup ;
+: init-all task-setup zdi-init led-setup spi2-setup dma-setup firq-setup ;
 
 : delay 100 0 do loop ;
 : zcl-lo  delay ZCL ioc!  delay ;
