@@ -1,4 +1,4 @@
-Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   1
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   1
 MAXBIOS Z80
 
     2                   
@@ -59,7 +59,7 @@ MAXBIOS Z80
    57 FD80  0002        	dw 2   ; OFF - Reserved tracks
    58                   
    59 FD82  001A        dpb1:	dw 26  ; SPT - sectors per track
-Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   2
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   2
 MAXBIOS Z80
 
    60 FD84  03          	db 3   ; BSH - block shift factor
@@ -117,10 +117,10 @@ MAXBIOS Z80
   112 FDCF  21 0080     gocpm:	ld hl,tpabuf            ; Address of BIOS DMA buffer
   113 FDD2  22 FF07     	ld (dmaadr),hl
   114                   
-  115 FDD5  CD FEBF     	call finit
+  115 FDD5  CD FEC0     	call finit
   116                   
   117 FDD8  3E C3       	ld a,0C3h               ; Opcode for 'JP'
-Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   3
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   3
 MAXBIOS Z80
 
   118 FDDA  32 0000     	LD (00h),a              ; Load at start of RAM
@@ -181,7 +181,7 @@ MAXBIOS Z80
   173 FE37  ED 43 FF0F  setsec: ld (seksec),bc
   174 FE3B  C9                  ret
   175                   
-Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   4
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   4
 MAXBIOS Z80
 
   176 FE3C  ED 43 FF07  setdma: ld (dmaadr),bc
@@ -191,7 +191,7 @@ MAXBIOS Z80
   180 FE42  60          	ld h,b
   181 FE43  C9                  ret
   182                   
-  183 FE44  CD FEE3     read:	call rwaddr
+  183 FE44  CD FEE4     read:	call rwaddr
   184                   
   185 FE47  FE 03               cp 3
   186 FE49  28 2B               jr z,fread
@@ -205,7 +205,7 @@ MAXBIOS Z80
   194                   
   195 FE56  18 11       	jr rwop
   196                   
-  197 FE58  CD FEE3     write:	call rwaddr
+  197 FE58  CD FEE4     write:	call rwaddr
   198                   
   199 FE5B  B7                  or a			; only A: is writable
   200 FE5C  20 15               jr nz,wfail
@@ -241,109 +241,115 @@ MAXBIOS Z80
   230         00BC      SPI_TSR  equ 0BCh
   231         00BC      SPI_RBR  equ 0BCh
   232                   
-  233 FE76  CD FEA3     fread:  call fidle		; wait until idle
-Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   5
+  233 FE76  CD FEA4     fread:  call fidle		; wait until idle
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   5
 MAXBIOS Z80
 
-  234 FE79  CD FEB3             call fxfer		; 0 = read request (seldsk)
+  234 FE79  CD FEB4             call fxfer		; 0 = read request (seldsk)
   235 FE7C  3A FF0A             ld a,(dskadr)		; 1 = offset, bits 7..0
-  236 FE7F  CD FEB3             call fxfer
+  236 FE7F  CD FEB4             call fxfer
   237 FE82  7D                  ld a,l
-  238 FE83  CD FEB3             call fxfer		; 2 = offset, bits 15..8
+  238 FE83  CD FEB4             call fxfer		; 2 = offset, bits 15..8
   239 FE86  7C                  ld a,h
-  240 FE87  CD FEB3             call fxfer		; 3 = offset, bits 23..16
-  241 FE8A  CD FEA3             call fidle		; wait until idle
+  240 FE87  CD FEB4             call fxfer		; 3 = offset, bits 23..16
+  241 FE8A  CD FEA4             call fidle		; wait until idle
   242 FE8D  2A FF07     	ld hl,(dmaadr)
   243 FE90  06 80       	ld b,128
-  244 FE92  CD FEB3     fread1:	call fxfer		; 1..128 = read data
-  245 FE95  77          	ld (hl),a
-  246 FE96  23          	inc hl
-  247 FE97  10 F9       	djnz fread1
-  248 FE99  AF          	xor a
-  249 FE9A  ED 08 9A    fstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
-  250 FE9D  CB C1       	set 0,c			; set NSS high (PB0)
-  251 FE9F  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
-  252 FEA2  C9                  ret
-  253                   
-  254 FEA3  CD FE9A     fidle:	call fstop
-  255                   	; TODO may need a delay here...
-  256 FEA6  ED 08 9A    fidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
-  257 FEA9  CB 49       	bit 1,c			; test BUSY (PB1)
-  258 FEAB  20 F9       	jr nz,fidle1		; reply is not zero, repeat
-  259 FEAD  CB 81       	res 0,c			; set NSS low (PB0)
-  260 FEAF  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
-  261 FEB2  C9          	ret
-  262                   
-  263 FEB3  ED 39 BC    fxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
-  264 FEB6  ED 38 BB    fxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
-  265 FEB9  28 FB       	jr z,fxfer1
-  266 FEBB  ED 38 BC    	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
-  267 FEBE  C9                  ret
-  268                   
-  269 FEBF  3E 89       finit:	ld a,89h
-  270 FEC1  ED 39 9A    	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
-  271 FEC4  3E CE       	ld a,0CEh
-  272 FEC6  ED 39 9B    	db 0EDh,39h,PB_DDR	; out0 (PB_DDR),a
-  273 FEC9  3E 00       	ld a,00h
-  274 FECB  ED 39 9C    	db 0EDh,39h,PB_ALT1	; out0 (PB_ALT1),a
-  275 FECE  3E CC       	ld a,0CCh
-  276 FED0  ED 39 9D    	db 0EDh,39h,PB_ALT2	; out0 (PB_ALT2),a
-  277 FED3  3E 00       	ld a,00H
-  278 FED5  ED 39 B9    	db 0EDh,39h,SPI_BRGH	; out0 (SPI_BRG_H),a
-  279 FED8  3E 03       	ld a,03h
-  280 FEDA  ED 39 B8    	db 0EDh,39h,SPI_BRGL	; out0 (SPI_BRG_L),a
-  281 FEDD  3E 34       	ld a,34h
-  282 FEDF  ED 39 BA    	db 0EDh,39h,SPI_CTL	; out0 (SPI_CTL),a
-  283 FEE2  C9          	ret
-  284                   
-  285                   ; Convert selected disk+track+sector to a memory address
-  286                   
-  287 FEE3  ED 4B FF0E  rwaddr:	ld bc,(sektrk)
-  288 FEE7  06 1A       	ld b,26
-  289 FEE9  ED 4C       	db 0EDh,4Ch ; mlt bc
-  290                   	; BC = track, converted to linear sector offset
-  291 FEEB  2A FF0F     	ld hl,(seksec)
-Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   6
+  244 FE92  AF          	xor a
+  245 FE93  CD FEB4     fread1:	call fxfer		; 1..128 = read data
+  246 FE96  77          	ld (hl),a
+  247 FE97  23          	inc hl
+  248 FE98  10 F9       	djnz fread1
+  249 FE9A  AF          	xor a
+  250 FE9B  ED 08 9A    fstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+  251 FE9E  CB C1       	set 0,c			; set NSS high (PB0)
+  252 FEA0  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+  253 FEA3  C9                  ret
+  254                   
+  255 FEA4  CD FE9B     fidle:	call fstop
+  256                   	; TODO may need a delay here...
+  257 FEA7  ED 08 9A    fidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+  258 FEAA  CB 49       	bit 1,c			; test BUSY (PB1)
+  259 FEAC  20 F9       	jr nz,fidle1		; reply is not zero, repeat
+  260 FEAE  CB 81       	res 0,c			; set NSS low (PB0)
+  261 FEB0  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+  262 FEB3  C9          	ret
+  263                   
+  264 FEB4  ED 39 BC    fxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
+  265 FEB7  ED 38 BB    fxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
+  266 FEBA  28 FB       	jr z,fxfer1
+  267 FEBC  ED 38 BC    	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
+  268 FEBF  C9                  ret
+  269                   
+  270 FEC0  3E 89       finit:	ld a,89h
+  271 FEC2  ED 39 9A    	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
+  272 FEC5  3E CE       	ld a,0CEh
+  273 FEC7  ED 39 9B    	db 0EDh,39h,PB_DDR	; out0 (PB_DDR),a
+  274 FECA  3E 00       	ld a,00h
+  275 FECC  ED 39 9C    	db 0EDh,39h,PB_ALT1	; out0 (PB_ALT1),a
+  276 FECF  3E CC       	ld a,0CCh
+  277 FED1  ED 39 9D    	db 0EDh,39h,PB_ALT2	; out0 (PB_ALT2),a
+  278 FED4  3E 00       	ld a,00H
+  279 FED6  ED 39 B9    	db 0EDh,39h,SPI_BRGH	; out0 (SPI_BRG_H),a
+  280 FED9  3E 03       	ld a,03h
+  281 FEDB  ED 39 B8    	db 0EDh,39h,SPI_BRGL	; out0 (SPI_BRG_L),a
+  282 FEDE  3E 30       	ld a,30h
+  283 FEE0  ED 39 BA    	db 0EDh,39h,SPI_CTL	; out0 (SPI_CTL),a
+  284 FEE3  C9          	ret
+  285                   
+  286                   ; Convert selected disk+track+sector to a memory address
+  287                   
+  288 FEE4  ED 4B FF0E  rwaddr:	ld bc,(sektrk)
+  289 FEE8  06 1A       	ld b,26
+  290 FEEA  ED 4C       	db 0EDh,4Ch ; mlt bc
+  291                   	; BC = track, converted to linear sector offset
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   6
 MAXBIOS Z80
 
-  292 FEEE  09          	add hl,bc
-  293                   	; HL = bits 30..23 of the requested disk block address
-  294 FEEF  AF          	xor a
-  295 FEF0  CB 1C       	rr h
-  296 FEF2  CB 1D       	rr l
-  297 FEF4  CB 1F       	rr a
-  298                   	; A = bits 7..0 of the 24-bit disk-block address
-  299 FEF6  32 FF0A     	ld (dskadr),a
-  300                   	; add the disk base to bits 23..16, if drive A:
-  301 FEF9  3A FF0D             ld a,(sekdsk)
-  302 FEFC  B7                  or a
-  303 FEFD  20 04               jr nz,rwflsh
-  304 FEFF  01 3A60     	ld bc,FROM*256+(FOFF/256)
-  305 FF02  09          	add hl,bc
-  306 FF03              rwflsh: ; HL = bits 23..8 of the 24-bit disk-block address
-  307 FF03  22 FF0B     	ld (dskadr+1),hl
-  308 FF06  C9          	ret
-  309                   
-  310                   ; Data area --------------------------------------------------------------------
-  311                   
-  312 FF07  80 00 20    dmaadr: db 80h,00h,BANK ; last dma address + bank
-  313                   
-  314                   ; End of initialised data
-  315                   
-  316 FF0A    0003      dskadr: ds 3   ; disk address + bank
-  317                   
-  318 FF0D    0001      sekdsk: ds 1   ; seek disk number
-  319 FF0E    0001      sektrk: ds 1   ; seek track number
-  320 FF0F    0002      seksec: ds 2   ; seek sector number
-  321                   
-  322 FF11    0080      dirbuf: ds 128 ; scratch directory area
-  323 FF91    0020      alv0:   ds 32  ; allocation vector 0 (max 255 blocks)
-  324 FFB1    0020      alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
-  325 FFD1    0020      alv2:   ds 32  ; allocation vector 1 (max 255 blocks)
-  326                   
-  327         FFF1      biosEnd equ $ ; ----------------------------------------------------------------
-  328                   
-  329                           end
+  292 FEEC  2A FF0F     	ld hl,(seksec)
+  293 FEEF  09          	add hl,bc
+  294                   	; HL = bits 30..23 of the requested disk block address
+  295 FEF0  AF          	xor a
+  296 FEF1  CB 1C       	rr h
+  297 FEF3  CB 1D       	rr l
+  298 FEF5  1F          	rra
+  299                   	; A = bits 7..0 of the 24-bit disk-block address
+  300 FEF6  32 FF0A     	ld (dskadr),a
+  301                   	; add the disk base to bits 23..16, if drive A:
+  302 FEF9  3A FF0D             ld a,(sekdsk)
+  303 FEFC  B7                  or a
+  304 FEFD  20 04               jr nz,rwflsh
+  305 FEFF  01 3A60     	ld bc,FROM*256+(FOFF/256)
+  306 FF02  09          	add hl,bc
+  307 FF03              rwflsh: ; HL = bits 23..8 of the 24-bit disk-block address
+  308 FF03  22 FF0B     	ld (dskadr+1),hl
+  309 FF06  C9          	ret
+  310                   
+  311                   ; Data area --------------------------------------------------------------------
+  312                   
+  313 FF07  80 00 20    dmaadr: db 80h,00h,BANK ; last dma address + bank
+  314                   
+  315                   ; End of initialised data
+  316                   
+  317 FF0A    0003      dskadr: ds 3   ; disk address + bank
+  318                   
+  319 FF0D    0001      sekdsk: ds 1   ; seek disk number
+  320 FF0E    0001      sektrk: ds 1   ; seek track number
+  321 FF0F    0002      seksec: ds 2   ; seek sector number
+  322                   
+  323 FF11    0080      dirbuf: ds 128 ; scratch directory area
+  324 FF91    0020      alv0:   ds 32  ; allocation vector 0 (max 255 blocks)
+  325 FFB1    0020      alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
+  326 FFD1    0020      alv2:   ds 32  ; allocation vector 1 (max 255 blocks)
+  327                   
+  328         FFF1      biosEnd equ $ ; ----------------------------------------------------------------
+  329                   
+  330                           end
  0 Error(s) Detected.
  753 Absolute Bytes. 65 Symbols Detected.
+------------------------------------------------------
+  334                   
+  335                           end
+ 0 Error(s) Detected.
+ 756 Absolute Bytes. 65 Symbols Detected.
 

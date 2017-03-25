@@ -1,4 +1,4 @@
-title Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17
+title Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17
 
 ; memory map -------------------------------------------------------------------
 
@@ -241,6 +241,7 @@ fread:  call fidle		; wait until idle
         call fidle		; wait until idle
 	ld hl,(dmaadr)
 	ld b,128
+	xor a
 fread1:	call fxfer		; 1..128 = read data
 	ld (hl),a
 	inc hl
@@ -278,7 +279,7 @@ finit:	ld a,89h
 	db 0EDh,39h,SPI_BRGH	; out0 (SPI_BRG_H),a
 	ld a,03h
 	db 0EDh,39h,SPI_BRGL	; out0 (SPI_BRG_L),a
-	ld a,34h
+	ld a,30h
 	db 0EDh,39h,SPI_CTL	; out0 (SPI_CTL),a
 	ret
 
@@ -294,7 +295,7 @@ rwaddr:	ld bc,(sektrk)
 	xor a
 	rr h
 	rr l
-	rr a
+	rra
 	; A = bits 7..0 of the 24-bit disk-block address
 	ld (dskadr),a
 	; add the disk base to bits 23..16, if drive A:

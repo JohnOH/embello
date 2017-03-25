@@ -43,20 +43,13 @@ $40010400 constant EXTI
     DMA1 $60 + constant DMA1-CPAR5
     DMA1 $64 + constant DMA1-CMAR5
 
-\ 514 buffer: frdbuf
+5 buffer: xyz  \ alignment
+
+\ 512 buffer: frdbuf
 520 buffer: frdbuf
 516 buffer: fwrbuf
 
 : led-setup  LED ioc!  OMODE-PP LED io-mode! ;
-
-: dma-reload
-  $00FF0000 DMA1-IFCR !  \ clear interrupt flags
-  \ restart outbound feed to SPI2 TX
-  516 DMA1-CNDTR5 !
-  0 bit DMA1-CCR5 bis!
-  \ restart incoming feed from SPI2 RX
-  516 DMA1-CNDTR4 !
-  0 bit DMA1-CCR4 bis! ;
 
 : dma-setup
   0 bit RCC-AHBENR bic!  \ DMA1EN clock disable
@@ -65,29 +58,32 @@ $40010400 constant EXTI
   \ DMA1 channel 4: from SPI2 RX to fwrbuf, 1..516 bytes
    fwrbuf DMA1-CMAR4 !     \ write to fw-buffer
   SPI2-DR DMA1-CPAR4 !     \ read from SPI2
+     516 DMA1-CNDTR4 !
                 0   \ register settings for CCR4 of DMA1:
           7 bit or  \ MINC
                     \ DIR = from peripheral to mem
+          0 bit or
       DMA1-CCR4 !
 
   \ DMA1 channel 5: from frdbuf to SPI2 TX, 1..513 bytes
    frdbuf DMA1-CMAR5 !     \ read from fr-buffer
   SPI2-DR DMA1-CPAR5 !     \ write to SPI2
+     516 DMA1-CNDTR5 !
                 0   \ register settings for CCR5 of DMA1:
           7 bit or  \ MINC
           4 bit or  \ DIR = from mem to peripheral
+          0 bit or
       DMA1-CCR5 !
-
-  dma-reload ;
+;
 
 : spi2-setup
   IMODE-PULL ssel2 @ io-mode! -spi2
   IMODE-FLOAT SCLK2 io-mode!
   OMODE-AF-PP MISO2 io-mode!
-  IMODE-FLOAT MOSI2 io-mode!
+  IMODE-PULL MOSI2 io-mode!  MOSI2 ioc!
   14 bit RCC-APB1ENR bic!  \ clear SPI2EN
   14 bit RCC-APB1ENR bis!  \ set SPI2EN
-\ %11 SPI2-CR2 !  \ enable TX and RX DMA
+  %11 SPI2-CR2 !  \ enable TX and RX DMA
   6 bit SPI2-CR1 !  \ slave mode, enable
 \ $FF SPI2-DR !  \ prime the SPI status reply
 ;
@@ -98,19 +94,18 @@ task: disktask
   disktask background
   begin
     LED iox!
-    ." <!>" BUSY io@ . fwrbuf @ hex.
+\   cr ." <!>" fwrbuf @ hex. DMA1-CNDTR4 @ . \ SPI2-SR @ hex.
     0 DMA1-CCR5 !
     0 DMA1-CCR4 !
     SPI2-DR @ drop SPI2-SR @ drop  \ clear SPI2 buffers and errors
     0 SPI2-CR1 !  \ disable
-    spi2-setup
+    fwrbuf c@ 3 = if
+      fwrbuf @ 8 rshift
+      dup 9 rshift sd-read
+      $180 and sd.buf + frdbuf 128 move
+    then
     dma-setup
-    %11 SPI2-CR2 !  \ enable TX and RX DMA
-\   fwrbuf @ 8 rshift
-\   dup 9 rshift dup . cr drop 13 sd-read
-\   $180 and sd.buf + frdbuf 128 move
-    13 sd-read
-    sd.buf frdbuf 128 move
+    spi2-setup
     BUSY ioc!
     LED iox!
     stop
@@ -124,6 +119,10 @@ task: disktask
   12 bit EXTI-PR !
   disktask wake
   LED iox!
+
+  dma-setup
+  spi2-setup
+  %11 SPI2-CR2 !  \ enable TX and RX DMA
 ;
 
 : firq-setup  \ set up pin interrupt on rising spi2 slave select on PB12
