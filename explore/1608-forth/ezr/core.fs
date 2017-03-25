@@ -4,7 +4,9 @@
 cr compiletoflash
 ( core start: ) here dup hex.
 
+include ../flib/stm32f1/spi2.fs
 include ../flib/stm32f1/uart2.fs
+include ../flib/stm32f1/uart2-irq.fs
 
 \ 9 constant I2C.DELAY
 \ include ../flib/any/i2c-bb.fs

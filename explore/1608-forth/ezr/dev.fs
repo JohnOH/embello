@@ -1,19 +1,146 @@
 \ Control an eZ80 microcontroller from a Blue Pill via ZDI
 
+singletask
+
 \ compiletoflash
+\ include ../flib/stm32f1/spi2.fs
 \ include ../flib/stm32f1/uart2.fs
 
 compiletoram? [if]  forgetram  [then]
+
+include ex/sdtry.fs
+
+PC13 constant LED
 
 PB0 constant XIN
 PB1 constant RST
 PB4 constant ZCL
 PB5 constant ZDA
 
+$E000E100 constant NVIC-EN0R \ IRQ 0 to 31 Set Enable Register
+
+AFIO $08 + constant AFIO-EXTICR1
+AFIO $0C + constant AFIO-EXTICR2
+AFIO $10 + constant AFIO-EXTICR3
+AFIO $14 + constant AFIO-EXTICR4
+
+$40010400 constant EXTI
+    EXTI $00 + constant EXTI-IMR
+    EXTI $08 + constant EXTI-RTSR
+    EXTI $0C + constant EXTI-FTSR
+    EXTI $14 + constant EXTI-PR
+
+\ $40020000 constant DMA1
+\   DMA1 $00 + constant DMA1-ISR
+\   DMA1 $04 + constant DMA1-IFCR
+    DMA1 $44 + constant DMA1-CCR4
+    DMA1 $48 + constant DMA1-CNDTR4
+    DMA1 $4C + constant DMA1-CPAR4
+    DMA1 $50 + constant DMA1-CMAR4
+    DMA1 $58 + constant DMA1-CCR5
+    DMA1 $5C + constant DMA1-CNDTR5
+    DMA1 $60 + constant DMA1-CPAR5
+    DMA1 $64 + constant DMA1-CMAR5
+
+\ 513 buffer: frdbuf
+520 buffer: frdbuf
+516 buffer: fwrbuf
+
+: led-setup  LED ioc!  OMODE-PP LED io-mode! ;
+
+: dma-reload
+  \ restart outbound feed to SPI2 TX
+\ 513 DMA1-CNDTR5 !
+  150 DMA1-CNDTR5 !
+  0 bit DMA1-CCR5 bis!
+  \ restart incoming feed from SPI2 RX
+\ 516 DMA1-CNDTR4 !
+  150 DMA1-CNDTR4 !
+  0 bit DMA1-CCR4 bis! ;
+
+: dma-setup
+  0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
+
+  \ DMA1 channel 4: from SPI2 RX to fwrbuf, 1..516 bytes
+   fwrbuf DMA1-CMAR4 !     \ write to fw-buffer
+  SPI2-DR DMA1-CPAR4 !     \ read from SPI2
+                0   \ register settings for CCR4 of DMA1:
+          7 bit or  \ MINC
+                    \ DIR = from peripheral to mem
+      DMA1-CCR4 !
+
+  \ DMA1 channel 5: from frdbuf to SPI2 TX, 1..513 bytes
+   frdbuf DMA1-CMAR5 !     \ read from fr-buffer
+  SPI2-DR DMA1-CPAR5 !     \ write to SPI2
+                0   \ register settings for CCR5 of DMA1:
+          7 bit or  \ MINC
+          4 bit or  \ DIR = from mem to peripheral
+      DMA1-CCR5 !
+
+  dma-reload ;
+
+: spi2-slave ( -- )  \ set up hardware SPI for slave mode
+  14 bit RCC-APB1ENR bis!  \ set SPI2EN
+  %11 SPI2-CR2 !  \ enable TX and RX DMA
+  6 bit SPI2-CR1 !  \ clk/2, slave mode, enable
+;
+
+: spi2-setup
+\ frdbuf 514 $E5 fill  \ testing: read buffer starts off with all $E5's
+  0 frdbuf c!  \ reply byte is zero, i.e. idle
+  IMODE-PULL ssel2 @ io-mode! -spi2
+  IMODE-FLOAT SCLK2 io-mode!
+  OMODE-AF-PP MISO2 io-mode!
+  IMODE-FLOAT MOSI2 io-mode!
+  spi2-slave ;
+
+task: disktask
+
+: disk&
+  disktask activate
+  begin
+    stop
+    LED iox!
+    ." <!>" frdbuf c@ . fwrbuf @ hex.
+    fwrbuf @ 8 rshift
+    dup 9 rshift dup . cr drop 13 sd-read
+    $180 and sd.buf + frdbuf 1+ 128 move
+    0 frdbuf c!
+    LED iox!
+  again ;
+
+: task-setup
+  multitask disk& tasks ;
+
+: firq ( -- )
+  12 bit EXTI-PR !
+  DMA1-CCR4 @
+  0 bit DMA1-CCR5 bic!
+  0 bit DMA1-CCR4 bic!
+\ SPI2-DR @ drop SPI2-SR @ drop  \ clear SPI2 buffers and errors
+  0 SPI2-CR1 !  \ disable
+  6 bit SPI2-CR1 !  \ clk/2, slave mode, enable
+\ spi2-slave
+  fwrbuf c@ if dup frdbuf c! disktask wake then
+  drop
+  dma-reload
+\ dma-setup
+  LED iox!
+;
+
+: req-setup  \ set up pin interrupt on rising spi2 slave select on PB12
+  ['] firq irq-exti10 !
+
+     8 bit NVIC-EN1R bis!  \ enable EXTI15_10 interrupt 40
+  %0001 AFIO-EXTICR4 bis!  \ select P<B>12
+     12 bit EXTI-IMR bis!  \ enable PB<12>
+    12 bit EXTI-RTSR bis!  \ trigger on PB<12> rising edge
+;
+
 : ez80-8MHz ( -- )
   7200 XIN pwm-init   \ first set up pwm correctly
   8 3 timer-init      \ then mess with the timer divider, i.e. ÷9
-  9998 XIN pwm ;      \ finally, set the pwm to still toggle
+  9996 XIN pwm ;      \ finally, set the pwm to still toggle
 
 : zdi-init ( -- )
   RST ios!  OMODE-OD RST io-mode!
@@ -21,7 +148,9 @@ PB5 constant ZDA
   ZCL ios!  OMODE-PP ZCL io-mode!
   ez80-8MHz ;
 
-: delay 50 0 do loop ;
+: init-all task-setup zdi-init led-setup dma-setup spi2-setup req-setup ;
+
+: delay 100 0 do loop ;
 : zcl-lo  delay ZCL ioc!  delay ;
 : zcl-hi  delay ZCL ios!  delay ;
 
@@ -87,11 +216,6 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
 : ins4 ( u1 u2 u3 u4 -- )     $22 >zdi ins3 ;
 : ins5 ( u1 u2 u3 u4 u5 -- )  $21 >zdi ins4 ;
 
-: sram> ( -- u )  \ get SRAM bank
-  $08 $16 >zdi            \ set adl mode
-  $00 $16 >zdi  $12 zdi>  \ mbase => <u>
-  $09 $16 >zdi ;          \ set z80 mode
-
 : >sram ( u -- )  \ set SRAM bank
   $21 swap $80 ins3    \ ld hl,8000h+<u>
   $25 $21 $B4  ins3    \ out0 (RAM_CTL),h
@@ -119,18 +243,20 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
 : u  $FF >mb  $E000 a ;
 
 : s1  \ show output from USART2
-  uart-init  19200 baud 2/ USART2-BRR !
+  uart-init 19200 baud 2/ USART2-BRR !
   c
   1000000 0 do
     uart-key? if uart-key emit then
   loop cr b r ;
 
 : s2  \ switch to permanent USART2 pass-through
-  cr uart-init  19200 baud 2/ USART2-BRR !
+  cr uart-init 19200 baud 2/ USART2-BRR !
   c
   begin
     uart-key? if uart-key emit then
-    key? if key uart-emit then
+    \ break out of terminal loop when ctrl-x is seen
+    key? if key dup 24 = if drop exit then uart-emit then
+    pause
   again ;
 
 : x  RST ioc! 1 ms RST ios! ;
@@ -151,7 +277,7 @@ include asm/flash.fs
   u  $E000 a  c 500 ms b r ;
 
 \ : z $3A6000 d s1 ;
-: z zdi-init s2 ;
+: z init-all s2 ;
 
 : ?
   cr ." v = show chip version           b = break next "
@@ -176,4 +302,4 @@ include asm/flash.fs
   >r >r >r >r >r >r >r 
   w4 r> w4 r> w4 r> w4 r> w4 r> w4 r> w4 r> w4 ;
 
-\ zdi-init  cr x b v s cr r
+\ init-all  cr x b v s cr r

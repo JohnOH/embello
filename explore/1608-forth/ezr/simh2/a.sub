@@ -31,3 +31,8 @@ z80asm ezflash/h
 w ezflash.com
 w ezflash.hex t
 w ezflash.lst
+;
+r maxbios.z80
+z80asm maxbios/f
+w maxbios.com b
+w maxbios.lst
