@@ -111,19 +111,7 @@ task: disktask
     stop
   again ;
 
-: task-setup
-  multitask disk& tasks ;
-
-: firq ( -- )
-  BUSY ios!
-  12 bit EXTI-PR !
-  disktask wake
-  LED iox!
-
-  dma-setup
-  spi2-setup
-  %11 SPI2-CR2 !  \ enable TX and RX DMA
-;
+: firq ( -- )  BUSY ios!  12 bit EXTI-PR !  disktask wake ;
 
 : firq-setup  \ set up pin interrupt on rising spi2 slave select on PB12
   OMODE-PP BUSY io-mode!  BUSY ioc!
@@ -147,7 +135,11 @@ task: disktask
   ZCL ios!  OMODE-PP ZCL io-mode!
   ez80-8MHz ;
 
-: init-all task-setup zdi-init led-setup firq-setup ;
+: init-all
+  sd-init sd-size .
+  multitask disk&
+  zdi-init led-setup
+  firq-setup dma-setup spi2-setup ;
 
 : delay 100 0 do loop ;
 : zcl-lo  delay ZCL ioc!  delay ;

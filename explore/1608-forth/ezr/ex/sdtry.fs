@@ -1,6 +1,6 @@
 \ try SD card access
 
-forgetram
+compiletoram? [if]  forgetram  [then]
 
 : sd-slow ( -- )  SPI1-CR1 @  %111000 or  SPI1-CR1 ! ;  \ clk/256
 
@@ -43,7 +43,7 @@ forgetram
 ;
 
 512 buffer: sd.buf
-( sd.buf: ) sd.buf hex.
+\ ( sd.buf: ) sd.buf hex.
 
 : sd-copy ( f n -- )
   swap begin ( dup . ) $FE <> while $FF >spi> repeat
@@ -74,7 +74,7 @@ forgetram
   512 0 do  sd.buf i + c@ >spi  loop
   $FF dup >spi >spi  sd-wait ;
 
-( blocks: ) sd-init sd-size .
+\ ( blocks: ) sd-init sd-size .
 \ sd.buf 16 dump
 \ 
 \ 0 sd-read
