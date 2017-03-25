@@ -231,8 +231,7 @@ SPI_TSR  equ 0BCh
 SPI_RBR  equ 0BCh
 
 fread:  call fidle		; wait until idle
-        ld a,1
-        call fstart		; 0 = read request
+        call fxfer		; 0 = read request (seldsk)
         ld a,(dskadr)		; 1 = offset, bits 7..0
         call fxfer
         ld a,l
@@ -246,22 +245,21 @@ fread1:	call fxfer		; 1..128 = read data
 	ld (hl),a
 	inc hl
 	djnz fread1
-fstop:	db 0EDh,38h,PB_DR	; in0 a,(PB_DR)
-	set 0,a			; set NSS high (PB0)
-	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
 	xor a
+fstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+	set 0,c			; set NSS high (PB0)
+	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
         ret
 
-fidle:  xor a
-	call fstart		; start a new poll
-	jr nz,fidle		; reply is not zero, repeat
+fidle:	call fstop
+	; TODO may need a delay here...
+fidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+	bit 1,c			; test BUSY (PB1)
+	jr nz,fidle1		; reply is not zero, repeat
+	res 0,c			; set NSS low (PB0)
+	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
 	ret
 
-fstart:	push af
-	call fstop		; disable NSS
-	res 0,a			; set NSS low again (PB0)
-	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
-	pop af
 fxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
 fxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
 	jr z,fxfer1
@@ -270,7 +268,7 @@ fxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
 
 finit:	ld a,89h
 	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
-	ld a,0CCh
+	ld a,0CEh
 	db 0EDh,39h,PB_DDR	; out0 (PB_DDR),a
 	ld a,00h
 	db 0EDh,39h,PB_ALT1	; out0 (PB_ALT1),a

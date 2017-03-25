@@ -29,7 +29,8 @@ Micro SD card:
 
 SPI interconnect, eZ80 is master:
 
-    PB12 = eZ80 PB0,  pin 100 (10k pullup, NSS)
+    PA8  = eZ80 PB1,  pin 101 (BUSY: STM => eZ80)
+    PB12 = eZ80 PB0,  pin 100 (NSS: eZ80 => STM))
            eZ80 SS,   pin 102 (10k pullup)
     PB13 = eZ80 SCK,  pin 103
     PB14 = eZ80 MISO, pin 106

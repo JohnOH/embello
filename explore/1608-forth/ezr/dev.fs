@@ -11,6 +11,7 @@ compiletoram? [if]  forgetram  [then]
 include ex/sdtry.fs
 
 PC13 constant LED
+PA8 constant BUSY
 
 PB0 constant XIN
 PB1 constant RST
@@ -45,7 +46,6 @@ $40010400 constant EXTI
 \ 514 buffer: frdbuf
 520 buffer: frdbuf
 516 buffer: fwrbuf
-0 variable freply
 
 : led-setup  LED ioc!  OMODE-PP LED io-mode! ;
 
@@ -89,46 +89,46 @@ $40010400 constant EXTI
   14 bit RCC-APB1ENR bis!  \ set SPI2EN
 \ %11 SPI2-CR2 !  \ enable TX and RX DMA
   6 bit SPI2-CR1 !  \ slave mode, enable
-  0 freply c!  \ reply byte is zero, i.e. idle
 \ $FF SPI2-DR !  \ prime the SPI status reply
 ;
 
 task: disktask
 
 : disk&
-  disktask activate
+  disktask background
   begin
-    stop
     LED iox!
-    ." <!>" freply @ . fwrbuf @ hex.
+    ." <!>" BUSY io@ . fwrbuf @ hex.
+    0 DMA1-CCR5 !
+    0 DMA1-CCR4 !
+    SPI2-DR @ drop SPI2-SR @ drop  \ clear SPI2 buffers and errors
+    0 SPI2-CR1 !  \ disable
+    spi2-setup
+    dma-setup
+    %11 SPI2-CR2 !  \ enable TX and RX DMA
 \   fwrbuf @ 8 rshift
 \   dup 9 rshift dup . cr drop 13 sd-read
 \   $180 and sd.buf + frdbuf 128 move
     13 sd-read
     sd.buf frdbuf 128 move
-    0 freply !
+    BUSY ioc!
     LED iox!
+    stop
   again ;
 
 : task-setup
   multitask disk& tasks ;
 
 : firq ( -- )
+  BUSY ios!
   12 bit EXTI-PR !
-  0 DMA1-CCR5 !
-  0 DMA1-CCR4 !
-  SPI2-DR @ drop SPI2-SR @ drop  \ clear SPI2 buffers and errors
-  0 SPI2-CR1 !  \ disable
-  fwrbuf c@ if -1 freply ! disktask wake then
-  spi2-setup
-  freply @ SPI2-DR !  \ prime the SPI status reply
-  dma-setup
-  %11 SPI2-CR2 !  \ enable TX and RX DMA
-\ 6 bit SPI2-CR1 !  \ slave mode, enable
+  disktask wake
   LED iox!
 ;
 
 : firq-setup  \ set up pin interrupt on rising spi2 slave select on PB12
+  OMODE-PP BUSY io-mode!  BUSY ioc!
+
   ['] firq irq-exti10 !
 
      8 bit NVIC-EN1R bis!  \ enable EXTI15_10 interrupt 40
@@ -148,7 +148,7 @@ task: disktask
   ZCL ios!  OMODE-PP ZCL io-mode!
   ez80-8MHz ;
 
-: init-all task-setup zdi-init led-setup spi2-setup dma-setup firq-setup ;
+: init-all task-setup zdi-init led-setup firq-setup ;
 
 : delay 100 0 do loop ;
 : zcl-lo  delay ZCL ioc!  delay ;
