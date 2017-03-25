@@ -11,6 +11,7 @@ include ../flib/stm32f1/uart2-irq.fs
 \ 9 constant I2C.DELAY
 \ include ../flib/any/i2c-bb.fs
 
+include ../flib/mecrisp/quotation.fs
 include ../flib/mecrisp/multi.fs
 
 ( core end, size: ) here dup hex. swap - .

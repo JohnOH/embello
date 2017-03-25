@@ -1,10 +1,9 @@
 \ Control an eZ80 microcontroller from a Blue Pill via ZDI
 
-singletask
-
 \ compiletoflash
 \ include ../flib/stm32f1/spi2.fs
 \ include ../flib/stm32f1/uart2.fs
+\ include ../flib/stm32f1/uart2-irq.fs
 
 compiletoram? [if]  forgetram  [then]
 
@@ -43,40 +42,27 @@ $40010400 constant EXTI
     DMA1 $60 + constant DMA1-CPAR5
     DMA1 $64 + constant DMA1-CMAR5
 
-5 buffer: xyz  \ alignment
+516 buffer: zreqbuf
 
-\ 512 buffer: frdbuf
-520 buffer: frdbuf
-516 buffer: fwrbuf
+: led-on LED ioc! ;
+: led-off LED ios! ;
+: led-setup  OMODE-PP LED io-mode!  led-off ;
 
-: led-setup  LED ioc!  OMODE-PP LED io-mode! ;
-
-: dma-setup
+: dma-setup  \ set up the DMA controller channels for SPI2 RX and TX
   0 bit RCC-AHBENR bic!  \ DMA1EN clock disable
   0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
 
-  \ DMA1 channel 4: from SPI2 RX to fwrbuf, 1..516 bytes
-   fwrbuf DMA1-CMAR4 !     \ write to fw-buffer
+  \ DMA1 channel 4: receive from SPI2 RX
+  zreqbuf DMA1-CMAR4 !     \ write to eZ80 request buffer
   SPI2-DR DMA1-CPAR4 !     \ read from SPI2
-     516 DMA1-CNDTR4 !
-                0   \ register settings for CCR4 of DMA1:
-          7 bit or  \ MINC
-                    \ DIR = from peripheral to mem
-          0 bit or
-      DMA1-CCR4 !
+  %10000000 DMA1-CCR4 !  \ MINC
 
-  \ DMA1 channel 5: from frdbuf to SPI2 TX, 1..513 bytes
-   frdbuf DMA1-CMAR5 !     \ read from fr-buffer
+  \ DMA1 channel 5: send to SPI2 TX
   SPI2-DR DMA1-CPAR5 !     \ write to SPI2
-     516 DMA1-CNDTR5 !
-                0   \ register settings for CCR5 of DMA1:
-          7 bit or  \ MINC
-          4 bit or  \ DIR = from mem to peripheral
-          0 bit or
-      DMA1-CCR5 !
+  %10010000 DMA1-CCR5 !  \ MINC & DIR
 ;
 
-: spi2-setup
+: spi2-setup  \ set up I/O pins and SPI2 for slave mode with DMA in and out
   IMODE-PULL ssel2 @ io-mode! -spi2
   IMODE-FLOAT SCLK2 io-mode!
   OMODE-AF-PP MISO2 io-mode!
@@ -84,39 +70,39 @@ $40010400 constant EXTI
   14 bit RCC-APB1ENR bic!  \ clear SPI2EN
   14 bit RCC-APB1ENR bis!  \ set SPI2EN
   %11 SPI2-CR2 !  \ enable TX and RX DMA
-  6 bit SPI2-CR1 !  \ slave mode, enable
-\ $FF SPI2-DR !  \ prime the SPI status reply
 ;
 
 task: disktask
 
-: disk&
+: disk&  \ this task will process all incoming SPI2 requests for sd card I/O
   disktask background
   begin
-    LED iox!
-\   cr ." <!>" fwrbuf @ hex. DMA1-CNDTR4 @ . \ SPI2-SR @ hex.
-    0 DMA1-CCR5 !
-    0 DMA1-CCR4 !
-    SPI2-DR @ drop SPI2-SR @ drop  \ clear SPI2 buffers and errors
-    0 SPI2-CR1 !  \ disable
-    fwrbuf c@ 3 = if
-      fwrbuf @ 8 rshift
-      dup 9 rshift sd-read
-      $180 and sd.buf + frdbuf 128 move
+    led-on
+
+    0 bit DMA1-CCR4 bic!  \ disable the DMA receive channel
+    0 bit DMA1-CCR5 bic!  \ disable the DMA send channel
+
+    zreqbuf c@ 3 = if
+      zreqbuf @ 8 rshift              \ convert incoming request to offset
+      dup 9 rshift sd-read            \ conv offset to block and read from SD
+      $180 and sd.buf + DMA1-CMAR5 !  \ adjust source of DMA send channel
     then
-    dma-setup
-    spi2-setup
+
+    0 SPI2-CR1 !  6 bit SPI2-CR1 !  \ disable and re-enable to clear SPI2
+
+    516 DMA1-CNDTR4 !  0 bit DMA1-CCR4 bis!  \ restart receives from SPI2 RX
+    512 DMA1-CNDTR5 !  0 bit DMA1-CCR5 bis!  \ restart sends to SPI2 TX
+
     BUSY ioc!
-    LED iox!
+    led-off
     stop
   again ;
 
-: firq ( -- )  BUSY ios!  12 bit EXTI-PR !  disktask wake ;
-
-: firq-setup  \ set up pin interrupt on rising spi2 slave select on PB12
+: zirq-setup  \ set up pin interrupt on rising SPI2 slave select on PB12
   OMODE-PP BUSY io-mode!  BUSY ioc!
 
-  ['] firq irq-exti10 !
+  \ set up EXTI interrupt handler to raise BUSY and wake up the disk task
+  [: BUSY ios! 12 bit EXTI-PR ! disktask wake ;] irq-exti10 !
 
      8 bit NVIC-EN1R bis!  \ enable EXTI15_10 interrupt 40
   %0001 AFIO-EXTICR4 bis!  \ select P<B>12
@@ -139,7 +125,7 @@ task: disktask
   sd-init sd-size .
   multitask disk&
   zdi-init led-setup
-  firq-setup dma-setup spi2-setup ;
+  zirq-setup dma-setup spi2-setup ;
 
 : delay 100 0 do loop ;
 : zcl-lo  delay ZCL ioc!  delay ;
