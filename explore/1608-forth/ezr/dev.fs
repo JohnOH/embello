@@ -59,6 +59,7 @@ $40010400 constant EXTI
   0 bit DMA1-CCR4 bis! ;
 
 : dma-setup
+  0 bit RCC-AHBENR bic!  \ DMA1EN clock disable
   0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
 
   \ DMA1 channel 4: from SPI2 RX to fwrbuf, 1..516 bytes
@@ -84,11 +85,12 @@ $40010400 constant EXTI
   IMODE-FLOAT SCLK2 io-mode!
   OMODE-AF-PP MISO2 io-mode!
   IMODE-FLOAT MOSI2 io-mode!
+  14 bit RCC-APB1ENR bic!  \ clear SPI2EN
   14 bit RCC-APB1ENR bis!  \ set SPI2EN
-  %11 SPI2-CR2 !  \ enable TX and RX DMA
-  6 bit SPI2-CR1 !  \ clk/2, slave mode, enable
+\ %11 SPI2-CR2 !  \ enable TX and RX DMA
+  6 bit SPI2-CR1 !  \ slave mode, enable
   0 freply c!  \ reply byte is zero, i.e. idle
-  $FF SPI2-DR !  \ prime the SPI status reply
+\ $FF SPI2-DR !  \ prime the SPI status reply
 ;
 
 task: disktask
@@ -113,15 +115,16 @@ task: disktask
 
 : firq ( -- )
   12 bit EXTI-PR !
-  0 bit DMA1-CCR5 bic!
-  0 bit DMA1-CCR4 bic!
-\ SPI2-DR @ drop SPI2-SR @ drop  \ clear SPI2 buffers and errors
+  0 DMA1-CCR5 !
+  0 DMA1-CCR4 !
+  SPI2-DR @ drop SPI2-SR @ drop  \ clear SPI2 buffers and errors
   0 SPI2-CR1 !  \ disable
-  6 bit SPI2-CR1 !  \ clk/2, slave mode, enable
-  fwrbuf c@ ?dup if freply ! disktask wake then
-  freply @ SPI2-DR c!  \ prime the SPI status reply
-  dma-reload
-\ dma-setup
+  fwrbuf c@ if -1 freply ! disktask wake then
+  spi2-setup
+  freply @ SPI2-DR !  \ prime the SPI status reply
+  dma-setup
+  %11 SPI2-CR2 !  \ enable TX and RX DMA
+\ 6 bit SPI2-CR1 !  \ slave mode, enable
   LED iox!
 ;
 
@@ -253,7 +256,7 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
     uart-key? if uart-key emit then
     \ break out of terminal loop when ctrl-x is seen
     key? if key dup 24 = if drop exit then uart-emit then
-    pause
+\   pause
   again ;
 
 : x  RST ioc! 1 ms RST ios! ;
