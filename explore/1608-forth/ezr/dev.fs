@@ -7,7 +7,8 @@
 
 compiletoram? [if]  forgetram  [then]
 
-include ex/sdtry.fs
+\ include ex/sdtry.fs
+include ex/sdfat.fs
 
 PC13 constant LED
 PA8 constant BUSY
@@ -82,7 +83,8 @@ task: disktask
 
     zreqbuf c@ 3 = if
       zreqbuf @ 8 rshift              \ convert incoming request to offset
-      dup 9 rshift sd-read            \ conv offset to block and read from SD
+\     dup 9 rshift sd-read            \ conv offset to block and read from SD
+      dup 9 rshift 0 file fat-read    \ conv block and read from file map 0
       $180 and sd.buf + DMA1-CMAR5 !  \ adjust src addr of DMA send channel
     then
 
@@ -120,7 +122,9 @@ task: disktask
   ez80-8MHz ;
 
 : init-all
-  sd-init sd-size .
+  sd-init ." blocks: " sd-size .
+  cr sd-mount
+  117 0 file fat-chain  \ build map for DISK3.IMG
   multitask disk&
   zdi-init led-setup
   zirq-setup dma-setup spi2-setup ;
