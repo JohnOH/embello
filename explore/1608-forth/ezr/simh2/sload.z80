@@ -3,9 +3,9 @@ title Startup loader for eZ80 -jcw, 2017-03-17
 VERS equ 19h	 ; version, stored at end of this code
 
 SRAM equ 0E000h  ; starting address of common SRAM
-DEST equ 0E600h  ; load to this address
-BIOS equ 0FD00h  ; finish with jump to BIOS cold boot
-LAST equ 0FFFFh  ; last address loaded on power-up
+DEST equ 0E300h  ; load to this address
+BIOS equ 0FA00h  ; finish with jump to BIOS cold boot
+LAST equ 0FCFFh  ; last address loaded on power-up
 
 BANK equ 20h	 ; SRAM and MBASE are set to this bank
 SAVE equ 21h	 ; original SRAM contents is this bank

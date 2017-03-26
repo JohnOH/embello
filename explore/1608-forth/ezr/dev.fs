@@ -130,20 +130,22 @@ task: disktask
   zdi-init led-setup
   zirq-setup dma-setup spi2-setup ;
 
-: delay 100 0 do loop ;
-: zcl-lo  delay ZCL ioc!  delay ;
-: zcl-hi  delay ZCL ios!  delay ;
+: delay 10 0 do loop ;
+: zcl-lo  delay ZCL ioc! delay ;
+: zcl-hi  delay ZCL ios! delay ;
 
 : zdi! ( f -- )  zcl-lo  ZDA io!  zcl-hi  ZDA ios! ;
 
 : zdi-start ( u -- )
   ( zcl-hi ) ZDA ioc!
+  OMODE-PP ZDA io-mode!
   7 0 do
     dup $40 and zdi!  shl
   loop  drop ;
 
 : zdi> ( addr -- val )
   zdi-start  1 zdi!  1 zdi!
+  OMODE-OD ZDA io-mode!
   0  8 0 do
     zcl-lo  zcl-hi
     shl  ZDA io@ 1 and or
@@ -155,7 +157,8 @@ task: disktask
   8 0 do
     dup $80 and zdi!  shl
   loop  drop
-  zcl-lo ZDA ios! zcl-hi ;
+  zcl-lo ZDA ios! zcl-hi
+  OMODE-OD ZDA io-mode! ;
 
 : v  0 zdi> h.2 space  1 zdi> h.2 space  2 zdi> h.2 space ;
 
@@ -240,6 +243,7 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
   again ;
 
 : x  RST ioc! 1 ms RST ios! ;
+: y  $80 $11 >zdi ;
 
 : h  \ send greeting over serial, see asm/hello.asm
   b u
@@ -250,6 +254,8 @@ include asm/hello.fs
   b u $0100 a
 include asm/hellow.fs
   u $0100 a s1 ;
+
+: halt $76 ins1 ;
 
 : euf ( -- ) \ unlock and erase flash
   b u

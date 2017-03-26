@@ -5,9 +5,9 @@ SLOAD   Z80
     3         0019      VERS equ 19h	 ; version, stored at end of this code
     4                   
     5         E000      SRAM equ 0E000h  ; starting address of common SRAM
-    6         E600      DEST equ 0E600h  ; load to this address
-    7         FD00      BIOS equ 0FD00h  ; finish with jump to BIOS cold boot
-    8         FFFF      LAST equ 0FFFFh  ; last address loaded on power-up
+    6         E300      DEST equ 0E300h  ; load to this address
+    7         FA00      BIOS equ 0FA00h  ; finish with jump to BIOS cold boot
+    8         FCFF      LAST equ 0FCFFh  ; last address loaded on power-up
     9                   
    10         0020      BANK equ 20h	 ; SRAM and MBASE are set to this bank
    11         0021      SAVE equ 21h	 ; original SRAM contents is this bank
@@ -17,76 +17,76 @@ SLOAD   Z80
    15         6000      FOFF equ 6000h	 ; starting page offset in FROM area
    16                   
    17                   ; 1) on power-up, this code starts off at 0000h!
-   18         E600          org DEST
+   18         E300          org DEST
    19                   
    20                   ; 2) init FROM area if its version byte doesn't match
-   21 E600  5B 3A           db 5Bh,3Ah ; ld.lil a,({FROM,FOFF+version-DEST})
-   22 E602  60FF            dw FOFF+version-DEST
-   23 E604  3A              db FROM
-   24 E605  FE 19           cp a,VERS
-   25 E607  28 12           jr z,inited
+   21 E300  5B 3A           db 5Bh,3Ah ; ld.lil a,({FROM,FOFF+version-DEST})
+   22 E302  60FF            dw FOFF+version-DEST
+   23 E304  3A              db FROM
+   24 E305  FE 19           cp a,VERS
+   25 E307  28 12           jr z,inited
    26                   
-   27 E609  5B 21           db 5Bh,21h ; ld.lil hl,000000h
-   28 E60B  0000            dw 0000h
-   29 E60D  00              db 00h
-   30 E60E  5B 11           db 5Bh,11h ; ld.lil de,{FROM,FOFF}
-   31 E610  6000            dw FOFF
-   32 E612  3A              db FROM
-   33 E613  5B 01           db 5Bh,01h ; ld.lil bc,040000h
-   34 E615  0000            dw 0000h
-   35 E617  04              db 04h
-   36 E618  49 ED B0        db 49h,0EDh,0B0h ; ldir.l
+   27 E309  5B 21           db 5Bh,21h ; ld.lil hl,000000h
+   28 E30B  0000            dw 0000h
+   29 E30D  00              db 00h
+   30 E30E  5B 11           db 5Bh,11h ; ld.lil de,{FROM,FOFF}
+   31 E310  6000            dw FOFF
+   32 E312  3A              db FROM
+   33 E313  5B 01           db 5Bh,01h ; ld.lil bc,040000h
+   34 E315  0000            dw 0000h
+   35 E317  04              db 04h
+   36 E318  49 ED B0        db 49h,0EDh,0B0h ; ldir.l
    37                   
    38                   ; 3) enter ADL mode to switch to 24-bit addressing
-   39 E61B              inited:
-   40 E61B  5B C3           db 5Bh,0C3h ; jp.lil {0h,$+3}
-   41 E61D  6020            dw FOFF+$-DEST+3 ; careful, not relocated yet!
-   42 E61F  3A              db FROM
+   39 E31B              inited:
+   40 E31B  5B C3           db 5Bh,0C3h ; jp.lil {0h,$+3}
+   41 E31D  6020            dw FOFF+$-DEST+3 ; careful, not relocated yet!
+   42 E31F  3A              db FROM
    43                   
    44                   ; ADL=1, PC={FROM,FOFF+...}, RAM_BANK=0FFh, MBASE=00h
    45                   
    46                   ; 4) set MBASE now that we're in ADL mode
-   47 E620  3E 20           ld a,BANK
-   48 E622  ED 6D           db 0EDh,6Dh ; ld  mb,a
+   47 E320  3E 20           ld a,BANK
+   48 E322  ED 6D           db 0EDh,6Dh ; ld  mb,a
    49                   
    50                   ; 5) disable ERAM and move SRAM to BANK
-   51 E624  26 50           ld h,80
-   52 E626  ED 21 B4        db 0EDh,21h,0B4h ; out0 (RAM_CTL),h ; disable ERAM
-   53 E629  ED 39 B5        db 0EDh,39h,0B5h ; out0 (RAM_BANK),a ; SRAM to BANK
+   51 E324  26 50           ld h,80
+   52 E326  ED 21 B4        db 0EDh,21h,0B4h ; out0 (RAM_CTL),h ; disable ERAM
+   53 E329  ED 39 B5        db 0EDh,39h,0B5h ; out0 (RAM_BANK),a ; SRAM to BANK
    54                   
    55                   ; 6) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM}
-   56 E62C  21 E000         ld hl,SRAM
-   57 E62F  20              db BANK
-   58 E630  11 E000         ld de,SRAM
-   59 E633  21              db SAVE
+   56 E32C  21 E000         ld hl,SRAM
+   57 E32F  20              db BANK
+   58 E330  11 E000         ld de,SRAM
+   59 E333  21              db SAVE
 Startup loader for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   2
 SLOAD   Z80
 
-   60 E634  01 2000         ld bc,2000h
-   61 E637  00              db 00h
-   62 E638  ED B0           ldir
+   60 E334  01 2000         ld bc,2000h
+   61 E337  00              db 00h
+   62 E338  ED B0           ldir
    63                   
    64                   ; 7) copy 6K {FROM,FOFF} to {BANK,DEST..LAST}
-   65 E63A  21 6000         ld hl,FOFF
-   66 E63D  3A              db FROM
-   67 E63E  11 E600         ld de,DEST
-   68 E641  20              db BANK
-   69 E642  01 1A00         ld bc,LAST-DEST+1
-   70 E645  00              db 00h
-   71 E646  ED B0           ldir
+   65 E33A  21 6000         ld hl,FOFF
+   66 E33D  3A              db FROM
+   67 E33E  11 E300         ld de,DEST
+   68 E341  20              db BANK
+   69 E342  01 1A00         ld bc,LAST-DEST+1
+   70 E345  00              db 00h
+   71 E346  ED B0           ldir
    72                   
    73                   ; 8) switch from ADL mode to Z80 mode
-   74 E648  40 C3           db 40h,0C3h ; jp.sis z80mode (this exits ADL mode)
-   75 E64A  E64C            dw z80mode
+   74 E348  40 C3           db 40h,0C3h ; jp.sis z80mode (this exits ADL mode)
+   75 E34A  E34C            dw z80mode
    76                   
-   77 E64C              z80mode: ; now running in Z80 mode at {FROM,z80mode}
+   77 E34C              z80mode: ; now running in Z80 mode at {FROM,z80mode}
    78                   ; 9) set up PLL and switch system clock to 50 MHz
    79                       ; TODO ...
-   80 E64C  C3 FD00         jp BIOS
+   80 E34C  C3 FA00         jp BIOS
    81                   
-   82 E64F    00B0          ds DEST+0100h-$-1
-   83 E6FF              version:
-   84 E6FF  19              db VERS
+   82 E34F    00B0          ds DEST+0100h-$-1
+   83 E3FF              version:
+   84 E3FF  19              db VERS
    85                       end
  0 Error(s) Detected.
  256 Absolute Bytes. 12 Symbols Detected.

@@ -2,7 +2,7 @@ title Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17
 
 ; memory map -------------------------------------------------------------------
 
-CCP     equ 0E700h
+CCP     equ 0E400h
 BDOS    equ CCP + 0806h
 BIOS    equ CCP + 1600h
 
