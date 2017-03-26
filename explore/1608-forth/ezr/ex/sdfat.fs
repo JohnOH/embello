@@ -28,8 +28,8 @@ compiletoram? [if]  forgetram  [then]
             dup sd.#ent !  \ save for later
      4 rshift + sd.data !  \ start sector of data area
 
-  ." label: " sd.buf $2B + 11 type
-  ." format: " sd.buf $36 + 8 type
+  ." label: " sd.buf $2B + 11 type space
+  ." format: " sd.buf $36 + 8 type space
   ." capacity: " sd.buf $20 + @ .
 ;
 
@@ -47,7 +47,7 @@ compiletoram? [if]  forgetram  [then]
     sd.buf  16 0 do dirent 32 + loop  drop
   loop ;
 
-: fat-next ( u -- u )  \ return next FAT cluster, or $FFFF at end
+: fat-next ( u -- u )  \ return next FAT cluster, or $FFFx at end
   \ TODO hard-coded for 64 sec / 32 KB per cluster
   dup 8 rshift sd.fat @ + sd-read
   $FF and 2* sd.buf + h@ ;
@@ -55,35 +55,35 @@ compiletoram? [if]  forgetram  [then]
 : chain. ( u -- )  \ display the chain of clusters
   begin
     dup .
-  dup $FFFF <> while
+  dup $F or $FFFF <> while
     fat-next
   repeat drop ;
 
 : fat-chain ( u a -- )  \ store clusters for use as file map
   begin
     2dup ! 2+
-  over $FFFF <> while
+  over $F or $FFFF <> while
     swap fat-next swap
   repeat 2drop ;
 
-: fat-read ( n a -- )  \ read block n into sd.buf, using FAT mapping
+: fat-map ( n a -- n )  \ map block n to raw block number, using file map
   over sd.spc @ / 2* + h@
   2- sd.spc @ * swap sd.spc @ 1- and +
-  sd.data @ + sd-read ;
+  sd.data @ + ;
 
 \ 128 clusters is 8 MB when the cluster size is 64
-128 2* 4 * buffer: fat.maps  \ room for 4 file maps of max 128 clusters each
+129 2* 4 * buffer: fat.maps  \ room for 4 file maps of max 128 clusters each
 
-: file ( n -- a )  \ convert file n to a map address
-  128 2* * fat.maps + ;
+: file ( n -- a )  \ convert file 0..3 to a map address inside fat.maps
+  129 2* * fat.maps + ;
 
 : tryfat
   sd-init ." blocks: " sd-size .
-  cr sd-mount ls        \ mount and show all root entries
-  117 0 file fat-chain  \ build map for DISK3.IMG
-  0 file 30 dump        \ show map
-  0 0 file fat-read     \ load first block
-  sd.buf 50 dump        \ show contents
+  cr sd-mount ls            \ mount and show all root entries
+  117 0 file fat-chain      \ build map for DISK3.IMG
+  0 file 30 dump            \ show map
+  0 0 file fat-map sd-read  \ load first block
+  sd.buf 50 dump            \ show contents
 ;
 
 \ tryfat

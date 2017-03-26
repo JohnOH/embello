@@ -84,7 +84,8 @@ task: disktask
     zreqbuf c@ 3 = if
       zreqbuf @ 8 rshift              \ convert incoming request to offset
 \     dup 9 rshift sd-read            \ conv offset to block and read from SD
-      dup 9 rshift 0 file fat-read    \ conv block and read from file map 0
+      dup 9 rshift                    \ convert offset to block
+      0 file fat-map sd-read          \ map to file 0 and read the block
       $180 and sd.buf + DMA1-CMAR5 !  \ adjust src addr of DMA send channel
     then
 
@@ -123,7 +124,7 @@ task: disktask
 
 : init-all
   sd-init ." blocks: " sd-size .
-  cr sd-mount
+  cr sd-mount ls
   117 0 file fat-chain  \ build map for DISK3.IMG
   multitask disk&
   zdi-init led-setup
