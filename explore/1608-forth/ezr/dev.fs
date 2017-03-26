@@ -49,16 +49,15 @@ $40010400 constant EXTI
 : led-setup  OMODE-PP LED io-mode!  led-off ;
 
 : dma-setup  \ set up the DMA controller channels for SPI2 RX and TX
-  0 bit RCC-AHBENR bic!  \ DMA1EN clock disable
   0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
 
   \ DMA1 channel 4: receive from SPI2 RX
-  zreqbuf DMA1-CMAR4 !     \ write to eZ80 request buffer
-  SPI2-DR DMA1-CPAR4 !     \ read from SPI2
+  zreqbuf DMA1-CMAR4 !   \ write to eZ80 request buffer
+  SPI2-DR DMA1-CPAR4 !   \ read from SPI2
   %10000000 DMA1-CCR4 !  \ MINC
 
   \ DMA1 channel 5: send to SPI2 TX
-  SPI2-DR DMA1-CPAR5 !     \ write to SPI2
+  SPI2-DR DMA1-CPAR5 !   \ write to SPI2
   %10010000 DMA1-CCR5 !  \ MINC & DIR
 ;
 
@@ -67,7 +66,6 @@ $40010400 constant EXTI
   IMODE-FLOAT SCLK2 io-mode!
   OMODE-AF-PP MISO2 io-mode!
   IMODE-PULL MOSI2 io-mode!  MOSI2 ioc!
-  14 bit RCC-APB1ENR bic!  \ clear SPI2EN
   14 bit RCC-APB1ENR bis!  \ set SPI2EN
   %11 SPI2-CR2 !  \ enable TX and RX DMA
 ;
@@ -85,7 +83,7 @@ task: disktask
     zreqbuf c@ 3 = if
       zreqbuf @ 8 rshift              \ convert incoming request to offset
       dup 9 rshift sd-read            \ conv offset to block and read from SD
-      $180 and sd.buf + DMA1-CMAR5 !  \ adjust source of DMA send channel
+      $180 and sd.buf + DMA1-CMAR5 !  \ adjust src addr of DMA send channel
     then
 
     0 SPI2-CR1 !  6 bit SPI2-CR1 !  \ disable and re-enable to clear SPI2
@@ -93,9 +91,9 @@ task: disktask
     516 DMA1-CNDTR4 !  0 bit DMA1-CCR4 bis!  \ restart receives from SPI2 RX
     512 DMA1-CNDTR5 !  0 bit DMA1-CCR5 bis!  \ restart sends to SPI2 TX
 
-    BUSY ioc!
+    BUSY ioc!  \ clear BUSY signal to the eZ80
     led-off
-    stop
+    stop  \ done, suspend, wait for next wake up
   again ;
 
 : zirq-setup  \ set up pin interrupt on rising SPI2 slave select on PB12
