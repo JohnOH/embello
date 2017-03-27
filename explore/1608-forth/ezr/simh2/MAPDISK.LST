@@ -1,0 +1,98 @@
+Change virtual eZ80 disk mapping -jcw, 2017-03-28 Z80ASM 1.32 Page   1
+MAPDISK Z80
+
+    2                   
+    3                   ; Usage: mapdisk d:filename.ext
+    4                   ;
+    5                   ; Note that "d:" in on the eZ80, but "filename.ext" is a FAT entry on the B5SD!
+    6                   
+    7         0000      WSTART	equ	0000h
+    8         0005      BDOS	equ	0005h
+    9         005C      FCB	equ	005Ch
+   10                   
+   11         0009      PRTSTR  equ     9
+   12         0025      RSTDRV	equ	37
+   13                   
+   14         009A      PB_DR	equ 9Ah
+   15         009B      PB_DDR	equ 9Bh
+   16         009C      PB_ALT1	equ 9Ch
+   17         009D      PB_ALT2	equ 9Dh
+   18                   
+   19         00B8      SPI_BRGL equ 0B8h
+   20         00B9      SPI_BRGH equ 0B9h
+   21         00BA      SPI_CTL  equ 0BAh
+   22         00BB      SPI_SR   equ 0BBh
+   23         00BC      SPI_TSR  equ 0BCh
+   24         00BC      SPI_RBR  equ 0BCh
+   25                   
+   26         0100      	org 100h
+   27                   
+   28 0100  0E 09       	ld c,PRTSTR	; prepare for an error exit
+   29 0102  11 0166     	ld de,errmsg
+   30                   
+   31 0105  3A 005C     	ld a,(fcb)	; 1-based, i.e. A=1
+   32 0108  FE 04       	cp 4		; drive < "D:" ?
+   33 010A  DA 0005     	jp c,BDOS
+   34 010D  FE 07       	cp 7		; drive >= "G:" ?
+   35 010F  D2 0005     	jp nc,BDOS
+   36                   
+   37 0112  C6 0F       	add 15		; D => 19, E => 20, F => 21
+   38                   
+   39 0114  CD 0148     	call vidle	; wait until idle
+   40 0117  CD 015A             call vxfer	; 0: map request (seldsk+16)
+   41                   
+   42 011A  21 005D     	ld hl,fcb+1	; filename
+   43 011D  06 0B       	ld b,11		; 8+3 chars
+   44 011F  CD 0158     vsend:	call vnext	; 1..11: filename
+   45 0122  10 FB       	djnz vsend
+   46                   
+   47 0124  CD 0148     	call vidle	; wait for request to complete
+   48 0127  AF          	xor a
+   49 0128  CD 015A     	call vxfer	; get mapping status (ignored for now)
+   50 012B  CD 013F     	call vstop
+   51                   
+   52 012E  3A 005C     	ld a,(fcb)	; convert drive to a bitmap
+   53 0131  3D          	dec a
+   54 0132  47          	ld b,a
+   55 0133  21 0001     	ld hl,1
+   56 0136  29          lshft:	add hl,hl
+   57 0137  10 FD       	djnz lshft
+   58                   
+   59 0139  EB          	ex de,hl	; reset only the changed drive
+Change virtual eZ80 disk mapping -jcw, 2017-03-28 Z80ASM 1.32 Page   2
+MAPDISK Z80
+
+   60 013A  0E 25       	ld c,RSTDRV
+   61 013C  C3 0005     	jp BDOS
+   62                   
+   63                   ; The following code was lifted more or less verbatim from maxbios.z80:
+   64                   
+   65 013F  ED 08 9A    vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+   66 0142  CB C1       	set 0,c			; set NSS high (PB0)
+   67 0144  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+   68 0147  C9                  ret
+   69                   
+   70 0148  CD 013F     vidle:	call vstop
+   71 014B  ED 08 9A    vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+   72 014E  CB 49       	bit 1,c			; test BUSY (PB1)
+   73 0150  20 F9       	jr nz,vidle1		; reply is not zero, repeat
+   74 0152  CB 81       	res 0,c			; set NSS low (PB0)
+   75 0154  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+   76 0157  C9          	ret
+   77                   
+   78 0158  7E          vnext:	ld a,(hl)
+   79 0159  23          	inc hl
+   80 015A  ED 39 BC    vxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
+   81 015D  ED 38 BB    vxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
+   82 0160  28 FB       	jr z,vxfer1
+   83 0162  ED 38 BC    	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
+   84 0165  C9                  ret
+   85                   
+   86 0166  43 61 6E 20 errmsg: db "Can only map drive D..F!$"
+   87                   
+   88         017F              org $
+   89                           end
+ 0 Error(s) Detected.
+ 127 Absolute Bytes. 24 Symbols Detected.
+ed.
+

@@ -3,36 +3,41 @@
 r sload.z80
 z80asm sload/f
 w sload.com b
-w sload.lst
+w sload.lst t
 ;
 r minbios.z80
 z80asm minbios/f
 w minbios.com b
-w minbios.lst
+w minbios.lst t
 ;
 r bdos22.z80
 z80asm bdos22/f
 w bdos22.com b
-w bdos22.lst
+w bdos22.lst t
 ;
 r hexsave.z80
 z80asm hexsave/f
 w hexsave.com b
-w hexsave.lst
+w hexsave.lst t
 ;
 r fmt360.z80
 z80asm fmt360/f
 w fmt360.com b
-w fmt360.lst
+w fmt360.lst t
 ;
 r ezflash.z80
 z80asm ezflash/f
 z80asm ezflash/h
-w ezflash.com
+w ezflash.com b
 w ezflash.hex t
-w ezflash.lst
+w ezflash.lst t
 ;
 r maxbios.z80
 z80asm maxbios/f
 w maxbios.com b
-w maxbios.lst
+w maxbios.lst t
+;
+r mapdisk.z80
+z80asm mapdisk/f
+w mapdisk.com b
+w mapdisk.lst t
