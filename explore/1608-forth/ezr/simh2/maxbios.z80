@@ -9,6 +9,8 @@ BIOS    equ CCP + 1600h
 BANK	equ 20h     ; SRAM and MBASE are set to this bank
 FROM	equ 3Ah     ; bank from which to copy everything
 FOFF	equ 6000h   ; starting page offset in FROM area
+FROM2	equ 23h     ; second RAM disk page
+FOFF2	equ 0E000h  ; second RAM disk offset
 
 ; low memory -------------------------------------------------------------------
 
@@ -125,7 +127,7 @@ wboot:	di
 gocpm:	ld hl,tpabuf            ; Address of BIOS DMA buffer
 	ld (dmaadr),hl
 
-	call finit
+	call vinit		; set up SPI for virtual disks
 
 	ld a,0C3h               ; Opcode for 'JP'
 	LD (00h),a              ; Load at start of RAM
@@ -197,7 +199,7 @@ sectrn: ld l,c
 read:	call rwaddr
 
         cp 3
-        jr z,fread
+        jr nc,vread		; D/E/F: are virtual
 
 	db 5Bh,2Ah              ; ld.lil hl,({BANK,dskadr})
 	dw dskadr
@@ -210,10 +212,12 @@ read:	call rwaddr
 
 write:	call rwaddr
 
-        or a			; only A: is writable
-        jr nz,wfail
+        or a			; A: is writable
+        jr z,wram
+        cp 2			; C: is also writable
+        jr nz,wother
 
-	db 5Bh,2Ah              ; ld.lil hl,({BANK,dmaadr})
+wram:	db 5Bh,2Ah              ; ld.lil hl,({BANK,dmaadr})
 	dw dmaadr
 	db BANK
 	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dskadr})
@@ -229,7 +233,9 @@ punch:
 	xor a
 	ret
 
-wfail:	ld a,0FFh
+wother:	cp 3			; D: is virtual and writable
+        jr z,vwrite
+	ld a,2			; disk is read-only
 	ret
 
 PB_DR	equ 9Ah
@@ -244,44 +250,67 @@ SPI_SR   equ 0BBh
 SPI_TSR  equ 0BCh
 SPI_RBR  equ 0BCh
 
-fread:  call fidle		; wait until idle
-        call fxfer		; 0 = read request (seldsk)
-        ld a,(dskadr)		; 1 = offset, bits 7..0
-        call fxfer
+; Virtual disk read, disk# in A
+
+vread:  call vidle		; wait until idle
+        call vxfer		; 0: read request (seldsk)
+        ld a,(dskadr)		; 1: offset, bits 7..0
+        call vxfer
         ld a,l
-        call fxfer		; 2 = offset, bits 15..8
+        call vxfer		; 2: offset, bits 15..8
         ld a,h
-        call fxfer		; 3 = offset, bits 23..16
-        call fidle		; wait until idle
+        call vxfer		; 3: offset, bits 23..16
+        call vidle		; wait until idle
 	ld hl,(dmaadr)
 	ld b,128
 	xor a
-fread1:	call fxfer		; 1..128 = read data
+vread1:	call vxfer		; 0..127: read data
 	ld (hl),a
 	inc hl
-	djnz fread1
-	xor a
-fstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+	djnz vread1
+vdone:	xor a
+vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
 	set 0,c			; set NSS high (PB0)
 	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
         ret
 
-fidle:	call fstop
-	; TODO may need a delay here...
-fidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+; Virtual disk write, disk# in A
+
+vwrite:	or 8			; tag as write request
+	call vidle		; wait until idle
+        call vxfer		; 0: write request (seldsk)
+        ld a,(dskadr)		; 1: offset, bits 7..0
+        call vxfer
+        ld a,l
+        call vxfer		; 2: offset, bits 15..8
+        ld a,h
+        call vxfer		; 3: offset, bits 23..16
+	ld hl,(dmaadr)
+	ld b,128
+vwrit1:	ld a,(hl)
+	call vxfer		; 4..131: write data
+	inc hl
+	djnz vwrit1
+        call vidle		; wait until idle
+	xor a
+	call vxfer		; get write status
+	jr vdone		; TODO should be vstop
+
+vidle:	call vstop
+vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
 	bit 1,c			; test BUSY (PB1)
-	jr nz,fidle1		; reply is not zero, repeat
+	jr nz,vidle1		; reply is not zero, repeat
 	res 0,c			; set NSS low (PB0)
 	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
 	ret
 
-fxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
-fxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
-	jr z,fxfer1
+vxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
+vxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
+	jr z,vxfer1
 	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
         ret
 
-finit:	ld a,89h
+vinit:	ld a,89h
 	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
 	ld a,0CEh
 	db 0EDh,39h,PB_DDR	; out0 (PB_DDR),a
@@ -298,6 +327,7 @@ finit:	ld a,89h
 	ret
 
 ; Convert selected disk+track+sector to a memory address
+; Returns current disk in A, 24-bit address in dskadr[0..2]
 
 rwaddr:	ld hl,(sekdpt)
         ld bc,10
@@ -317,13 +347,17 @@ rwaddr:	ld hl,(sekdpt)
 	rra
 	; A = bits 7..0 of the 24-bit disk-block address
 	ld (dskadr),a
-	; add the disk base to bits 23..16, if drive A:
+	; add the disk base to bits 23..16, if drive A: or C:
         ld a,(sekdsk)
         or a
-        jr nz,rwflsh
-	ld bc,FROM*256+(FOFF/256)
-	add hl,bc
-rwflsh: ; HL = bits 23..8 of the 24-bit disk-block address
+        jr nz,rwadr1
+	ld bc,FROM*256+(FOFF/256)   ; A: is RAM disk at (FROM,FOFF)
+	jr rwadr2
+rwadr1: cp 2			    ; B/D/E/F: do not have an offset
+	jr nz,rwadr3
+	ld bc,FROM2*256+(FOFF2/256) ; C: is RAM disk at (FROM2,FOFF2)
+rwadr2:	add hl,bc
+rwadr3: ; HL = bits 23..8 of the 24-bit disk-block address
 	ld (dskadr+1),hl
 	ret
 

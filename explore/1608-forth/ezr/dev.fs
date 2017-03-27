@@ -43,7 +43,8 @@ $40010400 constant EXTI
     DMA1 $60 + constant DMA1-CPAR5
     DMA1 $64 + constant DMA1-CMAR5
 
-516 buffer: zreqbuf
+516 buffer: vreqbuf
+0 variable vstatus
 
 : led-on LED ioc! ;
 : led-off LED ios! ;
@@ -53,7 +54,7 @@ $40010400 constant EXTI
   0 bit RCC-AHBENR bis!  \ DMA1EN clock enable
 
   \ DMA1 channel 4: receive from SPI2 RX
-  zreqbuf DMA1-CMAR4 !   \ write to eZ80 request buffer
+  vreqbuf DMA1-CMAR4 !   \ write to eZ80 request buffer
   SPI2-DR DMA1-CPAR4 !   \ read from SPI2
   %10000000 DMA1-CCR4 !  \ MINC
 
@@ -71,6 +72,23 @@ $40010400 constant EXTI
   %11 SPI2-CR2 !  \ enable TX and RX DMA
 ;
 
+: disk-rd ( n -- )  \ read sector from file on SD card (128 or 512 bytes)
+  vreqbuf @ 8 rshift              \ convert incoming request to offset
+  dup 9 rshift                    \ convert offset to block
+  rot file fat-map sd-read        \ map to file and read the block
+  $180 and sd.buf + DMA1-CMAR5 !  \ adjust src addr of DMA send channel
+;
+
+: disk-wr ( n -- )  \ write 128-byte sector to file on SD card
+  vreqbuf @ 8 rshift              \ convert incoming request to offset
+  dup 9 rshift                    \ convert offset to block
+  rot file fat-map dup sd-read    \ map to file and read the block
+  vreqbuf 4 +                     \ address of data to write
+  rot $180 and sd.buf + 128 move  \ copy sector into block
+  sd-write  0 vstatus !           \ write block and save status
+  vstatus DMA1-CMAR5 !            \ adjust src addr of DMA send channel
+;
+
 task: disktask
 
 : disk&  \ this task will process all incoming SPI2 requests for sd card I/O
@@ -81,13 +99,12 @@ task: disktask
     0 bit DMA1-CCR4 bic!  \ disable the DMA receive channel
     0 bit DMA1-CCR5 bic!  \ disable the DMA send channel
 
-    zreqbuf c@ 3 = if                 \ request for drive D:
-      zreqbuf @ 8 rshift              \ convert incoming request to offset
-\     dup 9 rshift sd-read            \ conv offset to block and read from SD
-      dup 9 rshift                    \ convert offset to block
-      0 file fat-map sd-read          \ map to file 0 and read the block
-      $180 and sd.buf + DMA1-CMAR5 !  \ adjust src addr of DMA send channel
-    then
+    vreqbuf c@ case
+       3 of 0 disk-rd endof  \ read D:
+       4 of 1 disk-rd endof  \ read E:
+       5 of 2 disk-rd endof  \ read F:
+      11 of 0 disk-wr endof  \ write D:
+    endcase
 
     0 SPI2-CR1 !  6 bit SPI2-CR1 !  \ disable and re-enable to clear SPI2
 
@@ -125,8 +142,9 @@ task: disktask
 : init-all
   sd-init ." blocks: " sd-size .
   cr sd-mount ls
-\ 117 0 file fat-chain  \ build map for DISK3.IMG
-  170 0 file fat-chain  \ build map for XYZ.IMG
+   28 0 file fat-chain  \ build map for D.IMG
+  203 1 file fat-chain  \ build map for E.IMG
+  248 2 file fat-chain  \ build map for F.IMG
   multitask disk&
   zdi-init led-setup
   zirq-setup dma-setup spi2-setup ;

@@ -34,7 +34,7 @@ compiletoram? [if]  forgetram  [then]
 ;
 
 : dirent ( a -- a )  \ display one directory entry
-  dup 2+ c@ if
+  dup c@ $80 and 0= over 2+ c@ and if
     cr dup 11 type space
     dup 11 + c@ h.2 space
     dup 26 + h@ .
