@@ -1,14 +1,6 @@
 \ Control an eZ80 microcontroller from a Blue Pill via ZDI
 
-\ compiletoflash
-\ include ../flib/stm32f1/spi2.fs
-\ include ../flib/stm32f1/uart2.fs
-\ include ../flib/stm32f1/uart2-irq.fs
-
 compiletoram? [if]  forgetram  [then]
-
-include ex/sdtry.fs
-include ex/sdfat.fs
 
 PC13 constant LED
 PA8 constant BUSY
@@ -89,28 +81,46 @@ $40010400 constant EXTI
   vstatus DMA1-CMAR5 !            \ adjust src addr of DMA send channel
 ;
 
+: disk-map ( n -- )  \ change specified drive to a new file mapping
+  vreqbuf 1+ fat-find swap file fat-chain  \ lookup the name and adjust map
+  0 vstatus ! vstatus DMA1-CMAR5 !         \ adjust src addr of DMA send channel
+;
+
 task: disktask
+
+: stop-dma
+  0 bit DMA1-CCR4 bic!  \ disable the DMA receive channel
+  0 bit DMA1-CCR5 bic!  \ disable the DMA send channel
+;
+
+: restart-dma
+  516 DMA1-CNDTR4 !  0 bit DMA1-CCR4 bis!  \ restart receives from SPI2 RX
+  512 DMA1-CNDTR5 !  0 bit DMA1-CCR5 bis!  \ restart sends to SPI2 TX
+;
+
+: reset-spi2  \ disable and re-enable to clear SPI2
+  0 SPI2-CR1 !  6 bit SPI2-CR1 ! ;
 
 : disk&  \ this task will process all incoming SPI2 requests for sd card I/O
   disktask background
   begin
     led-on
-
-    0 bit DMA1-CCR4 bic!  \ disable the DMA receive channel
-    0 bit DMA1-CCR5 bic!  \ disable the DMA send channel
+    stop-dma
 
     vreqbuf c@ case
-       3 of 0 disk-rd endof  \ read D:
-       4 of 1 disk-rd endof  \ read E:
-       5 of 2 disk-rd endof  \ read F:
-      11 of 0 disk-wr endof  \ write D:
+           3 of 0 disk-rd  endof  \ read D: from file 0
+           4 of 1 disk-rd  endof  \ read E: from file 1
+           5 of 2 disk-rd  endof  \ read F: from file 2
+
+       8 3 + of 0 disk-wr  endof  \ write D: to file 0
+
+      16 3 + of 0 disk-map endof  \ remap D: on file 0
+      16 4 + of 1 disk-map endof  \ remap E: on file 1
+      16 5 + of 2 disk-map endof  \ remap F: on file 2
     endcase
 
-    0 SPI2-CR1 !  6 bit SPI2-CR1 !  \ disable and re-enable to clear SPI2
-
-    516 DMA1-CNDTR4 !  0 bit DMA1-CCR4 bis!  \ restart receives from SPI2 RX
-    512 DMA1-CNDTR5 !  0 bit DMA1-CCR5 bis!  \ restart sends to SPI2 TX
-
+    reset-spi2
+    restart-dma
     BUSY ioc!  \ clear BUSY signal to the eZ80
     led-off
     stop  \ done, suspend, wait for next wake up
@@ -141,7 +151,7 @@ task: disktask
 
 : init-all
   sd-init ." blocks: " sd-size .
-  cr sd-mount ls
+  sd-mount. ls
   s" D       IMG" drop fat-find  0 file  fat-chain  \ build map for D.IMG
   s" E       IMG" drop fat-find  1 file  fat-chain  \ build map for E.IMG
   s" F       IMG" drop fat-find  2 file  fat-chain  \ build map for F.IMG
@@ -149,7 +159,7 @@ task: disktask
   zdi-init led-setup
   zirq-setup dma-setup spi2-setup ;
 
-: delay 5 0 do loop ;
+: delay 10 0 do loop ;
 : zcl-lo  delay ZCL ioc! delay ;
 : zcl-hi  delay ZCL ios! delay ;
 

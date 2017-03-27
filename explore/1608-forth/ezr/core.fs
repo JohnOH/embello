@@ -4,6 +4,7 @@
 cr compiletoflash
 ( core start: ) here dup hex.
 
+include ../flib/spi/sdcard.fs
 include ../flib/stm32f1/spi2.fs
 include ../flib/stm32f1/uart2.fs
 include ../flib/stm32f1/uart2-irq.fs
