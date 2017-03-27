@@ -21,7 +21,7 @@ disk1:
 
 disk2:
 	@rm -f disk2.img
-	@mkfs.cpm -f memotech-type50 $(bmin) disk2.img
+	@mkfs.cpm -f memotech-type50 $(bmax) disk2.img
 	@for i in $(coms) "utils/*"; do \
 	    cpmcp -f memotech-type50 disk2.img $(simh)/$$i 0: ; done
 	@cpmcp -f memotech-type50 -t disk2.img XMODEM.CFG 0:

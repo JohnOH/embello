@@ -2,7 +2,7 @@ Startup loader for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   1
 SLOAD   Z80
 
     2                   
-    3         0019      VERS equ 19h	 ; version, stored at end of this code
+    3         001B      VERS equ 1Bh	 ; version, stored at end of this code
     4                   
     5         E000      SRAM equ 0E000h  ; starting address of common SRAM
     6         E300      DEST equ 0E300h  ; load to this address
@@ -23,7 +23,7 @@ SLOAD   Z80
    21 E300  5B 3A           db 5Bh,3Ah ; ld.lil a,({FROM,FOFF+version-DEST})
    22 E302  60FF            dw FOFF+version-DEST
    23 E304  3A              db FROM
-   24 E305  FE 19           cp a,VERS
+   24 E305  FE 1B           cp a,VERS
    25 E307  28 12           jr z,inited
    26                   
    27 E309  5B 21           db 5Bh,21h ; ld.lil hl,000000h
@@ -86,7 +86,7 @@ SLOAD   Z80
    81                   
    82 E34F    00B0          ds DEST+0100h-$-1
    83 E3FF              version:
-   84 E3FF  19              db VERS
+   84 E3FF  1B              db VERS
    85                       end
  0 Error(s) Detected.
  256 Absolute Bytes. 12 Symbols Detected.

@@ -113,7 +113,7 @@ MINBIOS Z80
   108                   ; Common code for cold and warm boot
   109                   
   110 FAAF  21 0080     gocpm:	ld hl,tpabuf            ; Address of BIOS DMA buffer
-  111 FAB2  22 FB6D     	ld (dmaadr),hl
+  111 FAB2  22 FB6C     	ld (dmaadr),hl
   112 FAB5  3E C3       	ld a,0C3h               ; Opcode for 'JP'
   113 FAB7  32 0000     	LD (00h),a              ; Load at start of RAM
   114 FABA  21 FA03     	ld hl,wboote            ; Address of jump for a warm boot
@@ -158,7 +158,7 @@ MINBIOS Z80
   150 FAF6  ED 4C       	db 0EDh,4Ch ; mlt bc
   151 FAF8  21 FA33             ld hl,dpbase
   152 FAFB  09                  add hl,bc
-  153 FAFC  32 FB73     savdsk:	ld (sekdsk),a
+  153 FAFC  32 FB72     savdsk:	ld (sekdsk),a
   154 FAFF  C9                  ret
   155                   
   156 FB00  21 0000     baddsk: ld hl,0
@@ -170,13 +170,13 @@ MINBIOS Z80
   162                   
   163 FB0D  0E 00       home:	ld c,0
   164 FB0F  79          settrk: ld a,c
-  165 FB10  32 FB74     	ld (sektrk),a
+  165 FB10  32 FB73     	ld (sektrk),a
   166 FB13  C9                  ret
   167                   
-  168 FB14  ED 43 FB75  setsec: ld (seksec),bc
+  168 FB14  ED 43 FB74  setsec: ld (seksec),bc
   169 FB18  C9                  ret
   170                   
-  171 FB19  ED 43 FB6D  setdma: ld (dmaadr),bc
+  171 FB19  ED 43 FB6C  setdma: ld (dmaadr),bc
   172 FB1D  C9                  ret
   173                   
   174 FB1E  69          sectrn: ld l,c
@@ -189,10 +189,10 @@ MINBIOS Z80
   178 FB21  CD FB49     read:	call rwaddr
   179                   
   180 FB24  5B 2A       	db 5Bh,2Ah              ; ld.lil hl,({BANK,dskadr})
-  181 FB26  FB70        	dw dskadr
+  181 FB26  FB6F        	dw dskadr
   182 FB28  20          	db BANK
   183 FB29  5B ED 5B    	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dmaadr})
-  184 FB2C  FB6D        	dw dmaadr
+  184 FB2C  FB6C        	dw dmaadr
   185 FB2E  20          	db BANK
   186                   
   187 FB2F  18 0E       	jr rwop
@@ -200,10 +200,10 @@ MINBIOS Z80
   189 FB31  CD FB49     write:	call rwaddr
   190                   
   191 FB34  5B 2A       	db 5Bh,2Ah              ; ld.lil hl,({BANK,dmaadr})
-  192 FB36  FB6D        	dw dmaadr
+  192 FB36  FB6C        	dw dmaadr
   193 FB38  20          	db BANK
   194 FB39  5B ED 5B    	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dskadr})
-  195 FB3C  FB70        	dw dskadr
+  195 FB3C  FB6F        	dw dskadr
   196 FB3E  20          	db BANK
   197                   
   198 FB3F  5B 01 80 00 rwop:	db 5Bh,01h,80h,00h,00h  ; ld.lil bc,000080h
@@ -217,51 +217,51 @@ MINBIOS Z80
   206                   
   207                   ; Convert selected disk+track+sector to a memory address
   208                   
-  209 FB49  ED 4B FB74  rwaddr:	ld bc,(sektrk)
+  209 FB49  ED 4B FB73  rwaddr:	ld bc,(sektrk)
   210 FB4D  06 1A       	ld b,26
   211 FB4F  ED 4C       	db 0EDh,4Ch ; mlt bc
   212                   	; BC = track, converted to linear sector offset
-  213 FB51  2A FB75     	ld hl,(seksec)
+  213 FB51  2A FB74     	ld hl,(seksec)
   214 FB54  09          	add hl,bc
   215                   	; HL = bits 30..23 of the requested disk block address
   216 FB55  AF          	xor a
   217 FB56  CB 1C       	rr h
   218 FB58  CB 1D       	rr l
-  219 FB5A  CB 1F       	rr a
+  219 FB5A  1F          	rra
   220                   	; A = bits 7..0 of the 24-bit disk-block address
-  221 FB5C  32 FB70     	ld (dskadr),a
+  221 FB5B  32 FB6F     	ld (dskadr),a
   222                   	; add the disk base to bits 23..16, if drive A:
-  223 FB5F  3A FB73             ld a,(sekdsk)
-  224 FB62  B7                  or a
-  225 FB63  20 04               jr nz,rwflsh
-  226 FB65  01 3A60     	ld bc,FROM*256+(FOFF/256)
-  227 FB68  09          	add hl,bc
-  228 FB69              rwflsh: ; HL = bits 23..8 of the 24-bit disk-block address
-  229 FB69  22 FB71     	ld (dskadr+1),hl
-  230 FB6C  C9          	ret
+  223 FB5E  3A FB72             ld a,(sekdsk)
+  224 FB61  B7                  or a
+  225 FB62  20 04               jr nz,rwflsh
+  226 FB64  01 3A60     	ld bc,FROM*256+(FOFF/256)
+  227 FB67  09          	add hl,bc
+  228 FB68              rwflsh: ; HL = bits 23..8 of the 24-bit disk-block address
+  229 FB68  22 FB70     	ld (dskadr+1),hl
+  230 FB6B  C9          	ret
   231                   
   232                   ; Data area --------------------------------------------------------------------
   233                   
 Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   5
 MINBIOS Z80
 
-  234 FB6D  80 00 20    dmaadr: db 80h,00h,BANK ; last dma address + bank
+  234 FB6C  80 00 20    dmaadr: db 80h,00h,BANK ; last dma address + bank
   235                   
   236                   ; End of initialised data
   237                   
-  238 FB70    0003      dskadr: ds 3   ; disk address + bank
+  238 FB6F    0003      dskadr: ds 3   ; disk address + bank
   239                   
-  240 FB73    0001      sekdsk: ds 1   ; seek disk number
-  241 FB74    0001      sektrk: ds 1   ; seek track number
-  242 FB75    0002      seksec: ds 2   ; seek sector number
+  240 FB72    0001      sekdsk: ds 1   ; seek disk number
+  241 FB73    0001      sektrk: ds 1   ; seek track number
+  242 FB74    0002      seksec: ds 2   ; seek sector number
   243                   
-  244 FB77    0080      dirbuf: ds 128 ; scratch directory area
-  245 FBF7    0020      alv0:   ds 32  ; allocation vector 0 (max 255 blocks)
-  246 FC17    0020      alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
+  244 FB76    0080      dirbuf: ds 128 ; scratch directory area
+  245 FBF6    0020      alv0:   ds 32  ; allocation vector 0 (max 255 blocks)
+  246 FC16    0020      alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
   247                   
-  248         FC37      biosEnd equ $ ; ----------------------------------------------------------------
+  248         FC36      biosEnd equ $ ; ----------------------------------------------------------------
   249                   
   250                           end
  0 Error(s) Detected.
- 567 Absolute Bytes. 45 Symbols Detected.
+ 566 Absolute Bytes. 45 Symbols Detected.
 

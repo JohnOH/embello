@@ -216,7 +216,7 @@ rwaddr:	ld bc,(sektrk)
 	xor a
 	rr h
 	rr l
-	rr a
+	rra
 	; A = bits 7..0 of the 24-bit disk-block address
 	ld (dskadr),a
 	; add the disk base to bits 23..16, if drive A:

@@ -1,6 +1,6 @@
 title Startup loader for eZ80 -jcw, 2017-03-17
 
-VERS equ 19h	 ; version, stored at end of this code
+VERS equ 1Bh	 ; version, stored at end of this code
 
 SRAM equ 0E000h  ; starting address of common SRAM
 DEST equ 0E300h  ; load to this address

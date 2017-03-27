@@ -7,7 +7,7 @@
 
 compiletoram? [if]  forgetram  [then]
 
-\ include ex/sdtry.fs
+include ex/sdtry.fs
 include ex/sdfat.fs
 
 PC13 constant LED
@@ -81,7 +81,7 @@ task: disktask
     0 bit DMA1-CCR4 bic!  \ disable the DMA receive channel
     0 bit DMA1-CCR5 bic!  \ disable the DMA send channel
 
-    zreqbuf c@ 3 = if
+    zreqbuf c@ 3 = if                 \ request for drive D:
       zreqbuf @ 8 rshift              \ convert incoming request to offset
 \     dup 9 rshift sd-read            \ conv offset to block and read from SD
       dup 9 rshift                    \ convert offset to block
@@ -125,12 +125,13 @@ task: disktask
 : init-all
   sd-init ." blocks: " sd-size .
   cr sd-mount ls
-  117 0 file fat-chain  \ build map for DISK3.IMG
+\ 117 0 file fat-chain  \ build map for DISK3.IMG
+  170 0 file fat-chain  \ build map for XYZ.IMG
   multitask disk&
   zdi-init led-setup
   zirq-setup dma-setup spi2-setup ;
 
-: delay 10 0 do loop ;
+: delay 5 0 do loop ;
 : zcl-lo  delay ZCL ioc! delay ;
 : zcl-hi  delay ZCL ios! delay ;
 

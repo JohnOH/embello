@@ -11,7 +11,7 @@ GETADR  equ     31
 
 	org 100h
 
-        ld e,1          ; select drive B:
+        ld e,5          ; select drive B:
         ld c,SELDSK
         call BDOS
 

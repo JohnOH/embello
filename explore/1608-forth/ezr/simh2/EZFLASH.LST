@@ -13,7 +13,7 @@ EZFLASH Z80
    11                   
    12         0100      	org 100h
    13                   
-   14 0100  1E 01               ld e,1          ; select drive B:
+   14 0100  1E 05               ld e,5          ; select drive B:
    15 0102  0E 0E               ld c,SELDSK
    16 0104  CD 0005             call BDOS
    17                   
