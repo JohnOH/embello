@@ -41,11 +41,28 @@ compiletoram? [if]  forgetram  [then]
     dup 28 + @ .
   then ;
 
-: ls  \ display files in root dir (skipping all LFNs)
-  sd.#ent @ 16 / 0 do
-    sd.root @ i + sd-read
-    sd.buf  16 0 do dirent 32 + loop  drop
-  loop ;
+: ls  \ display files in root dir (skipping all LFNs and deleted files)
+  sd.buf 512 +
+  sd.#ent @ 0 do
+    i $F and 0= if
+      sd.root @ i 4 rshift + sd-read
+      512 -
+    then
+    dirent
+    32 +
+  loop drop ;
+
+: fat-find ( addr -- u )  \ find entry by name, return data cluster, else $FFFF
+  sd.buf 512 +
+  sd.#ent @ 0 do
+    i $F and 0= if
+      sd.root @ i 4 rshift + sd-read
+      512 -
+    then
+    2dup 11 tuck compare
+    if nip 26 + h@ unloop exit then
+    32 +
+  loop 2drop $FFFF ;
 
 : fat-next ( u -- u )  \ return next FAT cluster, or $FFFx at end
   \ TODO hard-coded for 64 sec / 32 KB per cluster

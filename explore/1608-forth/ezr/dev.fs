@@ -7,8 +7,8 @@
 
 compiletoram? [if]  forgetram  [then]
 
-\ include ex/sdtry.fs
-\ include ex/sdfat.fs
+include ex/sdtry.fs
+include ex/sdfat.fs
 
 PC13 constant LED
 PA8 constant BUSY
@@ -142,9 +142,9 @@ task: disktask
 : init-all
   sd-init ." blocks: " sd-size .
   cr sd-mount ls
-   28 0 file fat-chain  \ build map for D.IMG
-  108 1 file fat-chain  \ build map for E.IMG
-  248 2 file fat-chain  \ build map for F.IMG
+  s" D       IMG" drop fat-find  0 file  fat-chain  \ build map for D.IMG
+  s" E       IMG" drop fat-find  1 file  fat-chain  \ build map for E.IMG
+  s" F       IMG" drop fat-find  2 file  fat-chain  \ build map for F.IMG
   multitask disk&
   zdi-init led-setup
   zirq-setup dma-setup spi2-setup ;
