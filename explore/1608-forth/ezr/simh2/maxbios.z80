@@ -161,6 +161,12 @@ conout:	db 0EDh,38h,0C5h        ; in0 a,(0C5h)
 reader:	ld a,1Ah
 	ret
 
+listst:
+list:
+punch:
+	xor a
+	ret
+
 ; Disk I/O ---------------------------------------------------------------------
 
 seldsk: ld a,c
@@ -226,10 +232,6 @@ wram:	db 5Bh,2Ah              ; ld.lil hl,({BANK,dmaadr})
 
 rwop:	db 5Bh,01h,80h,00h,00h  ; ld.lil bc,000080h
 	db 49h,0EDh,0B0h        ; ldir.l
-
-listst:
-list:
-punch:
 	xor a
 	ret
 
@@ -252,17 +254,8 @@ SPI_RBR  equ 0BCh
 
 ; Virtual disk read, disk# in A
 
-vread:  call vidle		; wait until idle
-        call vxfer		; 0: read request (seldsk)
-        ld a,(dskadr)		; 1: offset, bits 7..0
-        call vxfer
-        ld a,l
-        call vxfer		; 2: offset, bits 15..8
-        ld a,h
-        call vxfer		; 3: offset, bits 23..16
+vread:  call vrwop		; 0..3: request
         call vidle		; wait until idle
-	ld hl,(dmaadr)
-	ld b,128
 	xor a
 vread1:	call vxfer		; 0..127: read data
 	ld (hl),a
@@ -277,24 +270,27 @@ vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
 ; Virtual disk write, disk# in A
 
 vwrite:	or 8			; tag as write request
-	call vidle		; wait until idle
-        call vxfer		; 0: write request (seldsk)
-        ld a,(dskadr)		; 1: offset, bits 7..0
-        call vxfer
-        ld a,l
-        call vxfer		; 2: offset, bits 15..8
-        ld a,h
-        call vxfer		; 3: offset, bits 23..16
-	ld hl,(dmaadr)
-	ld b,128
-vwrit1:	ld a,(hl)
-	call vxfer		; 4..131: write data
-	inc hl
+	call vrwop		; 0..3: request
+vwrit1:	call vnext		; 4..131: write data
 	djnz vwrit1
         call vidle		; wait until idle
 	xor a
 	call vxfer		; get write status
 	jr vdone		; TODO should be vstop
+
+; Common virtual read/write code to send 4-byte request header
+; Expects request code in A
+; Returns DMA address in HL, 128 in B
+
+vrwop:	call vidle		; wait until idle
+        call vxfer		; 0: write request (seldsk+8)
+        ld hl,dskadr
+        call vnext		; 1: offset, bits 7..0
+        call vnext		; 2: offset, bits 15..8
+        call vnext		; 3: offset, bits 23..16
+	ld hl,(dmaadr)
+	ld b,128
+	ret
 
 vidle:	call vstop
 vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
@@ -304,6 +300,8 @@ vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
 	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
 	ret
 
+vnext:	ld a,(hl)
+	inc hl
 vxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
 vxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
 	jr z,vxfer1
@@ -327,7 +325,7 @@ vinit:	ld a,89h
 	ret
 
 ; Convert selected disk+track+sector to a memory address
-; Returns current disk in A, 24-bit address in dskadr[0..2]
+; Returns current disk in A, 24-bit address in dskadr[0..2], upper 16-bit in HL
 
 rwaddr:	ld hl,(sekdpt)
         ld bc,10
@@ -370,7 +368,7 @@ dmaadr: db 80h,00h,BANK ; last dma address + bank
 dskadr: ds 3   ; disk address + bank
 
 sekdsk: ds 1   ; seek disk number
-sekdpt: ds 2   ; seek disk parameter block
+sekdpt: ds 2   ; seek disk parameter table
 sektrk: ds 1   ; seek track number
 seksec: ds 2   ; seek sector number
 

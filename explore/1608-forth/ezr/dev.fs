@@ -7,8 +7,8 @@
 
 compiletoram? [if]  forgetram  [then]
 
-include ex/sdtry.fs
-include ex/sdfat.fs
+\ include ex/sdtry.fs
+\ include ex/sdfat.fs
 
 PC13 constant LED
 PA8 constant BUSY
@@ -143,7 +143,7 @@ task: disktask
   sd-init ." blocks: " sd-size .
   cr sd-mount ls
    28 0 file fat-chain  \ build map for D.IMG
-  203 1 file fat-chain  \ build map for E.IMG
+  108 1 file fat-chain  \ build map for E.IMG
   248 2 file fat-chain  \ build map for F.IMG
   multitask disk&
   zdi-init led-setup
@@ -257,7 +257,7 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
   begin
     uart-key? if uart-key emit then
     \ break out of terminal loop when ctrl-x is seen
-    key? if key dup 24 = if drop exit then uart-emit then
+    key? if key ( dup 24 = if drop exit then ) uart-emit then
 \   pause
   again ;
 
