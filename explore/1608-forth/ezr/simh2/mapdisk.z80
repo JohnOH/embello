@@ -2,7 +2,7 @@ title Change virtual eZ80 disk mapping -jcw, 2017-03-28
 
 ; Usage: mapdisk d:filename.ext
 ;
-; Note that "d:" in on the eZ80, but "filename.ext" is a FAT entry on the µSD!
+; Note that "d:" is on the eZ80, but "filename.ext" is a FAT entry on the µSD!
 
 WSTART	equ	0000h
 BDOS	equ	0005h
@@ -60,7 +60,7 @@ lshft:	add hl,hl
 	ld c,RSTDRV
 	jp BDOS
 
-; The following code was lifted more or less verbatim from maxbios.z80:
+; The following code was lifted more or less verbatim from "maxbios.z80":
 
 vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
 	set 0,c			; set NSS high (PB0)

@@ -4,7 +4,7 @@ MAPDISK Z80
     2                   
     3                   ; Usage: mapdisk d:filename.ext
     4                   ;
-    5                   ; Note that "d:" in on the eZ80, but "filename.ext" is a FAT entry on the B5SD!
+    5                   ; Note that "d:" is on the eZ80, but "filename.ext" is a FAT entry on the B5SD!
     6                   
     7         0000      WSTART	equ	0000h
     8         0005      BDOS	equ	0005h
@@ -65,7 +65,7 @@ MAPDISK Z80
    60 013A  0E 25       	ld c,RSTDRV
    61 013C  C3 0005     	jp BDOS
    62                   
-   63                   ; The following code was lifted more or less verbatim from maxbios.z80:
+   63                   ; The following code was lifted more or less verbatim from "maxbios.z80":
    64                   
    65 013F  ED 08 9A    vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
    66 0142  CB C1       	set 0,c			; set NSS high (PB0)
@@ -94,5 +94,5 @@ MAPDISK Z80
    89                           end
  0 Error(s) Detected.
  127 Absolute Bytes. 24 Symbols Detected.
-ed.
+.
 
