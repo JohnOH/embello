@@ -25,7 +25,7 @@ $40004400 constant USART2
   115200 baud 2/ USART2-BRR ! \ set baud rate assuming PCLK1 = system-clock / 2
   %0010000000001100 USART2-CR1 ! ;
 
-: uart-key? ( -- f ) 1 5 lshift USART2-SR bit@ ;
+: uart-key? ( -- f ) pause 1 5 lshift USART2-SR bit@ ;
 : uart-key ( -- c ) begin uart-key? until  USART2-DR @ ;
-: uart-emit? ( -- f ) 1 7 lshift USART2-SR bit@ ;
+: uart-emit? ( -- f ) pause 1 7 lshift USART2-SR bit@ ;
 : uart-emit ( c -- ) begin uart-emit? until  USART2-DR ! ;
