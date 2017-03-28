@@ -18,11 +18,14 @@ $40004400 constant USART2
 \  ."  CR3 " USART2-CR3 @ h.4
 \ ."  GPTR " USART2-GPTR @ h.4 ;
 
+: uart-baud ( n -- )  \ set baud rate assuming PCLK1 = sysclk/2
+  baud 2/ USART2-BRR ! ;
+
 : uart-init ( -- )
   OMODE-AF-PP OMODE-FAST + PA2 io-mode!
   IMODE-FLOAT PA3 io-mode!
   17 bit RCC-APB1ENR bis!  \ set USART2EN
-  115200 baud 2/ USART2-BRR ! \ set baud rate assuming PCLK1 = system-clock / 2
+  115200 uart-baud
   %0010000000001100 USART2-CR1 ! ;
 
 : uart-key? ( -- f ) pause 1 5 lshift USART2-SR bit@ ;

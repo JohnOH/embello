@@ -93,7 +93,7 @@
      4 rshift + sd.data !  \ start sector of data area
 ;
 
-: sd-mount. \ mount and show some basic card info
+: sd-mount. ( -- )  \ mount and show some basic card info
   sd-mount
   cr ." label: " sd.buf $2B + 11 type space
      ." format: " sd.buf $36 + 8 type space
@@ -108,7 +108,7 @@
     dup 28 + @ .
   then ;
 
-: ls  \ display files in root dir (skipping all LFNs and deleted files)
+: ls  ( -- ) \ display files in root dir (skipping all LFNs and deleted files)
   sd.buf 512 +
   sd.#ent @ 0 do
     i $F and 0= if
@@ -154,10 +154,11 @@
     swap fat-next swap
   repeat 2drop ;
 
-: fat-map ( n1 n2 -- n )  \ map block n to raw block number, using file n2
+: fat-map ( n1 n2 -- n )  \ map block n1 to raw block number, using file n2 map
   file over sd.spc @ / 2* + h@
   2- sd.spc @ * swap sd.spc @ 1- and +
   sd.data @ + ;
 
 \ 128 clusters is 8 MB when the cluster size is 64
-129 2* 4 * buffer: fat.maps  \ room for 4 file maps of max 128 clusters each
+4 constant NFILES
+129 2* NFILES * buffer: fat.maps  \ room for file maps of max 128 clusters

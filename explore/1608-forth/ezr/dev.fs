@@ -255,14 +255,14 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
 : u  $FF >mb  $E000 a ;
 
 : s1  \ show output from USART2
-  uart-init 19200 baud 2/ USART2-BRR !
+  uart-init 19200 uart-baud
   c
   1000000 0 do
     uart-key? if uart-key emit then
   loop cr b r ;
 
 : s2  \ switch to permanent USART2 pass-through
-  cr uart-init 19200 baud 2/ USART2-BRR !
+  cr uart-init 19200 uart-baud
   c
   begin
     uart-key? if uart-key emit then
