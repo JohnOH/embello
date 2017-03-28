@@ -11,18 +11,6 @@ FCB	equ	005Ch
 PRTSTR  equ     9
 RSTDRV	equ	37
 
-PB_DR	equ 9Ah
-PB_DDR	equ 9Bh
-PB_ALT1	equ 9Ch
-PB_ALT2	equ 9Dh
-
-SPI_BRGL equ 0B8h
-SPI_BRGH equ 0B9h
-SPI_CTL  equ 0BAh
-SPI_SR   equ 0BBh
-SPI_TSR  equ 0BCh
-SPI_RBR  equ 0BCh
-
 	org 100h
 
 	ld c,PRTSTR	; prepare for an error exit
@@ -61,6 +49,11 @@ lshft:	add hl,hl
 	jp BDOS
 
 ; The following code was lifted more or less verbatim from "maxbios.z80":
+
+PB_DR	equ 9Ah
+SPI_SR  equ 0BBh
+SPI_TSR equ 0BCh
+SPI_RBR equ 0BCh
 
 vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
 	set 0,c			; set NSS high (PB0)
