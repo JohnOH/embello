@@ -67,14 +67,14 @@ $40010400 constant EXTI
 : disk-rd ( n -- )  \ read sector from file on SD card (128 or 512 bytes)
   vreqbuf @ 8 rshift              \ convert incoming request to offset
   dup 9 rshift                    \ convert offset to block
-  rot file fat-map sd-read        \ map to file and read the block
+  rot fat-map sd-read             \ map to file and read the block
   $180 and sd.buf + DMA1-CMAR5 !  \ adjust src addr of DMA send channel
 ;
 
 : disk-wr ( n -- )  \ write 128-byte sector to file on SD card
   vreqbuf @ 8 rshift              \ convert incoming request to offset
   dup 9 rshift                    \ convert offset to block
-  rot file fat-map dup sd-read    \ map to file and read the block
+  rot fat-map dup sd-read         \ map to file and read the block
   vreqbuf 4 +                     \ address of data to write
   rot $180 and sd.buf + 128 move  \ copy sector into block
   sd-write  0 vstatus !           \ write block and save status
@@ -82,8 +82,8 @@ $40010400 constant EXTI
 ;
 
 : disk-map ( n -- )  \ change specified drive to a new file mapping
-  vreqbuf 1+ fat-find swap file fat-chain  \ lookup the name and adjust map
-  0 vstatus ! vstatus DMA1-CMAR5 !         \ adjust src addr of DMA send channel
+  vreqbuf 1+ fat-find swap fat-chain  \ lookup the name and adjust map
+  0 vstatus ! vstatus DMA1-CMAR5 !    \ adjust src addr of DMA send channel
 ;
 
 task: disktask
@@ -152,9 +152,9 @@ task: disktask
 : init-all
   sd-init ." blocks: " sd-size .
   sd-mount. ls
-  s" D       IMG" drop fat-find  0 file  fat-chain  \ build map for D.IMG
-  s" E       IMG" drop fat-find  1 file  fat-chain  \ build map for E.IMG
-  s" F       IMG" drop fat-find  2 file  fat-chain  \ build map for F.IMG
+  s" D       IMG" drop fat-find  0 fat-chain  \ build map for D.IMG
+  s" E       IMG" drop fat-find  1 fat-chain  \ build map for E.IMG
+  s" F       IMG" drop fat-find  2 fat-chain  \ build map for F.IMG
   multitask disk&
   zdi-init led-setup
   zirq-setup dma-setup spi2-setup ;

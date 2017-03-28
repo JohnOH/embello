@@ -76,8 +76,6 @@
 0 variable sd.#ent  \ number of root entries
 0 variable sd.data  \ block offset of cluster #2
 
-: sd-c>s ( cluster -- sect ) 2- sd.spc @ * sd.data @ + ;
-
 : sd-mount ( -- )  \ mount a FAT16 volume, extract the key disk info
                 sd-init    \ initialise interface and card
               0 sd-read    \ read block #0
@@ -145,20 +143,21 @@
     fat-next
   repeat drop ;
 
-: fat-chain ( u a -- )  \ store clusters for use as file map
+: file ( n -- a )  \ convert file 0..3 to a map address inside fat.maps
+  129 2* * fat.maps + ;
+
+: fat-chain ( u n -- )  \ store clusters for use as file map n
+  file
   begin
     2dup ! 2+
   over $F or $FFFF <> while
     swap fat-next swap
   repeat 2drop ;
 
-: fat-map ( n a -- n )  \ map block n to raw block number, using file map
-  over sd.spc @ / 2* + h@
+: fat-map ( n1 n2 -- n )  \ map block n to raw block number, using file n2
+  file over sd.spc @ / 2* + h@
   2- sd.spc @ * swap sd.spc @ 1- and +
   sd.data @ + ;
 
 \ 128 clusters is 8 MB when the cluster size is 64
 129 2* 4 * buffer: fat.maps  \ room for 4 file maps of max 128 clusters each
-
-: file ( n -- a )  \ convert file 0..3 to a map address inside fat.maps
-  129 2* * fat.maps + ;
