@@ -143,6 +143,10 @@
     fat-next
   repeat drop ;
 
+\ 128 clusters is 8 MB when the cluster size is 64
+4 constant NFILES
+129 2* NFILES * buffer: fat.maps  \ room for file maps of max 128 clusters
+
 : file ( n -- a )  \ convert file 0..3 to a map address inside fat.maps
   129 2* * fat.maps + ;
 
@@ -158,7 +162,3 @@
   file over sd.spc @ / 2* + h@
   2- sd.spc @ * swap sd.spc @ 1- and +
   sd.data @ + ;
-
-\ 128 clusters is 8 MB when the cluster size is 64
-4 constant NFILES
-129 2* NFILES * buffer: fat.maps  \ room for file maps of max 128 clusters
