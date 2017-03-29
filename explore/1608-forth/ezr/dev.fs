@@ -254,6 +254,15 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
 
 : u  $FF >mb  $E000 a ;
 
+task: uart-task
+
+: uart-reader&
+  uart-task background
+  begin
+    begin uart-irq-key? while uart-irq-key emit repeat
+    stop
+  again ;
+
 : s1  \ show output from USART2
   uart-init 19200 uart-baud
   c
@@ -262,13 +271,13 @@ page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
   loop cr b r ;
 
 : s2  \ switch to permanent USART2 pass-through
-  cr uart-init 19200 uart-baud
+  cr uart-irq-init 19200 uart-baud
+  [: uart-irq-handler uart-task wake ;] irq-usart2 !
+  multitask uart-reader&
   c
   begin
-    uart-key? if uart-key emit then
     \ break out of terminal loop when ctrl-x is seen
     key? if key ( dup 24 = if drop exit then ) uart-emit then
-\   pause
   again ;
 
 : x  RST ioc! 1 ms RST ios! ;
@@ -293,6 +302,7 @@ include asm/flash.fs
 
 \ : z $3A6000 d s1 ;
 : z init-all s2 ;
+: zy init-all y s2 ;
 
 : ?
   cr ." v = show chip version           b = break next "
