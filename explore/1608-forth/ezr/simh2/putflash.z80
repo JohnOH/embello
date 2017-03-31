@@ -1,4 +1,4 @@
-title Copy RAM disk to eZ80 flash -jcw, 2017-03-18
+title Copy RAM disk A: to eZ80 flash disk B: -jcw, 2017-03-18
 
 ; Usage: ezflash
 
@@ -76,7 +76,7 @@ fail:   ld de,msg
         call BDOS
         jp 0000h
 
-msg:    db "B: wrong fmt!$"
+msg:    db "A: wrong fmt!$"
 
         org $
         end

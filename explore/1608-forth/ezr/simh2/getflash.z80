@@ -1,0 +1,59 @@
+title Change A: to be a copy of flash drive B: -jcw, 2017-03-19
+
+; Usage: fmt360
+
+WSTART	equ 0000h
+BDOS	equ 0005h
+
+SELDSK  equ 14
+GETADR  equ 31
+RSTDRV  equ 37
+
+FROM	equ 3Ah		    ; bank from which to copy everything
+FOFF	equ 6000h	    ; starting page offset in FROM area
+
+	org 100h
+
+; copy system tracks from B: {00h,0000h} to A: {FROM,FOFF}
+	db 5Bh,21h	    ; ld.lil hl,{00h,0000h}
+	dw 0000h
+	db 00h
+	db 5Bh,11h	    ; ld.lil de,{FROM,FOFF}
+	dw FOFF
+	db FROM
+	db 5Bh,01h	    ; ld.lil bc,$40000
+	dw 0000h
+	db 04h
+	db 49h,0EDh,0B0h    ; ldir.l
+
+        ld de,1		    ; reset drive A:
+        ld c,RSTDRV
+        call BDOS
+
+        ld e,0		    ; select drive A:
+        ld c,SELDSK
+        call BDOS
+
+        ld c,GETADR	    ; get DPB of A:
+        call BDOS
+
+        ex de,hl	    ; overwrite with our version
+        ld hl,dpb
+        ld bc,dpblen
+        ldir
+
+        jp WSTART
+
+dpb:	dw 26  ; SPT - sectors per track
+	db 3   ; BSH - block shift factor
+	db 7   ; BLM - block mask
+	db 0   ; EXM - Extent mask
+	dw 248 ; DSM - Storage size (blocks - 1)
+	dw 63  ; DRM - Number of directory entries - 1
+	db 192 ; AL0 - 1 bit set per directory block
+	db 0   ; AL1 - ... 8 more bits
+	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+	dw 2   ; OFF - Reserved tracks
+dpblen  equ $-dpb
+
+        end

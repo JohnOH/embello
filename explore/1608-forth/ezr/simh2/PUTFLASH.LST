@@ -1,5 +1,5 @@
-Copy RAM disk to eZ80 flash -jcw, 2017-03-18 Z80ASM 1.32 Page   1
-EZFLASH Z80
+Copy RAM disk A: to eZ80 flash disk B: -jcw, 2017-03-18 Z80ASM 1.32 Page   1
+PUTFLASHZ80
 
     2                   
     3                   ; Usage: ezflash
@@ -59,8 +59,8 @@ EZFLASH Z80
    57 0143  ED 79       	out (c),a
    58                   
    59 0145  0E FF       	ld c,0FFh       ; FLASH_PGCTL
-Copy RAM disk to eZ80 flash -jcw, 2017-03-18 Z80ASM 1.32 Page   2
-EZFLASH Z80
+Copy RAM disk A: to eZ80 flash disk B: -jcw, 2017-03-18 Z80ASM 1.32 Page   2
+PUTFLASHZ80
 
    60 0147  3E 01       	ld a,01h        ; start mass erase
    61 0149  ED 79       	out (c),a
@@ -81,7 +81,7 @@ EZFLASH Z80
    76 016C  CD 0005             call BDOS
    77 016F  C3 0000             jp 0000h
    78                   
-   79 0172  42 3A 20 77 msg:    db "B: wrong fmt!$"
+   79 0172  41 3A 20 77 msg:    db "A: wrong fmt!$"
    80                   
    81         0180              org $
    82                           end

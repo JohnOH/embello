@@ -1,5 +1,5 @@
 Change virtual eZ80 disk mapping -jcw, 2017-03-28 Z80ASM 1.32 Page   1
-MAPDISK Z80
+MAPDRIVEZ80
 
     2                   
     3                   ; Usage: mapdisk d:filename.ext
@@ -60,7 +60,7 @@ MAPDISK Z80
    58 013F  ED 08 9A    vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
    59 0142  CB C1       	set 0,c			; set NSS high (PB0)
 Change virtual eZ80 disk mapping -jcw, 2017-03-28 Z80ASM 1.32 Page   2
-MAPDISK Z80
+MAPDRIVEZ80
 
    60 0144  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
    61 0147  C9                  ret
@@ -87,13 +87,4 @@ MAPDISK Z80
    82                           end
  0 Error(s) Detected.
  127 Absolute Bytes. 18 Symbols Detected.
-              ret
-   85                   
-   86 0166  43 61 6E 20 errmsg: db "Can only map drive D..F!$"
-   87                   
-   88         017F              org $
-   89                           end
- 0 Error(s) Detected.
- 127 Absolute Bytes. 24 Symbols Detected.
-.
 

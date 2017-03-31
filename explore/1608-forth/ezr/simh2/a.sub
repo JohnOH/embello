@@ -1,5 +1,10 @@
 ; Assemble all source files -jcw, 2017-03-17
 ;
+r rload.z80
+z80asm rload/f
+w rload.com b
+w rload.lst t
+;
 r sload.z80
 z80asm sload/f
 w sload.com b
@@ -20,24 +25,22 @@ z80asm hexsave/f
 w hexsave.com b
 w hexsave.lst t
 ;
-r fmt360.z80
-z80asm fmt360/f
-w fmt360.com b
-w fmt360.lst t
+r getflash.z80
+z80asm getflash/f
+w getflash.com b
+w getflash.lst t
 ;
-r ezflash.z80
-z80asm ezflash/f
-z80asm ezflash/h
-w ezflash.com b
-w ezflash.hex t
-w ezflash.lst t
+r putflash.z80
+z80asm putflash/f
+w putflash.com b
+w putflash.lst t
 ;
 r maxbios.z80
 z80asm maxbios/f
 w maxbios.com b
 w maxbios.lst t
 ;
-r mapdisk.z80
-z80asm mapdisk/f
-w mapdisk.com b
-w mapdisk.lst t
+r mapdrive.z80
+z80asm mapdrive/f
+w mapdrive.com b
+w mapdrive.lst t

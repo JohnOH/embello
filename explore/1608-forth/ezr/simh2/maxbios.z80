@@ -42,20 +42,20 @@ wboote: jp wboot    ;  1 Warm boot
 
 ; Disk Parameter Headers -------------------------------------------------------
 
-dpbase:	dw 0,0,0,0,dirbuf,dpb0,0,alv0     ; A: 256/360K RAM disk
-	dw 0,0,0,0,dirbuf,dpb1,0,alv1     ; B: 256K flash disk
- 	dw 0,0,0,0,dirbuf,dpb2,0,alv2     ; C: optional 1440K RAM disk
-	dw 0,0,0,0,dirbuf,dpb2,csv3,alv3  ; D: remote disk
-	dw 0,0,0,0,dirbuf,dpb2,csv4,alv4  ; E: remote disk (R/O)
-	dw 0,0,0,0,dirbuf,dpb2,csv2,alv5  ; F: remote disk (R/O)
+dpbase:	dw 0,0,0,0,dirbuf,dpb0,0,alv0     ; A: R/W, 360K RAM disk
+	dw 0,0,0,0,dirbuf,dpb1,0,alv1     ; B: R/O, 256K flash disk
+ 	dw 0,0,0,0,dirbuf,dpb2,0,alv2	  ; C: R/W, 1440K RAM disk, optional
+	dw 0,0,0,0,dirbuf,dpb3,csv3,alv3  ; D: R/W, remote disk
+	dw 0,0,0,0,dirbuf,dpb3,csv4,alv4  ; E: R/O, remote disk
+	dw 0,0,0,0,dirbuf,dpb3,csv5,alv5  ; F: R/O, remote disk
 
 dpb0:	dw 26  ; SPT - sectors per track
-	db 3   ; BSH - block shift factor
-	db 7   ; BLM - block mask
-	db 0   ; EXM - Extent mask
-	dw 248 ; DSM - Storage size (blocks - 1)
+	db 4   ; BSH - block shift factor
+	db 15  ; BLM - block mask
+	db 1   ; EXM - Extent mask
+	dw 175 ; DSM - Storage size (blocks - 1)
 	dw 63  ; DRM - Number of directory entries - 1
-	db 192 ; AL0 - 1 bit set per directory block
+	db 128 ; AL0 - 1 bit set per directory block
 	db 0   ; AL1 - ... 8 more bits
 	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
 	dw 2   ; OFF - Reserved tracks
@@ -72,6 +72,17 @@ dpb1:	dw 26  ; SPT - sectors per track
 	dw 2   ; OFF - Reserved tracks
 
 dpb2:	dw 72  ; SPT - sectors per track
+	db 4   ; BSH - block shift factor
+	db 15  ; BLM - block mask
+	db 0   ; EXM - Extent mask
+	dw 719 ; DSM - Storage size (blocks - 1)
+	dw 255 ; DRM - Number of directory entries - 1
+	db 240 ; AL0 - 1 bit set per directory block
+	db 0   ; AL1 - ... 8 more bits
+	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+	dw 0   ; OFF - Reserved tracks
+
+dpb3:	dw 72  ; SPT - sectors per track
 	db 4   ; BSH - block shift factor
 	db 15  ; BLM - block mask
 	db 0   ; EXM - Extent mask
@@ -382,9 +393,9 @@ alv3:   ds 91  ; allocation vector 3 (max 720 blocks)
 alv4:   ds 91  ; allocation vector 4 (max 720 blocks)
 alv5:   ds 91  ; allocation vector 5 (max 720 blocks)
 
-csv2:   ds 64  ; checksum vector 2 (max 256 dir entries)
 csv3:   ds 64  ; checksum vector 3 (max 256 dir entries)
 csv4:   ds 64  ; checksum vector 4 (max 256 dir entries)
+csv5:   ds 64  ; checksum vector 5 (max 256 dir entries)
 
 biosEnd equ $ ; ----------------------------------------------------------------
 

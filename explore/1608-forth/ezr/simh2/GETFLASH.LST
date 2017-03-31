@@ -1,0 +1,67 @@
+Change A: to be a copy of flash drive B: -jcw, 2017-03-19 Z80ASM 1.32 Page   1
+GETFLASHZ80
+
+    2                   
+    3                   ; Usage: fmt360
+    4                   
+    5         0000      WSTART	equ 0000h
+    6         0005      BDOS	equ 0005h
+    7                   
+    8         000E      SELDSK  equ 14
+    9         001F      GETADR  equ 31
+   10         0025      RSTDRV  equ 37
+   11                   
+   12         003A      FROM	equ 3Ah		    ; bank from which to copy everything
+   13         6000      FOFF	equ 6000h	    ; starting page offset in FROM area
+   14                   
+   15         0100      	org 100h
+   16                   
+   17                   ; copy system tracks from B: {00h,0000h} to A: {FROM,FOFF}
+   18 0100  5B 21       	db 5Bh,21h	    ; ld.lil hl,{00h,0000h}
+   19 0102  0000        	dw 0000h
+   20 0104  00          	db 00h
+   21 0105  5B 11       	db 5Bh,11h	    ; ld.lil de,{FROM,FOFF}
+   22 0107  6000        	dw FOFF
+   23 0109  3A          	db FROM
+   24 010A  5B 01       	db 5Bh,01h	    ; ld.lil bc,$40000
+   25 010C  0000        	dw 0000h
+   26 010E  04          	db 04h
+   27 010F  49 ED B0    	db 49h,0EDh,0B0h    ; ldir.l
+   28                   
+   29 0112  11 0001             ld de,1		    ; reset drive A:
+   30 0115  0E 25               ld c,RSTDRV
+   31 0117  CD 0005             call BDOS
+   32                   
+   33 011A  1E 00               ld e,0		    ; select drive A:
+   34 011C  0E 0E               ld c,SELDSK
+   35 011E  CD 0005             call BDOS
+   36                   
+   37 0121  0E 1F               ld c,GETADR	    ; get DPB of A:
+   38 0123  CD 0005             call BDOS
+   39                   
+   40 0126  EB                  ex de,hl	    ; overwrite with our version
+   41 0127  21 0132             ld hl,dpb
+   42 012A  01 000F             ld bc,dpblen
+   43 012D  ED B0               ldir
+   44                   
+   45 012F  C3 0000             jp WSTART
+   46                   
+   47 0132  001A        dpb:	dw 26  ; SPT - sectors per track
+   48 0134  03          	db 3   ; BSH - block shift factor
+   49 0135  07          	db 7   ; BLM - block mask
+   50 0136  00          	db 0   ; EXM - Extent mask
+   51 0137  00F8        	dw 248 ; DSM - Storage size (blocks - 1)
+   52 0139  003F        	dw 63  ; DRM - Number of directory entries - 1
+   53 013B  C0          	db 192 ; AL0 - 1 bit set per directory block
+   54 013C  00          	db 0   ; AL1 - ... 8 more bits
+   55 013D  0000        	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+   56 013F  0002        	dw 2   ; OFF - Reserved tracks
+   57         000F      dpblen  equ $-dpb
+   58                   
+   59                           end
+Change A: to be a copy of flash drive B: -jcw, 2017-03-19 Z80ASM 1.32 Page   2
+
+
+ 0 Error(s) Detected.
+ 65 Absolute Bytes. 9 Symbols Detected.
+
