@@ -133,9 +133,9 @@ MAXBIOS Z80
   125                   ; Common code for cold and warm boot
   126                   
   127 FAFE  21 0080     gocpm:	ld hl,tpabuf            ; Address of BIOS DMA buffer
-  128 FB01  22 FC6C     	ld (dmaadr),hl
+  128 FB01  22 FC6E     	ld (dmaadr),hl
   129                   
-  130 FB04  CD FC13     	call vinit		; set up SPI for virtual disks
+  130 FB04  CD FC15     	call vinit		; set up SPI for virtual disks
   131                   
   132 FB07  3E C3       	ld a,0C3h               ; Opcode for 'JP'
   133 FB09  32 0000     	LD (00h),a              ; Load at start of RAM
@@ -187,8 +187,8 @@ MAXBIOS Z80
   176 FB4A  ED 4C       	db 0EDh,4Ch ; mlt bc
   177 FB4C  21 FA33             ld hl,dpbase
   178 FB4F  09                  add hl,bc
-  179 FB50  32 FC72     savdsk:	ld (sekdsk),a
-  180 FB53  22 FC73             ld (sekdpt),hl
+  179 FB50  32 FC74     savdsk:	ld (sekdsk),a
+  180 FB53  22 FC75             ld (sekdpt),hl
   181 FB56  C9                  ret
   182                   
   183 FB57  21 0000     baddsk: ld hl,0
@@ -200,34 +200,34 @@ MAXBIOS Z80
   189                   
   190 FB64  0E 00       home:	ld c,0
   191 FB66  79          settrk: ld a,c
-  192 FB67  32 FC75     	ld (sektrk),a
+  192 FB67  32 FC77     	ld (sektrk),a
   193 FB6A  C9                  ret
   194                   
-  195 FB6B  ED 43 FC76  setsec: ld (seksec),bc
+  195 FB6B  ED 43 FC78  setsec: ld (seksec),bc
   196 FB6F  C9                  ret
   197                   
-  198 FB70  ED 43 FC6C  setdma: ld (dmaadr),bc
+  198 FB70  ED 43 FC6E  setdma: ld (dmaadr),bc
   199 FB74  C9                  ret
   200                   
   201 FB75  69          sectrn: ld l,c
   202 FB76  60          	ld h,b
   203 FB77  C9                  ret
   204                   
-  205 FB78  CD FC37     read:	call rwaddr
+  205 FB78  CD FC39     read:	call rwaddr
   206                   
   207 FB7B  FE 03               cp 3
   208 FB7D  30 33               jr nc,vread		; D/E/F: are virtual
   209                   
   210 FB7F  5B 2A       	db 5Bh,2Ah              ; ld.lil hl,({BANK,dskadr})
-  211 FB81  FC6F        	dw dskadr
+  211 FB81  FC71        	dw dskadr
   212 FB83  20          	db BANK
   213 FB84  5B ED 5B    	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dmaadr})
-  214 FB87  FC6C        	dw dmaadr
+  214 FB87  FC6E        	dw dmaadr
   215 FB89  20          	db BANK
   216                   
   217 FB8A  18 15       	jr rwop
   218                   
-  219 FB8C  CD FC37     write:	call rwaddr
+  219 FB8C  CD FC39     write:	call rwaddr
   220                   
   221 FB8F  B7                  or a			; A: is writable
   222 FB90  28 04               jr z,wram
@@ -235,10 +235,10 @@ MAXBIOS Z80
   224 FB94  20 15               jr nz,wother
   225                   
   226 FB96  5B 2A       wram:	db 5Bh,2Ah              ; ld.lil hl,({BANK,dmaadr})
-  227 FB98  FC6C        	dw dmaadr
+  227 FB98  FC6E        	dw dmaadr
   228 FB9A  20          	db BANK
   229 FB9B  5B ED 5B    	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dskadr})
-  230 FB9E  FC6F        	dw dskadr
+  230 FB9E  FC71        	dw dskadr
   231 FBA0  20          	db BANK
   232                   
   233 FBA1  5B 01 80 00 rwop:	db 5Bh,01h,80h,00h,00h  ; ld.lil bc,000080h
@@ -250,7 +250,7 @@ MAXBIOS Z80
   236 FBAA  C9          	ret
   237                   
   238 FBAB  FE 03       wother:	cp 3			; D: is virtual and writable
-  239 FBAD  28 1B               jr z,vwrite
+  239 FBAD  28 1D               jr z,vwrite
   240 FBAF  3E 02       	ld a,2			; disk is read-only
   241 FBB1  C9          	ret
   242                   
@@ -268,146 +268,147 @@ MAXBIOS Z80
   254                   
   255                   ; Virtual disk read, disk# in A
   256                   
-  257 FBB2  CD FBDD     vread:  call vrwop		; 0..3: request
-  258 FBB5  CD FBF5             call vidle		; wait until idle
-  259 FBB8  AF          	xor a
-  260 FBB9  CD FC07     vread1:	call vxfer		; 0..127: read data
-  261 FBBC  77          	ld (hl),a
-  262 FBBD  23          	inc hl
-  263 FBBE  10 F9       	djnz vread1
-  264 FBC0  AF          vdone:	xor a
-  265 FBC1  ED 08 9A    vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
-  266 FBC4  CB C1       	set 0,c			; set NSS high (PB0)
-  267 FBC6  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
-  268 FBC9  C9                  ret
-  269                   
-  270                   ; Virtual disk write, disk# in A
-  271                   
-  272 FBCA  F6 08       vwrite:	or 8			; tag as write request
-  273 FBCC  CD FBDD     	call vrwop		; 0..3: request
-  274 FBCF  CD FC05     vwrit1:	call vnext		; 4..131: write data
-  275 FBD2  10 FB       	djnz vwrit1
-  276 FBD4  CD FBF5             call vidle		; wait until idle
-  277 FBD7  AF          	xor a
-  278 FBD8  CD FC07     	call vxfer		; get write status
-  279 FBDB  18 E3       	jr vdone		; TODO should be vstop
-  280                   
-  281                   ; Common virtual read/write code to send 4-byte request header
-  282                   ; Expects request code in A
-  283                   ; Returns DMA address in HL, 128 in B
-  284                   
-  285 FBDD  CD FBF5     vrwop:	call vidle		; wait until idle
-  286 FBE0  CD FC07             call vxfer		; 0: write request (seldsk+8)
-  287 FBE3  21 FC6F             ld hl,dskadr
-  288 FBE6  CD FC05             call vnext		; 1: offset, bits 7..0
-  289 FBE9  CD FC05             call vnext		; 2: offset, bits 15..8
-  290 FBEC  CD FC05             call vnext		; 3: offset, bits 23..16
-  291 FBEF  2A FC6C     	ld hl,(dmaadr)
+  257 FBB2  F6 20       vread:  or 20h			; tag as read request
+  258 FBB4  CD FBDF     	call vrwop		; 0..3: request
+  259 FBB7  CD FBF7             call vidle		; wait until idle
+  260 FBBA  AF          	xor a
+  261 FBBB  CD FC09     vread1:	call vxfer		; 0..127: read data
+  262 FBBE  77          	ld (hl),a
+  263 FBBF  23          	inc hl
+  264 FBC0  10 F9       	djnz vread1
+  265 FBC2  AF          vdone:	xor a
+  266 FBC3  ED 08 9A    vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+  267 FBC6  CB C1       	set 0,c			; set NSS high (PB0)
+  268 FBC8  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+  269 FBCB  C9                  ret
+  270                   
+  271                   ; Virtual disk write, disk# in A
+  272                   
+  273 FBCC  F6 30       vwrite:	or 30h			; tag as write request
+  274 FBCE  CD FBDF     	call vrwop		; 0..3: request
+  275 FBD1  CD FC07     vwrit1:	call vnext		; 4..131: write data
+  276 FBD4  10 FB       	djnz vwrit1
+  277 FBD6  CD FBF7             call vidle		; wait until idle
+  278 FBD9  AF          	xor a
+  279 FBDA  CD FC09     	call vxfer		; get write status
+  280 FBDD  18 E3       	jr vdone		; TODO should be vstop
+  281                   
+  282                   ; Common virtual read/write code to send 4-byte request header
+  283                   ; Expects request code in A
+  284                   ; Returns DMA address in HL, 128 in B
+  285                   
+  286 FBDF  CD FBF7     vrwop:	call vidle		; wait until idle
+  287 FBE2  CD FC09             call vxfer		; 0: write request (seldsk+8)
+  288 FBE5  21 FC71             ld hl,dskadr
+  289 FBE8  CD FC07             call vnext		; 1: offset, bits 7..0
+  290 FBEB  CD FC07             call vnext		; 2: offset, bits 15..8
+  291 FBEE  CD FC07             call vnext		; 3: offset, bits 23..16
 Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   6
 MAXBIOS Z80
 
-  292 FBF2  06 80       	ld b,128
-  293 FBF4  C9          	ret
-  294                   
-  295 FBF5  CD FBC1     vidle:	call vstop
-  296 FBF8  ED 08 9A    vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
-  297 FBFB  CB 49       	bit 1,c			; test BUSY (PB1)
-  298 FBFD  20 F9       	jr nz,vidle1		; reply is not zero, repeat
-  299 FBFF  CB 81       	res 0,c			; set NSS low (PB0)
-  300 FC01  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
-  301 FC04  C9          	ret
-  302                   
-  303 FC05  7E          vnext:	ld a,(hl)
-  304 FC06  23          	inc hl
-  305 FC07  ED 39 BC    vxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
-  306 FC0A  ED 38 BB    vxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
-  307 FC0D  28 FB       	jr z,vxfer1
-  308 FC0F  ED 38 BC    	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
-  309 FC12  C9                  ret
-  310                   
-  311 FC13  3E 89       vinit:	ld a,89h
-  312 FC15  ED 39 9A    	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
-  313 FC18  3E CE       	ld a,0CEh
-  314 FC1A  ED 39 9B    	db 0EDh,39h,PB_DDR	; out0 (PB_DDR),a
-  315 FC1D  3E 00       	ld a,00h
-  316 FC1F  ED 39 9C    	db 0EDh,39h,PB_ALT1	; out0 (PB_ALT1),a
-  317 FC22  3E CC       	ld a,0CCh
-  318 FC24  ED 39 9D    	db 0EDh,39h,PB_ALT2	; out0 (PB_ALT2),a
-  319 FC27  3E 00       	ld a,00H
-  320 FC29  ED 39 B9    	db 0EDh,39h,SPI_BRGH	; out0 (SPI_BRG_H),a
-  321 FC2C  3E 03       	ld a,03h
-  322 FC2E  ED 39 B8    	db 0EDh,39h,SPI_BRGL	; out0 (SPI_BRG_L),a
-  323 FC31  3E 30       	ld a,30h
-  324 FC33  ED 39 BA    	db 0EDh,39h,SPI_CTL	; out0 (SPI_CTL),a
-  325 FC36  C9          	ret
-  326                   
-  327                   ; Convert selected disk+track+sector to a memory address
-  328                   ; Returns current disk in A, 24-bit address in dskadr[0..2], upper 16-bit in HL
-  329                   
-  330 FC37  2A FC73     rwaddr:	ld hl,(sekdpt)
-  331 FC3A  01 000A             ld bc,10
-  332 FC3D  09                  add hl,bc
-  333 FC3E  ED 27               db 0EDh,27h             ; ld hl,(hl) ; dpb
-  334 FC40  7E                  ld a,(hl)               ; spt
-  335 FC41  ED 4B FC75          ld bc,(sektrk)
-  336 FC45  47          	ld b,a
-  337 FC46  ED 4C       	db 0EDh,4Ch             ; mlt bc
-  338                   	; BC = track, converted to linear sector offset
-  339 FC48  2A FC76     	ld hl,(seksec)
-  340 FC4B  09          	add hl,bc
-  341                   	; HL = bits 30..23 of the requested disk block address
-  342 FC4C  AF          	xor a
-  343 FC4D  CB 1C       	rr h
-  344 FC4F  CB 1D       	rr l
-  345 FC51  1F          	rra
-  346                   	; A = bits 7..0 of the 24-bit disk-block address
-  347 FC52  32 FC6F     	ld (dskadr),a
-  348                   	; add the disk base to bits 23..16, if drive A: or C:
-  349 FC55  3A FC72             ld a,(sekdsk)
+  292 FBF1  2A FC6E     	ld hl,(dmaadr)
+  293 FBF4  06 80       	ld b,128
+  294 FBF6  C9          	ret
+  295                   
+  296 FBF7  CD FBC3     vidle:	call vstop
+  297 FBFA  ED 08 9A    vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+  298 FBFD  CB 49       	bit 1,c			; test BUSY (PB1)
+  299 FBFF  20 F9       	jr nz,vidle1		; reply is not zero, repeat
+  300 FC01  CB 81       	res 0,c			; set NSS low (PB0)
+  301 FC03  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+  302 FC06  C9          	ret
+  303                   
+  304 FC07  7E          vnext:	ld a,(hl)
+  305 FC08  23          	inc hl
+  306 FC09  ED 39 BC    vxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
+  307 FC0C  ED 38 BB    vxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
+  308 FC0F  28 FB       	jr z,vxfer1
+  309 FC11  ED 38 BC    	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
+  310 FC14  C9                  ret
+  311                   
+  312 FC15  3E 89       vinit:	ld a,89h
+  313 FC17  ED 39 9A    	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
+  314 FC1A  3E CE       	ld a,0CEh
+  315 FC1C  ED 39 9B    	db 0EDh,39h,PB_DDR	; out0 (PB_DDR),a
+  316 FC1F  3E 00       	ld a,00h
+  317 FC21  ED 39 9C    	db 0EDh,39h,PB_ALT1	; out0 (PB_ALT1),a
+  318 FC24  3E CC       	ld a,0CCh
+  319 FC26  ED 39 9D    	db 0EDh,39h,PB_ALT2	; out0 (PB_ALT2),a
+  320 FC29  3E 00       	ld a,00H
+  321 FC2B  ED 39 B9    	db 0EDh,39h,SPI_BRGH	; out0 (SPI_BRG_H),a
+  322 FC2E  3E 03       	ld a,03h
+  323 FC30  ED 39 B8    	db 0EDh,39h,SPI_BRGL	; out0 (SPI_BRG_L),a
+  324 FC33  3E 30       	ld a,30h
+  325 FC35  ED 39 BA    	db 0EDh,39h,SPI_CTL	; out0 (SPI_CTL),a
+  326 FC38  C9          	ret
+  327                   
+  328                   ; Convert selected disk+track+sector to a memory address
+  329                   ; Returns current disk in A, 24-bit address in dskadr[0..2], upper 16-bit in HL
+  330                   
+  331 FC39  2A FC75     rwaddr:	ld hl,(sekdpt)
+  332 FC3C  01 000A             ld bc,10
+  333 FC3F  09                  add hl,bc
+  334 FC40  ED 27               db 0EDh,27h             ; ld hl,(hl) ; dpb
+  335 FC42  7E                  ld a,(hl)               ; spt
+  336 FC43  ED 4B FC77          ld bc,(sektrk)
+  337 FC47  47          	ld b,a
+  338 FC48  ED 4C       	db 0EDh,4Ch             ; mlt bc
+  339                   	; BC = track, converted to linear sector offset
+  340 FC4A  2A FC78     	ld hl,(seksec)
+  341 FC4D  09          	add hl,bc
+  342                   	; HL = bits 30..23 of the requested disk block address
+  343 FC4E  AF          	xor a
+  344 FC4F  CB 1C       	rr h
+  345 FC51  CB 1D       	rr l
+  346 FC53  1F          	rra
+  347                   	; A = bits 7..0 of the 24-bit disk-block address
+  348 FC54  32 FC71     	ld (dskadr),a
+  349                   	; add the disk base to bits 23..16, if drive A: or C:
 Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   7
 MAXBIOS Z80
 
-  350 FC58  B7                  or a
-  351 FC59  20 05               jr nz,rwadr1
-  352 FC5B  01 3A60     	ld bc,FROM*256+(FOFF/256)   ; A: is RAM disk at (FROM,FOFF)
-  353 FC5E  18 07       	jr rwadr2
-  354 FC60  FE 02       rwadr1: cp 2			    ; B/D/E/F: do not have an offset
-  355 FC62  20 04       	jr nz,rwadr3
-  356 FC64  01 23E0     	ld bc,FROM2*256+(FOFF2/256) ; C: is RAM disk at (FROM2,FOFF2)
-  357 FC67  09          rwadr2:	add hl,bc
-  358 FC68              rwadr3: ; HL = bits 23..8 of the 24-bit disk-block address
-  359 FC68  22 FC70     	ld (dskadr+1),hl
-  360 FC6B  C9          	ret
-  361                   
-  362                   ; Data area --------------------------------------------------------------------
-  363                   
-  364 FC6C  80 00 20    dmaadr: db 80h,00h,BANK ; last dma address + bank
-  365                   
-  366                   ; End of initialised data
-  367                   
-  368 FC6F    0003      dskadr: ds 3   ; disk address + bank
-  369                   
-  370 FC72    0001      sekdsk: ds 1   ; seek disk number
-  371 FC73    0002      sekdpt: ds 2   ; seek disk parameter table
-  372 FC75    0001      sektrk: ds 1   ; seek track number
-  373 FC76    0002      seksec: ds 2   ; seek sector number
-  374                   
-  375 FC78    0080      dirbuf: ds 128 ; scratch directory area
-  376                   
-  377 FCF8    002E      alv0:   ds 46  ; allocation vector 0 (max 360 blocks)
-  378 FD26    0020      alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
-  379 FD46    005B      alv2:   ds 91  ; allocation vector 2 (max 720 blocks)
-  380 FDA1    005B      alv3:   ds 91  ; allocation vector 3 (max 720 blocks)
-  381 FDFC    005B      alv4:   ds 91  ; allocation vector 4 (max 720 blocks)
-  382 FE57    005B      alv5:   ds 91  ; allocation vector 5 (max 720 blocks)
-  383                   
-  384 FEB2    0040      csv2:   ds 64  ; checksum vector 2 (max 256 dir entries)
-  385 FEF2    0040      csv3:   ds 64  ; checksum vector 3 (max 256 dir entries)
-  386 FF32    0040      csv4:   ds 64  ; checksum vector 4 (max 256 dir entries)
-  387                   
-  388         FF72      biosEnd equ $ ; ----------------------------------------------------------------
-  389                   
-  390                           end
+  350 FC57  3A FC74             ld a,(sekdsk)
+  351 FC5A  B7                  or a
+  352 FC5B  20 05               jr nz,rwadr1
+  353 FC5D  01 3A60     	ld bc,FROM*256+(FOFF/256)   ; A: is RAM disk at (FROM,FOFF)
+  354 FC60  18 07       	jr rwadr2
+  355 FC62  FE 02       rwadr1: cp 2			    ; B/D/E/F: do not have an offset
+  356 FC64  20 04       	jr nz,rwadr3
+  357 FC66  01 23E0     	ld bc,FROM2*256+(FOFF2/256) ; C: is RAM disk at (FROM2,FOFF2)
+  358 FC69  09          rwadr2:	add hl,bc
+  359 FC6A              rwadr3: ; HL = bits 23..8 of the 24-bit disk-block address
+  360 FC6A  22 FC72     	ld (dskadr+1),hl
+  361 FC6D  C9          	ret
+  362                   
+  363                   ; Data area --------------------------------------------------------------------
+  364                   
+  365 FC6E  80 00 20    dmaadr: db 80h,00h,BANK ; last dma address + bank
+  366                   
+  367                   ; End of initialised data
+  368                   
+  369 FC71    0003      dskadr: ds 3   ; disk address + bank
+  370                   
+  371 FC74    0001      sekdsk: ds 1   ; seek disk number
+  372 FC75    0002      sekdpt: ds 2   ; seek disk parameter table
+  373 FC77    0001      sektrk: ds 1   ; seek track number
+  374 FC78    0002      seksec: ds 2   ; seek sector number
+  375                   
+  376 FC7A    0080      dirbuf: ds 128 ; scratch directory area
+  377                   
+  378 FCFA    002E      alv0:   ds 46  ; allocation vector 0 (max 360 blocks)
+  379 FD28    0020      alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
+  380 FD48    005B      alv2:   ds 91  ; allocation vector 2 (max 720 blocks)
+  381 FDA3    005B      alv3:   ds 91  ; allocation vector 3 (max 720 blocks)
+  382 FDFE    005B      alv4:   ds 91  ; allocation vector 4 (max 720 blocks)
+  383 FE59    005B      alv5:   ds 91  ; allocation vector 5 (max 720 blocks)
+  384                   
+  385 FEB4    0040      csv2:   ds 64  ; checksum vector 2 (max 256 dir entries)
+  386 FEF4    0040      csv3:   ds 64  ; checksum vector 3 (max 256 dir entries)
+  387 FF34    0040      csv4:   ds 64  ; checksum vector 4 (max 256 dir entries)
+  388                   
+  389         FF74      biosEnd equ $ ; ----------------------------------------------------------------
+  390                   
+  391                           end
  0 Error(s) Detected.
- 1394 Absolute Bytes. 83 Symbols Detected.
+ 1396 Absolute Bytes. 83 Symbols Detected.
 

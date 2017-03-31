@@ -108,15 +108,15 @@ task: disktask
     stop-dma
 
     vreqbuf c@ case
-           3 of 0 disk-rd  endof  \ read D: from file 0
-           4 of 1 disk-rd  endof  \ read E: from file 1
-           5 of 2 disk-rd  endof  \ read F: from file 2
+      $13 of 0 disk-map endof  \ map D: on file 0
+      $14 of 1 disk-map endof  \ map E: on file 1
+      $15 of 2 disk-map endof  \ map F: on file 2
 
-       8 3 + of 0 disk-wr  endof  \ write D: to file 0
+      $23 of 0 disk-rd  endof  \ read D: from file 0
+      $24 of 1 disk-rd  endof  \ read E: from file 1
+      $25 of 2 disk-rd  endof  \ read F: from file 2
 
-      16 3 + of 0 disk-map endof  \ remap D: on file 0
-      16 4 + of 1 disk-map endof  \ remap E: on file 1
-      16 5 + of 2 disk-map endof  \ remap F: on file 2
+      $33 of 0 disk-wr  endof  \ write D: to file 0
     endcase
 
     reset-spi2

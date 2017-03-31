@@ -46,8 +46,8 @@ dpbase:	dw 0,0,0,0,dirbuf,dpb0,0,alv0     ; A: 256/360K RAM disk
 	dw 0,0,0,0,dirbuf,dpb1,0,alv1     ; B: 256K flash disk
  	dw 0,0,0,0,dirbuf,dpb2,0,alv2     ; C: optional 1440K RAM disk
 	dw 0,0,0,0,dirbuf,dpb2,csv3,alv3  ; D: remote disk
-	dw 0,0,0,0,dirbuf,dpb2,csv4,alv4  ; E: remote disk
-	dw 0,0,0,0,dirbuf,dpb2,csv2,alv5  ; F: remote disk
+	dw 0,0,0,0,dirbuf,dpb2,csv4,alv4  ; E: remote disk (R/O)
+	dw 0,0,0,0,dirbuf,dpb2,csv2,alv5  ; F: remote disk (R/O)
 
 dpb0:	dw 26  ; SPT - sectors per track
 	db 3   ; BSH - block shift factor
@@ -254,7 +254,8 @@ SPI_RBR  equ 0BCh
 
 ; Virtual disk read, disk# in A
 
-vread:  call vrwop		; 0..3: request
+vread:  or 20h			; tag as read request
+	call vrwop		; 0..3: request
         call vidle		; wait until idle
 	xor a
 vread1:	call vxfer		; 0..127: read data
@@ -269,7 +270,7 @@ vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
 
 ; Virtual disk write, disk# in A
 
-vwrite:	or 8			; tag as write request
+vwrite:	or 30h			; tag as write request
 	call vrwop		; 0..3: request
 vwrit1:	call vnext		; 4..131: write data
 	djnz vwrit1
