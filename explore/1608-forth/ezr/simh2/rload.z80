@@ -5,7 +5,7 @@ title ROM loader for eZ80 -jcw, 2017-03-17
 ; The 1st 128 bytes are this code, the 2nd 128 bytes are for the System Loader.
 ; The System Loader runs in SRAM in Z80 mode, with MBASE and RAM_BANK both 20h.
 
-VERS equ 1Dh	 ; version, stored at end of this code
+VERS equ 1Eh	 ; version, stored at end of this code
 
 SRAM equ 0E000h  ; starting address of common SRAM
 DEST equ 0E300h  ; load to this address in SRAM

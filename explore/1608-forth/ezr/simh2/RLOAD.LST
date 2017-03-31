@@ -7,7 +7,7 @@ RLOAD   Z80
     5                   ; The 1st 128 bytes are this code, the 2nd 128 bytes are for the System Loader.
     6                   ; The System Loader runs in SRAM in Z80 mode, with MBASE and RAM_BANK both 20h.
     7                   
-    8         001D      VERS equ 1Dh	 ; version, stored at end of this code
+    8         001E      VERS equ 1Eh	 ; version, stored at end of this code
     9                   
    10         E000      SRAM equ 0E000h  ; starting address of common SRAM
    11         E300      DEST equ 0E300h  ; load to this address in SRAM
@@ -63,7 +63,7 @@ RLOAD   Z80
 RLOAD   Z80
 
    60 0026  3A              db FROM
-   61 0027  FE 1D           cp a,VERS
+   61 0027  FE 1E           cp a,VERS
    62 0029  28 04           jr z,loader
    63                   
    64                   ; 7) no match, load from {00h,0000h} instead, i.e. flash
@@ -86,7 +86,7 @@ RLOAD   Z80
    81                   
    82 003D    0042          ds 0080h-$-1
    83 007F              version:
-   84 007F  1D              db VERS
+   84 007F  1E              db VERS
    85                   
    86         E380      SLOAD equ DEST+$
    87                       end

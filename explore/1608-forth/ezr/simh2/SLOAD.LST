@@ -7,7 +7,7 @@ SLOAD   Z80
     5                   ; Next, it loads the system starting from A: track 0, sector 2.
     6                   ; As last step, the System Loader jumps to the BIOS cold start address.
     7                   
-    8         0002      VERS equ 02h	 ; version, stored at end of this code
+    8         0003      VERS equ 03h	 ; version, stored at end of this code
     9                   
    10         E380      ORIG equ 0E380h  ; run at this address
    11         E400      DEST equ 0E400h  ; load to this address
@@ -28,8 +28,8 @@ SLOAD   Z80
    26 E380  5B 3A           db 5Bh,3Ah		; ld.lil a,({FROM,FOFF+version-ORIG+(DEST-ORIG)})
    27 E382  60FF            dw FOFF+version-ORIG+(DEST-ORIG)
    28 E384  3A              db FROM
-   29 E385  FE 02           cp a,VERS
-   30 E387  28 37           jr z,inited
+   29 E385  FE 03           cp a,VERS
+   30 E387  28 3C           jr z,inited
    31                   
    32 E389  3E E5           ld a,0E5h
    33                   
@@ -62,38 +62,38 @@ SLOAD   Z80
 System loader for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   2
 SLOAD   Z80
 
-   60                   ;   db 5Bh,21h		; ld.lil hl,{FROM,FOFF+2*26*128}
-   61                   ;   dw FOFF+2*26*128
-   62                   ;   db FROM
-   63 E3B1  5B 11           db 5Bh,11h		; ld.lil de,{FROM,FOFF+2*26*128+1}
-   64 E3B3  7A01            dw FOFF+2*26*128+1
-   65 E3B5  3A              db FROM
-   66 E3B6  5B 01           db 5Bh,01h		; ld.lil bc,16*128-1
-   67 E3B8  07FF            dw 16*128-1
-   68 E3BA  00              db 00h
-   69 E3BB  49 77           db 49h,77h		; ld.lil (hl),a
-   70 E3BD  49 ED B0        db 49h,0EDh,0B0h    ; ldir.l
+   60 E3B1  5B 21           db 5Bh,21h		; ld.lil hl,{FROM,FOFF+(2*26*128)}
+   61 E3B3  7A00            dw FOFF+(2*26*128)
+   62 E3B5  3A              db FROM
+   63 E3B6  5B 11           db 5Bh,11h		; ld.lil de,{FROM,FOFF+(2*26*128)+1}
+   64 E3B8  7A01            dw FOFF+(2*26*128)+1
+   65 E3BA  3A              db FROM
+   66 E3BB  5B 01           db 5Bh,01h		; ld.lil bc,16*128-1
+   67 E3BD  07FF            dw 16*128-1
+   68 E3BF  00              db 00h
+   69 E3C0  49 77           db 49h,77h		; ld.lil (hl),a
+   70 E3C2  49 ED B0        db 49h,0EDh,0B0h    ; ldir.l
    71                   
-   72 E3C0              inited:
+   72 E3C5              inited:
    73                   
    74                   ; 6) copy system tracks from A: {FROM,FOFF} to {BANK,DEST}
-   75 E3C0  5B 21           db 5Bh,21h		; ld.lil hl,{FROM,FOFF+100h}
-   76 E3C2  6100            dw FOFF+100h
-   77 E3C4  3A              db FROM
-   78 E3C5  5B 11           db 5Bh,11h		; ld.lil de,{BANK,DEST}
-   79 E3C7  E400            dw DEST
-   80 E3C9  20              db BANK
-   81 E3CA  5B 01           db 5Bh,01h		; ld.lil bc,2*26*128-100h
-   82 E3CC  1900            dw 2*26*128-100h
-   83 E3CE  00              db 00h
-   84 E3CF  49 ED B0        db 49h,0EDh,0B0h    ; ldir.l
+   75 E3C5  5B 21           db 5Bh,21h		; ld.lil hl,{FROM,FOFF+100h}
+   76 E3C7  6100            dw FOFF+100h
+   77 E3C9  3A              db FROM
+   78 E3CA  5B 11           db 5Bh,11h		; ld.lil de,{BANK,DEST}
+   79 E3CC  E400            dw DEST
+   80 E3CE  20              db BANK
+   81 E3CF  5B 01           db 5Bh,01h		; ld.lil bc,2*26*128-100h
+   82 E3D1  1900            dw 2*26*128-100h
+   83 E3D3  00              db 00h
+   84 E3D4  49 ED B0        db 49h,0EDh,0B0h    ; ldir.l
    85                   
    86                   ; 7) jump to BIOS address
-   87 E3D2  C3 FA00         jp BIOS
+   87 E3D7  C3 FA00         jp BIOS
    88                   
-   89 E3D5    002A          ds ORIG+0080h-$-1
+   89 E3DA    0025          ds ORIG+0080h-$-1
    90 E3FF              version:
-   91 E3FF  02              db VERS
+   91 E3FF  03              db VERS
    92                   
    93                       end
  0 Error(s) Detected.
