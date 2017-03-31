@@ -42,12 +42,12 @@ wboote: jp wboot    ;  1 Warm boot
 
 ; Disk Parameter Headers -------------------------------------------------------
 
-dpbase:	dw 0,0,0,0,dirbuf,dpb0,0,alv0     ; A: R/W, 360K RAM disk
-	dw 0,0,0,0,dirbuf,dpb1,0,alv1     ; B: R/O, 256K flash disk
- 	dw 0,0,0,0,dirbuf,dpb2,0,alv2	  ; C: R/W, 1440K RAM disk, optional
-	dw 0,0,0,0,dirbuf,dpb3,csv3,alv3  ; D: R/W, remote disk
-	dw 0,0,0,0,dirbuf,dpb3,csv4,alv4  ; E: R/O, remote disk
-	dw 0,0,0,0,dirbuf,dpb3,csv5,alv5  ; F: R/O, remote disk
+dpbase:	dw 0,0,0,0,dirbuf,dpb0,0,alv0     ; A: R/W,  360K, RAM disk
+	dw 0,0,0,0,dirbuf,dpb1,0,alv1     ; B: R/O,  256K, flash disk
+ 	dw 0,0,0,0,dirbuf,dpb2,0,alv2	  ; C: R/W, 1440K, RAM disk, optional
+	dw 0,0,0,0,dirbuf,dpb3,csv3,alv3  ; D: R/W, 1440K, remote disk
+	dw 0,0,0,0,dirbuf,dpb3,csv4,alv4  ; E: R/O, 1440K, remote disk
+	dw 0,0,0,0,dirbuf,dpb3,csv5,alv5  ; F: R/O, 1440K, remote disk
 
 dpb0:	dw 26  ; SPT - sectors per track
 	db 4   ; BSH - block shift factor
