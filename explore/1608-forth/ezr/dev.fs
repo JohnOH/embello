@@ -219,9 +219,6 @@ task: disktask
 : w ( u -- )  $30 >zdi ;
 : f ( addr size -- )  0 do dup c@ w 1+ loop drop ;
 
-                512 buffer: page
-page $FF + $FF bic constant sect  \ 256-byte aligned for cleaner dump output
-
 : ins1 ( u1 -- )              $25 >zdi ;
 : ins2 ( u1 u2 -- )           $24 >zdi ins1 ;
 : ins3 ( u1 u2 u3 -- )        $23 >zdi ins2 ;

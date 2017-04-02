@@ -42,7 +42,7 @@ func main() {
 	}
 	fmt.Printf("  %s: %d => %d bytes\n", oname, origLen, len(data))
 
-	fmt.Fprintln(fout, "$00 >mb  $0000 a  hex")
+	fmt.Fprintln(fout, "0 a  hex")
 	for i := 0; i < len(data); i += PERLINE {
 		if i%1024 == 0 {
 			fmt.Fprint(fout, "p . ")
@@ -55,7 +55,7 @@ func main() {
 				fmt.Fprint(fout, " ")
 			}
 		}
-		fmt.Fprintln(fout, "w32")
+		fmt.Fprintln(fout, "m")
 	}
-	fmt.Fprintf(fout, "p .  decimal  $6000 a  \\ $%04X bytes\n", len(data))
+	fmt.Fprintf(fout, "p .  decimal  0 a  \\ $%04X bytes\n", len(data))
 }
