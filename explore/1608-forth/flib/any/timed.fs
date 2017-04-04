@@ -93,15 +93,17 @@ task: timedtask
 : call-every ( callback interval slot# -- ) true  swap call-internal ; 
 : call-never ( slot# -- ) tmd-call-addr 0 swap !  ;
 
-\ Show all timers
-: timed. ( -- ) cr
+: show1timer ( n -- )
+    ." Timer #" dup .
+    ." Interval: " dup tmd-inte-addr @ .
+    ." Last-Run: " dup tmd-last-addr @ .
+    ." Callback: " dup tmd-call-addr @ .
+    ." Repeat: "       tmd-repe-addr @ . ;
+
+: timed. ( -- )  \ Show all timers
   MAX-TIMED 0 do
-    ." Timer #" i .
-    ." Interval: " i tmd-inte-addr @ .
-    ." Last-Run: " i tmd-last-addr @ .
-    ." Callback: " i tmd-call-addr @ .
-    ." Repeat: "   i tmd-repe-addr @ .
-  cr loop ;
+    cr i show1timer
+  loop ;
 
 \ Initializes timed-data and starts multitasking
 : timed-init ( -- )
