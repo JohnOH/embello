@@ -40,43 +40,43 @@ MAX-TIMED 4 * cells buffer: timed-data
 : timed-exec ( slot# -- )
   >r     r@ tmd-call-addr @ execute
   millis r@ tmd-last-addr !
-  r@ tmd-repe-addr @ NOT IF
+  r@ tmd-repe-addr @ not if
     \ clear callback if no repetition needed
     false r@ tmd-call-addr !
-  THEN 
+  then 
   r> drop 
 ;
 
 \ Check if a timer needs to be executed (checks if enabled and enough time passed)
 : needs-run? ( slot# -- flag )
-  dup tmd-call-addr @ IF 
+  dup tmd-call-addr @ if 
     millis over tmd-last-addr @ -  ( slot# time_since_last_run )
            over tmd-inte-addr @ >  ( slot# true_if_time_to_run )
-  ELSE
+  else
     false
-  THEN nip ;
+  then nip ;
 
 \ Check and execute all the timers
 : timed-run ( -- #exec )
   0 \ return number of executed tasks
-  MAX-TIMED 0 DO
-  i needs-run? IF
+  MAX-TIMED 0 do
+  i needs-run? if
     i timed-exec 1+
-  THEN
-LOOP ;
+  then
+loop ;
 
 \ Go to sleep if we're the only task running
 : sleep-if-alone ( -- )
-  eint? IF \ Only enter sleep mode if interrupts have been enabled
-    dint up-alone? IF sleep THEN eint
-  THEN ;
+  eint? if \ Only enter sleep mode if interrupts have been enabled
+    dint up-alone? if sleep then eint
+  then ;
 
 \ Task which handles the timers in background
 task: timedtask
 : timed& ( -- )
   timedtask activate
     begin
-      timed-run NOT IF sleep-if-alone THEN
+      timed-run not if sleep-if-alone then
       pause
     again
 ;
