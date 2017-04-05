@@ -1,0 +1,34 @@
+# File flash.asm
+0000			; Erase and unlock flash memory 
+0000			 
+0000				org $E000 
+e000			 
+e000 01 f5 00			ld  bc,$00F5 ; FLASH_KEY 
+e003 3e b6			ld  a,$B6 ; key 1 
+e005 ed 79			out (c),a 
+e007 3e 49			ld  a,$49 ; key 2 
+e009 ed 79			out (c),a 
+e00b			 
+e00b 0e f9			ld  c,$F9 ; FLASH_FDIV 
+e00d 3e 29			ld  a,41  ; ceil[mhz*5.1], i.e. 41 for 8 MHz 
+e00f ed 79			out (c),a 
+e011			 
+e011 0e f5			ld  c,$F5 ; FLASH_KEY 
+e013 3e b6			ld  a,$B6 ; key 1 
+e015 ed 79			out (c),a 
+e017 3e 49			ld  a,$49 ; key 2 
+e019 ed 79			out (c),a 
+e01b			 
+e01b 0e fa			ld  c,$FA ; FLASH_PROT 
+e01d 3e 00			ld  a,$00 ; unprotect all 8 blocks 
+e01f ed 79			out (c),a 
+e021			 
+e021 0e ff			ld  c,$FF ; FLASH_PGCTL 
+e023 3e 01			ld  a,$01 ; start mass erase 
+e025 ed 79			out (c),a 
+e027			 
+e027 18 fe			jr $ 
+e029			 
+e029				end 
+# End of file flash.asm
+e029

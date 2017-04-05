@@ -1,0 +1,250 @@
+title Minimal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17
+
+; memory map -------------------------------------------------------------------
+
+CCP     equ 0E400h
+BDOS    equ CCP + 0806h
+BIOS    equ CCP + 1600h
+
+BANK	equ 20h     ; SRAM and MBASE are set to this bank
+FROM	equ 3Ah     ; bank from which to copy everything
+FOFF	equ 6000h   ; starting page offset in FROM area
+
+; low memory -------------------------------------------------------------------
+
+iobyte  equ 03h     ; Intel standard I/O definition byte
+usrdrv  equ 04h     ; Current user number and drive
+tpabuf  equ 0080h   ; Default I/O buffer and command line storage
+
+         org BIOS
+
+; BIOS jump table --------------------------------------------------------------
+
+	jp boot     ;  0 Initialize
+wboote: jp wboot    ;  1 Warm boot
+	jp conist   ;  2 Console status
+	jp conin    ;  3 Console input
+	jp conout   ;  4 Console OUTput
+	jp list     ;  5 List OUTput
+	jp punch    ;  6 punch OUTput
+	jp reader   ;  7 Reader input
+	jp home     ;  8 Home disk
+	jp seldsk   ;  9 Select disk
+	jp settrk   ; 10 Select track
+	jp setsec   ; 11 Select sector
+	jp setdma   ; 12 Set DMA ADDress
+	jp read     ; 13 Read 128 bytes
+	jp write    ; 14 Write 128 bytes
+	jp listst   ; 15 List status
+	jp sectrn   ; 16 Sector translate
+
+; Disk Parameter Headers -------------------------------------------------------
+
+dpbase:	dw 0,0,0,0,dirbuf,dpb0,0,alv0
+	dw 0,0,0,0,dirbuf,dpb1,0,alv1
+
+dpb0:	dw 26  ; SPT - sectors per track
+	db 3   ; BSH - block shift factor
+	db 7   ; BLM - block mask
+	db 0   ; EXM - Extent mask
+	dw 248 ; DSM - Storage size (blocks - 1)
+	dw 63  ; DRM - Number of directory entries - 1
+	db 192 ; AL0 - 1 bit set per directory block
+	db 0   ; AL1 - ... 8 more bits
+	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+	dw 2   ; OFF - Reserved tracks
+
+dpb1:	dw 26  ; SPT - sectors per track
+	db 3   ; BSH - block shift factor
+	db 7   ; BLM - block mask
+	db 0   ; EXM - Extent mask
+	dw 248 ; DSM - Storage size (blocks - 1)
+	dw 63  ; DRM - Number of directory entries - 1
+	db 192 ; AL0 - 1 bit set per directory block
+	db 0   ; AL1 - ... 8 more bits
+	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+	dw 2   ; OFF - Reserved tracks
+
+; Cold boot --------------------------------------------------------------------
+
+boot:	di
+	ld sp,0100h
+	ld hl,BIOS
+	ld (0FFFEh),hl
+
+	; initialise UART0 to 9600 baud
+
+	ld hl,0380h
+	ld de,1A06h
+	db 0EDh,21h,0A5h        ; out0 (0A5h),h = 03h
+	db 0EDh,29h,0C3h        ; out0 (0C3h),l = 80h
+	db 0EDh,11h,0C0h        ; out0 (0C0h),d = 1Ah
+	db 0EDh,21h,0C3h        ; out0 (0C3h),h = 03h
+	db 0EDh,19h,0C2h        ; out0 (0C2h),e = 06h
+
+	xor a
+	ld (iobyte),a
+	ld (usrdrv),a
+	jr gocpm
+
+; Warm boot --------------------------------------------------------------------
+
+wboot:	di
+	ld sp,0100h
+
+	; copy 5.5K from {FROM,FOFF+0100h} to {BANK,CCP} to reload CCP
+
+	db 5Bh,21h              ; ld.lil hl,{FROM,FOFF+0100h}
+	dw FOFF+0100h
+	db FROM
+	db 5Bh,11h              ; ld.lil de,{BANK,CCP}
+	dw CCP
+	db BANK
+	db 5Bh,01h              ; ld.lil bc,BIOS-CCP
+	dw BIOS-CCP
+	db 0
+	db 49h,0EDh,0B0h        ; ldir.l
+
+; Common code for cold and warm boot
+
+gocpm:	ld hl,tpabuf            ; Address of BIOS DMA buffer
+	ld (dmaadr),hl
+	ld a,0C3h               ; Opcode for 'JP'
+	LD (00h),a              ; Load at start of RAM
+	ld hl,wboote            ; Address of jump for a warm boot
+	ld (01h),hl
+	ld (05h),a              ; Opcode for 'JP'
+	ld hl,BDOS              ; Address of jump for the BDOS
+	ld (06h),hl
+	ld a,(usrdrv)           ; Save new drive number (0)
+	ld c,a                  ; Pass drive number in C
+	jp CCP                  ; Start CP/M by jumping to the CCP
+
+; Console I/O ------------------------------------------------------------------
+
+conist:	db 0EDh,38h,0C5h ; in0 a,(0C5h)
+	and 01h
+	neg
+	ret
+
+conin:	call conist
+	jr z,conin
+	db 0EDh,38h,0C0h        ; in0 a,(0C0h)
+	ret
+
+conout:	db 0EDh,38h,0C5h        ; in0 a,(0C5h)
+	and 20h
+	jr z,conout
+	db 0EDh,09h,0C0h        ; out0 (0C0h),c
+	ret
+
+reader:	ld a,1Ah
+	ret
+
+; Disk I/O ---------------------------------------------------------------------
+
+seldsk: ld a,c
+	cp 2
+        jr nc,baddsk
+        ld b,16
+	db 0EDh,4Ch ; mlt bc
+        ld hl,dpbase
+        add hl,bc
+savdsk:	ld (sekdsk),a
+        ret
+
+baddsk: ld hl,0
+        ld a,(usrdrv)
+        sub a,c
+        ret nz
+        ld (usrdrv),a
+        jr savdsk
+
+home:	ld c,0
+settrk: ld a,c
+	ld (sektrk),a
+        ret
+
+setsec: ld (seksec),bc
+        ret
+
+setdma: ld (dmaadr),bc
+        ret
+
+sectrn: ld l,c
+	ld h,b
+        ret
+
+read:	call rwaddr
+
+	db 5Bh,2Ah              ; ld.lil hl,({BANK,dskadr})
+	dw dskadr
+	db BANK
+	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dmaadr})
+	dw dmaadr
+	db BANK
+
+	jr rwop
+
+write:	call rwaddr
+
+	db 5Bh,2Ah              ; ld.lil hl,({BANK,dmaadr})
+	dw dmaadr
+	db BANK
+	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dskadr})
+	dw dskadr
+	db BANK
+
+rwop:	db 5Bh,01h,80h,00h,00h  ; ld.lil bc,000080h
+	db 49h,0EDh,0B0h        ; ldir.l
+
+listst:
+list:
+punch:
+	xor a
+	ret
+
+; Convert selected disk+track+sector to a memory address
+
+rwaddr:	ld bc,(sektrk)
+	ld b,26
+	db 0EDh,4Ch ; mlt bc
+	; BC = track, converted to linear sector offset
+	ld hl,(seksec)
+	add hl,bc
+	; HL = bits 30..23 of the requested disk block address
+	xor a
+	rr h
+	rr l
+	rra
+	; A = bits 7..0 of the 24-bit disk-block address
+	ld (dskadr),a
+	; add the disk base to bits 23..16, if drive A:
+        ld a,(sekdsk)
+        or a
+        jr nz,rwflsh
+	ld bc,FROM*256+(FOFF/256)
+	add hl,bc
+rwflsh: ; HL = bits 23..8 of the 24-bit disk-block address
+	ld (dskadr+1),hl
+	ret
+
+; Data area --------------------------------------------------------------------
+
+dmaadr: db 80h,00h,BANK ; last dma address + bank
+
+; End of initialised data
+
+dskadr: ds 3   ; disk address + bank
+
+sekdsk: ds 1   ; seek disk number
+sektrk: ds 1   ; seek track number
+seksec: ds 2   ; seek sector number
+
+dirbuf: ds 128 ; scratch directory area
+alv0:   ds 32  ; allocation vector 0 (max 255 blocks)
+alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
+
+biosEnd equ $ ; ----------------------------------------------------------------
+
+        end

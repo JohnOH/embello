@@ -1,0 +1,90 @@
+Change virtual eZ80 disk mapping -jcw, 2017-03-28 Z80ASM 1.32 Page   1
+MAPDRIVEZ80
+
+    2                   
+    3                   ; Usage: mapdisk d:filename.ext
+    4                   ;
+    5                   ; Note that "d:" is on the eZ80, but "filename.ext" is a FAT entry on the B5SD!
+    6                   
+    7         0000      WSTART	equ	0000h
+    8         0005      BDOS	equ	0005h
+    9         005C      FCB	equ	005Ch
+   10                   
+   11         0009      PRTSTR  equ     9
+   12         0025      RSTDRV	equ	37
+   13                   
+   14         0100      	org 100h
+   15                   
+   16 0100  0E 09       	ld c,PRTSTR	; prepare for an error exit
+   17 0102  11 0166     	ld de,errmsg
+   18                   
+   19 0105  3A 005C     	ld a,(fcb)	; 1-based, i.e. A=1
+   20 0108  FE 04       	cp 4		; drive < "D:" ?
+   21 010A  DA 0005     	jp c,BDOS
+   22 010D  FE 07       	cp 7		; drive >= "G:" ?
+   23 010F  D2 0005     	jp nc,BDOS
+   24                   
+   25 0112  C6 0F       	add 15		; D => 19, E => 20, F => 21
+   26                   
+   27 0114  CD 0148     	call vidle	; wait until idle
+   28 0117  CD 015A             call vxfer	; 0: map request (seldsk+16)
+   29                   
+   30 011A  21 005D     	ld hl,fcb+1	; filename
+   31 011D  06 0B       	ld b,11		; 8+3 chars
+   32 011F  CD 0158     vsend:	call vnext	; 1..11: filename
+   33 0122  10 FB       	djnz vsend
+   34                   
+   35 0124  CD 0148     	call vidle	; wait for request to complete
+   36 0127  AF          	xor a
+   37 0128  CD 015A     	call vxfer	; get mapping status (ignored for now)
+   38 012B  CD 013F     	call vstop
+   39                   
+   40 012E  3A 005C     	ld a,(fcb)	; convert drive to a bitmap
+   41 0131  3D          	dec a
+   42 0132  47          	ld b,a
+   43 0133  21 0001     	ld hl,1
+   44 0136  29          lshft:	add hl,hl
+   45 0137  10 FD       	djnz lshft
+   46                   
+   47 0139  EB          	ex de,hl	; reset only the changed drive
+   48 013A  0E 25       	ld c,RSTDRV
+   49 013C  C3 0005     	jp BDOS
+   50                   
+   51                   ; The following code was lifted more or less verbatim from "maxbios.z80":
+   52                   
+   53         009A      PB_DR	equ 9Ah
+   54         00BB      SPI_SR  equ 0BBh
+   55         00BC      SPI_TSR equ 0BCh
+   56         00BC      SPI_RBR equ 0BCh
+   57                   
+   58 013F  ED 08 9A    vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+   59 0142  CB C1       	set 0,c			; set NSS high (PB0)
+Change virtual eZ80 disk mapping -jcw, 2017-03-28 Z80ASM 1.32 Page   2
+MAPDRIVEZ80
+
+   60 0144  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+   61 0147  C9                  ret
+   62                   
+   63 0148  CD 013F     vidle:	call vstop
+   64 014B  ED 08 9A    vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+   65 014E  CB 49       	bit 1,c			; test BUSY (PB1)
+   66 0150  20 F9       	jr nz,vidle1		; reply is not zero, repeat
+   67 0152  CB 81       	res 0,c			; set NSS low (PB0)
+   68 0154  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+   69 0157  C9          	ret
+   70                   
+   71 0158  7E          vnext:	ld a,(hl)
+   72 0159  23          	inc hl
+   73 015A  ED 39 BC    vxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
+   74 015D  ED 38 BB    vxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
+   75 0160  28 FB       	jr z,vxfer1
+   76 0162  ED 38 BC    	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
+   77 0165  C9                  ret
+   78                   
+   79 0166  43 61 6E 20 errmsg: db "Can only map drive D..F!$"
+   80                   
+   81         017F              org $
+   82                           end
+ 0 Error(s) Detected.
+ 127 Absolute Bytes. 18 Symbols Detected.
+

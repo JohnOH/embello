@@ -1,0 +1,87 @@
+title ROM loader for eZ80 -jcw, 2017-03-17
+
+; This ROM Loader runs in flash at 0000h when the eZ80 comes out of reset.
+; It knows nothing about disk layouts, other than where RAM disk A: starts.
+; The 1st 128 bytes are this code, the 2nd 128 bytes are for the System Loader.
+; The System Loader runs in SRAM in Z80 mode, with MBASE and RAM_BANK both 20h.
+
+VERS equ 1Eh	 ; version, stored at end of this code
+
+SRAM equ 0E000h  ; starting address of common SRAM
+DEST equ 0E300h  ; load to this address in SRAM
+
+BANK equ 20h	 ; SRAM and MBASE are set to this bank
+SAVE equ 21h	 ; original SRAM contents is saved to this bank
+
+; location of RAM disk:
+FROM  equ 3Ah	  ; bank from which to copy everything
+FOFF  equ 6000h	  ; starting page offset in FROM area
+
+; 1) on power-up, this code starts at 0000h
+    org 0000h
+
+; ADL=0, PC=0000h, RAM_BANK=0FFh, MBASE=00h
+
+; 2) enter ADL mode to switch to 24-bit addressing
+    db 5Bh,0C3h ; jp.lil {0h,$+3}
+    dw adlmode
+    db 00h
+adlmode:
+
+; ADL=1, PC={00h,adlmode}, RAM_BANK=0FFh, MBASE=00h
+
+; 3) set MBASE now that we're in ADL mode
+    ld a,BANK
+    db 0EDh,6Dh ; ld  mb,a
+
+; ADL=1, PC={00h,$}, RAM_BANK=0FFh, MBASE=20h
+
+; 4) disable ERAM and move SRAM to BANK
+    ld h,80
+    db 0EDh,21h,0B4h ; out0 (RAM_CTL),h ; disable ERAM
+    db 0EDh,39h,0B5h ; out0 (RAM_BANK),a ; SRAM to BANK
+
+; ADL=1, PC={00h,$}, RAM_BANK=20h, MBASE=20h
+
+; 5) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM}
+    ld hl,SRAM
+    db BANK
+    ld de,SRAM
+    db SAVE
+    ld bc,2000h
+    db 00h
+    ldir
+
+; 6) load from A: disk only if the version byte matches
+    ld hl,FOFF
+    db FROM
+
+    ld a,(FOFF+version)
+    db FROM
+    cp a,VERS
+    jr z,loader
+
+; 7) no match, load from {00h,0000h} instead, i.e. flash
+    ld hl,0000h
+    db 00h
+
+; 8) load system loader to {BANK,DEST}
+loader:
+    ld de,DEST
+    db BANK
+    ld bc,100h
+    db 00h
+    ldir
+
+; 9) switch from ADL mode to Z80 mode and jump to SLOAD address
+    db 40h,0C3h ; jp.sis SLOAD (this exits ADL mode)
+    dw SLOAD
+
+; ADL=0, PC={MBASE,SLOAD}, RAM_BANK=20h, MBASE=20h
+
+    ds 0080h-$-1
+version:
+    db VERS
+
+SLOAD equ DEST+$
+    end

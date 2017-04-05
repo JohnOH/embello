@@ -1,0 +1,82 @@
+title Change virtual eZ80 disk mapping -jcw, 2017-03-28
+
+; Usage: mapdisk d:filename.ext
+;
+; Note that "d:" is on the eZ80, but "filename.ext" is a FAT entry on the µSD!
+
+WSTART	equ	0000h
+BDOS	equ	0005h
+FCB	equ	005Ch
+
+PRTSTR  equ     9
+RSTDRV	equ	37
+
+	org 100h
+
+	ld c,PRTSTR	; prepare for an error exit
+	ld de,errmsg
+
+	ld a,(fcb)	; 1-based, i.e. A=1
+	cp 4		; drive < "D:" ?
+	jp c,BDOS
+	cp 7		; drive >= "G:" ?
+	jp nc,BDOS
+
+	add 15		; D => 19, E => 20, F => 21
+
+	call vidle	; wait until idle
+        call vxfer	; 0: map request (seldsk+16)
+
+	ld hl,fcb+1	; filename
+	ld b,11		; 8+3 chars
+vsend:	call vnext	; 1..11: filename
+	djnz vsend
+
+	call vidle	; wait for request to complete
+	xor a
+	call vxfer	; get mapping status (ignored for now)
+	call vstop
+
+	ld a,(fcb)	; convert drive to a bitmap
+	dec a
+	ld b,a
+	ld hl,1
+lshft:	add hl,hl
+	djnz lshft
+
+	ex de,hl	; reset only the changed drive
+	ld c,RSTDRV
+	jp BDOS
+
+; The following code was lifted more or less verbatim from "maxbios.z80":
+
+PB_DR	equ 9Ah
+SPI_SR  equ 0BBh
+SPI_TSR equ 0BCh
+SPI_RBR equ 0BCh
+
+vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+	set 0,c			; set NSS high (PB0)
+	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+        ret
+
+vidle:	call vstop
+vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+	bit 1,c			; test BUSY (PB1)
+	jr nz,vidle1		; reply is not zero, repeat
+	res 0,c			; set NSS low (PB0)
+	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+	ret
+
+vnext:	ld a,(hl)
+	inc hl
+vxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
+vxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
+	jr z,vxfer1
+	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
+        ret
+
+errmsg: db "Can only map drive D..F!$"
+
+        org $
+        end

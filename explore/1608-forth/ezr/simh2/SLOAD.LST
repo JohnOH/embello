@@ -1,0 +1,101 @@
+System loader for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   1
+SLOAD   Z80
+
+    2                   
+    3                   ; The System Loader is loaded by the ROM loader from A: track 0, sector 1.
+    4                   ; It first inits the RAM disks, if they do not contain initialised content.
+    5                   ; Next, it loads the system starting from A: track 0, sector 2.
+    6                   ; As last step, the System Loader jumps to the BIOS cold start address.
+    7                   
+    8         0003      VERS equ 03h	 ; version, stored at end of this code
+    9                   
+   10         E380      ORIG equ 0E380h  ; run at this address
+   11         E400      DEST equ 0E400h  ; load to this address
+   12         FA00      BIOS equ 0FA00h	 ; exit with a jump to this address
+   13                   
+   14         0020      BANK equ 20h	 ; SRAM and MBASE are set to this bank
+   15                   
+   16                   ; location of RAM disks
+   17         003A      FROM  equ 3Ah	  ; bank from which to copy everything
+   18         6000      FOFF  equ 6000h	  ; starting page offset in FROM area
+   19         0023      FROM2 equ 23h     ; second RAM disk page
+   20         E000      FOFF2 equ 0E000h  ; second RAM disk offset
+   21                   
+   22                   ; 1) on power-up, this code starts off at 0E380h
+   23         E380          org ORIG
+   24                   
+   25                   ; 2) init both RAM disks if the version byte doesn't match
+   26 E380  5B 3A           db 5Bh,3Ah		; ld.lil a,({FROM,FOFF+version-ORIG+(DEST-ORIG)})
+   27 E382  60FF            dw FOFF+version-ORIG+(DEST-ORIG)
+   28 E384  3A              db FROM
+   29 E385  FE 03           cp a,VERS
+   30 E387  28 3C           jr z,inited
+   31                   
+   32 E389  3E E5           ld a,0E5h
+   33                   
+   34                   ; 3) wipe SRAM drive C: {FROM2,FOFF2} directory (in case SRAM is 2048K)
+   35 E38B  5B 21           db 5Bh,21h		; ld.lil hl,{FROM2,FOFF2}
+   36 E38D  E000            dw FOFF2
+   37 E38F  23              db FROM2
+   38 E390  5B 11           db 5Bh,11h		; ld.lil de,{FROM2,FOFF2+1}
+   39 E392  E001            dw FOFF2+1
+   40 E394  23              db FROM2
+   41 E395  5B 01           db 5Bh,01h		; ld.lil bc,64*128-1
+   42 E397  1FFF            dw 64*128-1
+   43 E399  00              db 00h
+   44 E39A  49 77           db 49h,77h		; ld.lil (hl),a
+   45 E39C  49 ED B0        db 49h,0EDh,0B0h    ; ldir.l
+   46                   
+   47                   ; 4) copy system tracks from B: {00h,0000h} to A: {FROM,FOFF}
+   48 E39F  5B 21           db 5Bh,21h		; ld.lil hl,{00h,0000h}
+   49 E3A1  0000            dw 0000h
+   50 E3A3  00              db 00h
+   51 E3A4  5B 11           db 5Bh,11h		; ld.lil de,{FROM,FOFF}
+   52 E3A6  6000            dw FOFF
+   53 E3A8  3A              db FROM
+   54 E3A9  5B 01           db 5Bh,01h		; ld.lil bc,2*26*128
+   55 E3AB  1A00            dw 2*26*128
+   56 E3AD  00              db 00h
+   57 E3AE  49 ED B0        db 49h,0EDh,0B0h    ; ldir.l
+   58                   
+   59                   ; 5) then wipe the SRAM drive A: directory
+System loader for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   2
+SLOAD   Z80
+
+   60 E3B1  5B 21           db 5Bh,21h		; ld.lil hl,{FROM,FOFF+(2*26*128)}
+   61 E3B3  7A00            dw FOFF+(2*26*128)
+   62 E3B5  3A              db FROM
+   63 E3B6  5B 11           db 5Bh,11h		; ld.lil de,{FROM,FOFF+(2*26*128)+1}
+   64 E3B8  7A01            dw FOFF+(2*26*128)+1
+   65 E3BA  3A              db FROM
+   66 E3BB  5B 01           db 5Bh,01h		; ld.lil bc,16*128-1
+   67 E3BD  07FF            dw 16*128-1
+   68 E3BF  00              db 00h
+   69 E3C0  49 77           db 49h,77h		; ld.lil (hl),a
+   70 E3C2  49 ED B0        db 49h,0EDh,0B0h    ; ldir.l
+   71                   
+   72 E3C5              inited:
+   73                   
+   74                   ; 6) copy system tracks from A: {FROM,FOFF} to {BANK,DEST}
+   75 E3C5  5B 21           db 5Bh,21h		; ld.lil hl,{FROM,FOFF+100h}
+   76 E3C7  6100            dw FOFF+100h
+   77 E3C9  3A              db FROM
+   78 E3CA  5B 11           db 5Bh,11h		; ld.lil de,{BANK,DEST}
+   79 E3CC  E400            dw DEST
+   80 E3CE  20              db BANK
+   81 E3CF  5B 01           db 5Bh,01h		; ld.lil bc,2*26*128-100h
+   82 E3D1  1900            dw 2*26*128-100h
+   83 E3D3  00              db 00h
+   84 E3D4  49 ED B0        db 49h,0EDh,0B0h    ; ldir.l
+   85                   
+   86                   ; 7) jump to BIOS address
+   87 E3D7  C3 FA00         jp BIOS
+   88                   
+   89 E3DA    0025          ds ORIG+0080h-$-1
+   90 E3FF              version:
+   91 E3FF  03              db VERS
+   92                   
+   93                       end
+ 0 Error(s) Detected.
+ 128 Absolute Bytes. 11 Symbols Detected.
+

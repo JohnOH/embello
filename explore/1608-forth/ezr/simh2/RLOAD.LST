@@ -1,0 +1,102 @@
+ROM loader for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   1
+RLOAD   Z80
+
+    2                   
+    3                   ; This ROM Loader runs in flash at 0000h when the eZ80 comes out of reset.
+    4                   ; It knows nothing about disk layouts, other than where RAM disk A: starts.
+    5                   ; The 1st 128 bytes are this code, the 2nd 128 bytes are for the System Loader.
+    6                   ; The System Loader runs in SRAM in Z80 mode, with MBASE and RAM_BANK both 20h.
+    7                   
+    8         001E      VERS equ 1Eh	 ; version, stored at end of this code
+    9                   
+   10         E000      SRAM equ 0E000h  ; starting address of common SRAM
+   11         E300      DEST equ 0E300h  ; load to this address in SRAM
+   12                   
+   13         0020      BANK equ 20h	 ; SRAM and MBASE are set to this bank
+   14         0021      SAVE equ 21h	 ; original SRAM contents is saved to this bank
+   15                   
+   16                   ; location of RAM disk:
+   17         003A      FROM  equ 3Ah	  ; bank from which to copy everything
+   18         6000      FOFF  equ 6000h	  ; starting page offset in FROM area
+   19                   
+   20                   ; 1) on power-up, this code starts at 0000h
+   21         0000          org 0000h
+   22                   
+   23                   ; ADL=0, PC=0000h, RAM_BANK=0FFh, MBASE=00h
+   24                   
+   25                   ; 2) enter ADL mode to switch to 24-bit addressing
+   26 0000  5B C3           db 5Bh,0C3h ; jp.lil {0h,$+3}
+   27 0002  0005            dw adlmode
+   28 0004  00              db 00h
+   29 0005              adlmode:
+   30                   
+   31                   ; ADL=1, PC={00h,adlmode}, RAM_BANK=0FFh, MBASE=00h
+   32                   
+   33                   ; 3) set MBASE now that we're in ADL mode
+   34 0005  3E 20           ld a,BANK
+   35 0007  ED 6D           db 0EDh,6Dh ; ld  mb,a
+   36                   
+   37                   ; ADL=1, PC={00h,$}, RAM_BANK=0FFh, MBASE=20h
+   38                   
+   39                   ; 4) disable ERAM and move SRAM to BANK
+   40 0009  26 50           ld h,80
+   41 000B  ED 21 B4        db 0EDh,21h,0B4h ; out0 (RAM_CTL),h ; disable ERAM
+   42 000E  ED 39 B5        db 0EDh,39h,0B5h ; out0 (RAM_BANK),a ; SRAM to BANK
+   43                   
+   44                   ; ADL=1, PC={00h,$}, RAM_BANK=20h, MBASE=20h
+   45                   
+   46                   ; 5) copy 8K SRAM {BANK,SRAM} to {SAVE,SRAM}
+   47 0011  21 E000         ld hl,SRAM
+   48 0014  20              db BANK
+   49 0015  11 E000         ld de,SRAM
+   50 0018  21              db SAVE
+   51 0019  01 2000         ld bc,2000h
+   52 001C  00              db 00h
+   53 001D  ED B0           ldir
+   54                   
+   55                   ; 6) load from A: disk only if the version byte matches
+   56 001F  21 6000         ld hl,FOFF
+   57 0022  3A              db FROM
+   58                   
+   59 0023  3A 607F         ld a,(FOFF+version)
+ROM loader for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   2
+RLOAD   Z80
+
+   60 0026  3A              db FROM
+   61 0027  FE 1E           cp a,VERS
+   62 0029  28 04           jr z,loader
+   63                   
+   64                   ; 7) no match, load from {00h,0000h} instead, i.e. flash
+   65 002B  21 0000         ld hl,0000h
+   66 002E  00              db 00h
+   67                   
+   68                   ; 8) load system loader to {BANK,DEST}
+   69 002F              loader:
+   70 002F  11 E300         ld de,DEST
+   71 0032  20              db BANK
+   72 0033  01 0100         ld bc,100h
+   73 0036  00              db 00h
+   74 0037  ED B0           ldir
+   75                   
+   76                   ; 9) switch from ADL mode to Z80 mode and jump to SLOAD address
+   77 0039  40 C3           db 40h,0C3h ; jp.sis SLOAD (this exits ADL mode)
+   78 003B  E380            dw SLOAD
+   79                   
+   80                   ; ADL=0, PC={MBASE,SLOAD}, RAM_BANK=20h, MBASE=20h
+   81                   
+   82 003D    0042          ds 0080h-$-1
+   83 007F              version:
+   84 007F  1E              db VERS
+   85                   
+   86         E380      SLOAD equ DEST+$
+   87                       end
+ 0 Error(s) Detected.
+ 256 Absolute Bytes. 11 Symbols Detected.
+   version:
+   89 007F  1C              db VERS
+   90                   
+   91         E380      SLOAD equ DEST+$
+   92                       end
+ 0 Error(s) Detected.
+ 256 Absolute Bytes. 11 Symbols Detected.
+

@@ -1,0 +1,425 @@
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   1
+MAXBIOS Z80
+
+    2                   
+    3                   ; memory map -------------------------------------------------------------------
+    4                   
+    5         E400      CCP     equ 0E400h
+    6         EC06      BDOS    equ CCP + 0806h
+    7         FA00      BIOS    equ CCP + 1600h
+    8                   
+    9         0020      BANK	equ 20h     ; SRAM and MBASE are set to this bank
+   10         003A      FROM	equ 3Ah     ; bank from which to copy everything
+   11         6000      FOFF	equ 6000h   ; starting page offset in FROM area
+   12         0023      FROM2	equ 23h     ; second RAM disk page
+   13         E000      FOFF2	equ 0E000h  ; second RAM disk offset
+   14                   
+   15                   ; low memory -------------------------------------------------------------------
+   16                   
+   17         0003      iobyte  equ 03h     ; Intel standard I/O definition byte
+   18         0004      usrdrv  equ 04h     ; Current user number and drive
+   19         0080      tpabuf  equ 0080h   ; Default I/O buffer and command line storage
+   20                   
+   21         FA00               org BIOS
+   22                   
+   23                   ; BIOS jump table --------------------------------------------------------------
+   24                   
+   25 FA00  C3 FACF     	jp boot     ;  0 Initialize
+   26 FA03  C3 FAF7     wboote: jp wboot    ;  1 Warm boot
+   27 FA06  C3 FB31     	jp conist   ;  2 Console status
+   28 FA09  C3 FB39     	jp conin    ;  3 Console input
+   29 FA0C  C3 FB42     	jp conout   ;  4 Console OUTput
+   30 FA0F  C3 FB50     	jp list     ;  5 List OUTput
+   31 FA12  C3 FB50     	jp punch    ;  6 punch OUTput
+   32 FA15  C3 FB4D     	jp reader   ;  7 Reader input
+   33 FA18  C3 FB73     	jp home     ;  8 Home disk
+   34 FA1B  C3 FB52     	jp seldsk   ;  9 Select disk
+   35 FA1E  C3 FB75     	jp settrk   ; 10 Select track
+   36 FA21  C3 FB7A     	jp setsec   ; 11 Select sector
+   37 FA24  C3 FB7F     	jp setdma   ; 12 Set DMA ADDress
+   38 FA27  C3 FB87     	jp read     ; 13 Read 128 bytes
+   39 FA2A  C3 FB9B     	jp write    ; 14 Write 128 bytes
+   40 FA2D  C3 FB50     	jp listst   ; 15 List status
+   41 FA30  C3 FB84     	jp sectrn   ; 16 Sector translate
+   42                   
+   43                   ; Disk Parameter Headers -------------------------------------------------------
+   44                   
+   45 FA33  0000  0000  dpbase:	dw 0,0,0,0,dirbuf,dpb0,0,alv0     ; A: R/W,  360K, RAM disk
+   46 FA43  0000  0000  	dw 0,0,0,0,dirbuf,dpb1,0,alv1     ; B: R/O,  256K, flash disk
+   47 FA53  0000  0000   	dw 0,0,0,0,dirbuf,dpb2,0,alv2	  ; C: R/W, 1440K, RAM disk, optional
+   48 FA63  0000  0000  	dw 0,0,0,0,dirbuf,dpb3,csv3,alv3  ; D: R/W, 1440K, remote disk
+   49 FA73  0000  0000  	dw 0,0,0,0,dirbuf,dpb3,csv4,alv4  ; E: R/O, 1440K, remote disk
+   50 FA83  0000  0000  	dw 0,0,0,0,dirbuf,dpb3,csv5,alv5  ; F: R/O, 1440K, remote disk
+   51                   
+   52 FA93  001A        dpb0:	dw 26  ; SPT - sectors per track
+   53 FA95  04          	db 4   ; BSH - block shift factor
+   54 FA96  0F          	db 15  ; BLM - block mask
+   55 FA97  01          	db 1   ; EXM - Extent mask
+   56 FA98  00AF        	dw 175 ; DSM - Storage size (blocks - 1)
+   57 FA9A  003F        	dw 63  ; DRM - Number of directory entries - 1
+   58 FA9C  80          	db 128 ; AL0 - 1 bit set per directory block
+   59 FA9D  00          	db 0   ; AL1 - ... 8 more bits
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   2
+MAXBIOS Z80
+
+   60 FA9E  0000        	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+   61 FAA0  0002        	dw 2   ; OFF - Reserved tracks
+   62                   
+   63 FAA2  001A        dpb1:	dw 26  ; SPT - sectors per track
+   64 FAA4  03          	db 3   ; BSH - block shift factor
+   65 FAA5  07          	db 7   ; BLM - block mask
+   66 FAA6  00          	db 0   ; EXM - Extent mask
+   67 FAA7  00F8        	dw 248 ; DSM - Storage size (blocks - 1)
+   68 FAA9  003F        	dw 63  ; DRM - Number of directory entries - 1
+   69 FAAB  C0          	db 192 ; AL0 - 1 bit set per directory block
+   70 FAAC  00          	db 0   ; AL1 - ... 8 more bits
+   71 FAAD  0000        	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+   72 FAAF  0002        	dw 2   ; OFF - Reserved tracks
+   73                   
+   74 FAB1  0048        dpb2:	dw 72  ; SPT - sectors per track
+   75 FAB3  04          	db 4   ; BSH - block shift factor
+   76 FAB4  0F          	db 15  ; BLM - block mask
+   77 FAB5  00          	db 0   ; EXM - Extent mask
+   78 FAB6  02CF        	dw 719 ; DSM - Storage size (blocks - 1)
+   79 FAB8  00FF        	dw 255 ; DRM - Number of directory entries - 1
+   80 FABA  F0          	db 240 ; AL0 - 1 bit set per directory block
+   81 FABB  00          	db 0   ; AL1 - ... 8 more bits
+   82 FABC  0000        	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+   83 FABE  0000        	dw 0   ; OFF - Reserved tracks
+   84                   
+   85 FAC0  0048        dpb3:	dw 72  ; SPT - sectors per track
+   86 FAC2  04          	db 4   ; BSH - block shift factor
+   87 FAC3  0F          	db 15  ; BLM - block mask
+   88 FAC4  00          	db 0   ; EXM - Extent mask
+   89 FAC5  02C6        	dw 710 ; DSM - Storage size (blocks - 1)
+   90 FAC7  00FF        	dw 255 ; DRM - Number of directory entries - 1
+   91 FAC9  F0          	db 240 ; AL0 - 1 bit set per directory block
+   92 FACA  00          	db 0   ; AL1 - ... 8 more bits
+   93 FACB  0040        	dw 64  ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+   94 FACD  0002        	dw 2   ; OFF - Reserved tracks
+   95                   
+   96                   ; Cold boot --------------------------------------------------------------------
+   97                   
+   98 FACF  F3          boot:	di
+   99 FAD0  31 0100     	ld sp,0100h
+  100 FAD3  21 FA00     	ld hl,BIOS
+  101 FAD6  22 FFFE     	ld (0FFFEh),hl
+  102                   
+  103                   	; initialise UART0 to 9600 baud
+  104                   
+  105 FAD9  21 0380     	ld hl,0380h
+  106 FADC  11 1A06     	ld de,1A06h
+  107 FADF  ED 21 A5    	db 0EDh,21h,0A5h        ; out0 (0A5h),h = 03h
+  108 FAE2  ED 29 C3    	db 0EDh,29h,0C3h        ; out0 (0C3h),l = 80h
+  109 FAE5  ED 11 C0    	db 0EDh,11h,0C0h        ; out0 (0C0h),d = 1Ah
+  110 FAE8  ED 21 C3    	db 0EDh,21h,0C3h        ; out0 (0C3h),h = 03h
+  111 FAEB  ED 19 C2    	db 0EDh,19h,0C2h        ; out0 (0C2h),e = 06h
+  112                   
+  113 FAEE  AF          	xor a
+  114 FAEF  32 0003     	ld (iobyte),a
+  115 FAF2  32 0004     	ld (usrdrv),a
+  116 FAF5  18 16       	jr gocpm
+  117                   
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   3
+MAXBIOS Z80
+
+  118                   ; Warm boot --------------------------------------------------------------------
+  119                   
+  120 FAF7  F3          wboot:	di
+  121 FAF8  31 0100     	ld sp,0100h
+  122                   
+  123                   	; copy 5.5K from {FROM,FOFF+0100h} to {BANK,CCP} to reload CCP
+  124                   
+  125 FAFB  5B 21       	db 5Bh,21h              ; ld.lil hl,{FROM,FOFF+0100h}
+  126 FAFD  6100        	dw FOFF+0100h
+  127 FAFF  3A          	db FROM
+  128 FB00  5B 11       	db 5Bh,11h              ; ld.lil de,{BANK,CCP}
+  129 FB02  E400        	dw CCP
+  130 FB04  20          	db BANK
+  131 FB05  5B 01       	db 5Bh,01h              ; ld.lil bc,BIOS-CCP
+  132 FB07  1600        	dw BIOS-CCP
+  133 FB09  00          	db 0
+  134 FB0A  49 ED B0    	db 49h,0EDh,0B0h        ; ldir.l
+  135                   
+  136                   ; Common code for cold and warm boot
+  137                   
+  138 FB0D  21 0080     gocpm:	ld hl,tpabuf            ; Address of BIOS DMA buffer
+  139 FB10  22 FC7D     	ld (dmaadr),hl
+  140                   
+  141 FB13  CD FC24     	call vinit		; set up SPI for virtual disks
+  142                   
+  143 FB16  3E C3       	ld a,0C3h               ; Opcode for 'JP'
+  144 FB18  32 0000     	LD (00h),a              ; Load at start of RAM
+  145 FB1B  21 FA03     	ld hl,wboote            ; Address of jump for a warm boot
+  146 FB1E  22 0001     	ld (01h),hl
+  147 FB21  32 0005     	ld (05h),a              ; Opcode for 'JP'
+  148 FB24  21 EC06     	ld hl,BDOS              ; Address of jump for the BDOS
+  149 FB27  22 0006     	ld (06h),hl
+  150 FB2A  3A 0004     	ld a,(usrdrv)           ; Save new drive number (0)
+  151 FB2D  4F          	ld c,a                  ; Pass drive number in C
+  152 FB2E  C3 E400     	jp CCP                  ; Start CP/M by jumping to the CCP
+  153                   
+  154                   ; Console I/O ------------------------------------------------------------------
+  155                   
+  156 FB31  ED 38 C5    conist:	db 0EDh,38h,0C5h ; in0 a,(0C5h)
+  157 FB34  E6 01       	and 01h
+  158 FB36  ED 44       	neg
+  159 FB38  C9          	ret
+  160                   
+  161 FB39  CD FB31     conin:	call conist
+  162 FB3C  28 FB       	jr z,conin
+  163 FB3E  ED 38 C0    	db 0EDh,38h,0C0h        ; in0 a,(0C0h)
+  164 FB41  C9          	ret
+  165                   
+  166 FB42  ED 38 C5    conout:	db 0EDh,38h,0C5h        ; in0 a,(0C5h)
+  167 FB45  E6 20       	and 20h
+  168 FB47  28 F9       	jr z,conout
+  169 FB49  ED 09 C0    	db 0EDh,09h,0C0h        ; out0 (0C0h),c
+  170 FB4C  C9          	ret
+  171                   
+  172 FB4D  3E 1A       reader:	ld a,1Ah
+  173 FB4F  C9          	ret
+  174                   
+  175 FB50              listst:
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   4
+MAXBIOS Z80
+
+  176 FB50              list:
+  177 FB50              punch:
+  178 FB50  AF          	xor a
+  179 FB51  C9          	ret
+  180                   
+  181                   ; Disk I/O ---------------------------------------------------------------------
+  182                   
+  183 FB52  79          seldsk: ld a,c
+  184 FB53  FE 06       	cp 6
+  185 FB55  30 0F               jr nc,baddsk
+  186 FB57  06 10               ld b,16
+  187 FB59  ED 4C       	db 0EDh,4Ch ; mlt bc
+  188 FB5B  21 FA33             ld hl,dpbase
+  189 FB5E  09                  add hl,bc
+  190 FB5F  32 FC83     savdsk:	ld (sekdsk),a
+  191 FB62  22 FC84             ld (sekdpt),hl
+  192 FB65  C9                  ret
+  193                   
+  194 FB66  21 0000     baddsk: ld hl,0
+  195 FB69  3A 0004             ld a,(usrdrv)
+  196 FB6C  91                  sub a,c
+  197 FB6D  C0                  ret nz
+  198 FB6E  32 0004             ld (usrdrv),a
+  199 FB71  18 EC               jr savdsk
+  200                   
+  201 FB73  0E 00       home:	ld c,0
+  202 FB75  79          settrk: ld a,c
+  203 FB76  32 FC86     	ld (sektrk),a
+  204 FB79  C9                  ret
+  205                   
+  206 FB7A  ED 43 FC87  setsec: ld (seksec),bc
+  207 FB7E  C9                  ret
+  208                   
+  209 FB7F  ED 43 FC7D  setdma: ld (dmaadr),bc
+  210 FB83  C9                  ret
+  211                   
+  212 FB84  69          sectrn: ld l,c
+  213 FB85  60          	ld h,b
+  214 FB86  C9                  ret
+  215                   
+  216 FB87  CD FC48     read:	call rwaddr
+  217                   
+  218 FB8A  FE 03               cp 3
+  219 FB8C  30 33               jr nc,vread		; D/E/F: are virtual
+  220                   
+  221 FB8E  5B 2A       	db 5Bh,2Ah              ; ld.lil hl,({BANK,dskadr})
+  222 FB90  FC80        	dw dskadr
+  223 FB92  20          	db BANK
+  224 FB93  5B ED 5B    	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dmaadr})
+  225 FB96  FC7D        	dw dmaadr
+  226 FB98  20          	db BANK
+  227                   
+  228 FB99  18 15       	jr rwop
+  229                   
+  230 FB9B  CD FC48     write:	call rwaddr
+  231                   
+  232 FB9E  B7                  or a			; A: is writable
+  233 FB9F  28 04               jr z,wram
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   5
+MAXBIOS Z80
+
+  234 FBA1  FE 02               cp 2			; C: is also writable
+  235 FBA3  20 15               jr nz,wother
+  236                   
+  237 FBA5  5B 2A       wram:	db 5Bh,2Ah              ; ld.lil hl,({BANK,dmaadr})
+  238 FBA7  FC7D        	dw dmaadr
+  239 FBA9  20          	db BANK
+  240 FBAA  5B ED 5B    	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dskadr})
+  241 FBAD  FC80        	dw dskadr
+  242 FBAF  20          	db BANK
+  243                   
+  244 FBB0  5B 01 80 00 rwop:	db 5Bh,01h,80h,00h,00h  ; ld.lil bc,000080h
+  245 FBB5  49 ED B0    	db 49h,0EDh,0B0h        ; ldir.l
+  246 FBB8  AF          	xor a
+  247 FBB9  C9          	ret
+  248                   
+  249 FBBA  FE 03       wother:	cp 3			; D: is virtual and writable
+  250 FBBC  28 1D               jr z,vwrite
+  251 FBBE  3E 02       	ld a,2			; disk is read-only
+  252 FBC0  C9          	ret
+  253                   
+  254         009A      PB_DR	equ 9Ah
+  255         009B      PB_DDR	equ 9Bh
+  256         009C      PB_ALT1	equ 9Ch
+  257         009D      PB_ALT2	equ 9Dh
+  258                   
+  259         00B8      SPI_BRGL equ 0B8h
+  260         00B9      SPI_BRGH equ 0B9h
+  261         00BA      SPI_CTL  equ 0BAh
+  262         00BB      SPI_SR   equ 0BBh
+  263         00BC      SPI_TSR  equ 0BCh
+  264         00BC      SPI_RBR  equ 0BCh
+  265                   
+  266                   ; Virtual disk read, disk# in A
+  267                   
+  268 FBC1  F6 20       vread:  or 20h			; tag as read request
+  269 FBC3  CD FBEE     	call vrwop		; 0..3: request
+  270 FBC6  CD FC06             call vidle		; wait until idle
+  271 FBC9  AF          	xor a
+  272 FBCA  CD FC18     vread1:	call vxfer		; 0..127: read data
+  273 FBCD  77          	ld (hl),a
+  274 FBCE  23          	inc hl
+  275 FBCF  10 F9       	djnz vread1
+  276 FBD1  AF          vdone:	xor a
+  277 FBD2  ED 08 9A    vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+  278 FBD5  CB C1       	set 0,c			; set NSS high (PB0)
+  279 FBD7  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+  280 FBDA  C9                  ret
+  281                   
+  282                   ; Virtual disk write, disk# in A
+  283                   
+  284 FBDB  F6 30       vwrite:	or 30h			; tag as write request
+  285 FBDD  CD FBEE     	call vrwop		; 0..3: request
+  286 FBE0  CD FC16     vwrit1:	call vnext		; 4..131: write data
+  287 FBE3  10 FB       	djnz vwrit1
+  288 FBE5  CD FC06             call vidle		; wait until idle
+  289 FBE8  AF          	xor a
+  290 FBE9  CD FC18     	call vxfer		; get write status
+  291 FBEC  18 E3       	jr vdone		; TODO should be vstop
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   6
+MAXBIOS Z80
+
+  292                   
+  293                   ; Common virtual read/write code to send 4-byte request header
+  294                   ; Expects request code in A
+  295                   ; Returns DMA address in HL, 128 in B
+  296                   
+  297 FBEE  CD FC06     vrwop:	call vidle		; wait until idle
+  298 FBF1  CD FC18             call vxfer		; 0: write request (seldsk+8)
+  299 FBF4  21 FC80             ld hl,dskadr
+  300 FBF7  CD FC16             call vnext		; 1: offset, bits 7..0
+  301 FBFA  CD FC16             call vnext		; 2: offset, bits 15..8
+  302 FBFD  CD FC16             call vnext		; 3: offset, bits 23..16
+  303 FC00  2A FC7D     	ld hl,(dmaadr)
+  304 FC03  06 80       	ld b,128
+  305 FC05  C9          	ret
+  306                   
+  307 FC06  CD FBD2     vidle:	call vstop
+  308 FC09  ED 08 9A    vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+  309 FC0C  CB 49       	bit 1,c			; test BUSY (PB1)
+  310 FC0E  20 F9       	jr nz,vidle1		; reply is not zero, repeat
+  311 FC10  CB 81       	res 0,c			; set NSS low (PB0)
+  312 FC12  ED 09 9A    	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+  313 FC15  C9          	ret
+  314                   
+  315 FC16  7E          vnext:	ld a,(hl)
+  316 FC17  23          	inc hl
+  317 FC18  ED 39 BC    vxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
+  318 FC1B  ED 38 BB    vxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
+  319 FC1E  28 FB       	jr z,vxfer1
+  320 FC20  ED 38 BC    	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
+  321 FC23  C9                  ret
+  322                   
+  323 FC24  3E 89       vinit:	ld a,89h
+  324 FC26  ED 39 9A    	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
+  325 FC29  3E CE       	ld a,0CEh
+  326 FC2B  ED 39 9B    	db 0EDh,39h,PB_DDR	; out0 (PB_DDR),a
+  327 FC2E  3E 00       	ld a,00h
+  328 FC30  ED 39 9C    	db 0EDh,39h,PB_ALT1	; out0 (PB_ALT1),a
+  329 FC33  3E CC       	ld a,0CCh
+  330 FC35  ED 39 9D    	db 0EDh,39h,PB_ALT2	; out0 (PB_ALT2),a
+  331 FC38  3E 00       	ld a,00H
+  332 FC3A  ED 39 B9    	db 0EDh,39h,SPI_BRGH	; out0 (SPI_BRG_H),a
+  333 FC3D  3E 03       	ld a,03h
+  334 FC3F  ED 39 B8    	db 0EDh,39h,SPI_BRGL	; out0 (SPI_BRG_L),a
+  335 FC42  3E 30       	ld a,30h
+  336 FC44  ED 39 BA    	db 0EDh,39h,SPI_CTL	; out0 (SPI_CTL),a
+  337 FC47  C9          	ret
+  338                   
+  339                   ; Convert selected disk+track+sector to a memory address
+  340                   ; Returns current disk in A, 24-bit address in dskadr[0..2], upper 16-bit in HL
+  341                   
+  342 FC48  2A FC84     rwaddr:	ld hl,(sekdpt)
+  343 FC4B  01 000A             ld bc,10
+  344 FC4E  09                  add hl,bc
+  345 FC4F  ED 27               db 0EDh,27h             ; ld hl,(hl) ; dpb
+  346 FC51  7E                  ld a,(hl)               ; spt
+  347 FC52  ED 4B FC86          ld bc,(sektrk)
+  348 FC56  47          	ld b,a
+  349 FC57  ED 4C       	db 0EDh,4Ch             ; mlt bc
+Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17 Z80ASM 1.32 Page   7
+MAXBIOS Z80
+
+  350                   	; BC = track, converted to linear sector offset
+  351 FC59  2A FC87     	ld hl,(seksec)
+  352 FC5C  09          	add hl,bc
+  353                   	; HL = bits 30..23 of the requested disk block address
+  354 FC5D  AF          	xor a
+  355 FC5E  CB 1C       	rr h
+  356 FC60  CB 1D       	rr l
+  357 FC62  1F          	rra
+  358                   	; A = bits 7..0 of the 24-bit disk-block address
+  359 FC63  32 FC80     	ld (dskadr),a
+  360                   	; add the disk base to bits 23..16, if drive A: or C:
+  361 FC66  3A FC83             ld a,(sekdsk)
+  362 FC69  B7                  or a
+  363 FC6A  20 05               jr nz,rwadr1
+  364 FC6C  01 3A60     	ld bc,FROM*256+(FOFF/256)   ; A: is RAM disk at (FROM,FOFF)
+  365 FC6F  18 07       	jr rwadr2
+  366 FC71  FE 02       rwadr1: cp 2			    ; B/D/E/F: do not have an offset
+  367 FC73  20 04       	jr nz,rwadr3
+  368 FC75  01 23E0     	ld bc,FROM2*256+(FOFF2/256) ; C: is RAM disk at (FROM2,FOFF2)
+  369 FC78  09          rwadr2:	add hl,bc
+  370 FC79              rwadr3: ; HL = bits 23..8 of the 24-bit disk-block address
+  371 FC79  22 FC81     	ld (dskadr+1),hl
+  372 FC7C  C9          	ret
+  373                   
+  374                   ; Data area --------------------------------------------------------------------
+  375                   
+  376 FC7D  80 00 20    dmaadr: db 80h,00h,BANK ; last dma address + bank
+  377                   
+  378                   ; End of initialised data
+  379                   
+  380 FC80    0003      dskadr: ds 3   ; disk address + bank
+  381                   
+  382 FC83    0001      sekdsk: ds 1   ; seek disk number
+  383 FC84    0002      sekdpt: ds 2   ; seek disk parameter table
+  384 FC86    0001      sektrk: ds 1   ; seek track number
+  385 FC87    0002      seksec: ds 2   ; seek sector number
+  386                   
+  387 FC89    0080      dirbuf: ds 128 ; scratch directory area
+  388                   
+  389 FD09    002E      alv0:   ds 46  ; allocation vector 0 (max 360 blocks)
+  390 FD37    0020      alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
+  391 FD57    005B      alv2:   ds 91  ; allocation vector 2 (max 720 blocks)
+  392 FDB2    005B      alv3:   ds 91  ; allocation vector 3 (max 720 blocks)
+  393 FE0D    005B      alv4:   ds 91  ; allocation vector 4 (max 720 blocks)
+  394 FE68    005B      alv5:   ds 91  ; allocation vector 5 (max 720 blocks)
+  395                   
+  396 FEC3    0040      csv3:   ds 64  ; checksum vector 3 (max 256 dir entries)
+  397 FF03    0040      csv4:   ds 64  ; checksum vector 4 (max 256 dir entries)
+  398 FF43    0040      csv5:   ds 64  ; checksum vector 5 (max 256 dir entries)
+  399                   
+  400         FF83      biosEnd equ $ ; ----------------------------------------------------------------
+  401                   
+  402                           end
+ 0 Error(s) Detected.
+ 1411 Absolute Bytes. 84 Symbols Detected.
+

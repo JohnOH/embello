@@ -1,0 +1,93 @@
+title System loader for eZ80 -jcw, 2017-03-17
+
+; The System Loader is loaded by the ROM loader from A: track 0, sector 1.
+; It first inits the RAM disks, if they do not contain initialised content.
+; Next, it loads the system starting from A: track 0, sector 2.
+; As last step, the System Loader jumps to the BIOS cold start address.
+
+VERS equ 03h	 ; version, stored at end of this code
+
+ORIG equ 0E380h  ; run at this address
+DEST equ 0E400h  ; load to this address
+BIOS equ 0FA00h	 ; exit with a jump to this address
+
+BANK equ 20h	 ; SRAM and MBASE are set to this bank
+
+; location of RAM disks
+FROM  equ 3Ah	  ; bank from which to copy everything
+FOFF  equ 6000h	  ; starting page offset in FROM area
+FROM2 equ 23h     ; second RAM disk page
+FOFF2 equ 0E000h  ; second RAM disk offset
+
+; 1) on power-up, this code starts off at 0E380h
+    org ORIG
+
+; 2) init both RAM disks if the version byte doesn't match
+    db 5Bh,3Ah		; ld.lil a,({FROM,FOFF+version-ORIG+(DEST-ORIG)})
+    dw FOFF+version-ORIG+(DEST-ORIG)
+    db FROM
+    cp a,VERS
+    jr z,inited
+
+    ld a,0E5h
+
+; 3) wipe SRAM drive C: {FROM2,FOFF2} directory (in case SRAM is 2048K)
+    db 5Bh,21h		; ld.lil hl,{FROM2,FOFF2}
+    dw FOFF2
+    db FROM2
+    db 5Bh,11h		; ld.lil de,{FROM2,FOFF2+1}
+    dw FOFF2+1
+    db FROM2
+    db 5Bh,01h		; ld.lil bc,64*128-1
+    dw 64*128-1
+    db 00h
+    db 49h,77h		; ld.lil (hl),a
+    db 49h,0EDh,0B0h    ; ldir.l
+
+; 4) copy system tracks from B: {00h,0000h} to A: {FROM,FOFF}
+    db 5Bh,21h		; ld.lil hl,{00h,0000h}
+    dw 0000h
+    db 00h
+    db 5Bh,11h		; ld.lil de,{FROM,FOFF}
+    dw FOFF
+    db FROM
+    db 5Bh,01h		; ld.lil bc,2*26*128
+    dw 2*26*128
+    db 00h
+    db 49h,0EDh,0B0h    ; ldir.l
+
+; 5) then wipe the SRAM drive A: directory
+    db 5Bh,21h		; ld.lil hl,{FROM,FOFF+(2*26*128)}
+    dw FOFF+(2*26*128)
+    db FROM
+    db 5Bh,11h		; ld.lil de,{FROM,FOFF+(2*26*128)+1}
+    dw FOFF+(2*26*128)+1
+    db FROM
+    db 5Bh,01h		; ld.lil bc,16*128-1
+    dw 16*128-1
+    db 00h
+    db 49h,77h		; ld.lil (hl),a
+    db 49h,0EDh,0B0h    ; ldir.l
+
+inited:
+
+; 6) copy system tracks from A: {FROM,FOFF} to {BANK,DEST}
+    db 5Bh,21h		; ld.lil hl,{FROM,FOFF+100h}
+    dw FOFF+100h
+    db FROM
+    db 5Bh,11h		; ld.lil de,{BANK,DEST}
+    dw DEST
+    db BANK
+    db 5Bh,01h		; ld.lil bc,2*26*128-100h
+    dw 2*26*128-100h
+    db 00h
+    db 49h,0EDh,0B0h    ; ldir.l
+
+; 7) jump to BIOS address
+    jp BIOS
+
+    ds ORIG+0080h-$-1
+version:
+    db VERS
+
+    end

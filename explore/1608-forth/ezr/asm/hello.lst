@@ -1,0 +1,54 @@
+# File hello.asm
+0000				org $E000 
+e000			 
+e000			pd_alt2:    equ $A5 
+e000			uart0_thr:  equ $C0 
+e000			uart0_rbr:  equ $C0 
+e000			uart0_brgl: equ $C0 
+e000			uart0_fctl: equ $C2 
+e000			uart0_lctl: equ $C3 
+e000			uart0_lsr:  equ $C5 
+e000			 
+e000 06 00		init:	ld  b, 0 
+e002			 
+e002 0e a5			ld  c, pd_alt2 
+e004 3e 03			ld  a, $03 
+e006 ed 79			out (c), a 
+e008			 
+e008 0e c3			ld  c, uart0_lctl 
+e00a 3e 80			ld  a, $80 
+e00c ed 79			out (c), a 
+e00e			 
+e00e 0e c0			ld  c, uart0_brgl 
+e010 3e 1a			ld  a, $1A 
+e012 ed 79			out (c), a 
+e014			 
+e014 0e c3			ld  c, uart0_lctl 
+e016 3e 03			ld  a, $03 
+e018 ed 79			out (c), a 
+e01a			 
+e01a 0e c2			ld  c, uart0_fctl 
+e01c 3e 06			ld  a, $06 
+e01e ed 79			out (c), a 
+e020			 
+e020 21 39 e0		print:	ld  hl, msg 
+e023 7e			prloop:	ld  a, (hl) 
+e024 a7				and a 
+e025 28 10			jr  z, done 
+e027 0e c5		prwait:	ld  c, uart0_lsr 
+e029 ed 78			in  a, (c) 
+e02b e6 20			and $20 
+e02d 28 f8			jr  z, prwait 
+e02f 0e c0		prout:	ld  c, uart0_thr 
+e031 7e				ld  a, (hl) 
+e032 ed 79			out (c), a 
+e034 23				inc hl 
+e035 18 ec			jr  prloop 
+e037			 
+e037 18 fe		done:	jr  done 
+e039			 
+e039 .. 0a 0d 00	msg:	dm  "Hello world!", 10, 13, 0 
+e048			 
+e048				end 
+# End of file hello.asm
+e048

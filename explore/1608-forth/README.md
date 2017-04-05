@@ -13,6 +13,7 @@ structure of these directories, and how source files should be loaded:
 * **`prc`** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
 * **`qld`** - Quick Loader -  using a Blue Pill to  re-flash a JNZ via SPI
 * **`rvm`** - Remote voltmeter w/ STM32L052 and a 4-chan Analog Plug
+* **`sic`** - Soldering Iron Controller
 * **`suf`** - Serial USB driver for Forth, routes console I/O over USB
 * **`ten`** - Test Echo Node, used for testing JeeNode Zero boards
 * **`tex`** - Tiny Extender, a HyTiny w/ extender board for RFM69 + SPI flash

@@ -1,0 +1,82 @@
+title Copy RAM disk A: to eZ80 flash disk B: -jcw, 2017-03-18
+
+; Usage: ezflash
+
+WSTART	equ	0000h
+BDOS	equ	0005h
+
+PRTSTR  equ     9
+SELDSK  equ     14
+GETADR  equ     31
+
+	org 100h
+
+        ld e,1          ; select drive B:
+        ld c,SELDSK
+        call BDOS
+
+        ld c,GETADR     ; get DPB of B:
+        call BDOS
+        push hl
+
+        ld e,0          ; select drive A:
+        ld c,SELDSK
+        call BDOS
+
+        ld c,GETADR     ; get DPB of A:
+        call BDOS
+
+        pop de
+        ld b,15
+
+cmpdpb: ld a,(de)       ; check that DBPs are same
+        cp a,(hl)
+        jr nz,fail
+        inc de
+        inc hl
+        djnz cmpdpb
+
+	ld bc,00F5h     ; FLASH_KEY
+	ld a,0B6h       ; key 1
+	out (c),a
+	ld a,49h        ; key 2
+	out (c),a
+
+	ld c,0F9h       ; FLASH_FDIV
+	ld a,41         ; ceil[mhz*5.1], i.e. 41 for 8 MHz
+	out (c),a
+
+	ld c,0F5h       ; FLASH_KEY
+	ld a,0B6h       ; key 1
+	out (c),a
+	ld a,49h        ; key 2
+	out (c),a
+
+	ld c,0FAh       ; FLASH_PROT
+	ld a,00h        ; unprotect all 8 blocks
+	out (c),a
+
+	ld c,0FFh       ; FLASH_PGCTL
+	ld a,01h        ; start mass erase
+	out (c),a
+
+	db 5Bh,21h,00h,60h,03Ah ; ld.lil hl,$3A6000
+	db 5Bh,11h,00h,00h,00h  ; ld.lil de,$000000
+	db 5Bh,01h,00h,00h,04h  ; ld.lil bc,$040000
+	db 49h,0EDh,0B0h        ; ldir.l
+
+	ld bc,00FAh     ; FLASH_PROT
+	ld a,0FFh       ; protect all 8 blocks
+	out (c),a
+
+        jp 0000h
+
+fail:   ld de,msg
+        ld c,PRTSTR
+        call BDOS
+        jp 0000h
+
+msg:    db "A: wrong fmt!$"
+
+        org $
+        end
