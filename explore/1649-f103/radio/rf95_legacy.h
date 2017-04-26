@@ -1,4 +1,4 @@
-// Legacy mode RF95 driver.
+// Legacy mode RF69 driver.
 
 #ifndef chThdYield
 #define chThdYield() // FIXME should be renamed, ChibiOS leftover
@@ -13,6 +13,8 @@ class RF69 {
     void txPower (uint8_t level);
     uint16_t crc_ccitt_update (uint16_t crc, uint8_t data);
 	void delay_3t (uint64_t cycles);
+	void setMode (uint8_t newMode);
+
 
     int receive (void* ptr, int len);
     uint send (uint8_t header, const void* ptr, int len);
@@ -38,31 +40,31 @@ class RF69 {
     enum {
       REG_FIFO          = 0x00,
       REG_OPMODE        = 0x01,
-      REG_FRFMSB        = 0x06,
-      REG_PALEVEL       = 0x09,
-      REG_LNAVALUE      = 0x0C,
+      REG_FRFMSB        = 0x07,
+      REG_PALEVEL       = 0x11,
+      REG_LNAVALUE      = 0x18,
       REG_AFCMSB        = 0x1F,
       REG_AFCLSB        = 0x20,
       REG_FEIMSB        = 0x21,
       REG_FEILSB        = 0x22,
-      REG_RSSIVALUE     = 0x11,
-	  REG_DIOMAPPING1   = 0x40,
-      REG_IRQFLAGS1     = 0x3E,
-      REG_IRQFLAGS2     = 0x3F,
-      REG_SYNCVALUE1    = 0x28,
-      REG_SYNCVALUE2    = 0x29,
-      REG_SYNCVALUE4	= 0x2B,
-	  REG_SYNCVALUE5    = 0x2C,
+      REG_RSSIVALUE     = 0x24,
+	  REG_DIOMAPPING1   = 0x25,
+      REG_IRQFLAGS1     = 0x27,
+      REG_IRQFLAGS2     = 0x28,
+      REG_SYNCVALUE1    = 0x2F,
+      REG_SYNCVALUE2    = 0x30,
+      REG_SYNCVALUE4	= 0x32,
+	  REG_SYNCVALUE5    = 0x33,
       REG_NODEADDR      = 0x39,
       REG_BCASTADDR     = 0x3A,
-      REG_FIFOTHRESH    = 0x35,
+      REG_FIFOTHRESH    = 0x3C,
       REG_PKTCONFIG2    = 0x3D,
       REG_AESKEYMSB     = 0x3E,
 
-      MODE_SLEEP        = 0,
-      MODE_STANDBY      = 1,
-      MODE_TRANSMIT     = 3,
-      MODE_RECEIVE      = 5,
+      MODE_SLEEP        = 0<<2,
+      MODE_STANDBY      = 1<<2,
+      MODE_TRANSMIT     = 3<<2,
+      MODE_RECEIVE      = 4<<2,
 
       START_TX          = 0xC2,
       STOP_TX           = 0x42,
@@ -88,7 +90,6 @@ class RF69 {
       DIO3_RSSI         = 0x01
     };
 
-    void setMode (uint8_t newMode);
     void configure (const uint8_t* p);
     void setFrequency (uint32_t freq);
 
@@ -101,7 +102,7 @@ class RF69 {
 template< typename SPI >
 void RF69<SPI>::setMode (uint8_t newMode) {
   mode = newMode;
-  writeReg(REG_OPMODE, (readReg(REG_OPMODE) & 0xF8) | newMode);
+  writeReg(REG_OPMODE, (readReg(REG_OPMODE) & 0xE3) | newMode);
   while ((readReg(REG_IRQFLAGS1) & IRQ1_MODEREADY) == 0)
     ;
 }
@@ -137,37 +138,38 @@ void RF69<SPI>::configure (const uint8_t* p) {
 
 static const uint8_t configRegs [] = {
 // POR value is better for first rf_sleep  0x01, 0x00, // OpMode = sleep
-  0x40, 0x00, // Set DIOMAPPING1 to POR value
-  0x02, 0x02, // BitRateMsb, data rate = 49,261 khz
-  0x03, 0x8A, // BitRateLsb, divider = 32 MHz / 650 == 49,230 khz
-  0x04, 0x05, // FdevMsb = 90 KHz
-  0x05, 0xC3, // FdevLsb = 90 KHz
-  0x09,	0x0F, // RegPaConfig
-//  0x0B, 0x20, // AfcCtrl, afclowbetaon
+  0x25, 0x00, // Set DIOMAPPING1 to POR value
+  0x02, 0x00, // DataModul = packet mode, fsk
+  0x03, 0x02, // BitRateMsb, data rate = 49,261 khz
+  0x04, 0x8A, // BitRateLsb, divider = 32 MHz / 650 == 49,230 khz
+  0x05, 0x05, // FdevMsb = 90 KHz
+  0x06, 0xC3, // FdevLsb = 90 KHz
 
-  0x12, 0xE2, // RxBw 125 KHz, if DCC set to 0 is more sensitive
-  0x13, 0xF7, // RxBwAFC 2.6 Khz Only handling initial RSSI phase, not payload!
+  0x0B, 0x20, // AfcCtrl, afclowbetaon
 
-//  0x1E, 0x00, // 
+  0x19, 0xE2, // RxBw 125 KHz, if DCC set to 0 is more sensitive
+  0x1A, 0xF7, // RxBwAFC 2.6 Khz Only handling initial RSSI phase, not payload!
 
-  0x24, 0x07, // disable clkout
+  0x1E, 0x00, // 
 
-//  0x10, 0xD2, // RssiThresh ... -110dB
-  0x10, 0xA0, // RssiThresh ... -80dB
+  0x26, 0x07, // disable clkout
 
-  0x27, 0x13, // SyncConfig = sync on, sync size = 4
-  0x28, 0xAA, // SyncValue1 = 0xAA
-  0x29, 0xAA, // SyncValue2 = 0xAA
-  0x2A, 0x2D, // SyncValue3 = 0x2D
-  0x2B, 0xD4, // SyncValue4 = 212, Group
-  0x2C, 0x00, // SyncValue5
+//  0x29, 0xD2, // RssiThresh ... -110dB
+  0x29, 0xA0, // RssiThresh ... -80dB
+
+  0x2E, 0x98, // SyncConfig = sync on, sync size = 4
+  0x2F, 0xAA, // SyncValue1 = 0xAA
+  0x30, 0xAA, // SyncValue2 = 0xAA
+  0x31, 0x2D, // SyncValue3 = 0x2D
+  0x32, 0xD4, // SyncValue4 = 212, Group
+  0x33, 0x00, // SyncValue5
   
-  0x30, 0x00, // PacketConfig1 = fixed, no crc, filt off
-  0x32, 0x00, // PayloadLength = 0, unlimited
-  0x35, 0x85, // at least four bytes in the FIFO :id:len=0:crc-l:crc-h:
-//  0x3D, 0x10, // PacketConfig2, interpkt = 1, autorxrestart off
-//  0x58, 0x2D, // High sensitivity mode
-//  0x6F, 0x30, // TestDagc ...
+  0x37, 0x00, // PacketConfig1 = fixed, no crc, filt off
+  0x38, 0x00, // PayloadLength = 0, unlimited
+  0x3C, 0x85, // at least four bytes in the FIFO :id:len=0:crc-l:crc-h:
+  0x3D, 0x10, // PacketConfig2, interpkt = 1, autorxrestart off
+  0x58, 0x2D, // High sensitivity mode
+  0x6F, 0x30, // TestDagc ...
   0
 };
 
@@ -233,7 +235,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
 	if (mode != MODE_RECEIVE) {
 		setMode(MODE_SLEEP);
 		writeReg(REG_IRQFLAGS2, IRQ2_FIFOOVERRUN);  	// Clear FIFO
-//		writeReg(REG_DIOMAPPING1, (DIO0_SYNCADDRESS | DIO3_RSSI));// Interrupt triggers
+		writeReg(REG_DIOMAPPING1, (DIO0_SYNCADDRESS | DIO3_RSSI));// Interrupt triggers
     	setMode(MODE_RECEIVE);
     } else {
 		static uint8_t lastFlag;
@@ -242,7 +244,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
 			lastFlag ^= IRQ1_RXREADY;
 			if (lastFlag) { // flag just went from 0 to 1
 				rssi = readReg(REG_RSSIVALUE);
-				lna = (readReg(REG_LNAVALUE) >> 5) & 0x7;
+				lna = (readReg(REG_LNAVALUE) >> 3) & 0x7;
 #if RF69_SPI_BULK
 				spi.enable();
 				spi.transfer(REG_AFCMSB);
@@ -396,60 +398,3 @@ uint16_t RF69<SPI>::crc_ccitt_update (uint16_t i_crc, uint8_t i_data) {
     crc = (crc >> 4) ^ crcTable[crc&0x0F] ^ crcTable[data&0x0F];
     return (crc >> 4) ^ crcTable[crc&0x0F] ^ crcTable[data>>4];	*/
 }
-
-volatile int external2;
-volatile int external3;
-volatile int millis2;
-volatile int millis3;
-volatile int timer;
-volatile bool flagT;
-volatile uint32_t time;
-volatile uint16_t RssiSync;
-
-extern "C" void exti2_isr(void)			//ISR function 
-/*
-
-File github/libopencm3/lib/stm32/f1/vector_nvic.c has a weak link to a blocking handler:
-#pragma weak exti2_isr = blocking_handler
-The above weak link is by default built into the IRQ_HANDLERS table by
-    [NVIC_EXTI2_IRQ] = exti2_isr, \
-this effectively handles the interrupt with the blocking handler.
-The extern "C" definition above overrides the weak link and thereby causes our
-our interrupt handler below to be linked into the IRQ_HANDLERS table:
-
-*/
-{
-      if((EXTI_PR & EXTI2) != 0)   		//Check if PB9 has triggered the interrupt
-      {                                 
-        EXTI_PR |= EXTI2;				//Clear PA2
-		timer_enable_counter(TIM3);
-        external2++;
-      }
-
-}
-
-extern "C" void exti3_isr(void)			//ISR function 
-{
-      if((EXTI_PR & EXTI3) != 0)   		//Check if PA3 has triggered the interrupt
-      {                                 
-        EXTI_PR |= EXTI3;				//Clear PA3
-		timer_disable_counter(TIM3);
-		RssiSync = timer_get_counter(TIM3);
-		timer_set_counter(TIM3, 0);
-        external3++;
-      }
-
-}
-
-extern "C" void tim3_isr(void)
-{
-	TIM_SR(TIM3) &= ~TIM_SR_UIF;
-	RF69<SpiDev> rf;
-//	rf.setMode(MODE_RECEIVE);
-	flagT = true;
-	timer_disable_counter(TIM3);
-	RssiSync = timer_get_counter(TIM3);
-	timer_set_counter(TIM3, 0);
-	timer++;
-}
-
