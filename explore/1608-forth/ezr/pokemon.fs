@@ -21,9 +21,9 @@ compiletoram? [if]  forgetram  [then]
   cr ;
 
 PB0 constant XIN
-PB1 constant RST
+PB2 constant ZDA
 PB4 constant ZCL
-PB5 constant ZDA
+PB8 constant RST
 
 : ez80-8MHz ( -- )
   7200 XIN pwm-init   \ first set up pwm correctly
@@ -31,9 +31,9 @@ PB5 constant ZDA
   9996 XIN pwm ;      \ finally, set the pwm to still toggle
 
 : z ( -- )
-  RST ios!  OMODE-OD RST io-mode!
   ZDA ios!  OMODE-OD ZDA io-mode!
   ZCL ios!  OMODE-PP ZCL io-mode!
+  RST ios!  OMODE-OD RST io-mode!
   ez80-8MHz ;
 
 : delay 10 0 do loop ;
