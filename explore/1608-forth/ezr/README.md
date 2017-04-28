@@ -38,3 +38,11 @@ SPI interconnect, eZ80 is master:
     PB13 = eZ80 SCK,  pin 103
     PB14 = eZ80 MISO, pin 106
     PB15 = eZ80 MOSI, pin 107
+
+EZ-Retro v2 build, after the [PCB fixes](http://jeelabs.org/article/1717e):
+
+![](image.jpg)
+
+Schematic of the STM32F103 board ([from eBay](http://www.ebay.com/itm/222253881878)):
+
+![](schematic.jpg)
