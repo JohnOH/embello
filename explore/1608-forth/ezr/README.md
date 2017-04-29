@@ -1,4 +1,4 @@
-## EZ80 Retro v2
+## EZ-Retro v2
 
 > For pinouts and code related to the hand-wired EZ-Retro v1, see [this
 > snapshot](https://github.com/jeelabs/embello/tree/35cb87499ef61468ee42d1ae6326ffff1cd79f05/explore/1608-forth/ezr).
