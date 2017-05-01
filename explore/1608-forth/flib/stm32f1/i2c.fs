@@ -26,8 +26,8 @@ $40005800 constant I2C2
 \    RCC $04 + constant RCC-CFGR
      RCC $10 + constant RCC-APB1RSTR
      RCC $14 + constant RCC-AHBENR
-     RCC $18 + constant RCC-APB2ENR
-     RCC $1C + constant RCC-APB1ENR
+\    RCC $18 + constant RCC-APB2ENR
+\    RCC $1C + constant RCC-APB1ENR
 
      0 variable i2c.cnt
      0 variable i2c.addr

@@ -8,6 +8,8 @@
   chipid 1 do xor loop ;
 : flash-kb ( -- u )  \ return size of flash memory in KB
   $1FFFF7E0 h@ ;
+: flash-pagesize ( addr - u )  \ return size of flash page at given address
+  drop flash-kb 128 <= if 1024 else 2048 then ;
 
 : bit ( u -- u )  \ turn a bit position into a single-bit mask
   1 swap lshift  1-foldable ;
@@ -52,7 +54,6 @@ $40022000 constant FLASH
   c,collection @ if 0 c, then ;
 
 : cornerstone ( "name" -- )  \ define a flash memory cornerstone
-  \ round to 2K pages, even when generated on a chip which supports 1K
-  <builds begin here $7FF and while 0 h, repeat
-  does>   begin dup  $7FF and while 2+   repeat  cr
+  <builds begin here dup flash-pagesize 1- and while 0 h, repeat
+  does>   begin dup  dup flash-pagesize 1- and while 2+   repeat  cr
   eraseflashfrom ;

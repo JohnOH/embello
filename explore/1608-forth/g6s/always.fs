@@ -3,12 +3,19 @@
 $5000 eraseflashfrom  \ need to start off with a clean Mecrisp image
 compiletoflash
 
+: chipid ( -- u1 u2 u3 3 )  \ unique chip ID as N values on the stack
+  $1FFFF7E8 @ $1FFFF7EC @ $1FFFF7F0 @ 3 ;
+: hwid ( -- u )  \ a "fairly unique" hardware ID as single 32-bit int
+  chipid 1 do xor loop ;
+: flash-kb ( -- u )  \ return size of flash memory in KB
+  $1FFFF7E0 h@ ;
+: flash-pagesize ( addr - u )  \ return size of flash page at given address
+  drop flash-kb 128 <= if 1024 else 2048 then ;
+
 : cornerstone ( "name" -- )  \ define a flash memory cornerstone
-  \ assume 2048-byte pages, in case this is an F103 w/ 256K flash or more
-  \ it's a bit wasteful on 64..128K chips, but will work fine there as well
-  \ to avoid the waste on small chips, change 2047 to 1023 in both lines below
-  <builds   begin here 2047 and while 0 h, repeat
-  does> cr  begin dup  2047 and while 2+   repeat  cr eraseflashfrom ;
+  <builds begin here dup flash-pagesize 1- and while 0 h, repeat
+  does>   begin dup  dup flash-pagesize 1- and while 2+   repeat  cr
+  eraseflashfrom ;
 
 ( always end: ) here hex.
 cornerstone eraseflash
