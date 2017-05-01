@@ -1,4 +1,4 @@
-
+\ Hardware I2C driver for STM32F103.
 
 \ Define pins
 [ifndef] SCL  PB6 constant SCL  [then]
@@ -21,13 +21,13 @@ $40005800 constant I2C2
 21 bit constant APB1-I2C1-EN
 21 bit constant APB1-RST-I2C1
 
-$40021000 constant RCC
-     RCC $00 + constant RCC-CR
-     RCC $04 + constant RCC-CFGR
+\ $40021000 constant RCC
+\    RCC $00 + constant RCC-CR
+\    RCC $04 + constant RCC-CFGR
      RCC $10 + constant RCC-APB1RSTR
-     RCC $14 + constant RCC-AHBENR
-     RCC $18 + constant RCC-APB2ENR
-     RCC $1C + constant RCC-APB1ENR
+\    RCC $14 + constant RCC-AHBENR
+\    RCC $18 + constant RCC-APB2ENR
+\    RCC $1C + constant RCC-APB1ENR
 
      0 variable i2c.cnt
      0 variable i2c.addr
@@ -35,7 +35,6 @@ $40021000 constant RCC
 
 \ Checks I2C1 busy bit
 : i2c-busy?   ( -- b) I2C1-SR2 h@ 1 bit and 0<> ;
-
 
 \ Init and reset I2C. Probably overkill. TODO simplify
 : i2c-init
@@ -56,7 +55,6 @@ $40021000 constant RCC
   \ Reset I2C peripheral
    15 bit I2C1-CR1 hbis!
    15 bit I2C1-CR1 hbic!
-
 
   \ Enable I2C peripheral
   21 bit RCC-APB1ENR bis!  \ set I2C1EN
@@ -85,12 +83,12 @@ $40021000 constant RCC
   \ AHBCLK / APB1 = 36MHz
   \ AHBCLK / APB2 = 72MHz
   \ I2C = APB1 = 36MHz
-  
+
   \ Configure clock control registers?!
 
   27           \ CCR 27?
   15 bit or    \ FM
-  I2C1-CCR h!  \ FREQ = 36MHZ, 31 ns; DUTY=0 3x 31ns = 10 MHz; moet delen door 27 
+  I2C1-CCR h!  \ FREQ = 36MHZ, 31 ns; DUTY=0 3x 31ns = 10 MHz; must divide by 27
   3  I2C1-TRISE h!         \ 2+1 for 1000ns SCL
 
   0  bit I2C1-CR1 hbis!    \ Enable bit
@@ -100,18 +98,16 @@ $40021000 constant RCC
   begin i2c-busy? 0= until
 ;
 
-
-
 \ debugging
 : i2c? cr I2C1-CR1 h@ hex. I2C1-CR2 h@ hex. I2C1-SR1 h@ hex. I2C1-SR2 h@ hex. ;
 
 \ Low level register setting and checking
-: i2c-DR!     ( c -- )  I2C1-DR c! ;                 \ Writes data register
-: i2c-DR@     (  -- c ) I2C1-DR c@ ;                 \ Writes data register
+: i2c-DR!     ( c -- )  I2C1-DR c! ;            \ Writes data register
+: i2c-DR@     (  -- c ) I2C1-DR c@ ;            \ Writes data register
 : i2c-start!  ( -- )    8 bit I2C1-CR1 hbis! ;
 : i2c-stop!   ( -- )    9 bit I2C1-CR1 hbis! ;
-: i2c-AF-0 ( -- )  10 bit I2C1-SR1 hbic! ;      \ Clars AF flag
-: i2c-START-0 ( -- )   8 bit I2C1-CR1 hbic! ;      \ Clears START condition
+: i2c-AF-0 ( -- )  10 bit I2C1-SR1 hbic! ;      \ Clears AF flag
+: i2c-START-0 ( -- )   8 bit I2C1-CR1 hbic! ;   \ Clears START condition
 : i2c-SR1-flag? ( u -- ) I2C1-SR1 hbit@ ;
 : i2c-ACK-1 ( -- ) 10 bit I2C1-CR1 hbis! ;
 : i2c-ACK-0 ( -- ) 10 bit I2C1-CR1 hbic! ;
@@ -119,13 +115,13 @@ $40021000 constant RCC
 : i2c-POS-0 ( -- ) 11 bit I2C1-CR1 hbic! ;
 
 \ Low level status checking
-: i2c-sb?  ( -- b)   0  bit i2c-SR1-flag? ;      \ Gets start bit flag
-: i2c-nak? ( -- b)   10 bit i2c-SR1-flag? ;      \ Gets AF bit flag
-: i2c-TxE? ( -- b)   7  bit i2c-SR1-flag? ;      \ TX register empty
-: i2c-ADDR? ( -- b)  1  bit i2c-SR1-flag? ;      \ ADDR bit
-: i2c-MSL? ( -- b)   0  bit I2C1-SR2 hbit@ ;      \ MSL bit
+: i2c-sb?  ( -- b)   0  bit i2c-SR1-flag? ;     \ Gets start bit flag
+: i2c-nak? ( -- b)   10 bit i2c-SR1-flag? ;     \ Gets AF bit flag
+: i2c-TxE? ( -- b)   7  bit i2c-SR1-flag? ;     \ TX register empty
+: i2c-ADDR? ( -- b)  1  bit i2c-SR1-flag? ;     \ ADDR bit
+: i2c-MSL? ( -- b)   0  bit I2C1-SR2 hbit@ ;    \ MSL bit
 
-: i2c-SR1-wait ( u -- ) begin dup i2c-SR1-flag?         until drop ; \ Waits until SR1 meets bit mask
+: i2c-SR1-wait ( u -- ) begin dup i2c-SR1-flag? until drop ; \ Waits until SR1 meets bit mask
 : i2c-SR1-!wait ( u -- ) begin dup i2c-SR1-flag? 0= until drop ;
 
 0  bit constant i2c-SR1-SB
@@ -138,7 +134,7 @@ $40021000 constant RCC
 \ Medium level actions, no or limited status checking
 
 : i2c-start ( -- ) \ set start bit and wait for start condition
-  i2c-start! i2c-SR1-SB i2c-SR1-wait ; 
+  i2c-start! i2c-SR1-SB i2c-SR1-wait ;
 
 : i2c-stop  ( -- )  i2c-stop! begin i2c-MSL? 0= until ; \ stop and wait
 
@@ -174,7 +170,7 @@ $40021000 constant RCC
 
 : i2c-xfer ( u -- nak) \ prepares for an nbyte reply. Use after i2c-addr. Stops i2c after completion.
     dup i2c.cnt !
-    case     
+    case
       2 of    \ cnt = 2
         i2c-start  \ set start bit,  wait for start condition
 
@@ -234,13 +230,13 @@ $40021000 constant RCC
       i2c-DR@
       -1 i2c.cnt +!
     endcase
-    
+
   else  \ stop stuff was handled in i2c-xfer
     i2c-EV7    \ wait until data received
     i2c-DR@
     -1 i2c.cnt +!
   then
-      
+
   i2c.cnt @ 0=
   if
     i2c-POS-0 i2c-ACK-1
@@ -248,16 +244,13 @@ $40021000 constant RCC
   then
 ;
 
-
 : i2c>h
-    i2c>   i2c>  8 lshift or 
+    i2c>   i2c>  8 lshift or
 ;
-
 
 : i2c>h_inv
-    i2c>  8 lshift i2c>  or 
+    i2c>  8 lshift i2c>  or
 ;
-
 
 \ High level transactions
 
@@ -270,5 +263,3 @@ $40021000 constant RCC
       then
     loop
   16 +loop ;
-
-
