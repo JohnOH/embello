@@ -1,7 +1,7 @@
 \ core libraries
 
 <<<board>>>
-cr compiletoflash
+compiletoflash
 ( core start: ) here dup hex.
 
 include ../flib/spi/rf69.fs

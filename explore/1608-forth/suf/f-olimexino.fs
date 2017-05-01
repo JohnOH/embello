@@ -1,7 +1,7 @@
 \ USB console for Olimexino-STM32 and other Leaflabs Maple-like boards
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
-cr compiletoflash
+compiletoflash
 
 include hal-stm32f1.fs
 include ../flib/any/ring.fs
