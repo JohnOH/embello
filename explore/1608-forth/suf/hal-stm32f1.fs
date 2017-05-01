@@ -15,13 +15,9 @@
 $40010000 constant AFIO
      AFIO $4 + constant AFIO-MAPR
 
-$40013800 constant USART1
-   USART1 $8 + constant USART1-BRR
-
 $40021000 constant RCC
      RCC $00 + constant RCC-CR
      RCC $04 + constant RCC-CFGR
-     RCC $14 + constant RCC-AHBENR
      RCC $18 + constant RCC-APB2ENR
      RCC $1C + constant RCC-APB1ENR
 
@@ -30,7 +26,7 @@ $40022000 constant FLASH
 
 \ adjusted for STM32F103 @ 72 MHz (original STM32F100 by Igor de om1zz, 2015)
 
-: 72MHz ( -- )  \ set the main clock to 72 MHz, keep baud rate at 115200
+: 72MHz ( -- )  \ set the main clock to 72 MHz
   $12 FLASH-ACR !                 \ two flash mem wait states
   16 bit RCC-CR bis!              \ set HSEON
   begin 17 bit RCC-CR bit@ until  \ wait for HSERDY
@@ -41,7 +37,6 @@ $40022000 constant FLASH
             2 or  RCC-CFGR !      \ PLL is the system clock
   24 bit RCC-CR bis!              \ set PLLON
   begin 25 bit RCC-CR bit@ until  \ wait for PLLRDY
-  625 USART1-BRR !                \ fix console baud rate
 ;
 
 \ emulate c, which is not available in hardware on some chips.

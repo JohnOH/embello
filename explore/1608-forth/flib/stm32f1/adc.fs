@@ -19,6 +19,9 @@ $40020000 constant DMA1
     DMA1 $10 + constant DMA1-CPAR1
     DMA1 $14 + constant DMA1-CMAR1
 
+\ $40021000 constant RCC
+     RCC $14 + constant RCC-AHBENR
+
 : adc-calib ( -- )  \ perform an ADC calibration cycle
   2 bit ADC1-CR2 bis!  begin 2 bit ADC1-CR2 bit@ 0= until ;
 
