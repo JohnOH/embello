@@ -1,6 +1,7 @@
 \ USB console for HotMCU Core Board 1xx
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
+cr
 compiletoflash
 
 include hal-stm32f1.fs
@@ -23,4 +24,8 @@ include usb.fs
 
 ( usb end: ) here hex.
 cornerstone eraseflash
-compiletoram
+
+include ../g6u/board.fs
+include ../g6u/core.fs
+
+hexdump
