@@ -78,4 +78,5 @@ Finished. Reset �Mecrisp-Stellaris RA 2.3.6 for STM32F103 by Matthias Koch
 As you can see, the hex dump is generated as last step in this process and can
 be copied manually to the `usb-common.hex` file.  Note that on the next reset,
 the serial connection will be dropped and the board will start listening on its
-USB interface.
+USB interface. To prevent this, enter `$5000 eraseflashfrom` - this will remove
+all the above code again.
