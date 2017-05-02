@@ -1,7 +1,7 @@
 \ core definitions
 
 \ <<<board>>>
-cr compiletoflash
+compiletoflash
 ( core start: ) here dup hex.
 
 9 constant I2C.DELAY

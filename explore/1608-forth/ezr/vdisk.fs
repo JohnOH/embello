@@ -2,8 +2,8 @@
 
 include pokemon.fs
 
-PC13 constant LED
-PA8 constant BUSY
+PA1  constant LED
+PB10 constant BUSY
 
 $E000E100 constant NVIC-EN0R \ IRQ 0 to 31 Set Enable Register
 

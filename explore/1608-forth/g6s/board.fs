@@ -1,6 +1,7 @@
 \ board definitions
 
 eraseflash
+cr
 compiletoflash
 
 ( board start: ) here dup hex.
@@ -14,6 +15,7 @@ include ../flib/stm32f1/io.fs
 include ../flib/pkg/pins64.fs
 include ../flib/stm32f1/hal.fs
 include ../flib/stm32f1/spi.fs
+include ../flib/stm32f1/i2c.fs
 include ../flib/stm32f1/timer.fs
 include ../flib/stm32f1/pwm.fs
 include ../flib/stm32f1/adc.fs
@@ -32,6 +34,5 @@ include ../flib/stm32f1/rtc.fs
   hello ." ok." cr
 ;
 
-( board end, size: ) here dup hex. swap - .
 cornerstone <<<board>>>
-compiletoram
+hello

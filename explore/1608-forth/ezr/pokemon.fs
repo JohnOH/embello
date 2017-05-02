@@ -21,9 +21,10 @@ compiletoram? [if]  forgetram  [then]
   cr ;
 
 PB0 constant XIN
-PB1 constant RST
+PB2 constant ZDA
 PB4 constant ZCL
-PB5 constant ZDA
+PB8 constant RST
+PA8 constant BTN
 
 : ez80-8MHz ( -- )
   7200 XIN pwm-init   \ first set up pwm correctly
@@ -31,9 +32,10 @@ PB5 constant ZDA
   9996 XIN pwm ;      \ finally, set the pwm to still toggle
 
 : z ( -- )
-  RST ios!  OMODE-OD RST io-mode!
-  ZDA ios!  OMODE-OD ZDA io-mode!
-  ZCL ios!  OMODE-PP ZCL io-mode!
+  ZDA ios!  OMODE-OD   ZDA io-mode!
+  ZCL ios!  OMODE-PP   ZCL io-mode!
+  RST ios!  OMODE-OD   RST io-mode!
+  BTN ios!  IMODE-PULL BTN io-mode!
   ez80-8MHz ;
 
 : delay 10 0 do loop ;
@@ -160,12 +162,13 @@ task: uart-task
     stop
   again ;
 
-: t  \ switch to permanent USART2 pass-through
+: t  \ start USART2 pass-through task
   cr uart-irq-init 19200 uart-baud
   [: uart-irq-handler uart-task wake ;] irq-usart2 !
   multitask uart-reader&
   c
   begin
-    \ break out of terminal loop when ctrl-x is seen
-    key? if key ( dup 24 = if drop exit then ) uart-emit then
-  again ;
+    key? if key uart-emit then
+    \ break out of terminal loop when button is pressed
+  BTN io@ 0= until
+  uart-task remove ;
