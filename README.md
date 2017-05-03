@@ -7,6 +7,7 @@ With many thanks for the inspiring discussions and code contributions by:
 * Matthias Koch
 * Thomas Lohmüller
 * John O'Hare
+* Joris Pragt
 * Frank (SevenW)
 
 -- [jcw](http://jeelabs.org/about/)
