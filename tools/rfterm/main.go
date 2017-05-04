@@ -91,10 +91,15 @@ func handleSerialInput() {
 			}
 			sendLock.Unlock()
 		} else {
-			s = strings.Replace(s, "\n", "\r\n", -1)
-			fmt.Print(s)
+			display(s)
 		}
 	}
+}
+
+// display shows received data while inserting a CR before each LF
+func display(s string) {
+	s = strings.Replace(s, "\n", "\r\n", -1)
+	fmt.Print(s)
 }
 
 // parsePacketMsg recognises incoming RF69 data packets
@@ -117,6 +122,12 @@ func parsePacketMsg(s string) bool {
 }
 
 // processPacket responds to each incoming packet by sending an ACK packet
-func processPacket(packet []byte) {
-	fmt.Print(packet, "\r\n")
+func processPacket(p []byte) {
+	display(string(p[1:]))
+	msg := append([]byte{0}, []byte(sendBuf)...)
+	if len(msg) > 66 {
+		msg = msg[:66]
+	}
+	sendBuf = sendBuf[len(msg)-1:]
+	fmt.Print(msg, "\r\n")
 }
