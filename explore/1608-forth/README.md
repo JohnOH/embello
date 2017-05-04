@@ -12,6 +12,7 @@ structure of these directories, and how source files should be loaded:
 * **`lnr`** - Led Node Revisited - using a JeeNode Zero to drive LEDs via PWM
 * **`prc`** - Pico Reflow Controller w/ HyTiny, OLED, MOSFET, RFM69, 12-24V Vin
 * **`qld`** - Quick Loader -  using a Blue Pill to  re-flash a JNZ via SPI
+* **`rfc`** - Remote Console driver, routes console I/O over RF
 * **`rvm`** - Remote voltmeter w/ STM32L052 and a 4-chan Analog Plug
 * **`sic`** - Soldering Iron Controller
 * **`suf`** - Serial USB driver for Forth, routes console I/O over USB
