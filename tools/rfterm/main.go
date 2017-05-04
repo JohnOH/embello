@@ -10,7 +10,7 @@ import (
 	"go.bug.st/serial.v1"
 )
 
-const NODE_ID = "01"
+const NODE_ID = "3D"
 
 var (
 	port serial.Port
