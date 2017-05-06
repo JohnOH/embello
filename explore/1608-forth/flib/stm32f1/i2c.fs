@@ -196,6 +196,7 @@ $40005800 constant I2C2
 	i2c-EV6b                   \ Clear ADDR
 	i2c-stop!                  \ Trigger a stop
 	0 i2c.needstop !
+      endof
       0 of                      ( cnt = 0, probe only )
         i2c-nak? i2c-AF-0 i2c-stop
         0 i2c.needstop !
