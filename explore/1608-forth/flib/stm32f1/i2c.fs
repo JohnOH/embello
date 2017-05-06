@@ -150,9 +150,9 @@ $40005800 constant I2C2
 \ STM32 EV Events
 
 : i2c-EV5   i2c-SR1-SB   i2c-SR1-wait ;
-: i2c-EV6   i2c-SR1-ADDR i2c-SR1-AF or
-                         i2c-SR1-wait
-            I2C1-SR2 h@ drop ; \ Wait for address sent or AF
+: i2c-EV6a i2c-SR1-ADDR i2c-SR1-AF or i2c-SR1-wait ; \ performs the wait, does not clear ADDR
+: i2c-EV6b I2C1-SR1 h@ drop I2C1-SR2 h@ drop ;       \ clears ADDR
+: i2c-EV6 i2c-EV6a i2c-EV6b ;                        \ Performs full EV6 action
 : i2c-EV8_1 i2c-SR1-TxE  i2c-SR1-wait ;
 : i2c-EV7   i2c-SR1-RxNE i2c-SR1-wait ;
 : i2c-EV7_2 i2c-SR1-BTF  i2c-SR1-wait ;
@@ -165,11 +165,12 @@ $40005800 constant I2C2
   i2c-EV5
 
   i2c-DR!                   \ Sends address (write mode)
-  i2c-EV6                       \ wait for completion of addressing or AF
+  i2c-EV6a                       \ wait for completion of addressing or AF
 ;
 
 : i2c-xfer ( u -- nak) \ prepares for an nbyte reply. Use after i2c-addr. Stops i2c after completion.
-    dup i2c.cnt !
+  dup i2c.cnt !
+  i2c-EV6b
     case
       2 of    \ cnt = 2
         i2c-start  \ set start bit,  wait for start condition
@@ -179,13 +180,22 @@ $40005800 constant I2C2
 
         i2c-POS-1 i2c-ACK-1
 
-        i2c-EV6 I2C1-SR2 @ drop \ wait for ADDR and clear
+        i2c-EV6                  \ wait for ADDR and clear
         i2c-ACK-0
         i2c-SR1-BTF i2c-SR1-wait \ wait for BTF
         i2c-stop!                \ set stop without waiting
         0 i2c.needstop !
       endof
-      1 of endof                ( cnt = 1 )
+      1 of                      ( cnt = 1 )
+	i2c-start                  \ set start bit,  wait for start condition
+	i2c.addr @ 1 or            \ Send address with read bit
+	i2c-DR!
+	i2c-POS-1 i2c-ACK-1
+	i2c-EV6a                   \ Wait for addr, do not clear yet
+	i2c-ACK-0                  \ Disable ACK
+	i2c-EV6b                   \ Clear ADDR
+	i2c-stop!                  \ Trigger a stop
+	0 i2c.needstop !
       0 of                      ( cnt = 0, probe only )
         i2c-nak? i2c-AF-0 i2c-stop
         0 i2c.needstop !
@@ -202,6 +212,7 @@ $40005800 constant I2C2
 ;
 
 : >i2c  ( u -- ) \ Sends a byte over i2c. Use after i2c-addr
+  i2c-EV6b                \ Just in case the ADDR needs clearing
   i2c-EV8_1
   i2c-DR!
 ;
