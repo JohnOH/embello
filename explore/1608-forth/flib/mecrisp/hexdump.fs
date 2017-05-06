@@ -2,9 +2,17 @@
 \ adapted from mecrisp 2.0.2 (GPL3)
 
 : .v ( ... -- ... )  \ view stack, this is a slightly cleaner version of .s
-  ." Stack #" depth . ." < "
-  -1 depth negate ?do sp@ i 2+ cells - @ . loop
-  ." >" cr ;
+  depth 100 u< if
+    ." Stack #" depth . ." < "
+    \ -1 depth negate ?do sp@ i 2+ cells - @ . loop
+    -1 depth negate ?do
+      sp@ i 2+ cells - @
+      dup $10000 u> if [char] $ emit hex. else . then
+    loop
+    ." >" cr
+  else
+    ." Stack underflow (" depth . ." )" cr
+  then ;
 
 : u.4 ( u -- ) 0 <# # # # # #> type ;
 : u.2 ( u -- ) 0 <# # # #> type ;
