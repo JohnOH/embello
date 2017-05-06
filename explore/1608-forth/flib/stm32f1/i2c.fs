@@ -32,6 +32,7 @@ $40005800 constant I2C2
      0 variable i2c.cnt
      0 variable i2c.addr
      0 variable i2c.needstop
+ $ffff variable i2c.timeout
 
 \ Checks I2C1 busy bit
 : i2c-busy?   ( -- b) I2C1-SR2 h@ 1 bit and 0<> ;
@@ -95,7 +96,7 @@ $40005800 constant I2C2
   10 bit I2C1-CR1 hbis!    \ ACK enable
 
   \ Wait for bus to initialize
-  begin i2c-busy? 0= until
+  i2c.timeout @ begin 1- dup 0= i2c-busy? 0= or until
 ;
 
 \ debugging
@@ -109,6 +110,7 @@ $40005800 constant I2C2
 : i2c-AF-0 ( -- )  10 bit I2C1-SR1 hbic! ;      \ Clears AF flag
 : i2c-START-0 ( -- )   8 bit I2C1-CR1 hbic! ;   \ Clears START condition
 : i2c-SR1-flag? ( u -- ) I2C1-SR1 hbit@ ;
+: i2c-SR2-flag? ( u -- ) I2C1-SR2 hbit@ ;
 : i2c-ACK-1 ( -- ) 10 bit I2C1-CR1 hbis! ;
 : i2c-ACK-0 ( -- ) 10 bit I2C1-CR1 hbic! ;
 : i2c-POS-1 ( -- ) 11 bit I2C1-CR1 hbis! ;
@@ -121,8 +123,10 @@ $40005800 constant I2C2
 : i2c-ADDR? ( -- b)  1  bit i2c-SR1-flag? ;     \ ADDR bit
 : i2c-MSL? ( -- b)   0  bit I2C1-SR2 hbit@ ;    \ MSL bit
 
-: i2c-SR1-wait ( u -- ) begin dup i2c-SR1-flag? until drop ; \ Waits until SR1 meets bit mask
-: i2c-SR1-!wait ( u -- ) begin dup i2c-SR1-flag? 0= until drop ;
+: i2c-SR1-wait ( u -- ) i2c.timeout @ begin 1- 2dup 0= swap i2c-SR1-flag? or until 2drop ; \ Waits until SR1 meets bit mask or timeout
+: i2c-SR1-!wait ( u -- ) i2c.timeout @ begin 1- 2dup 0= swap i2c-SR1-flag? 0= or until 2drop ; \ Waits until SR1 has zero on bit mask or timeout
+: i2c-SR2-wait ( u -- ) i2c.timeout @ begin 1- 2dup 0= swap i2c-SR2-flag? or until 2drop ; \ Waits until SR2 meets bit mask or timeout
+: i2c-SR2-!wait ( u -- ) i2c.timeout @ begin 1- 2dup 0= swap i2c-SR2-flag? 0= or until 2drop ; \ Waits until SR2 has zero on bit mask or timeout
 
 0  bit constant i2c-SR1-SB
 1  bit constant i2c-SR1-ADDR
@@ -131,12 +135,14 @@ $40005800 constant I2C2
 7  bit constant i2c-SR1-TxE
 10 bit constant i2c-SR1-AF
 
+ 0 bit constant i2c-SR2-MSL
+
 \ Medium level actions, no or limited status checking
 
 : i2c-start ( -- ) \ set start bit and wait for start condition
   i2c-start! i2c-SR1-SB i2c-SR1-wait ;
 
-: i2c-stop  ( -- )  i2c-stop! begin i2c-MSL? 0= until ; \ stop and wait
+: i2c-stop  ( -- )  i2c-stop! i2c-SR2-MSL i2c-SR2-!wait ; \ stop and wait
 
 : i2c-probe ( c -- nak ) \ Sets address and waits for ACK or NAK
   i2c-start
