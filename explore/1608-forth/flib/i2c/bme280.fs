@@ -3,13 +3,36 @@
 
 [ifndef] BME.ADDR  $76 constant BME.ADDR  [then]
 
-: bme-init ( -- nak )
-  i2c-init
+: bme-reset ( -- ) \ software reset of the bme280
+  BME.ADDR i2c-addr
+  $E0 >i2c $B6 
+  0 i2c-xfer ;
+
+: bme-init ( -- nak ) \ init the bme280 into continuous mode
+  i2c-init bme-reset
   BME.ADDR i2c-addr
   $F2 >i2c %1 >i2c 
   $F4 >i2c %100111 >i2c 
   $F5 >i2c %10100000 >i2c
   0 i2c-xfer ;
+
+: bme-init-sleep ( -- nak ) \ init the bme280 into sleep mode
+  i2c-init bme-reset
+  BME.ADDR i2c-addr
+  $F2 >i2c %1 >i2c         \ 1x oversampling of humidity
+  $F4 >i2c %100101 >i2c    \ forced mode (takes 1 meas), 1x oversampling of tmp and pressure
+  $F5 >i2c %10100000 >i2c  \ filter off, 1sec interval (unused)
+  0 i2c-xfer ;
+
+: bme-sleep ( -- ) \ force bme280 to sleep
+  BME.ADDR i2c-addr
+  $F4 >i2c %100100 >i2c 0 i2c-xfer drop ;
+
+: bme-convert ( -- ms ) \ perform a one-shot forced reading, return ms before data is ready
+  BME.ADDR i2c-addr
+  $F4 >i2c %100101 >i2c    \ forced mode (takes 1 meas), 1x oversampling of tmp and pressure
+  0 i2c-xfer drop
+  10 ;
 
 32 buffer: params  \ calibration data
  8 buffer: values  \ last reading
