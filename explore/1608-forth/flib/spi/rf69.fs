@@ -87,7 +87,7 @@ decimal align
   RF:OP rf@  $E3 and  or RF:OP rf!
   begin  RF:IRQ1 rf@  RF:IRQ1_MRDY and  until ;
 
-: rf-config! ( addr -- )
+: rf-config! ( addr -- ) \ load many registers from <reg,value> array, zero-terminated
   RF:M_STDBY rf!mode \ some regs don't program in sleep mode, go figure...
   begin  dup h@  ?dup while  rf-h!  2+ repeat drop
   ;
