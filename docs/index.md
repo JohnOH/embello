@@ -42,6 +42,11 @@ hardware-related. See the
 [projects/README.md](https://github.com/jeelabs/embello/tree/master/projects/README.md)
 file for a brief list.
 
+### docs/
+
+The [docs/](https://github.com/jeelabs/embello/tree/master/docs/) tree
+contains the source code for the documentation you are reading.
+
 ### tools/
 
 The [tools/](https://github.com/jeelabs/embello/tree/master/tools/) area
