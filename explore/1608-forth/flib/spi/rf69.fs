@@ -63,8 +63,8 @@ hex
   2B40 h, \ RSSI timeout after 128 bytes
   2D05 h, \ Preamble 5 bytes
   2E90 h, \ sync size 3 bytes
-  2FAA h, \ sync1: 0xAA
-  302D h, \ sync2: 0x2D
+  2FAA h, \ sync1: 0xAA -- this is really the last preamble byte
+  302D h, \ sync2: 0x2D -- actual sync byte
   312A h, \ sync3: network group
   37D0 h, \ drop pkt if CRC fails \ 37D8 h, \ deliver even if CRC fails
   3842 h, \ max 62 byte payload
