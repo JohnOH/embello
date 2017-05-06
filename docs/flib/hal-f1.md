@@ -30,7 +30,7 @@ variations.
 : list ( -- )  \ list all words in dictionary, short form
 ```
 
-[defs]: <> (chipid hwid flash-kb flash-pagesize)
+(The following defs seem defunct?)
 ```
 : chipid ( -- u1 u2 u3 3 )  \ unique chip ID as N values on the stack
 : hwid ( -- u )  \ a "fairly unique" hardware ID as single 32-bit int

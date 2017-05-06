@@ -3,6 +3,11 @@
 This information applies to the
 [explore/1608-forth/flib/](https://github.com/jeelabs/embello/tree/master/explore/1608-forth/flib)
 area on GitHub.
+The source of this documentation is found at
+[documentation source](https://github.com/jeelabs/embello/tree/master/docs/flib/),
+and the markdown text there is spliced together with comments extracted from the source
+code using the 
+using the [docex](https://github.com/jeelabs/embello/tree/master/tools/docex/) tool.
 
 | STM32L0 | STM32F1 | |
 | --- | --- | --- |
@@ -22,6 +27,8 @@ area on GitHub.
 | [bme280](bme280.md) | BME280 temp/humidity/pressure sensor |
 | [rf69](rf69.md) | RFM69 MHz radio for 434/868/915 MHz |
 | [ssd1306](ssd1306.md) | OLED driver for 128x64 and 128x32 displays |
+| [mcp9808](mcp9808.md) | Cheap I2C temperature sensor |
+| [tsl4531](tsl4531.md) | Digital ambient light I2C sensor |
 
 | Utilities | |
 | --- | --- |

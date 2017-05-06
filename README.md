@@ -1,4 +1,14 @@
-**Home page** - <http://embello.jeelabs.org/>
+Embedded software from JeeLabs
+==============================
+
+Quick Links
+-----------
+
+* [Home page and docs](http://embello.jeelabs.org/)
+* [Forth-based JeeLabs JeeNodes Zero](./explore/1608-forth)
+
+Acknowledgments
+---------------
 
 With many thanks for the inspiring discussions and code contributions by:
 
