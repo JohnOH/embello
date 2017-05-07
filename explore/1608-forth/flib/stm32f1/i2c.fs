@@ -193,15 +193,15 @@ $40005800 constant I2C2
         0 i2c.needstop !
       endof
       1 of                      ( cnt = 1 )
-	i2c-start                  \ set start bit,  wait for start condition
-	i2c.addr @ 1 or            \ Send address with read bit
-	i2c-DR!
-	i2c-POS-1 i2c-ACK-1
-	i2c-EV6a                   \ Wait for addr, do not clear yet
-	i2c-ACK-0                  \ Disable ACK
-	i2c-EV6b                   \ Clear ADDR
-	i2c-stop!                  \ Trigger a stop
-	0 i2c.needstop !
+        i2c-start                  \ set start bit,  wait for start condition
+        i2c.addr @ 1 or            \ Send address with read bit
+        i2c-DR!
+        i2c-POS-1 i2c-ACK-1
+        i2c-EV6a                   \ Wait for addr, do not clear yet
+        i2c-ACK-0                  \ Disable ACK
+        i2c-EV6b                   \ Clear ADDR
+        i2c-stop!                  \ Trigger a stop
+        0 i2c.needstop !
       endof
       0 of                      ( cnt = 0, probe only )
         i2c-nak? i2c-AF-0 i2c-stop
