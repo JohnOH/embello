@@ -1,5 +1,5 @@
-\ #######   RANDOM   ##########################################
-
+\ Pseudo-random number generator
+\
 \ setseed   sets the random number seed
 \ random    returns a random 32-bit number
 \
@@ -9,21 +9,19 @@
 $7a92764b variable seed
 
 : setseed   ( u -- )
-    dup 0= or       \ map 0 to -1
-    seed !
+  dup 0= or       \ map 0 to -1
+  seed !
 ;
 
 : random    ( -- u )
-    seed @
-    dup 13 lshift xor
-    dup 17 rshift xor
-    dup 5  lshift xor
-    dup seed !
-    57947 *
+  seed @
+  dup 13 lshift xor
+  dup 17 rshift xor
+  dup 5  lshift xor
+  dup seed !
+  57947 *
 ;
 
 : randrange  ( u0 -- u1 ) \ u1 is a random number less than u0
-    random um* nip
+  random um* nip
 ;
-
- 
