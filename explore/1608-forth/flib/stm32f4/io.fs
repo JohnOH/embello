@@ -17,6 +17,8 @@ $40020000 constant GPIO-BASE
 
 : bit ( u -- u )  \ turn a bit position into a single-bit mask
   1 swap lshift  1-foldable ;
+: bit! ( mask addr f -- )  \ set or clear specified bit(s)
+  if bis! else bic! then ;
 
 : io ( port# pin# -- pin )  \ combine port and pin into single int
   swap 8 lshift or  2-foldable ;
@@ -28,8 +30,8 @@ $40020000 constant GPIO-BASE
   8 rshift  1-foldable ;
 : io-base ( pin -- addr )  \ convert pin to GPIO base address
   $F00 and 2 lshift GPIO-BASE +  1-foldable ;
-: io@ ( pin -- u )  \ get pin value (0 or 1)
-  dup io-base GPIO.IDR + @ swap io# rshift 1 and ;
+: io@ ( pin -- u )  \ get pin value (0 or -1)
+  dup io-base GPIO.IDR + @ swap io# rshift 1 and negate ;
 : ios! ( pin -- )  \ set pin to high
   dup io-mask swap io-base GPIO.BSRR + ! ;
 : ioc! ( pin -- )  \ clear pin to low
@@ -40,23 +42,38 @@ $40020000 constant GPIO-BASE
 : iox! ( pin -- )  \ toggle pin
   dup io@ 0= swap io! ;
 
-%0000 constant IMODE-ADC    \ input, analog
-%0100 constant IMODE-FLOAT  \ input, floating
-%1000 constant IMODE-PULL   \ input, pull-up/down
+\ b6 = type, b5-4 = pull, b3-2 = mode, b1..0 = speed
 
-%0001 constant OMODE-PP     \ output, push-pull
-%0101 constant OMODE-OD     \ output, open drain
-%1001 constant OMODE-AF-PP  \ alternate function, push-pull
-%1101 constant OMODE-AF-OD  \ alternate function, open drain
+%0000000 constant IMODE-FLOAT  \ input, floating
+%0010000 constant IMODE-HIGH   \ input, pull up
+%0100000 constant IMODE-LOW    \ input, pull down
+%0001100 constant IMODE-ADC    \ input, analog
 
-  %01 constant OMODE-SLOW   \ add to OMODE-* for 2 MHz iso 10 MHz drive
-  %10 constant OMODE-FAST   \ add to OMODE-* for 50 MHz iso 10 MHz drive
+%0001010 constant OMODE-AF-PP  \ alternate function, push-pull
+%1001010 constant OMODE-AF-OD  \ alternate function, open drain
+%0000110 constant OMODE-PP     \ output, push-pull
+%1000110 constant OMODE-OD     \ output, open drain
+
+-2 constant OMODE-WEAK  \ add to OMODE-* for 400 KHz iso 10 MHz drive
+-1 constant OMODE-SLOW  \ add to OMODE-* for 2 MHz iso 10 MHz drive
+ 1 constant OMODE-FAST  \ add to OMODE-* for 35 MHz iso 10 MHz drive
+
+
+: io-config ( bits pin offset -- )  \ replace 2 bits in specified h/w register
+  over io-base + >r   ( bits pin R: addr )
+  io# shl             ( bits shift R: addr )
+  %11 over lshift     ( bits shift mask R: addr )
+  r@ @ swap bic       ( bits shift cleared R: addr )
+  rot %11 and         ( shift cleared value R: addr )
+  rot lshift or r> ! ;
 
 : io-mode! ( mode pin -- )  \ set the CNF and MODE bits for a pin
-  dup io-base GPIO.MODER + over 8 and shr + >r ( R: crl/crh )
-  io# 7 and 4 * ( mode shift )
-  $F over lshift not ( mode shift mask )
-  r@ @ and -rot lshift or r> ! ;
+  over          over GPIO.OSPEEDR io-config
+  over 2 rshift over GPIO.MODER   io-config
+  over 4 rshift over GPIO.PUPDR   io-config
+  \ open drain mode config
+  dup io-mask swap io-base GPIO.OTYPER +
+  ( mode mask addr ) rot %1000000 and bit! ;
 
 : io. ( pin -- )  \ display readable GPIO registers associated with a pin
   cr
