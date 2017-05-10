@@ -106,19 +106,3 @@
 ;
 
 \ All definitions from now on will be prepared for routing.
-
-\ -----------
-\  Examples
-\ -----------
-
-: hi ." Hello World" cr ;
-routes
-hi
-
-route hi .s
-routes
-hi
-
-unroute hi
-routes
-hi
