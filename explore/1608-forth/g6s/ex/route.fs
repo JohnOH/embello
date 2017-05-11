@@ -12,9 +12,11 @@ include ../../flib/mecrisp/routes.fs
 : ta 2 . ;
 : tb 4 . ;
 : tc 1 . ta 3 . tb  5 . ;
+: td ;
 
 see a
 see ta
+see td
 
 \ tc
 \ : ta' 22 . ; route ta ta'
