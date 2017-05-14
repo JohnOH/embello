@@ -1,8 +1,8 @@
 \ bit-banged i2c driver
 \ adapted from http://excamera.com/sphinx/article-forth-i2c.html
 \
-\ This driver is master-only and won't support clock stretching.
-\ There has to be a 1..10 kΩ resistor on SDA to pull it up in idle state.
+\ This driver is master-only. It supports clock stretching.
+\ There have to be 1..10 kΩ resistors on SDA and SCL to pull them up to idle state.
 
 [ifndef] SCL  PB6 constant SCL  [then]
 [ifndef] SDA  PB7 constant SDA  [then]
@@ -13,12 +13,16 @@
 0 variable i2c.cnt
 
 : i2c-init ( -- )  \ initialise bit-banged I2C
-  OMODE-PP SCL io-mode!
-  OMODE-OD SDA io-mode!
-;
+  OMODE-OD SCL io-mode!
+  OMODE-OD SDA io-mode! ;
 
 : i2c-half ( -- )  \ half-cycle timing delay for I2C
   [ifdef] I2C.DELAY  I2C.DELAY 0 do loop  [then] inline ;
+
+: SCL-ios! ( -- ) \ raise clock
+  SCL ios! 
+  begin SCL io@ until \ clock stretching to finish
+;
 
 : i2c-start ( -- )  \ with SCL high, change SDA from 1 to 0
   SDA ios! i2c-half SCL ios! i2c-half SDA ioc! i2c-half SCL ioc! ;
@@ -26,9 +30,9 @@
   SDA ioc! i2c-half SCL ios! i2c-half SDA ios! i2c-half ;
 
 : b>i2c ( f -- )  \ send one I2C bit
-  0<> SDA io! i2c-half SCL ios! i2c-half SCL ioc! ;
+  0<> SDA io! i2c-half SCL-ios! i2c-half SCL ioc! ;
 : i2c>b ( -- b )  \ receive one I2C bit
-  SDA ios! i2c-half SCL ios! i2c-half SDA io@ SCL ioc! ;
+  SDA ios! i2c-half SCL-ios! i2c-half SDA io@ SCL ioc! ;
 
 : x>i2c ( b -- nak )  \ send one byte
   8 0 do dup 128 and b>i2c shl loop drop i2c>b ;
@@ -57,7 +61,7 @@
   dup i2c.cnt !  if
     i2c-start i2c.adr @ 1+ i2c.prv ! i2c-flush
   else
-    SCL ios!  \ i2c-stop
+    SCL-ios!  \ i2c-stop
   then
   i2c.nak @
   dup if i2c-stop 0 i2c.cnt ! then  \ ignore reads if we had a nak
