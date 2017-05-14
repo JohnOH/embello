@@ -38,7 +38,7 @@ $40005800 constant I2C2
 : i2c-busy?   ( -- b) I2C1-SR2 h@ 1 bit and 0<> ;
 
 \ Init and reset I2C. Probably overkill. TODO simplify
-: i2c-init
+: i2c-init ( -- )
   \ Reset I2C1
   APB1-RST-I2C1 RCC-APB1RSTR bis!
   APB1-RST-I2C1 RCC-APB1RSTR bic!
@@ -96,7 +96,7 @@ $40005800 constant I2C2
   10 bit I2C1-CR1 hbis!    \ ACK enable
 
   \ Wait for bus to initialize
-  i2c.timeout @ begin 1- dup 0= i2c-busy? 0= or until
+  i2c.timeout @ begin 1- dup 0= i2c-busy? 0= or until drop
 ;
 
 \ debugging
