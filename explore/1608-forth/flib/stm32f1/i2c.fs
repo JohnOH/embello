@@ -50,8 +50,8 @@ $40005800 constant I2C2
   \ init GPIO
   IMODE-FLOAT SCL io-mode!  \ edited: manual says use floating input
   IMODE-FLOAT SDA io-mode!
-  OMODE-AF-OD OMODE-FAST + SCL io-mode!  \ %1101 AF means I2C Using external pullup
-  OMODE-AF-OD OMODE-FAST + SDA io-mode!  \ We need to connect external pullup R to SCL and SDA
+  OMODE-AF-OD OMODE-FAST + SCL io-mode!  \ I²C requires external pullup
+  OMODE-AF-OD OMODE-FAST + SDA io-mode!  \     resistors on SCL and SDA
 
   \ Reset I2C peripheral
    15 bit I2C1-CR1 hbis!
@@ -172,10 +172,11 @@ $40005800 constant I2C2
   i2c-EV5
 
   i2c-DR!                   \ Sends address (write mode)
-  i2c-EV6a                       \ wait for completion of addressing or AF
+  i2c-EV6a                  \ wait for completion of addressing or AF
 ;
 
-: i2c-xfer ( u -- nak) \ prepares for an nbyte reply. Use after i2c-addr. Stops i2c after completion.
+: i2c-xfer ( u -- nak ) \ prepares for reading an nbyte reply.
+                        \ Use after i2c-addr. Stops i2c after completion.
   dup i2c.cnt !
   i2c-EV6b
     case
@@ -190,6 +191,7 @@ $40005800 constant I2C2
         i2c-EV6                  \ wait for ADDR and clear
         i2c-ACK-0
         i2c-SR1-BTF i2c-SR1-wait \ wait for BTF
+        i2c-nak?
         i2c-stop!                \ set stop without waiting
         0 i2c.needstop !
       endof
@@ -201,6 +203,7 @@ $40005800 constant I2C2
         i2c-EV6a                   \ Wait for addr, do not clear yet
         i2c-ACK-0                  \ Disable ACK
         i2c-EV6b                   \ Clear ADDR
+        i2c-nak?
         i2c-stop!                  \ Trigger a stop
         0 i2c.needstop !
       endof
@@ -217,6 +220,7 @@ $40005800 constant I2C2
         i2c-DR!
         i2c-EV6    \ wait until ready to read
         \ i2c-SR1-ADDR i2c-SR1-wait
+        i2c-nak?
         1 i2c.needstop !
     endcase
 ;
