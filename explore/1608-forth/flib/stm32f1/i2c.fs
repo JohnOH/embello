@@ -162,6 +162,7 @@ $40005800 constant I2C2
 : i2c-EV8_1 i2c-SR1-TxE  i2c-SR1-wait ;
 : i2c-EV7   i2c-SR1-RxNE i2c-SR1-wait ;
 : i2c-EV7_2 i2c-SR1-BTF  i2c-SR1-wait ;
+: i2c-EV8_2 i2c-EV8_1 i2c-EV7_2 ;                    \ Empty outgoing data
 
 \ Compatibility layer
 
@@ -204,8 +205,10 @@ $40005800 constant I2C2
         0 i2c.needstop !
       endof
       0 of                      ( cnt = 0, probe only )
-        i2c-nak? i2c-AF-0 i2c-stop
-        0 i2c.needstop !
+	i2c-EV8_2                  \ Flush outbound data first
+        i2c-nak? i2c-AF-0          \ push nak flag & clear it
+	i2c-stop
+        0 i2c.needstop !	
       endof
       ( default: n > 2 )
         i2c-start  \ set start bit,  wait for start condition
