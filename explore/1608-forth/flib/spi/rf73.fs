@@ -99,6 +99,17 @@ calign
 \   +spi $E2 >spi -spi  \ FLUSH_RX
   then ;
 
+: rf-send ( addr count hdr -- )  \ send out one packet
+  if $A0 else $B0 then
+  tx-mode
+  +spi >spi
+  0 do dup c@ >spi 1+ loop
+  drop
+  begin
+    $07 rf@ $30 and
+  ?dup until
+  $27 rf! ;
+
 : rf-info ( -- )  \ display reception parameters as hex string
   23 h.2 ;
 
@@ -112,6 +123,9 @@ calign
       loop  cr
     then
   key? until ;
+
+: rf-txtest ( n -- )  \ send out a test packet with the number as ASCII chars
+  0 <# #s #> 1 rf-send ;
 
 : rf. ( -- )  \ print out the RF73 bank 0 registers
   cr 4 spaces  base @ hex  16 0 do space i . loop  base !
