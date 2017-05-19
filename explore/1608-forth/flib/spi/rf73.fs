@@ -91,7 +91,6 @@ calign
 : rf-recv ( -- b )  \ check whether a packet has been received, return #bytes
   $17 rf@ 1 and if 0 else  \ check FIFO_STATUS_RX_EMPTY
     $60 rf@  \ get packet length w/ R_RX_PL_WID_CMD
-    ." RX!!! " dup .
     +spi $61 >spi
     dup 0 do
       spi> rf.buf i + c!  \ RD_RX_PLOAD
@@ -101,16 +100,15 @@ calign
   then ;
 
 : rf-info ( -- )  \ display reception parameters as hex string
-  ;
+  23 h.2 ;
 
 : rf-listen ( -- )  \ init RFM73 and report incoming packets until key press
 \ rf-init cr
   begin
     rf-recv ?dup if
-      ." RF73 " rf-info
-      dup 0 do
+      ." RF73 " rf-info dup h.2 space
+      0 do
         rf.buf i + c@ h.2
-        i 1 = if 2- h.2 space then
       loop  cr
     then
   key? until ;

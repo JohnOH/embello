@@ -5,4 +5,4 @@ include ../../flib/spi/rf73.fs
 
 rf-init
 rf.
-rf-listen
+1234 ms rf-listen
