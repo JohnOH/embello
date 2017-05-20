@@ -208,10 +208,10 @@ $40005800 constant I2C2
         0 i2c.needstop !
       endof
       0 of                      ( cnt = 0, probe only )
-	i2c-EV8_2                  \ Flush outbound data first
+        i2c-EV8_2                  \ Flush outbound data first
         i2c-nak? i2c-AF-0          \ push nak flag & clear it
-	i2c-stop
-        0 i2c.needstop !	
+        i2c-stop
+        0 i2c.needstop !        
       endof
       ( default: n > 2 )
         i2c-start  \ set start bit,  wait for start condition
