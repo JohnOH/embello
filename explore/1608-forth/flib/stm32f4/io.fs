@@ -51,8 +51,10 @@ $40020000 constant GPIO-BASE
 
 %0001010 constant OMODE-AF-PP  \ alternate function, push-pull
 %1001010 constant OMODE-AF-OD  \ alternate function, open drain
+%1011010 constant OMODE-AF-OD-HIGH  \ alternate function, open drain, pull up
 %0000110 constant OMODE-PP     \ output, push-pull
 %1000110 constant OMODE-OD     \ output, open drain
+%1010110 constant OMODE-OD-HIGH  \ output, open drain, pull up
 
 -2 constant OMODE-WEAK  \ add to OMODE-* for 400 KHz iso 10 MHz drive
 -1 constant OMODE-SLOW  \ add to OMODE-* for 2 MHz iso 10 MHz drive
