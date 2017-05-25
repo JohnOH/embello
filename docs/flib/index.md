@@ -9,13 +9,13 @@ and the markdown text there is spliced together with comments extracted from the
 code using the 
 using the [docex](https://github.com/jeelabs/embello/tree/master/tools/docex/) tool.
 
-| STM32L0 | STM32F1 | |
-| --- | --- | --- |
-| [adc-l0](adc-l0.md) | [adc-f1](adc-f1.md) | Analog to digital converter |
-| [gpio-l0](gpio-l0.md) | [gpio-f1](gpio-f1.md) | General Purpose I/O |
-| [hal-l0](hal-l0.md) | [hal-f1](hal-f1.md) | Hardware Abstraction Layer |
-| - | [pwm-f1](pwm-f1.md) | Pulse Width Modulation |
-| [sleep-l0](sleep-l0.md) | - | Low-power sleep utilities |
+| STM32L0 | STM32F1 | STM32F4 | |
+| --- | --- | --- | --- |
+| [adc-l0](adc-l0.md) | [adc-f1](adc-f1.md) | [adc-f4](adc-f4.md) | Analog to digital converter |
+| [gpio-l0](gpio-l0.md) | [gpio-f1](gpio-f1.md) | [gpio-f4](gpio-f4.md) | General Purpose I/O |
+| [hal-l0](hal-l0.md) | [hal-f1](hal-f1.md) | [hal-f4](hal-f4.md) | Hardware Abstraction Layer |
+| - | [pwm-f1](pwm-f1.md) | - | Pulse Width Modulation |
+| [sleep-l0](sleep-l0.md) | - | - | Low-power sleep utilities |
 
 | Portable | |
 | --- | --- |
