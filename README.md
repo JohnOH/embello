@@ -12,6 +12,7 @@ Acknowledgments
 
 With many thanks for the inspiring discussions and code contributions by:
 
+* James Churchill
 * Thorsten von Eicken
 * Martyn Judd
 * Matthias Koch
