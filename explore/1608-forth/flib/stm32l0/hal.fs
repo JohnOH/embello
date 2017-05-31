@@ -20,7 +20,7 @@ $40010000 constant AFIO
 \    AFIO $4 + constant AFIO-MAPR
 
 $40013800 constant USART1
-   USART1 $8 + constant USART1-BRR
+   USART1 $C + constant USART1-BRR
 
 $40021000 constant RCC
      RCC $00 + constant RCC-CR
