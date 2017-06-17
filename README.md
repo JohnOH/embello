@@ -20,6 +20,6 @@ With many thanks for the inspiring discussions and code contributions by:
 * John O'Hare
 * Joris Pragt
 * Frank (SevenW)
-* Matthias Ulrich
+* Matthias Urlichs
 
 -- [jcw](http://jeelabs.org/about/)
