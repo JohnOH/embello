@@ -11,9 +11,6 @@
 : flash-pagesize ( addr - u )  \ return size of flash page at given address
   drop flash-kb 128 <= if 1024 else 2048 then ;
 
-: bit ( u -- u )  \ turn a bit position into a single-bit mask
-  1 swap lshift  1-foldable ;
-
 : io.all ( -- )  \ display all the readable GPIO registers
   io-ports 0 do i 0 io io. loop ;
 
@@ -46,7 +43,15 @@ $40022000 constant FLASH
 : baud ( u -- u )  \ calculate baud rate divider, based on current clock rate
   clock-hz @ swap / ;
 
+: 8MHz ( -- )  \ set the main clock back to 8 MHz, keep baud rate at 115200
+  0 RCC-CFGR !                    \ revert to HSI @ 8 MHz, no PLL
+  $81 RCC-CR !                    \ turn off HSE and PLL, power-up value
+  $18 FLASH-ACR !                 \ zero flash wait, enable half-cycle access
+  8000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
+;
+
 : 72MHz ( -- )  \ set the main clock to 72 MHz, keep baud rate at 115200
+  8MHz                            \ make sure the PLL is off
   $12 FLASH-ACR !                 \ two flash mem wait states
   16 bit RCC-CR bis!              \ set HSEON
   begin 17 bit RCC-CR bit@ until  \ wait for HSERDY
@@ -58,13 +63,6 @@ $40022000 constant FLASH
   24 bit RCC-CR bis!              \ set PLLON
   begin 25 bit RCC-CR bit@ until  \ wait for PLLRDY
   72000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
-;
-
-: 8MHz ( -- )  \ set the main clock back to 8 MHz, keep baud rate at 115200
-  0 RCC-CFGR !                    \ revert to HSI @ 8 MHz, no PLL
-  $81 RCC-CR !                    \ turn off HSE and PLL, power-up value
-  $18 FLASH-ACR !                 \ zero flash wait, enable half-cycle access
-  8000000 clock-hz !  115200 baud USART1-BRR !  \ fix console baud rate
 ;
 
 0 variable ticks

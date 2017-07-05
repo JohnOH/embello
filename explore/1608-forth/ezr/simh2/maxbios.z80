@@ -1,0 +1,402 @@
+title Maximal CPM 2.2 BIOS for eZ80 -jcw, 2017-03-17
+
+; memory map -------------------------------------------------------------------
+
+CCP     equ 0E400h
+BDOS    equ CCP + 0806h
+BIOS    equ CCP + 1600h
+
+BANK	equ 20h     ; SRAM and MBASE are set to this bank
+FROM	equ 3Ah     ; bank from which to copy everything
+FOFF	equ 6000h   ; starting page offset in FROM area
+FROM2	equ 23h     ; second RAM disk page
+FOFF2	equ 0E000h  ; second RAM disk offset
+
+; low memory -------------------------------------------------------------------
+
+iobyte  equ 03h     ; Intel standard I/O definition byte
+usrdrv  equ 04h     ; Current user number and drive
+tpabuf  equ 0080h   ; Default I/O buffer and command line storage
+
+         org BIOS
+
+; BIOS jump table --------------------------------------------------------------
+
+	jp boot     ;  0 Initialize
+wboote: jp wboot    ;  1 Warm boot
+	jp conist   ;  2 Console status
+	jp conin    ;  3 Console input
+	jp conout   ;  4 Console OUTput
+	jp list     ;  5 List OUTput
+	jp punch    ;  6 punch OUTput
+	jp reader   ;  7 Reader input
+	jp home     ;  8 Home disk
+	jp seldsk   ;  9 Select disk
+	jp settrk   ; 10 Select track
+	jp setsec   ; 11 Select sector
+	jp setdma   ; 12 Set DMA ADDress
+	jp read     ; 13 Read 128 bytes
+	jp write    ; 14 Write 128 bytes
+	jp listst   ; 15 List status
+	jp sectrn   ; 16 Sector translate
+
+; Disk Parameter Headers -------------------------------------------------------
+
+dpbase:	dw 0,0,0,0,dirbuf,dpb0,0,alv0     ; A: R/W,  360K, RAM disk
+	dw 0,0,0,0,dirbuf,dpb1,0,alv1     ; B: R/O,  256K, flash disk
+ 	dw 0,0,0,0,dirbuf,dpb2,0,alv2	  ; C: R/W, 1440K, RAM disk, optional
+	dw 0,0,0,0,dirbuf,dpb3,csv3,alv3  ; D: R/W, 1440K, remote disk
+	dw 0,0,0,0,dirbuf,dpb3,csv4,alv4  ; E: R/O, 1440K, remote disk
+	dw 0,0,0,0,dirbuf,dpb3,csv5,alv5  ; F: R/O, 1440K, remote disk
+
+dpb0:	dw 26  ; SPT - sectors per track
+	db 4   ; BSH - block shift factor
+	db 15  ; BLM - block mask
+	db 1   ; EXM - Extent mask
+	dw 175 ; DSM - Storage size (blocks - 1)
+	dw 63  ; DRM - Number of directory entries - 1
+	db 128 ; AL0 - 1 bit set per directory block
+	db 0   ; AL1 - ... 8 more bits
+	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+	dw 2   ; OFF - Reserved tracks
+
+dpb1:	dw 26  ; SPT - sectors per track
+	db 3   ; BSH - block shift factor
+	db 7   ; BLM - block mask
+	db 0   ; EXM - Extent mask
+	dw 248 ; DSM - Storage size (blocks - 1)
+	dw 63  ; DRM - Number of directory entries - 1
+	db 192 ; AL0 - 1 bit set per directory block
+	db 0   ; AL1 - ... 8 more bits
+	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+	dw 2   ; OFF - Reserved tracks
+
+dpb2:	dw 72  ; SPT - sectors per track
+	db 4   ; BSH - block shift factor
+	db 15  ; BLM - block mask
+	db 0   ; EXM - Extent mask
+	dw 719 ; DSM - Storage size (blocks - 1)
+	dw 255 ; DRM - Number of directory entries - 1
+	db 240 ; AL0 - 1 bit set per directory block
+	db 0   ; AL1 - ... 8 more bits
+	dw 0   ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+	dw 0   ; OFF - Reserved tracks
+
+dpb3:	dw 72  ; SPT - sectors per track
+	db 4   ; BSH - block shift factor
+	db 15  ; BLM - block mask
+	db 0   ; EXM - Extent mask
+	dw 710 ; DSM - Storage size (blocks - 1)
+	dw 255 ; DRM - Number of directory entries - 1
+	db 240 ; AL0 - 1 bit set per directory block
+	db 0   ; AL1 - ... 8 more bits
+	dw 64  ; CKS - DIR check vector size (DRM+1)/4 (0=fixed disk)
+	dw 2   ; OFF - Reserved tracks
+
+; Cold boot --------------------------------------------------------------------
+
+boot:	di
+	ld sp,0100h
+	ld hl,BIOS
+	ld (0FFFEh),hl
+
+	; initialise UART0 to 9600 baud
+
+	ld hl,0380h
+	ld de,1A06h
+	db 0EDh,21h,0A5h        ; out0 (0A5h),h = 03h
+	db 0EDh,29h,0C3h        ; out0 (0C3h),l = 80h
+	db 0EDh,11h,0C0h        ; out0 (0C0h),d = 1Ah
+	db 0EDh,21h,0C3h        ; out0 (0C3h),h = 03h
+	db 0EDh,19h,0C2h        ; out0 (0C2h),e = 06h
+
+	xor a
+	ld (iobyte),a
+	ld (usrdrv),a
+	jr gocpm
+
+; Warm boot --------------------------------------------------------------------
+
+wboot:	di
+	ld sp,0100h
+
+	; copy 5.5K from {FROM,FOFF+0100h} to {BANK,CCP} to reload CCP
+
+	db 5Bh,21h              ; ld.lil hl,{FROM,FOFF+0100h}
+	dw FOFF+0100h
+	db FROM
+	db 5Bh,11h              ; ld.lil de,{BANK,CCP}
+	dw CCP
+	db BANK
+	db 5Bh,01h              ; ld.lil bc,BIOS-CCP
+	dw BIOS-CCP
+	db 0
+	db 49h,0EDh,0B0h        ; ldir.l
+
+; Common code for cold and warm boot
+
+gocpm:	ld hl,tpabuf            ; Address of BIOS DMA buffer
+	ld (dmaadr),hl
+
+	call vinit		; set up SPI for virtual disks
+
+	ld a,0C3h               ; Opcode for 'JP'
+	LD (00h),a              ; Load at start of RAM
+	ld hl,wboote            ; Address of jump for a warm boot
+	ld (01h),hl
+	ld (05h),a              ; Opcode for 'JP'
+	ld hl,BDOS              ; Address of jump for the BDOS
+	ld (06h),hl
+	ld a,(usrdrv)           ; Save new drive number (0)
+	ld c,a                  ; Pass drive number in C
+	jp CCP                  ; Start CP/M by jumping to the CCP
+
+; Console I/O ------------------------------------------------------------------
+
+conist:	db 0EDh,38h,0C5h ; in0 a,(0C5h)
+	and 01h
+	neg
+	ret
+
+conin:	call conist
+	jr z,conin
+	db 0EDh,38h,0C0h        ; in0 a,(0C0h)
+	ret
+
+conout:	db 0EDh,38h,0C5h        ; in0 a,(0C5h)
+	and 20h
+	jr z,conout
+	db 0EDh,09h,0C0h        ; out0 (0C0h),c
+	ret
+
+reader:	ld a,1Ah
+	ret
+
+listst:
+list:
+punch:
+	xor a
+	ret
+
+; Disk I/O ---------------------------------------------------------------------
+
+seldsk: ld a,c
+	cp 6
+        jr nc,baddsk
+        ld b,16
+	db 0EDh,4Ch ; mlt bc
+        ld hl,dpbase
+        add hl,bc
+savdsk:	ld (sekdsk),a
+        ld (sekdpt),hl
+        ret
+
+baddsk: ld hl,0
+        ld a,(usrdrv)
+        sub a,c
+        ret nz
+        ld (usrdrv),a
+        jr savdsk
+
+home:	ld c,0
+settrk: ld a,c
+	ld (sektrk),a
+        ret
+
+setsec: ld (seksec),bc
+        ret
+
+setdma: ld (dmaadr),bc
+        ret
+
+sectrn: ld l,c
+	ld h,b
+        ret
+
+read:	call rwaddr
+
+        cp 3
+        jr nc,vread		; D/E/F: are virtual
+
+	db 5Bh,2Ah              ; ld.lil hl,({BANK,dskadr})
+	dw dskadr
+	db BANK
+	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dmaadr})
+	dw dmaadr
+	db BANK
+
+	jr rwop
+
+write:	call rwaddr
+
+        or a			; A: is writable
+        jr z,wram
+        cp 2			; C: is also writable
+        jr nz,wother
+
+wram:	db 5Bh,2Ah              ; ld.lil hl,({BANK,dmaadr})
+	dw dmaadr
+	db BANK
+	db 5Bh,0EDh,5Bh         ; ld.lil de,({BANK,dskadr})
+	dw dskadr
+	db BANK
+
+rwop:	db 5Bh,01h,80h,00h,00h  ; ld.lil bc,000080h
+	db 49h,0EDh,0B0h        ; ldir.l
+	xor a
+	ret
+
+wother:	cp 3			; D: is virtual and writable
+        jr z,vwrite
+	ld a,2			; disk is read-only
+	ret
+
+PB_DR	equ 9Ah
+PB_DDR	equ 9Bh
+PB_ALT1	equ 9Ch
+PB_ALT2	equ 9Dh
+
+SPI_BRGL equ 0B8h
+SPI_BRGH equ 0B9h
+SPI_CTL  equ 0BAh
+SPI_SR   equ 0BBh
+SPI_TSR  equ 0BCh
+SPI_RBR  equ 0BCh
+
+; Virtual disk read, disk# in A
+
+vread:  or 20h			; tag as read request
+	call vrwop		; 0..3: request
+        call vidle		; wait until idle
+	xor a
+vread1:	call vxfer		; 0..127: read data
+	ld (hl),a
+	inc hl
+	djnz vread1
+vdone:	xor a
+vstop:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+	set 0,c			; set NSS high (PB0)
+	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+        ret
+
+; Virtual disk write, disk# in A
+
+vwrite:	or 30h			; tag as write request
+	call vrwop		; 0..3: request
+vwrit1:	call vnext		; 4..131: write data
+	djnz vwrit1
+        call vidle		; wait until idle
+	xor a
+	call vxfer		; get write status
+	jr vdone		; TODO should be vstop
+
+; Common virtual read/write code to send 4-byte request header
+; Expects request code in A
+; Returns DMA address in HL, 128 in B
+
+vrwop:	call vidle		; wait until idle
+        call vxfer		; 0: write request (seldsk+8)
+        ld hl,dskadr
+        call vnext		; 1: offset, bits 7..0
+        call vnext		; 2: offset, bits 15..8
+        call vnext		; 3: offset, bits 23..16
+	ld hl,(dmaadr)
+	ld b,128
+	ret
+
+vidle:	call vstop
+vidle1:	db 0EDh,08h,PB_DR	; in0 c,(PB_DR)
+	bit 1,c			; test BUSY (PB1)
+	jr nz,vidle1		; reply is not zero, repeat
+	res 0,c			; set NSS low (PB0)
+	db 0EDh,09h,PB_DR	; out0 (PB_DR),c
+	ret
+
+vnext:	ld a,(hl)
+	inc hl
+vxfer:	db 0EDh,39h,SPI_TSR	; out0 (SPI_TSR),a
+vxfer1:	db 0EDh,38h,SPI_SR	; in0 a,(SPI_SR)
+	jr z,vxfer1
+	db 0EDh,38h,SPI_RBR	; in0 a,(SPI_RBR)
+        ret
+
+vinit:	ld a,89h
+	db 0EDh,39h,PB_DR	; out0 (PB_DR),a
+	ld a,0CEh
+	db 0EDh,39h,PB_DDR	; out0 (PB_DDR),a
+	ld a,00h
+	db 0EDh,39h,PB_ALT1	; out0 (PB_ALT1),a
+	ld a,0CCh
+	db 0EDh,39h,PB_ALT2	; out0 (PB_ALT2),a
+	ld a,00H
+	db 0EDh,39h,SPI_BRGH	; out0 (SPI_BRG_H),a
+	ld a,03h
+	db 0EDh,39h,SPI_BRGL	; out0 (SPI_BRG_L),a
+	ld a,30h
+	db 0EDh,39h,SPI_CTL	; out0 (SPI_CTL),a
+	ret
+
+; Convert selected disk+track+sector to a memory address
+; Returns current disk in A, 24-bit address in dskadr[0..2], upper 16-bit in HL
+
+rwaddr:	ld hl,(sekdpt)
+        ld bc,10
+        add hl,bc
+        db 0EDh,27h             ; ld hl,(hl) ; dpb
+        ld a,(hl)               ; spt
+        ld bc,(sektrk)
+	ld b,a
+	db 0EDh,4Ch             ; mlt bc
+	; BC = track, converted to linear sector offset
+	ld hl,(seksec)
+	add hl,bc
+	; HL = bits 30..23 of the requested disk block address
+	xor a
+	rr h
+	rr l
+	rra
+	; A = bits 7..0 of the 24-bit disk-block address
+	ld (dskadr),a
+	; add the disk base to bits 23..16, if drive A: or C:
+        ld a,(sekdsk)
+        or a
+        jr nz,rwadr1
+	ld bc,FROM*256+(FOFF/256)   ; A: is RAM disk at (FROM,FOFF)
+	jr rwadr2
+rwadr1: cp 2			    ; B/D/E/F: do not have an offset
+	jr nz,rwadr3
+	ld bc,FROM2*256+(FOFF2/256) ; C: is RAM disk at (FROM2,FOFF2)
+rwadr2:	add hl,bc
+rwadr3: ; HL = bits 23..8 of the 24-bit disk-block address
+	ld (dskadr+1),hl
+	ret
+
+; Data area --------------------------------------------------------------------
+
+dmaadr: db 80h,00h,BANK ; last dma address + bank
+
+; End of initialised data
+
+dskadr: ds 3   ; disk address + bank
+
+sekdsk: ds 1   ; seek disk number
+sekdpt: ds 2   ; seek disk parameter table
+sektrk: ds 1   ; seek track number
+seksec: ds 2   ; seek sector number
+
+dirbuf: ds 128 ; scratch directory area
+
+alv0:   ds 46  ; allocation vector 0 (max 360 blocks)
+alv1:   ds 32  ; allocation vector 1 (max 255 blocks)
+alv2:   ds 91  ; allocation vector 2 (max 720 blocks)
+alv3:   ds 91  ; allocation vector 3 (max 720 blocks)
+alv4:   ds 91  ; allocation vector 4 (max 720 blocks)
+alv5:   ds 91  ; allocation vector 5 (max 720 blocks)
+
+csv3:   ds 64  ; checksum vector 3 (max 256 dir entries)
+csv4:   ds 64  ; checksum vector 4 (max 256 dir entries)
+csv5:   ds 64  ; checksum vector 5 (max 256 dir entries)
+
+biosEnd equ $ ; ----------------------------------------------------------------
+
+        end

@@ -1,0 +1,54 @@
+# File hellow.asm
+0000				org $0100 
+0100			 
+0100			pd_alt2:    equ $A5 
+0100			uart0_thr:  equ $C0 
+0100			uart0_rbr:  equ $C0 
+0100			uart0_brgl: equ $C0 
+0100			uart0_fctl: equ $C2 
+0100			uart0_lctl: equ $C3 
+0100			uart0_lsr:  equ $C5 
+0100			 
+0100 06 00		init:	ld  b, 0 
+0102			 
+0102 0e a5			ld  c, pd_alt2 
+0104 3e 03			ld  a, $03 
+0106 ed 79			out (c), a 
+0108			 
+0108 0e c3			ld  c, uart0_lctl 
+010a 3e 80			ld  a, $80 
+010c ed 79			out (c), a 
+010e			 
+010e 0e c0			ld  c, uart0_brgl 
+0110 3e 1a			ld  a, $1A 
+0112 ed 79			out (c), a 
+0114			 
+0114 0e c3			ld  c, uart0_lctl 
+0116 3e 03			ld  a, $03 
+0118 ed 79			out (c), a 
+011a			 
+011a 0e c2			ld  c, uart0_fctl 
+011c 3e 06			ld  a, $06 
+011e ed 79			out (c), a 
+0120			 
+0120 21 39 01		print:	ld  hl, msg 
+0123 7e			prloop:	ld  a, (hl) 
+0124 a7				and a 
+0125 28 10			jr  z, done 
+0127 0e c5		prwait:	ld  c, uart0_lsr 
+0129 ed 78			in  a, (c) 
+012b e6 20			and $20 
+012d 28 f8			jr  z, prwait 
+012f 0e c0		prout:	ld  c, uart0_thr 
+0131 7e				ld  a, (hl) 
+0132 ed 79			out (c), a 
+0134 23				inc hl 
+0135 18 ec			jr  prloop 
+0137			 
+0137 18 fe		done:	jr  done 
+0139			 
+0139 .. 0a 0d 00	msg:	dm  "Hello World!", 10, 13, 0 
+0148			 
+0148				end 
+# End of file hellow.asm
+0148

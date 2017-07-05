@@ -1,7 +1,8 @@
 \ USB console for HyTiny-STM32F103TB and BluePill-STM32F103C8 boards
 
 $5000 eraseflashfrom  \ this must be loaded on top of a *clean* Mecrisp image!
-cr compiletoflash
+cr
+compiletoflash
 
 include hal-stm32f1.fs
 include ../flib/any/ring.fs
@@ -33,4 +34,8 @@ include usb.fs
 
 ( usb end: ) here hex.
 cornerstone eraseflash
-compiletoram
+
+include ../g6u/board.fs
+include ../g6u/core.fs
+
+hexdump

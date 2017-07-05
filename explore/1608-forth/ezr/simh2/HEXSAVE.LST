@@ -1,0 +1,174 @@
+Save Intel HEX to file -jcw, 2017-03-18 Z80ASM 1.32 Page   1
+HEXSAVE Z80
+
+    2                   
+    3                   ; Usage: hexsave myfile.dat
+    4                   ;
+    5                   ; Sample data:
+    6                   ;
+    7                   ; :2000000021CC013E3CCDC001CDB101FE3A20F9CD8D01474FCD8D01CD8D01CD8D01FE0128F1
+    8                   ; :2000200018CD8D01772310F9CD8D0179ED443E2B28D332CB013E3F18CCCD8D013ACB01B7CA
+    9                   ; :200040003E2D203D11B3FE19CB15CB1444C53E3ECDC0010E13CD87010E16CD8701AF327CDF
+   10                   ; :200060000021CC01C1C5E5EB0E1ACD05000E15CD8701E1C11180001910EB0E10CD87013ED2
+   11                   ; :2000800021CDC001C30000115C00C30500D5CDA401CB07CB07CB07CB0757CDA401B2D1F5E9
+   12                   ; :2000A000814FF1C9CDB101FE40FAAE01D607E60FC9C5E51EFF0E06CD0500B728F6E1C1C9C8
+   13                   ; :2000C000C5E55F0E02CD0500E1C1C9000000000000000000000000000000000000000000CA
+   14                   ; :2000E000000000000000000000000000000000000000000000000000000000000000000000
+   15                   ; :00000001FF
+   16                   
+   17         0000      WSTART	equ	0000h
+   18         0005      BDOS	equ	0005h
+   19         005C      FCB	equ	005Ch
+   20                   
+   21         0001      CONINP	equ	1
+   22         0002      CONOUT	equ	2
+   23         0006      CONIO	equ	6
+   24         0009      PSTRING	equ	9
+   25         0010      CLOSEF	equ	16
+   26         0013      DELF	equ	19
+   27         0015      WRITES	equ	21
+   28         0016      MAKEF	equ	22
+   29         001A      SETDMA  equ     26
+   30                   
+   31         0100      	org 100h
+   32                   
+   33 0100  21 01D0             ld hl,buf
+   34 0103  3E 3C               ld a,'<'
+   35 0105  CD 01C4     prompt: call putch
+   36 0108  CD 01B5     skip:   call getch
+   37 010B  FE 3A               cp ':'
+   38 010D  20 F9               jr nz,skip
+   39 010F  CD 0191             call getbyte
+   40 0112  47                  ld b,a          ; length
+   41 0113  4F                  ld c,a          ; running checksum
+   42 0114  CD 0191             call getbyte    ; ignore addr hi
+   43 0117  CD 0191             call getbyte    ; ignore addr lo
+   44 011A  CD 0191             call getbyte    ; record type
+   45 011D  FE 01               cp 1            ; eof marker?
+   46 011F  28 1C               jr z, done
+   47 0121  78                  ld a,b          ; 0-length record also marks end
+   48 0122  B7                  or a
+   49 0123  28 18               jr z,done
+   50 0125  CD 0191     loop:   call getbyte
+   51 0128  77                  ld (hl),a
+   52 0129  23                  inc hl
+   53 012A  10 F9               djnz loop
+   54 012C  CD 0191             call getbyte    ; checksum
+   55 012F  79                  ld a,c
+   56 0130  ED 44               neg
+   57 0132  3E 2B               ld a,'+'
+   58 0134  28 CF               jr z,prompt
+   59 0136  32 01CF             ld (error),a
+Save Intel HEX to file -jcw, 2017-03-18 Z80ASM 1.32 Page   2
+HEXSAVE Z80
+
+   60 0139  3E 3F               ld a,'?'
+   61 013B  18 C8               jr prompt
+   62                   
+   63 013D  CD 0191     done:   call getbyte
+   64 0140  3A 01CF             ld a,(error)
+   65 0143  B7                  or a
+   66 0144  3E 2D               ld a,'-'
+   67 0146  20 3D               jr nz,quit
+   68                   
+   69 0148  11 FEAF             ld de,127-buf   ; round up to a multiple of 128
+   70 014B  19                  add hl,de
+   71 014C  CB 15               rl l
+   72 014E  CB 14               rl h
+   73 0150  44                  ld b,h          ; max 256 sect, i.e. 32 KB data
+   74 0151  C5                  push bc
+   75                   
+   76 0152  3E 3E               ld a,'>'
+   77 0154  CD 01C4             call putch
+   78                   
+   79 0157  0E 13               ld c,DELF
+   80 0159  CD 018B             call fileop
+   81                   
+   82 015C  0E 16               ld c,MAKEF
+   83 015E  CD 018B             call fileop
+   84                   
+   85 0161  AF                  xor a
+   86 0162  32 007C             ld (FCB+32),a
+   87 0165  21 01D0             ld hl,buf
+   88                   
+   89 0168  C1                  pop bc
+   90 0169  C5          sloop:  push bc
+   91 016A  E5                  push hl
+   92                   
+   93 016B  EB                  ex de,hl
+   94 016C  0E 1A               ld c,SETDMA
+   95 016E  CD 0005             call BDOS
+   96                   
+   97 0171  0E 15               ld c,WRITES
+   98 0173  CD 018B             call fileop
+   99                   
+  100 0176  E1                  pop hl
+  101 0177  C1                  pop bc
+  102                   
+  103 0178  11 0080             ld de,128
+  104 017B  19                  add hl,de
+  105 017C  10 EB               djnz sloop
+  106                   
+  107 017E  0E 10               ld c,CLOSEF
+  108 0180  CD 018B             call fileop
+  109                   
+  110 0183  3E 21               ld a,'!'
+  111 0185  CD 01C4     quit:   call putch
+  112 0188  C3 0000             jp WSTART
+  113                   
+  114 018B  11 005C     fileop: ld de,FCB
+  115 018E  C3 0005             jp BDOS
+  116                          
+  117 0191  D5          getbyte push de
+Save Intel HEX to file -jcw, 2017-03-18 Z80ASM 1.32 Page   3
+HEXSAVE Z80
+
+  118 0192  CD 01A8             call gethex
+  119 0195  CB 07               rlc a
+  120 0197  CB 07               rlc a
+  121 0199  CB 07               rlc a
+  122 019B  CB 07               rlc a
+  123 019D  57                  ld d,a
+  124 019E  CD 01A8             call gethex
+  125 01A1  B2                  or d
+  126 01A2  D1                  pop de
+  127 01A3  F5                  push af
+  128 01A4  81                  add c           ; update checksum
+  129 01A5  4F                  ld c,a
+  130 01A6  F1                  pop af
+  131 01A7  C9                  ret
+  132                   
+  133 01A8  CD 01B5     gethex: call getch
+  134 01AB  FE 40               cp '@'
+  135 01AD  FA 01B2             jp m,gh1        ; jr c,gh1 ?????
+  136 01B0  D6 07               sub 7
+  137 01B2  E6 0F       gh1:    and 0Fh
+  138 01B4  C9                  ret
+  139                   
+  140 01B5  C5          getch:  push bc
+  141 01B6  E5                  push hl
+  142 01B7  1E FF       gc1:    ld e,0FFh       ; no echo
+  143 01B9  0E 06               ld c,CONIO
+  144 01BB  CD 0005             call BDOS
+  145 01BE  B7                  or a
+  146 01BF  28 F6               jr z,gc1
+  147 01C1  E1                  pop hl
+  148 01C2  C1                  pop bc
+  149 01C3  C9                  ret
+  150                   
+  151 01C4  C5          putch:  push bc
+  152 01C5  E5                  push hl
+  153 01C6  5F                  ld e,a
+  154 01C7  0E 02               ld c,CONOUT
+  155 01C9  CD 0005             call BDOS
+  156 01CC  E1                  pop hl
+  157 01CD  C1                  pop bc
+  158 01CE  C9                  ret
+  159                   
+  160 01CF  00          error:  db 0
+  161         01D0      buf:    equ $
+  162                   
+  163                           end
+ 0 Error(s) Detected.
+ 208 Absolute Bytes. 27 Symbols Detected.
+

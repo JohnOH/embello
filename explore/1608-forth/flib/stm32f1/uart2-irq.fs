@@ -19,6 +19,6 @@ $E000E104 constant NVIC-EN1R \ IRQ 32 to 63 Set Enable Register
 ;
 
 : uart-irq-key? ( -- f )  \ input check for interrupt-driven ring buffer
-  uart-ring ring# 0<> ;
+  pause uart-ring ring# 0<> ;
 : uart-irq-key ( -- c )  \ input read from interrupt-driven ring buffer
   begin uart-irq-key? until  uart-ring ring> ;

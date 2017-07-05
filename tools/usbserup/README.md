@@ -51,7 +51,14 @@ from that, there are no differences. Your code runs at 0x08000000, as usual.
 
 ## Installation
 
-Build instructions: "`git submodule update --init`", followed by "`make`".
+Build instructions:
+
+    cd tools/usbserup
+    git submodule update --init
+    cd libopencm3
+    make
+    cd ..
+    make
 
 One tricky bit is getting this code into the correct area of flash memory, and
 then getting it started up. This can be done via the "installboot.ino" sketch,

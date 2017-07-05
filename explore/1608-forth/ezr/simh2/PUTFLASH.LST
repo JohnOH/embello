@@ -1,0 +1,90 @@
+Copy RAM disk A: to eZ80 flash disk B: -jcw, 2017-03-18 Z80ASM 1.32 Page   1
+PUTFLASHZ80
+
+    2                   
+    3                   ; Usage: ezflash
+    4                   
+    5         0000      WSTART	equ	0000h
+    6         0005      BDOS	equ	0005h
+    7                   
+    8         0009      PRTSTR  equ     9
+    9         000E      SELDSK  equ     14
+   10         001F      GETADR  equ     31
+   11                   
+   12         0100      	org 100h
+   13                   
+   14 0100  1E 01               ld e,1          ; select drive B:
+   15 0102  0E 0E               ld c,SELDSK
+   16 0104  CD 0005             call BDOS
+   17                   
+   18 0107  0E 1F               ld c,GETADR     ; get DPB of B:
+   19 0109  CD 0005             call BDOS
+   20 010C  E5                  push hl
+   21                   
+   22 010D  1E 00               ld e,0          ; select drive A:
+   23 010F  0E 0E               ld c,SELDSK
+   24 0111  CD 0005             call BDOS
+   25                   
+   26 0114  0E 1F               ld c,GETADR     ; get DPB of A:
+   27 0116  CD 0005             call BDOS
+   28                   
+   29 0119  D1                  pop de
+   30 011A  06 0F               ld b,15
+   31                   
+   32 011C  1A          cmpdpb: ld a,(de)       ; check that DBPs are same
+   33 011D  BE                  cp a,(hl)
+   34 011E  20 47               jr nz,fail
+   35 0120  13                  inc de
+   36 0121  23                  inc hl
+   37 0122  10 F8               djnz cmpdpb
+   38                   
+   39 0124  01 00F5     	ld bc,00F5h     ; FLASH_KEY
+   40 0127  3E B6       	ld a,0B6h       ; key 1
+   41 0129  ED 79       	out (c),a
+   42 012B  3E 49       	ld a,49h        ; key 2
+   43 012D  ED 79       	out (c),a
+   44                   
+   45 012F  0E F9       	ld c,0F9h       ; FLASH_FDIV
+   46 0131  3E 29       	ld a,41         ; ceil[mhz*5.1], i.e. 41 for 8 MHz
+   47 0133  ED 79       	out (c),a
+   48                   
+   49 0135  0E F5       	ld c,0F5h       ; FLASH_KEY
+   50 0137  3E B6       	ld a,0B6h       ; key 1
+   51 0139  ED 79       	out (c),a
+   52 013B  3E 49       	ld a,49h        ; key 2
+   53 013D  ED 79       	out (c),a
+   54                   
+   55 013F  0E FA       	ld c,0FAh       ; FLASH_PROT
+   56 0141  3E 00       	ld a,00h        ; unprotect all 8 blocks
+   57 0143  ED 79       	out (c),a
+   58                   
+   59 0145  0E FF       	ld c,0FFh       ; FLASH_PGCTL
+Copy RAM disk A: to eZ80 flash disk B: -jcw, 2017-03-18 Z80ASM 1.32 Page   2
+PUTFLASHZ80
+
+   60 0147  3E 01       	ld a,01h        ; start mass erase
+   61 0149  ED 79       	out (c),a
+   62                   
+   63 014B  5B 21 00 60 	db 5Bh,21h,00h,60h,03Ah ; ld.lil hl,$3A6000
+   64 0150  5B 11 00 00 	db 5Bh,11h,00h,00h,00h  ; ld.lil de,$000000
+   65 0155  5B 01 00 00 	db 5Bh,01h,00h,00h,04h  ; ld.lil bc,$040000
+   66 015A  49 ED B0    	db 49h,0EDh,0B0h        ; ldir.l
+   67                   
+   68 015D  01 00FA     	ld bc,00FAh     ; FLASH_PROT
+   69 0160  3E FF       	ld a,0FFh       ; protect all 8 blocks
+   70 0162  ED 79       	out (c),a
+   71                   
+   72 0164  C3 0000             jp 0000h
+   73                   
+   74 0167  11 0172     fail:   ld de,msg
+   75 016A  0E 09               ld c,PRTSTR
+   76 016C  CD 0005             call BDOS
+   77 016F  C3 0000             jp 0000h
+   78                   
+   79 0172  41 3A 20 77 msg:    db "A: wrong fmt!$"
+   80                   
+   81         0180              org $
+   82                           end
+ 0 Error(s) Detected.
+ 128 Absolute Bytes. 8 Symbols Detected.
+

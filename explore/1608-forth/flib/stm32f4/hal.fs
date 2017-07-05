@@ -12,26 +12,42 @@
 : io.all ( -- )  \ display all the readable GPIO registers
   io-ports 0 do i 0 io io. loop ;
 
-$40010000 constant AFIO
-     AFIO $4 + constant AFIO-MAPR
-
 $40004800 constant USART3
    USART3 $8 + constant USART3-BRR
 
 $40023800 constant RCC
-     RCC $00 + constant RCC-CR
-     RCC $04 + constant RCC-PLLCRGR
-     RCC $08 + constant RCC-CFGR
-\ ?  RCC $10 + constant RCC-APB1RSTR
-\ ?  RCC $18 + constant RCC-APB2ENR
-\ ?  RCC $1C + constant RCC-APB1ENR
+   RCC $0 + constant RCC-CR
+   RCC $4 + constant RCC-PLLCFGR
+   RCC $8 + constant RCC-CFGR
+   RCC $C + constant RCC-CIR
+   RCC $10 + constant RCC-AHB1RSTR
+   RCC $14 + constant RCC-AHB2RSTR
+   RCC $20 + constant RCC-APB1RSTR
+   RCC $24 + constant RCC-APB2RSTR
+   RCC $30 + constant RCC-AHB1ENR
+   RCC $34 + constant RCC-AHB2ENR
+   RCC $40 + constant RCC-APB1ENR
+   RCC $44 + constant RCC-APB2ENR
+   RCC $50 + constant RCC-AHB1LPENR
+   RCC $54 + constant RCC-AHB2LPENR
+   RCC $60 + constant RCC-APB1LPENR
+   RCC $64 + constant RCC-APB2LPENR
+   RCC $70 + constant RCC-BDCR
+   RCC $74 + constant RCC-CSR
+   RCC $80 + constant RCC-SSCGR
+   RCC $84 + constant RCC-PLLI2SCFGR
 
 $40023C00 constant FLASH
     FLASH $0 + constant FLASH-ACR
 
+: jtag-deinit ( -- ) \ implicitly disabled during gpio config
+  ;
+: swd-deinit ( -- ) \ implicitly disabled during gpio config
+  ;
+
 \ adjusted for STM32F407 @ 168 MHz (original STM32F407 by Igor de om1zz, 2015)
 
-25000000 variable clock-hz  \ 25 MHz crystal, HSI is 16 MHz
+16000000 variable clock-hz  \ HSI is 16 MHz
 
 : 168MHz ( -- )  \ set the main clock to 168 MHz, keep baud rate at 115200
   $103 Flash-ACR !   \ 3 Flash Waitstates for 120 MHz with more than 2.7 V Vcc
@@ -46,7 +62,7 @@ $40023C00 constant FLASH
   0 16 lshift or  \ PLLP Division factor for main system clock
                   \ 0: /2  1: /4  2: /6  3: /8
                   \ 336 MHz / 2 = 168 MHz 
-  RCC-PLLCRGR !
+  RCC-PLLCFGR !
 
   24 bit RCC-CR bis!  \ PLLON - Wait for PLL to lock:
   begin 25 bit RCC-CR bit@ until  \ PLLRDY
@@ -75,6 +91,24 @@ $40023C00 constant FLASH
   clock-hz @ swap / systick ;
 : systick-hz? ( -- u ) \ derive current systick frequency from clock
   clock-hz @  $E000E014 @ 1+  / ;
+
+: micros ( -- n )  \ return elapsed microseconds, this wraps after some 2000s
+\ assumes systick is running at 1000 Hz, overhead is about 1.8 us @ 72 MHz
+\ get current ticks and systick, spinloops if ticks changed while we looked
+  begin ticks @ $E000E018 @ over ticks @ <> while 2drop repeat
+  $E000E014 @ 1+ swap -  \ convert down-counter to remaining
+  clock-hz @ 1000000 / ( ticks systicks mhz )
+  / swap 1000 * + ;
+
+: millis ( -- u )  \ return elapsed milliseconds, this wraps after 49 days
+  ticks @ ;
+
+: us ( n -- )  \ microsecond delay using a busy loop, this won't switch tasks
+  2 -  \ adjust for approximate overhead of this code itself
+  micros +  begin dup micros - 0< until  drop ;
+
+: ms ( n -- )  \ millisecond delay, multi-tasker aware (may switch tasks!)
+  millis +  begin millis over - 0< while pause repeat  drop ;
 
 : list ( -- )  \ list all words in dictionary, short form
   cr dictionarystart begin

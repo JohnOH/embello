@@ -9,7 +9,7 @@ compiletoflash
 ( code-start, see code-size below ) here
 
 include ../flib/spi/rf69.fs
-include ../flib/i2c/oled.fs
+include ../flib/i2c/ssd1306.fs
 \ include ../flib/spi/tft-ili9325.fs
 include ../flib/mecrisp/graphics.fs
 include ../flib/any/digits.fs
@@ -27,14 +27,6 @@ PA10 constant RF12-IRQ
 
 include ../flib/any/crc.fs
 include ../flib/spi/rf12.fs
-
-: showdigit ( n x -- )
-  swap 256 * digits + 64 0 do
-    32 0 do
-      i $1F xor bit over bit@ if over i + j putpixel then
-    loop
-    4 +
-  loop 2drop ;
 
 : showdot ( x -- )
   64 60 do
