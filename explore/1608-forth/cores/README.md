@@ -21,7 +21,7 @@ the following command:
 
     $5000 eraseflashfrom
 
-This will work even when `erasflash` itself has been redefined.
+This will work even when `eraseflash` itself has been redefined.
 
 With a big thank you to Matthias for creating and supporting [Mecrisp][MG] in
 the first place, but also for very generously offering to implement all the
